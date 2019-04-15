@@ -544,8 +544,9 @@
 	 * Step the tree.
 	 */
 	Mistreevous.Tree.prototype.step = function () {
+        this._rootNode.update(this._blackboard);
         try {
-            this._rootNode.update(this._blackboard);
+            //this._rootNode.update(this._blackboard);
         } catch (exception) {
             throw `TreeStepError: ${exception}`;
         }

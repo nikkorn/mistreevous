@@ -66,7 +66,7 @@ function Wait(uid, duration, longestDuration) {
     /**
      * Gets the state of the node.
      */
-    this.getChildren = () => [];
+    this.getChildren = () => null;
 
     /**
      * Gets the type of the node.
