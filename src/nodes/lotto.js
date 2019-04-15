@@ -6,7 +6,7 @@
  * @param tickets The child node tickets
  * @param children The child nodes. 
  */
-function Lotto(uid, tickets, children) {
+export default function Lotto(uid, tickets, children) {
     /**
      * The node state.
      */

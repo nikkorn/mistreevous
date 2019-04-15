@@ -4,7 +4,7 @@
  * @param uid The unique node it.
  * @param children The child nodes. 
  */
-function Selector(uid, children) {
+export default function Selector(uid, children) {
     /**
      * The node state.
      */

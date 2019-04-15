@@ -12,7 +12,7 @@
  * @param conditionFunction The name of the condition function that determines whether to repeat the update of the child node.
  * @param child The child node. 
  */
-function Repeat(uid, iterations, maximumIterations, conditionFunction, child) {
+export default function Repeat(uid, iterations, maximumIterations, conditionFunction, child) {
     /**
      * The node state.
      */

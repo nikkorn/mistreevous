@@ -4,7 +4,7 @@
  * @param uid The unique node it.
  * @param conditionFunction The condition function. 
  */
-function Condition(uid, conditionFunction) {
+export default function Condition(uid, conditionFunction) {
     /**
      * The node state.
      */

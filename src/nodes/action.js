@@ -4,7 +4,7 @@
  * @param uid The unique node it.
  * @param actionName The action name.
  */
-function Action(uid, actionName) {
+export default function Action(uid, actionName) {
     /**
      * The node state.
      */

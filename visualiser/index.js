@@ -114,7 +114,7 @@ function onDefinitionUpdate() {
 
     try {
         // Try to create the behaviour tree.
-        behaviourTree = new Mistreevous.Tree(definitionTextArea.value, blackboard);
+        behaviourTree = new Mistreevous.BehaviourTree(definitionTextArea.value, blackboard);
 
         // We created the behaviour tree without an issue.
         resultTextArea.innerHTML             = "OK";
@@ -229,7 +229,7 @@ function buildTreeView() {
                 tooltip: function (node) { return node.item.caption },
                 template: (node) => `<div class='tree-view-node ${node.item.state}'>
                 <div class='tree-view-icon tree-view-icon-${node.item.type}'>
-                <img src="resources/${node.item.type}.png">
+                <img src="icons/${node.item.type}.png">
                 </div>
                 <div><p class='tree-view-caption' style="margin:0px;">${node.item.caption}</p></div>
                 </div>`
