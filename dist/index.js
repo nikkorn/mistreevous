@@ -752,8 +752,20 @@ function Action(uid, actionName) {
                 action.onStart();
             }
 
-            // Call the action update, the result of which will be the new state of this action node, or 'RUNNING' if undefined.
-            state = action.onUpdate() || Mistreevous.State.RUNNING;
+            // Call the action 'onUpdate' function, the result of which will be the new state of this action node, or 'RUNNING' if undefined.
+            // Unlike 'onStart' and 'onFinish', this function must be defined, as it is critical in determining node state.
+            if (typeof action.onUpdate === "function") {
+                // Do the action update and get the returned state.
+                const updateResult = action.onUpdate();
+
+                // Validate the returned value.
+                this._validateUpdateResult(updateResult);
+
+                // Set the state of this node, this may be undefined, which just means that the node is still in the 'RUNNING' state.
+                state = updateResult || Mistreevous.State.RUNNING;
+            } else {
+                throw `cannot update action node as action '${actionName}' has no 'onUpdate' callback defined`;
+            }
 
             // If the new action node state is either 'SUCCEEDED' or 'FAILED' then we are finished, so call onFinish if it exists.
             if ((state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) && typeof action.onFinish === "function") {
@@ -811,6 +823,21 @@ function Action(uid, actionName) {
         // The action should at the very least have a onUpdate function defined.
         if (typeof action.onUpdate !== "function") {
             throw `action '${actionName}' does not have an 'onUpdate()' function defined`;
+        }
+    };
+
+    /**
+     * Validate the result of an update function call.
+     * @param result The result of an update function call.
+     */
+    this._validateUpdateResult = result => {
+        switch (result) {
+            case Mistreevous.State.SUCCEEDED:
+            case Mistreevous.State.FAILED:
+            case undefined:
+                return;
+            default:
+                throw `action '${actionName}' 'onUpdate' returned an invalid response, expected an optional Mistreevous.State.SUCCEEDED or Mistreevous.State.FAILED value to be returned`;
         }
     };
 };
