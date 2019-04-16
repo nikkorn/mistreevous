@@ -199,6 +199,11 @@ export default function BehaviourTree(definition, board) {
     this._rootNode;
 
     /**
+     * The flattened array of tree nodes.
+     */
+    this._flattenTreeNodes;
+
+    /**
      * Mistreevous init logic.
      */
     this._init = function() {
@@ -216,6 +221,19 @@ export default function BehaviourTree(definition, board) {
 
         // Convert the AST to our actual tree.
         this._rootNode = rootASTNode.createNodeInstance();
+
+        // Get a flattened array of tree nodes.
+        this._flattenTreeNodes = [];
+        let currentNodeScopeId = 0;
+        const findNestedNodes = (node, depth, nodeScopeId) => {
+            this._flattenTreeNodes.push({ node, depth, nodeScopeId });
+
+            nodeScopeId = ++currentNodeScopeId;
+
+            // Find each child of the node.
+            (node.getChildren() || []).forEach((child) => findNestedNodes(child, depth + 1, nodeScopeId));
+        };
+        findNestedNodes(this._rootNode, 0, currentNodeScopeId);
     };
 
     /**
