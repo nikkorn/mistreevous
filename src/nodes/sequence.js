@@ -4,7 +4,7 @@
  * @param uid The unique node it.
  * @param children The child nodes. 
  */
-function Sequence(uid, children) {
+export default function Sequence(uid, children) {
     /**
      * The node state.
      */

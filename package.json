@@ -1,0 +1,35 @@
+{
+  "name": "mistreevous",
+  "version": "0.0.1",
+  "description": "A tool to build \u001b[D\u001b[Cbehaviour trees in JavaScript",
+  "main": "dist/index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.2",
+    "babel-preset-env": "^1.7.0",
+    "webpack": "^3.10.0"
+  },
+  "scripts": {
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nikkorn/mistreevous.git"
+  },
+  "keywords": [
+    "behaviour",
+    "tree",
+    "ai",
+    "machine",
+    "state"
+  ],
+  "author": "nikolas howard",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nikkorn/mistreevous/issues"
+  },
+  "homepage": "https://github.com/nikkorn/mistreevous#readme"
+}

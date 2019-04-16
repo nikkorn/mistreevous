@@ -4,7 +4,7 @@
  * @param uid The unique node it.
  * @param child The child node. 
  */
-function Root(uid, child) {
+export default function Root(uid, child) {
     /**
      * The node state.
      */

@@ -4,7 +4,7 @@
  * @param uid The unique node it.
  * @param child The child node. 
  */
-function Flip(uid, child) {
+export default function Flip(uid, child) {
     /**
      * The node state.
      */

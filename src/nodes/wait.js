@@ -5,7 +5,7 @@
  * @param duration The duration that this node will wait to succeed in milliseconds, or the earliest if longestDuration is defined.
  * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
  */
-function Wait(uid, duration, longestDuration) {
+export default function Wait(uid, duration, longestDuration) {
     /**
      * The node state.
      */
