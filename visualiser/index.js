@@ -26,7 +26,7 @@ definitionTextArea.innerHTML =
         }
         wait [1000,2500]
         selector {
-        condition:DoorIsOpen
+            condition:DoorIsOpen
             action:OpenDoor
             sequence {
                 action:UnlockDoor
