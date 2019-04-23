@@ -19,6 +19,12 @@ export default function Action(uid, actionName) {
         // Get the pre-update node state.
         const initialState = state;
 
+        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
+        if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
+            // We have not changed state.
+            return false;
+        }
+
         // An action node should be updated until it fails or succeeds.
         if (state === Mistreevous.State.READY || state === Mistreevous.State.RUNNING) {
             // Get the corresponding action object.

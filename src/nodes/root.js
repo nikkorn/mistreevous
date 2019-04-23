@@ -19,6 +19,12 @@ export default function Root(uid, child) {
         // Get the pre-update node state.
         const initialState = state;
 
+        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
+        if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
+            // We have not changed state.
+            return false;
+        }
+
         // If the child has never been updated or is running then we will need to update it now.
         if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
             child.update(board);

@@ -82,6 +82,12 @@ export default function Lotto(uid, tickets, children) {
         // Get the pre-update node state.
         const initialState = state;
 
+        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
+        if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
+            // We have not changed state.
+            return false;
+        }
+
         // If this node is in the READY state then we need to pick a winning child node.
         if (state === Mistreevous.State.READY) {
             // Create a lotto draw.

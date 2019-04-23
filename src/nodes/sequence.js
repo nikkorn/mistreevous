@@ -19,6 +19,12 @@ export default function Sequence(uid, children) {
         // Get the pre-update node state.
         const initialState = state;
 
+        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
+        if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
+            // We have not changed state.
+            return false;
+        }
+
         // Iterate over all of the children of this node.
         for (const child of children) {
             // If the child has never been updated or is running then we will need to update it now.

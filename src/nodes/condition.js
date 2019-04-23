@@ -19,6 +19,12 @@ export default function Condition(uid, conditionFunction) {
         // Get the pre-update node state.
         const initialState = state;
 
+        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
+        if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
+            // We have not changed state.
+            return false;
+        }
+
         // Call the condition function to determine the state of this node, but it must exist in the blackboard.
         if (typeof board[conditionFunction] === "function") {
             state = !!(board[conditionFunction]()) ? Mistreevous.State.SUCCEEDED : Mistreevous.State.FAILED;
