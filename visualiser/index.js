@@ -56,49 +56,49 @@ DoorIsSmashed: () => true,
 WalkToDoor: {
     onStart: () => {},
     onUpdate: () => Mistreevous.State.SUCCEEDED,
-    onFinish: (succeeded, aborted) => {}
+    onFinish: (succeeded) => {}
 },
 
 OpenDoor: {
     onStart: () => {},
     onUpdate: () => Mistreevous.State.FAILED,
-    onFinish: (succeeded, aborted) => {}
+    onFinish: (succeeded) => {}
 },
 
 UnlockDoor: {
     onStart: () => {},
     onUpdate: () => Mistreevous.State.FAILED,
-    onFinish: (succeeded, aborted) => {}
+    onFinish: (succeeded) => {}
 },
 
 SmashDoor: {
     onStart: () => {},
     onUpdate: () => {},
-    onFinish: (succeeded, aborted) => {}
+    onFinish: (succeeded) => {}
 },
 
 WalkThroughDoor: {
     onStart: () => {},
     onUpdate: () => Mistreevous.State.SUCCEEDED,
-    onFinish: (succeeded, aborted) => {}
+    onFinish: (succeeded) => {}
 },
 
 CloseDoor: {
     onStart: () => {},
     onUpdate: () => Mistreevous.State.SUCCEEDED,
-    onFinish: (succeeded, aborted) => {}
+    onFinish: (succeeded) => {}
 },
 
 ScreamLoudly: {
     onStart: () => {},
     onUpdate: () => Mistreevous.State.SUCCEEDED,
-    onFinish: (succeeded, aborted) => {}
+    onFinish: (succeeded) => {}
 },
 
 MutterAngrily: {
     onStart: () => {},
     onUpdate: () => Mistreevous.State.SUCCEEDED,
-    onFinish: (succeeded, aborted) => {}
+    onFinish: (succeeded) => {}
 }`;
 
 /**

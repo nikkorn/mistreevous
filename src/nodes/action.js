@@ -49,7 +49,7 @@ export default function Action(uid, actionName) {
 
             // If the new action node state is either 'SUCCEEDED' or 'FAILED' then we are finished, so call onFinish if it exists.
             if ((state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) && typeof action.onFinish === "function") {
-                action.onFinish(state === Mistreevous.State.SUCCEEDED, false);
+                action.onFinish(state === Mistreevous.State.SUCCEEDED);
             }
         }
 
