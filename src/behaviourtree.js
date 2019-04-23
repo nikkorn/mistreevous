@@ -207,6 +207,16 @@ export default function BehaviourTree(definition, board) {
      * Mistreevous init logic.
      */
     this._init = function() {
+        // The tree definition must be defined.
+        if (typeof definition !== "string") {
+            throw "TypeError: the tree definition must be defined";
+        }
+
+        // The blackboard must be defined.
+        if (typeof board !== 'object' || board === null) {
+            throw "TypeError: the blackboard must be defined";
+        }
+
         // Convert the definition into some tokens.
         const tokens = this._parseDefinition();
 
