@@ -3,6 +3,7 @@ import Condition from './nodes/condition'
 import Flip from './nodes/flip'
 import Lotto from './nodes/lotto'
 import Repeat from './nodes/repeat'
+import While from './nodes/while'
 import Root from './nodes/root'
 import Selector from './nodes/selector'
 import Sequence from './nodes/sequence'
@@ -91,7 +92,6 @@ export default function BehaviourTree(definition, board) {
             type: "repeat",
             iterations: null,
             maximumIterations: null,
-            conditionFunction: null,
             children: [],
             validate: function () {
                 // A repeat node must have a single node.
@@ -118,7 +118,22 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function () { 
-                return new Repeat(this.uid, this.iterations, this.maximumIterations, this.conditionFunction, this.children[0].createNodeInstance());
+                return new Repeat(this.uid, this.iterations, this.maximumIterations, this.children[0].createNodeInstance());
+            }
+        }),
+        "WHILE": () => ({
+            uid: getUid(),
+            type: "while",
+            conditionFunction: null,
+            children: [],
+            validate: function () {
+                // A while node must have a single node.
+                if (this.children.length !== 1) {
+                    throw "a while node must have a single child";
+                }
+            },
+            createNodeInstance: function () { 
+                return new While(this.uid, this.conditionFunction, this.children[0].createNodeInstance());
             }
         }),
         "CONDITION": () => ({
@@ -467,7 +482,7 @@ export default function BehaviourTree(definition, board) {
                     // Push the REPEAT node into the current scope.
                     stack[stack.length-1].push(node);
 
-                    // Check for iteration counts ([]) or condition function (:SomeCondition) 
+                    // Check for iteration counts ([])
                     if (tokens[0] === "[") {
                         // An iteration count has been defined. Get the iteration and potential maximum iteration of the wait.
                         const iterationArguments = getArguments((arg) => (!isNaN(arg)) && parseFloat(arg, 10) === parseInt(arg, 10), "repeat node iteration counts must be integer values");
@@ -484,27 +499,40 @@ export default function BehaviourTree(definition, board) {
                             // An incorrect number of iteration counts was defined.
                             throw "invalid number of repeat node iteration count arguments defined";
                         }
-                    } else if (tokens[0] === ":") {
-                        // A condition function name has been defined. If the next token is a '}' then there is a missing condition name token.
-                        if (tokens[0] === "}") {
-                            throw "missing repeat condition name";
-                        }
-
-                        // A ':' character splits the 'CONDITION' token and the target function name token.
-                        popAndCheck(":");
-
-                        // Check whether we are missing a condition name.
-                        if (tokens[0] === "{") {
-                            throw "missing repeat condition name";
-                        }
-
-                        // The next token should be the name of the condition function. 
-                        node.conditionFunction = tokens.shift();
                     }
 
                     popAndCheck("{");
 
                     // The new scope is that of the new REPEAT nodes children.
+                    stack.push(node.children);
+                    break;
+
+                case "WHILE":
+                    // Create a WHILE AST node.
+                    node = ASTNodeFactories.WHILE();
+
+                    // Push the WHILE node into the current scope.
+                    stack[stack.length-1].push(node);
+
+                    // A condition function should be defined. If the next token is a '}' then there is a missing condition name token.
+                    if (tokens[0] === "}") {
+                        throw "missing repeat condition name";
+                    }
+
+                    // A ':' character splits the 'WHILE' token and the condition function name token.
+                    popAndCheck(":");
+
+                    // Check whether we are missing a condition name.
+                    if (tokens[0] === "{") {
+                        throw "missing while condition name";
+                    }
+
+                    // The next token should be the name of the condition function. 
+                    node.conditionFunction = tokens.shift();
+
+                    popAndCheck("{");
+
+                    // The new scope is that of the new WHILE nodes children.
                     stack.push(node.children);
                     break;
 

@@ -86,7 +86,7 @@ const Mistreevous = {
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
     module.exports = Mistreevous;
 } else {
-    if (typeof define === 'function' && __webpack_require__(12)) {
+    if (typeof define === 'function' && __webpack_require__(13)) {
         define([], function () {
             return Mistreevous;
         });
@@ -137,10 +137,12 @@ module.exports = function(originalModule) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__nodes_flip__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nodes_lotto__ = __webpack_require__(6);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__nodes_repeat__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__nodes_root__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_selector__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_sequence__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_wait__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__nodes_while__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_root__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_selector__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_sequence__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__nodes_wait__ = __webpack_require__(12);
+
 
 
 
@@ -183,7 +185,7 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function () {
-                return new __WEBPACK_IMPORTED_MODULE_5__nodes_root__["a" /* default */](this.uid, this.children[0].createNodeInstance());
+                return new __WEBPACK_IMPORTED_MODULE_6__nodes_root__["a" /* default */](this.uid, this.children[0].createNodeInstance());
             }
         }),
         "SELECTOR": () => ({
@@ -197,7 +199,7 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function () {
-                return new __WEBPACK_IMPORTED_MODULE_6__nodes_selector__["a" /* default */](this.uid, this.children.map(child => child.createNodeInstance()));
+                return new __WEBPACK_IMPORTED_MODULE_7__nodes_selector__["a" /* default */](this.uid, this.children.map(child => child.createNodeInstance()));
             }
         }),
         "SEQUENCE": () => ({
@@ -211,7 +213,7 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function () {
-                return new __WEBPACK_IMPORTED_MODULE_7__nodes_sequence__["a" /* default */](this.uid, this.children.map(child => child.createNodeInstance()));
+                return new __WEBPACK_IMPORTED_MODULE_8__nodes_sequence__["a" /* default */](this.uid, this.children.map(child => child.createNodeInstance()));
             }
         }),
         "LOTTO": () => ({
@@ -234,7 +236,6 @@ function BehaviourTree(definition, board) {
             type: "repeat",
             iterations: null,
             maximumIterations: null,
-            conditionFunction: null,
             children: [],
             validate: function () {
                 // A repeat node must have a single node.
@@ -261,7 +262,22 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function () {
-                return new __WEBPACK_IMPORTED_MODULE_4__nodes_repeat__["a" /* default */](this.uid, this.iterations, this.maximumIterations, this.conditionFunction, this.children[0].createNodeInstance());
+                return new __WEBPACK_IMPORTED_MODULE_4__nodes_repeat__["a" /* default */](this.uid, this.iterations, this.maximumIterations, this.children[0].createNodeInstance());
+            }
+        }),
+        "WHILE": () => ({
+            uid: getUid(),
+            type: "while",
+            conditionFunction: null,
+            children: [],
+            validate: function () {
+                // A while node must have a single node.
+                if (this.children.length !== 1) {
+                    throw "a while node must have a single child";
+                }
+            },
+            createNodeInstance: function () {
+                return new __WEBPACK_IMPORTED_MODULE_5__nodes_while__["a" /* default */](this.uid, this.conditionFunction, this.children[0].createNodeInstance());
             }
         }),
         "CONDITION": () => ({
@@ -312,7 +328,7 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function () {
-                return new __WEBPACK_IMPORTED_MODULE_8__nodes_wait__["a" /* default */](this.uid, this.duration, this.longestDuration);
+                return new __WEBPACK_IMPORTED_MODULE_9__nodes_wait__["a" /* default */](this.uid, this.duration, this.longestDuration);
             }
         }),
         "ACTION": () => ({
@@ -609,7 +625,7 @@ function BehaviourTree(definition, board) {
                     // Push the REPEAT node into the current scope.
                     stack[stack.length - 1].push(node);
 
-                    // Check for iteration counts ([]) or condition function (:SomeCondition) 
+                    // Check for iteration counts ([])
                     if (tokens[0] === "[") {
                         // An iteration count has been defined. Get the iteration and potential maximum iteration of the wait.
                         const iterationArguments = getArguments(arg => !isNaN(arg) && parseFloat(arg, 10) === parseInt(arg, 10), "repeat node iteration counts must be integer values");
@@ -626,27 +642,40 @@ function BehaviourTree(definition, board) {
                             // An incorrect number of iteration counts was defined.
                             throw "invalid number of repeat node iteration count arguments defined";
                         }
-                    } else if (tokens[0] === ":") {
-                        // A condition function name has been defined. If the next token is a '}' then there is a missing condition name token.
-                        if (tokens[0] === "}") {
-                            throw "missing repeat condition name";
-                        }
-
-                        // A ':' character splits the 'CONDITION' token and the target function name token.
-                        popAndCheck(":");
-
-                        // Check whether we are missing a condition name.
-                        if (tokens[0] === "{") {
-                            throw "missing repeat condition name";
-                        }
-
-                        // The next token should be the name of the condition function. 
-                        node.conditionFunction = tokens.shift();
                     }
 
                     popAndCheck("{");
 
                     // The new scope is that of the new REPEAT nodes children.
+                    stack.push(node.children);
+                    break;
+
+                case "WHILE":
+                    // Create a WHILE AST node.
+                    node = ASTNodeFactories.WHILE();
+
+                    // Push the WHILE node into the current scope.
+                    stack[stack.length - 1].push(node);
+
+                    // A condition function should be defined. If the next token is a '}' then there is a missing condition name token.
+                    if (tokens[0] === "}") {
+                        throw "missing repeat condition name";
+                    }
+
+                    // A ':' character splits the 'WHILE' token and the condition function name token.
+                    popAndCheck(":");
+
+                    // Check whether we are missing a condition name.
+                    if (tokens[0] === "{") {
+                        throw "missing while condition name";
+                    }
+
+                    // The next token should be the name of the condition function. 
+                    node.conditionFunction = tokens.shift();
+
+                    popAndCheck("{");
+
+                    // The new scope is that of the new WHILE nodes children.
                     stack.push(node.children);
                     break;
 
@@ -1202,26 +1231,19 @@ function Lotto(uid, tickets, children) {
  * A REPEAT node.
  * The node has a single child which can have:
  * -- A number of iterations for which to repeat the child node.
- * -- A condition function that determines whether to repeat the update of the child node.
  * -- An infinite repeat loop if neither an iteration count or a condition function is defined.
  * The REPEAT node will stop and have a 'FAILED' state if its child is ever in a 'FAILED' state after an update.
  * The REPEAT node will attempt to move on to the next iteration if its child is ever in a 'SUCCEEDED' state.
  * @param uid The unique node it.
  * @param iterations The number of iterations to repeat the child node, or the minimum number of iterations if maximumIterations is defined.
  * @param maximumIterations The maximum number of iterations to repeat the child node.
- * @param conditionFunction The name of the condition function that determines whether to repeat the update of the child node.
  * @param child The child node. 
  */
-function Repeat(uid, iterations, maximumIterations, conditionFunction, child) {
+function Repeat(uid, iterations, maximumIterations, child) {
     /**
      * The node state.
      */
     let state = Mistreevous.State.READY;
-
-    /**
-     * The condition function name.
-     */
-    let conditionFunctionName = null;
 
     /**
      * The number of target iterations to make.
@@ -1256,13 +1278,10 @@ function Repeat(uid, iterations, maximumIterations, conditionFunction, child) {
             // Reset the child node.
             child.reset();
 
-            // Are we dealing with a set number of iterations or a condition function?
+            // Are we dealing with a finite number of iterations?
             if (typeof iterations === "number") {
                 // If we have maximumIterations defined then we will want a random iteration count bounded by iterations and maximumIterations.
                 targetIterationCount = typeof maximumIterations === "number" ? Math.floor(Math.random() * (maximumIterations - iterations + 1) + iterations) : iterations;
-            } else if (typeof conditionFunction === "string") {
-                // We are dealing with a condition function.
-                conditionFunctionName = conditionFunction;
             }
 
             // Do an initial check to see if we can iterate. If we can then this node will be in the 'RUNNING' state.
@@ -1328,8 +1347,6 @@ function Repeat(uid, iterations, maximumIterations, conditionFunction, child) {
     this.getName = () => {
         if (iterations !== null) {
             return `REPEAT ${maximumIterations ? iterations + "x-" + maximumIterations + "x" : iterations + "x"}`;
-        } else if (conditionFunction !== null) {
-            return `WHILE ${conditionFunction}`;
         }
 
         // Return the default repeat node name.
@@ -1371,13 +1388,6 @@ function Repeat(uid, iterations, maximumIterations, conditionFunction, child) {
         if (targetIterationCount !== null) {
             // We can iterate as long as we have not reached our target iteration count.
             return currentIterationCount < targetIterationCount;
-        } else if (conditionFunctionName !== null) {
-            // Call the condition function to determine whether we can iterate.
-            if (typeof board[conditionFunctionName] === "function") {
-                return !!board[conditionFunctionName]();
-            } else {
-                throw `cannot update repeat node as condition function '${conditionFunction}' is not defined in the blackboard`;
-            }
         }
 
         // If neither an iteration count or a condition function were defined then we can iterate indefinitely.
@@ -1387,6 +1397,149 @@ function Repeat(uid, iterations, maximumIterations, conditionFunction, child) {
 
 /***/ }),
 /* 8 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = While;
+/**
+ * A WHILE node.
+ * The node has a single child which will have a condition function that determines whether to repeat the update of the child node.
+ * The WHILE node will stop and have a 'FAILED' state if its child is ever in a 'FAILED' state after an update.
+ * The WHILE node will attempt to move on to the next iteration if its child is ever in a 'SUCCEEDED' state.
+ * @param uid The unique node it.
+ * @param conditionFunction The name of the condition function that determines whether to repeat the update of the child node.
+ * @param child The child node. 
+ */
+function While(uid, conditionFunction, child) {
+    /**
+     * The node state.
+     */
+    let state = Mistreevous.State.READY;
+
+    /**
+     * Update the node and get whether the node state has changed.
+     * @param board The board.
+     * @returns Whether the state of this node has changed as part of the update.
+     */
+    this.update = function (board) {
+        // Get the pre-update node state.
+        const initialState = state;
+
+        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
+        if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
+            // We have not changed state.
+            return false;
+        }
+
+        // If this node is in the READY state then we need to reset the iteration count and determine which method we will use as a repeat condition.
+        if (state === Mistreevous.State.READY) {
+            // Reset the child node.
+            child.reset();
+
+            // Do an initial check to see if we can iterate. If we can then this node will be in the 'RUNNING' state.
+            // If we cannot iterate then we have immediately failed our condition or hit our target iteration count, then the node has succeeded.
+            if (this._canIterate(board)) {
+                // This node is in the running state and can do its initial iteration.
+                state = Mistreevous.State.RUNNING;
+            } else {
+                // This node is in the 'SUCCEEDED' state.
+                state = Mistreevous.State.SUCCEEDED;
+
+                // Return whether the state of this node has changed.
+                return state !== initialState;
+            }
+        }
+
+        do {
+            // Reset the child node if it is already in the 'SUCCEEDED' state.
+            if (child.getState() === Mistreevous.State.SUCCEEDED) {
+                child.reset();
+            }
+
+            // If the child has never been updated or is running then we will need to update it now.
+            if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
+                child.update(board);
+            }
+
+            // If the child node is in the 'SUCCEEDED' state then we may be moving on to the next iteration or setting this 
+            // node as 'SUCCEEDED' if we cant. If this node is in the 'FAILED' state then this node has completely failed.
+            if (child.getState() === Mistreevous.State.SUCCEEDED) {
+                // The child node has reached the 'SUCCEEDED' state, so we have completed an iteration.
+            } else if (child.getState() === Mistreevous.State.FAILED) {
+                // The has failed, meaning that this node has failed.
+                state = Mistreevous.State.FAILED;
+
+                // Return whether the state of this node has changed.
+                return state !== initialState;
+            } else if (child.getState() === Mistreevous.State.RUNNING) {
+                // This node is in the running state as its child is in the running state.
+                state = Mistreevous.State.RUNNING;
+
+                // Return whether the state of this node has changed.
+                return state !== initialState;
+            }
+        } while (this._canIterate(board));
+
+        // If we were able to complete our iterations without our child going into the 'FAILED' state then this node has succeeded.
+        state = Mistreevous.State.SUCCEEDED;
+
+        // Return whether the state of this node has changed.
+        return state !== initialState;
+    };
+
+    /**
+     * Gets the state of the node.
+     */
+    this.getState = () => state;
+
+    /**
+     * Gets the name of the node.
+     */
+    this.getName = () => `WHILE ${conditionFunction}`;
+
+    /**
+     * Gets the state of the node.
+     */
+    this.getChildren = () => [child];
+
+    /**
+     * Gets the type of the node.
+     */
+    this.getType = () => "while";
+
+    /**
+     * Gets the unique id of the node.
+     */
+    this.getUid = () => uid;
+
+    /**
+     * Reset the state of the node.
+     */
+    this.reset = () => {
+        // Reset the state of this node.
+        state = Mistreevous.State.READY;
+
+        // Reset the child node.
+        child.reset();
+    };
+
+    /**
+     * Gets whether an iteration can be made.
+     * @param board The board.
+     * @returns Whether an iteration can be made.
+     */
+    this._canIterate = board => {
+        // Call the condition function to determine whether we can iterate.
+        if (typeof board[conditionFunction] === "function") {
+            return !!board[conditionFunction]();
+        } else {
+            throw `cannot update repeat node as condition function '${conditionFunction}' is not defined in the blackboard`;
+        }
+    };
+};
+
+/***/ }),
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1468,7 +1621,7 @@ function Root(uid, child) {
 };
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1584,7 +1737,7 @@ function Selector(uid, children) {
 };
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1700,7 +1853,7 @@ function Sequence(uid, children) {
 };
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1801,7 +1954,7 @@ function Wait(uid, duration, longestDuration) {
 };
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports) {
 
 /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {/* globals __webpack_amd_options__ */
