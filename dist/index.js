@@ -477,7 +477,7 @@ function BehaviourTree(definition, board) {
                 // If the current token should be an actual argument then validate it,otherwise it should be a ',' token.
                 if (shouldBeArgumentToken) {
                     // Try to validate the argument.
-                    if (!argumentValidator(token)) {
+                    if (argumentValidator && !argumentValidator(token)) {
                         throw validationFailedMessage;
                     }
 
@@ -486,7 +486,7 @@ function BehaviourTree(definition, board) {
                 } else {
                     // The current token should be a ',' token.
                     if (token !== ",") {
-                        throw `invalid argument list, expected ',' but got '${token}'`;
+                        throw `invalid argument list, expected ',' or ']' but got '${token}'`;
                     }
                 }
             });
@@ -686,16 +686,21 @@ function BehaviourTree(definition, board) {
                     // Push the ACTION node into the current scope.
                     stack[stack.length - 1].push(node);
 
-                    // A ':' character splits the 'ACTION' token and the target action name token.
-                    popAndCheck(":");
-
-                    // If the next token is a '}' then there is a missing action name token.
-                    if (tokens[0] === "}") {
-                        throw "missing action name";
+                    // We must have arguments defined, as we require an action name argument.
+                    if (tokens[0] !== "[") {
+                        throw "expected single action name argument";
                     }
 
-                    // The next token should be the name of the action. 
-                    node.actionName = tokens.shift();
+                    // The action name will be defined as a node argument.
+                    const actionArguments = getArguments(() => true);
+
+                    // We should have only a single argument that is not an empty string for an action node, which is the action name.
+                    if (actionArguments.length === 1 && actionArguments[0] !== "") {
+                        // The action name will be the first and only node argument.
+                        node.actionName = actionArguments[0];
+                    } else {
+                        throw "expected single action name argument";
+                    }
                     break;
 
                 case "}":

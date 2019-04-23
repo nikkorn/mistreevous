@@ -17,7 +17,7 @@ let blackboard;
 definitionTextArea.innerHTML =
 `root {
     sequence {
-        action:WalkToDoor
+        action [WalkToDoor]
         repeat [1,3] {
             sequence {
                 wait [1000]
@@ -27,23 +27,23 @@ definitionTextArea.innerHTML =
         wait [1000,2500]
         selector {
             condition:DoorIsOpen
-            action:OpenDoor
+            action [OpenDoor]
             sequence {
-                action:UnlockDoor
-                action:OpenDoor
+                action [UnlockDoor]
+                action [OpenDoor]
             }
             sequence {
                 lotto [1,2] {
-                    action:ScreamLoudly
-                    action:MutterAngrily
+                    action [ScreamLoudly]
+                    action [MutterAngrily]
                 }
-                action:SmashDoor
+                action [SmashDoor]
             }
         }
-        action:WalkThroughDoor
+        action [WalkThroughDoor]
         selector {
             condition:DoorIsSmashed
-            action:CloseDoor
+            action [CloseDoor]
         }
     }
 }`;
