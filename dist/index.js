@@ -569,7 +569,7 @@ function BehaviourTree(definition, board) {
                     // Push the CONDITION node into the current scope.
                     stack[stack.length - 1].push(node);
 
-                    // We must have arguments defined, as we require an condition function name argument.
+                    // We must have arguments defined, as we require a condition function name argument.
                     if (tokens[0] !== "[") {
                         throw "expected single condition name argument";
                     }
@@ -662,22 +662,23 @@ function BehaviourTree(definition, board) {
                     // Push the WHILE node into the current scope.
                     stack[stack.length - 1].push(node);
 
-                    // A condition function should be defined. If the next token is a '}' then there is a missing condition name token.
-                    if (tokens[0] === "}") {
-                        throw "missing repeat condition name";
+                    // We must have arguments defined, as we require a condition function name argument.
+                    if (tokens[0] !== "[") {
+                        throw "expected single while condition name argument";
                     }
 
-                    // A ':' character splits the 'WHILE' token and the condition function name token.
-                    popAndCheck(":");
+                    // The condition name will be defined as a node argument.
+                    const whileArguments = getArguments();
 
-                    // Check whether we are missing a condition name.
-                    if (tokens[0] === "{") {
-                        throw "missing while condition name";
+                    // We should have only a single argument that is not an empty string for a while node, which is the while condition function name.
+                    if (whileArguments.length === 1 && whileArguments[0] !== "") {
+                        // The condition function name will be the first and only node argument.
+                        node.conditionFunction = whileArguments[0];
+                    } else {
+                        throw "expected single while condition name argument";
                     }
 
-                    // The next token should be the name of the condition function. 
-                    node.conditionFunction = tokens.shift();
-
+                    // A while node must wrap other nodes.
                     popAndCheck("{");
 
                     // The new scope is that of the new WHILE nodes children.
