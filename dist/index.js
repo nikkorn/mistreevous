@@ -569,16 +569,21 @@ function BehaviourTree(definition, board) {
                     // Push the CONDITION node into the current scope.
                     stack[stack.length - 1].push(node);
 
-                    // A ':' character splits the 'CONDITION' token and the target function name token.
-                    popAndCheck(":");
-
-                    // If the next token is a '}' then there is a missing condition name token.
-                    if (tokens[0] === "}") {
-                        throw "missing condition name";
+                    // We must have arguments defined, as we require an condition function name argument.
+                    if (tokens[0] !== "[") {
+                        throw "expected single condition name argument";
                     }
 
-                    // The next token should be the name of the condition function. 
-                    node.conditionFunction = tokens.shift();
+                    // The condition name will be defined as a node argument.
+                    const conditionArguments = getArguments();
+
+                    // We should have only a single argument that is not an empty string for a condition node, which is the condition function name.
+                    if (conditionArguments.length === 1 && conditionArguments[0] !== "") {
+                        // The condition function name will be the first and only node argument.
+                        node.conditionFunction = conditionArguments[0];
+                    } else {
+                        throw "expected single condition name argument";
+                    }
                     break;
 
                 case "FLIP":
@@ -692,7 +697,7 @@ function BehaviourTree(definition, board) {
                     }
 
                     // The action name will be defined as a node argument.
-                    const actionArguments = getArguments(() => true);
+                    const actionArguments = getArguments();
 
                     // We should have only a single argument that is not an empty string for an action node, which is the action name.
                     if (actionArguments.length === 1 && actionArguments[0] !== "") {
