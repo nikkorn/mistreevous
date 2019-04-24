@@ -117,10 +117,9 @@ function onDefinitionUpdate() {
     // Do the initial blackboard update.
     onBlackboardUpdate();
 
-    behaviourTree = new Mistreevous.BehaviourTree(definitionTextArea.value, blackboard);
     try {
         // Try to create the behaviour tree.
-        //behaviourTree = new Mistreevous.BehaviourTree(definitionTextArea.value, blackboard);
+        behaviourTree = new Mistreevous.BehaviourTree(definitionTextArea.value, blackboard);
 
         // We created the behaviour tree without an issue.
         resultTextArea.innerHTML             = "OK";
