@@ -33,6 +33,7 @@ export default function BehaviourTree(definition, board) {
         "ROOT": () => ({ 
             uid: getUid(),
             type: "root",
+            name: null,
             children: [],
             validate: function () {
                 // A root node must have a single node.
@@ -42,6 +43,18 @@ export default function BehaviourTree(definition, board) {
             },
             createNodeInstance: function () { 
                 return new Root(this.uid, this.children[0].createNodeInstance());
+            }
+        }),
+        "BRANCH": () => ({ 
+            uid: getUid(),
+            type: "branch",
+            branchName: "",
+            validate: function () {
+                // TODO A root node with a name matching the branch must exist!
+            },
+            createNodeInstance: function () {
+                // TODO Return the first and only child of the target root node.
+                return null;
             }
         }),
         "SELECTOR": () => ({
@@ -237,8 +250,9 @@ export default function BehaviourTree(definition, board) {
 
         // Try to create the behaviour tree AST from tokens, this could fail if the definition is invalid.
         let rootASTNode;
+        rootASTNode = this._createRootASTNodes(tokens);
         try {
-            rootASTNode = this._createRootASTNode(tokens);
+            //rootASTNode = this._createRootASTNode(tokens);
         } catch (exception) {
             // There was an issue in trying to parse the tree definition.
             throw `TreeParseError: ${exception}`;
@@ -281,18 +295,13 @@ export default function BehaviourTree(definition, board) {
     };
 
     /**
-     * Create a BT AST node based on the remaining tokens.
+     * Create an array of root AST nodes based on the remaining tokens.
      * @param tokens The remaining tokens.
      */
-    this._createRootASTNode = function(tokens) {
+    this._createRootASTNodes = function(tokens) {
         // There must be at least 3 tokens for the tree definition to be valid. 'ROOT', '{' and '}'.
         if (tokens.length < 3) {
             throw "invalid token count";
-        }
-
-        // The first token MUST be our 'ROOT' token.
-        if (tokens[0].toUpperCase() !== "ROOT") {
-            throw "initial node must be the 'ROOT' node";
         }
 
         // We should have a matching number of '{' and '}' tokens. If not, then there are scopes that have not been properly closed.
@@ -354,15 +363,8 @@ export default function BehaviourTree(definition, board) {
             return argumentList;
         }
 
-        // Throw the 'ROOT' and opening '{' token away.
-        popAndCheck("root");
-        popAndCheck("{");
-
-        // Create the root node.
-        const rootASTNode = ASTNodeFactories.ROOT();
-
-        // Create a stack of node children arrays, with the root child array as the initial one.
-        const stack = [rootASTNode.children];
+        // Create a stack of node children arrays, starting with a definition scope.
+        const stack = [[]];
 
         // We should keep processing the raw tokens until we run out of them.
         while (tokens.length) {
@@ -373,6 +375,31 @@ export default function BehaviourTree(definition, board) {
 
             // How we create the next AST token depends on the current raw token value.
             switch (token.toUpperCase()) {
+                case "ROOT": 
+                    // Create a ROOT AST node.
+                    node = ASTNodeFactories.ROOT();
+
+                    // Push the ROOT node into the current scope.
+                    stack[stack.length - 1].push(node);
+
+                    // We may have a root node name defined as an argument.
+                    if (tokens[0] === "[") {
+                        const rootArguments = getArguments();
+
+                        // We should have only a single argument that is not an empty string for a root node, which is the root name.
+                        if (rootArguments.length === 1 && rootArguments[0] !== "") {
+                            // The root  name will be the first and only node argument.
+                            node.name = rootArguments[0];
+                        } else {
+                            throw "expected single root name argument";
+                        }
+                    }
+
+                    popAndCheck("{");
+
+                    // The new scope is that of the new ROOT nodes children.
+                    stack.push(node.children);
+                    break;
                 case "SELECTOR": 
                     // Create a SELECTOR AST node.
                     node = ASTNodeFactories.SELECTOR();
@@ -583,10 +610,31 @@ export default function BehaviourTree(definition, board) {
             // Validate each child of the node.
             (node.children ||[]).forEach((child) => validateASTNode(child));
         };
-        validateASTNode(rootASTNode);
+        // Start node validation from the definition root.
+        validateASTNode({ 
+            children: stack[0],
+            validate: function () {
+                // We must have at least one node defined as the definition scope, which should be a root node.
+                if (this.children.length === 0) {
+                    throw "expected root node to have been defined";
+                }
 
-        // Return the root BT AST node.
-        return rootASTNode;
+                // Each node at the base of the definition scope MUST be a root node.
+                for (const definitionLevelNode of this.children) {
+                    if (definitionLevelNode.type !== "root") {
+                        throw "expected root node at base of definition";
+                    }
+                }
+
+                // Exactly one root node must not have a name defined. This will be the main root, others will have to be referenced via branch nodes.
+                if (this.children.filter(function (definitionLevelNode) { return definitionLevelNode.name === null; }).length !== 1) {
+                    throw "expected unnamed root node at base of definition to act as main root";
+                }
+            }
+        });
+
+        // Return the root AST nodes.
+        return stack[0];
     };
 
     // Call Mistreevous init logic.

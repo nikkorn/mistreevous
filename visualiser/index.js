@@ -28,10 +28,8 @@ definitionTextArea.innerHTML =
         selector {
             condition [DoorIsOpen]
             action [OpenDoor]
-            sequence {
-                action [UnlockDoor]
-                action [OpenDoor]
-            }
+            branch [AttemptDoorOpen]
+            branch [AttemptDoorOpen]
             sequence {
                 lotto [1,2] {
                     action [ScreamLoudly]
@@ -45,6 +43,13 @@ definitionTextArea.innerHTML =
             condition [DoorIsSmashed]
             action [CloseDoor]
         }
+    }
+}
+
+root [AttemptDoorOpen] {
+    sequence {
+        action [UnlockDoor]
+        action [OpenDoor]
     }
 }`;
 
@@ -112,9 +117,10 @@ function onDefinitionUpdate() {
     // Do the initial blackboard update.
     onBlackboardUpdate();
 
+    behaviourTree = new Mistreevous.BehaviourTree(definitionTextArea.value, blackboard);
     try {
         // Try to create the behaviour tree.
-        behaviourTree = new Mistreevous.BehaviourTree(definitionTextArea.value, blackboard);
+        //behaviourTree = new Mistreevous.BehaviourTree(definitionTextArea.value, blackboard);
 
         // We created the behaviour tree without an issue.
         resultTextArea.innerHTML             = "OK";
