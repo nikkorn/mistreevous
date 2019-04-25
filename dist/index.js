@@ -175,7 +175,6 @@ function BehaviourTree(definition, board) {
      */
     const ASTNodeFactories = {
         "ROOT": () => ({
-            uid: getUid(),
             type: "root",
             name: null,
             children: [],
@@ -186,11 +185,10 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider) {
-                return new __WEBPACK_IMPORTED_MODULE_6__nodes_root__["a" /* default */](this.uid, this.children[0].createNodeInstance(namedRootNodeProvider));
+                return new __WEBPACK_IMPORTED_MODULE_6__nodes_root__["a" /* default */](getUid(), this.children[0].createNodeInstance(namedRootNodeProvider));
             }
         }),
         "BRANCH": () => ({
-            uid: getUid(),
             type: "branch",
             branchName: "",
             validate: function () {},
@@ -207,7 +205,6 @@ function BehaviourTree(definition, board) {
             }
         }),
         "SELECTOR": () => ({
-            uid: getUid(),
             type: "selector",
             children: [],
             validate: function () {
@@ -217,11 +214,10 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider) {
-                return new __WEBPACK_IMPORTED_MODULE_7__nodes_selector__["a" /* default */](this.uid, this.children.map(child => child.createNodeInstance(namedRootNodeProvider)));
+                return new __WEBPACK_IMPORTED_MODULE_7__nodes_selector__["a" /* default */](getUid(), this.children.map(child => child.createNodeInstance(namedRootNodeProvider)));
             }
         }),
         "SEQUENCE": () => ({
-            uid: getUid(),
             type: "sequence",
             children: [],
             validate: function () {
@@ -231,11 +227,10 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider) {
-                return new __WEBPACK_IMPORTED_MODULE_8__nodes_sequence__["a" /* default */](this.uid, this.children.map(child => child.createNodeInstance(namedRootNodeProvider)));
+                return new __WEBPACK_IMPORTED_MODULE_8__nodes_sequence__["a" /* default */](getUid(), this.children.map(child => child.createNodeInstance(namedRootNodeProvider)));
             }
         }),
         "LOTTO": () => ({
-            uid: getUid(),
             type: "lotto",
             children: [],
             tickets: [],
@@ -246,11 +241,10 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider) {
-                return new __WEBPACK_IMPORTED_MODULE_3__nodes_lotto__["a" /* default */](this.uid, this.tickets, this.children.map(child => child.createNodeInstance(namedRootNodeProvider)));
+                return new __WEBPACK_IMPORTED_MODULE_3__nodes_lotto__["a" /* default */](getUid(), this.tickets, this.children.map(child => child.createNodeInstance(namedRootNodeProvider)));
             }
         }),
         "REPEAT": () => ({
-            uid: getUid(),
             type: "repeat",
             iterations: null,
             maximumIterations: null,
@@ -280,11 +274,10 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider) {
-                return new __WEBPACK_IMPORTED_MODULE_4__nodes_repeat__["a" /* default */](this.uid, this.iterations, this.maximumIterations, this.children[0].createNodeInstance(namedRootNodeProvider));
+                return new __WEBPACK_IMPORTED_MODULE_4__nodes_repeat__["a" /* default */](getUid(), this.iterations, this.maximumIterations, this.children[0].createNodeInstance(namedRootNodeProvider));
             }
         }),
         "WHILE": () => ({
-            uid: getUid(),
             type: "while",
             conditionFunction: null,
             children: [],
@@ -295,20 +288,18 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider) {
-                return new __WEBPACK_IMPORTED_MODULE_5__nodes_while__["a" /* default */](this.uid, this.conditionFunction, this.children[0].createNodeInstance(namedRootNodeProvider));
+                return new __WEBPACK_IMPORTED_MODULE_5__nodes_while__["a" /* default */](getUid(), this.conditionFunction, this.children[0].createNodeInstance(namedRootNodeProvider));
             }
         }),
         "CONDITION": () => ({
-            uid: getUid(),
             type: "condition",
             conditionFunction: "",
             validate: function () {},
             createNodeInstance: function () {
-                return new __WEBPACK_IMPORTED_MODULE_1__nodes_condition__["a" /* default */](this.uid, this.conditionFunction);
+                return new __WEBPACK_IMPORTED_MODULE_1__nodes_condition__["a" /* default */](getUid(), this.conditionFunction);
             }
         }),
         "FLIP": () => ({
-            uid: getUid(),
             type: "flip",
             children: [],
             validate: function () {
@@ -318,11 +309,10 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider) {
-                return new __WEBPACK_IMPORTED_MODULE_2__nodes_flip__["a" /* default */](this.uid, this.children[0].createNodeInstance(namedRootNodeProvider));
+                return new __WEBPACK_IMPORTED_MODULE_2__nodes_flip__["a" /* default */](getUid(), this.children[0].createNodeInstance(namedRootNodeProvider));
             }
         }),
         "WAIT": () => ({
-            uid: getUid(),
             type: "wait",
             duration: null,
             longestDuration: null,
@@ -346,16 +336,15 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function () {
-                return new __WEBPACK_IMPORTED_MODULE_9__nodes_wait__["a" /* default */](this.uid, this.duration, this.longestDuration);
+                return new __WEBPACK_IMPORTED_MODULE_9__nodes_wait__["a" /* default */](getUid(), this.duration, this.longestDuration);
             }
         }),
         "ACTION": () => ({
-            uid: getUid(),
             type: "action",
             actionName: "",
             validate: function () {},
             createNodeInstance: function () {
-                return new __WEBPACK_IMPORTED_MODULE_0__nodes_action__["a" /* default */](this.uid, this.actionName);
+                return new __WEBPACK_IMPORTED_MODULE_0__nodes_action__["a" /* default */](getUid(), this.actionName);
             }
         })
     };

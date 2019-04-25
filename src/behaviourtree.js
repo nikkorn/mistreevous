@@ -31,7 +31,6 @@ export default function BehaviourTree(definition, board) {
      */
     const ASTNodeFactories = {
         "ROOT": () => ({ 
-            uid: getUid(),
             type: "root",
             name: null,
             children: [],
@@ -42,11 +41,10 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider) { 
-                return new Root(this.uid, this.children[0].createNodeInstance(namedRootNodeProvider));
+                return new Root(getUid(), this.children[0].createNodeInstance(namedRootNodeProvider));
             }
         }),
         "BRANCH": () => ({ 
-            uid: getUid(),
             type: "branch",
             branchName: "",
             validate: function () {},
@@ -63,7 +61,6 @@ export default function BehaviourTree(definition, board) {
             }
         }),
         "SELECTOR": () => ({
-            uid: getUid(),
             type: "selector",
             children: [],
             validate: function () {
@@ -73,11 +70,10 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider) { 
-                return new Selector(this.uid, this.children.map((child) => child.createNodeInstance(namedRootNodeProvider)));
+                return new Selector(getUid(), this.children.map((child) => child.createNodeInstance(namedRootNodeProvider)));
             }
         }),
         "SEQUENCE": () => ({
-            uid: getUid(),
             type: "sequence",
             children: [], 
             validate: function () {
@@ -87,11 +83,10 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider) { 
-                return new Sequence(this.uid, this.children.map((child) => child.createNodeInstance(namedRootNodeProvider)));
+                return new Sequence(getUid(), this.children.map((child) => child.createNodeInstance(namedRootNodeProvider)));
             }
         }),
         "LOTTO": () => ({
-            uid: getUid(),
             type: "lotto",
             children: [],
             tickets: [], 
@@ -102,11 +97,10 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider) { 
-                return new Lotto(this.uid, this.tickets, this.children.map((child) => child.createNodeInstance(namedRootNodeProvider)));
+                return new Lotto(getUid(), this.tickets, this.children.map((child) => child.createNodeInstance(namedRootNodeProvider)));
             }
         }),
         "REPEAT": () => ({
-            uid: getUid(),
             type: "repeat",
             iterations: null,
             maximumIterations: null,
@@ -136,11 +130,10 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider) { 
-                return new Repeat(this.uid, this.iterations, this.maximumIterations, this.children[0].createNodeInstance(namedRootNodeProvider));
+                return new Repeat(getUid(), this.iterations, this.maximumIterations, this.children[0].createNodeInstance(namedRootNodeProvider));
             }
         }),
         "WHILE": () => ({
-            uid: getUid(),
             type: "while",
             conditionFunction: null,
             children: [],
@@ -151,20 +144,18 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider) { 
-                return new While(this.uid, this.conditionFunction, this.children[0].createNodeInstance(namedRootNodeProvider));
+                return new While(getUid(), this.conditionFunction, this.children[0].createNodeInstance(namedRootNodeProvider));
             }
         }),
         "CONDITION": () => ({
-            uid: getUid(),
             type: "condition",
             conditionFunction: "",
             validate: function () {},
             createNodeInstance: function () { 
-                return new Condition(this.uid, this.conditionFunction);
+                return new Condition(getUid(), this.conditionFunction);
             }
         }),
         "FLIP": () => ({
-            uid: getUid(),
             type: "flip",
             children: [],
             validate: function () {
@@ -174,11 +165,10 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider) { 
-                return new Flip(this.uid, this.children[0].createNodeInstance(namedRootNodeProvider));
+                return new Flip(getUid(), this.children[0].createNodeInstance(namedRootNodeProvider));
             }
         }),
         "WAIT": () => ({
-            uid: getUid(),
             type: "wait",
             duration: null,
             longestDuration: null,
@@ -202,16 +192,15 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function () { 
-                return new Wait(this.uid, this.duration, this.longestDuration);
+                return new Wait(getUid(), this.duration, this.longestDuration);
             }
         }),
         "ACTION": () => ({
-            uid: getUid(),
             type: "action",
             actionName: "",
             validate: function () {},
             createNodeInstance: function () {
-                return new Action(this.uid, this.actionName);
+                return new Action(getUid(), this.actionName);
             }
         })
     };
