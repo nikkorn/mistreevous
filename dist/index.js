@@ -801,11 +801,21 @@ function BehaviourTree(definition, board) {
                     }
                 }
 
+                // No two named root nodes can have matching names.
+                const rootNodeNames = [];
+                for (const definitionLevelNode of this.children) {
+                    if (rootNodeNames.indexOf(definitionLevelNode.name) !== -1) {
+                        throw `multiple root nodes found with duplicate name '${definitionLevelNode.name}'`;
+                    } else {
+                        rootNodeNames.push(definitionLevelNode.name);
+                    }
+                }
+
                 // Exactly one root node must not have a name defined. This will be the main root, others will have to be referenced via branch nodes.
                 if (this.children.filter(function (definitionLevelNode) {
                     return definitionLevelNode.name === null;
                 }).length !== 1) {
-                    throw "expected unnamed root node at base of definition to act as main root";
+                    throw "expected single unnamed root node at base of definition to act as main root";
                 }
             }
         });
