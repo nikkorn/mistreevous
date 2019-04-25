@@ -41,21 +41,26 @@ export default function BehaviourTree(definition, board) {
                     throw "a root node must have a single child";
                 }
             },
-            createNodeInstance: function (namedRootNodeProvider) { 
-                return new Root(getUid(), this.children[0].createNodeInstance(namedRootNodeProvider));
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+                return new Root(getUid(), this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
             }
         }),
         "BRANCH": () => ({ 
             type: "branch",
             branchName: "",
             validate: function () {},
-            createNodeInstance: function (namedRootNodeProvider) {
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
                 // Try to find the root node with a matching branch name.
                 const targetRootNode = namedRootNodeProvider(this.branchName);
 
-                // If we have a target rot node, then the node instance we want will be the first and only child of the referenced root node.
+                // If we have already visited this branch then we have a circular dependency.
+                if (visitedBranches.indexOf(this.branchName) !== -1) {
+                    throw `circular dependency found in branch node references for branch '${this.branchName}'`;
+                }
+
+                // If we have a target root node, then the node instance we want will be the first and only child of the referenced root node.
                 if (targetRootNode) {
-                    return targetRootNode.createNodeInstance(namedRootNodeProvider).getChildren()[0];
+                    return targetRootNode.createNodeInstance(namedRootNodeProvider, visitedBranches.concat(this.branchName)).getChildren()[0];
                 } else {
                     throw `branch references root node '${this.branchName}' which has not been defined`;
                 }
@@ -70,8 +75,8 @@ export default function BehaviourTree(definition, board) {
                     throw "a selector node must have at least a single child";
                 }
             },
-            createNodeInstance: function (namedRootNodeProvider) { 
-                return new Selector(getUid(), this.children.map((child) => child.createNodeInstance(namedRootNodeProvider)));
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+                return new Selector(getUid(), this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
             }
         }),
         "SEQUENCE": () => ({
@@ -83,8 +88,8 @@ export default function BehaviourTree(definition, board) {
                     throw "a sequence node must have at least a single child";
                 }
             },
-            createNodeInstance: function (namedRootNodeProvider) { 
-                return new Sequence(getUid(), this.children.map((child) => child.createNodeInstance(namedRootNodeProvider)));
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+                return new Sequence(getUid(), this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
             }
         }),
         "LOTTO": () => ({
@@ -97,8 +102,8 @@ export default function BehaviourTree(definition, board) {
                     throw "a lotto node must have at least a single child";
                 }
             },
-            createNodeInstance: function (namedRootNodeProvider) { 
-                return new Lotto(getUid(), this.tickets, this.children.map((child) => child.createNodeInstance(namedRootNodeProvider)));
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+                return new Lotto(getUid(), this.tickets, this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
             }
         }),
         "REPEAT": () => ({
@@ -130,8 +135,8 @@ export default function BehaviourTree(definition, board) {
                     }
                 }
             },
-            createNodeInstance: function (namedRootNodeProvider) { 
-                return new Repeat(getUid(), this.iterations, this.maximumIterations, this.children[0].createNodeInstance(namedRootNodeProvider));
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+                return new Repeat(getUid(), this.iterations, this.maximumIterations, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
             }
         }),
         "WHILE": () => ({
@@ -144,15 +149,15 @@ export default function BehaviourTree(definition, board) {
                     throw "a while node must have a single child";
                 }
             },
-            createNodeInstance: function (namedRootNodeProvider) { 
-                return new While(getUid(), this.conditionFunction, this.children[0].createNodeInstance(namedRootNodeProvider));
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+                return new While(getUid(), this.conditionFunction, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
             }
         }),
         "CONDITION": () => ({
             type: "condition",
             conditionFunction: "",
             validate: function () {},
-            createNodeInstance: function () { 
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
                 return new Condition(getUid(), this.conditionFunction);
             }
         }),
@@ -165,8 +170,8 @@ export default function BehaviourTree(definition, board) {
                     throw "a flip node must have a single child";
                 }
             },
-            createNodeInstance: function (namedRootNodeProvider) { 
-                return new Flip(getUid(), this.children[0].createNodeInstance(namedRootNodeProvider));
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+                return new Flip(getUid(), this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
             }
         }),
         "WAIT": () => ({
@@ -192,7 +197,7 @@ export default function BehaviourTree(definition, board) {
                     }
                 }
             },
-            createNodeInstance: function () { 
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
                 return new Wait(getUid(), this.duration, this.longestDuration);
             }
         }),
@@ -200,7 +205,7 @@ export default function BehaviourTree(definition, board) {
             type: "action",
             actionName: "",
             validate: function () {},
-            createNodeInstance: function () {
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
                 return new Action(getUid(), this.actionName);
             }
         })
@@ -260,7 +265,7 @@ export default function BehaviourTree(definition, board) {
             const namedRootNodeProvider = function (name) { return rootNodeMap[name]; };
 
             // Convert the AST to our actual tree.
-            this._rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(namedRootNodeProvider);
+            this._rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(namedRootNodeProvider, []);
         } catch (exception) {
             // There was an issue in trying to parse and build the tree definition.
             throw `TreeParseError: ${exception}`;
