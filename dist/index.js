@@ -469,6 +469,11 @@ function BehaviourTree(definition, board) {
             // Get and remove the next token.
             const popped = tokens.shift();
 
+            // We were expecting another token.
+            if (popped === undefined) {
+                throw "unexpected end of definition";
+            }
+
             // Was it the expected token?
             if (popped.toUpperCase() !== expected.toUpperCase()) {
                 throw "unexpected token found on the stack. Expected '" + expected + "' but got '" + popped + "'";
