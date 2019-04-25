@@ -195,8 +195,15 @@ function BehaviourTree(definition, board) {
             branchName: "",
             validate: function () {},
             createNodeInstance: function (namedRootNodeProvider) {
-                // TODO Return the first and only child of the target root node.
-                return null;
+                // Try to find the root node with a matching branch name.
+                const targetRootNode = namedRootNodeProvider(this.branchName);
+
+                // If we have a target rot node, then the node instance we want will be the first and only child of the referenced root node.
+                if (targetRootNode) {
+                    return targetRootNode.createNodeInstance(namedRootNodeProvider).getChildren()[0];
+                } else {
+                    throw `branch references root node '${this.branchName}' which has not been defined`;
+                }
             }
         }),
         "SELECTOR": () => ({
@@ -448,7 +455,6 @@ function BehaviourTree(definition, board) {
         cleansedDefinition = cleansedDefinition.replace(/\]/g, " ] ");
         cleansedDefinition = cleansedDefinition.replace(/\[/g, " [ ");
         cleansedDefinition = cleansedDefinition.replace(/\,/g, " , ");
-        cleansedDefinition = cleansedDefinition.replace(/\:/g, " : ");
 
         // Split the definition into raw token form and return it.
         return cleansedDefinition.replace(/\s+/g, " ").trim().split(" ");
@@ -560,6 +566,31 @@ function BehaviourTree(definition, board) {
                     // The new scope is that of the new ROOT nodes children.
                     stack.push(node.children);
                     break;
+
+                case "BRANCH":
+                    // Create a BRANCH AST node.
+                    node = ASTNodeFactories.BRANCH();
+
+                    // Push the BRANCH node into the current scope.
+                    stack[stack.length - 1].push(node);
+
+                    // We must have arguments defined, as we require a branch name argument.
+                    if (tokens[0] !== "[") {
+                        throw "expected single branch name argument";
+                    }
+
+                    // The branch name will be defined as a node argument.
+                    const branchArguments = getArguments();
+
+                    // We should have only a single argument that is not an empty string for a branch node, which is the branch name.
+                    if (branchArguments.length === 1 && branchArguments[0] !== "") {
+                        // The branch name will be the first and only node argument.
+                        node.branchName = branchArguments[0];
+                    } else {
+                        throw "expected single branch name argument";
+                    }
+                    break;
+
                 case "SELECTOR":
                     // Create a SELECTOR AST node.
                     node = ASTNodeFactories.SELECTOR();
