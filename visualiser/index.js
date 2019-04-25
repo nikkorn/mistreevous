@@ -28,10 +28,8 @@ definitionTextArea.innerHTML =
         selector {
             condition [DoorIsOpen]
             action [OpenDoor]
-            sequence {
-                action [UnlockDoor]
-                action [OpenDoor]
-            }
+            branch [AttemptDoorOpen]
+            branch [AttemptDoorOpen]
             sequence {
                 lotto [1,2] {
                     action [ScreamLoudly]
@@ -45,6 +43,13 @@ definitionTextArea.innerHTML =
             condition [DoorIsSmashed]
             action [CloseDoor]
         }
+    }
+}
+
+root [AttemptDoorOpen] {
+    sequence {
+        action [UnlockDoor]
+        action [OpenDoor]
     }
 }`;
 

@@ -18,6 +18,7 @@ export default function BehaviourTree(definition, board) {
     
     /**
      * Get a randomly generated uid.
+     * @returns A randomly generated uid.
      */
     const getUid = () => {
         var S4 = function() {
@@ -31,8 +32,8 @@ export default function BehaviourTree(definition, board) {
      */
     const ASTNodeFactories = {
         "ROOT": () => ({ 
-            uid: getUid(),
             type: "root",
+            name: null,
             children: [],
             validate: function () {
                 // A root node must have a single node.
@@ -40,12 +41,32 @@ export default function BehaviourTree(definition, board) {
                     throw "a root node must have a single child";
                 }
             },
-            createNodeInstance: function () { 
-                return new Root(this.uid, this.children[0].createNodeInstance());
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+                return new Root(getUid(), this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
+            }
+        }),
+        "BRANCH": () => ({ 
+            type: "branch",
+            branchName: "",
+            validate: function () {},
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
+                // Try to find the root node with a matching branch name.
+                const targetRootNode = namedRootNodeProvider(this.branchName);
+
+                // If we have already visited this branch then we have a circular dependency.
+                if (visitedBranches.indexOf(this.branchName) !== -1) {
+                    throw `circular dependency found in branch node references for branch '${this.branchName}'`;
+                }
+
+                // If we have a target root node, then the node instance we want will be the first and only child of the referenced root node.
+                if (targetRootNode) {
+                    return targetRootNode.createNodeInstance(namedRootNodeProvider, visitedBranches.concat(this.branchName)).getChildren()[0];
+                } else {
+                    throw `branch references root node '${this.branchName}' which has not been defined`;
+                }
             }
         }),
         "SELECTOR": () => ({
-            uid: getUid(),
             type: "selector",
             children: [],
             validate: function () {
@@ -54,12 +75,11 @@ export default function BehaviourTree(definition, board) {
                     throw "a selector node must have at least a single child";
                 }
             },
-            createNodeInstance: function () { 
-                return new Selector(this.uid, this.children.map((child) => child.createNodeInstance()));
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+                return new Selector(getUid(), this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
             }
         }),
         "SEQUENCE": () => ({
-            uid: getUid(),
             type: "sequence",
             children: [], 
             validate: function () {
@@ -68,12 +88,11 @@ export default function BehaviourTree(definition, board) {
                     throw "a sequence node must have at least a single child";
                 }
             },
-            createNodeInstance: function () { 
-                return new Sequence(this.uid, this.children.map((child) => child.createNodeInstance()));
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+                return new Sequence(getUid(), this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
             }
         }),
         "LOTTO": () => ({
-            uid: getUid(),
             type: "lotto",
             children: [],
             tickets: [], 
@@ -83,12 +102,11 @@ export default function BehaviourTree(definition, board) {
                     throw "a lotto node must have at least a single child";
                 }
             },
-            createNodeInstance: function () { 
-                return new Lotto(this.uid, this.tickets, this.children.map((child) => child.createNodeInstance()));
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+                return new Lotto(getUid(), this.tickets, this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
             }
         }),
         "REPEAT": () => ({
-            uid: getUid(),
             type: "repeat",
             iterations: null,
             maximumIterations: null,
@@ -117,12 +135,11 @@ export default function BehaviourTree(definition, board) {
                     }
                 }
             },
-            createNodeInstance: function () { 
-                return new Repeat(this.uid, this.iterations, this.maximumIterations, this.children[0].createNodeInstance());
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+                return new Repeat(getUid(), this.iterations, this.maximumIterations, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
             }
         }),
         "WHILE": () => ({
-            uid: getUid(),
             type: "while",
             conditionFunction: null,
             children: [],
@@ -132,21 +149,19 @@ export default function BehaviourTree(definition, board) {
                     throw "a while node must have a single child";
                 }
             },
-            createNodeInstance: function () { 
-                return new While(this.uid, this.conditionFunction, this.children[0].createNodeInstance());
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+                return new While(getUid(), this.conditionFunction, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
             }
         }),
         "CONDITION": () => ({
-            uid: getUid(),
             type: "condition",
             conditionFunction: "",
             validate: function () {},
-            createNodeInstance: function () { 
-                return new Condition(this.uid, this.conditionFunction);
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+                return new Condition(getUid(), this.conditionFunction);
             }
         }),
         "FLIP": () => ({
-            uid: getUid(),
             type: "flip",
             children: [],
             validate: function () {
@@ -155,12 +170,11 @@ export default function BehaviourTree(definition, board) {
                     throw "a flip node must have a single child";
                 }
             },
-            createNodeInstance: function () { 
-                return new Flip(this.uid, this.children[0].createNodeInstance());
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+                return new Flip(getUid(), this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
             }
         }),
         "WAIT": () => ({
-            uid: getUid(),
             type: "wait",
             duration: null,
             longestDuration: null,
@@ -183,17 +197,16 @@ export default function BehaviourTree(definition, board) {
                     }
                 }
             },
-            createNodeInstance: function () { 
-                return new Wait(this.uid, this.duration, this.longestDuration);
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+                return new Wait(getUid(), this.duration, this.longestDuration);
             }
         }),
         "ACTION": () => ({
-            uid: getUid(),
             type: "action",
             actionName: "",
             validate: function () {},
-            createNodeInstance: function () {
-                return new Action(this.uid, this.actionName);
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
+                return new Action(getUid(), this.actionName);
             }
         })
     };
@@ -209,14 +222,14 @@ export default function BehaviourTree(definition, board) {
     this._blackboard = board;
 
     /**
-     * The root tree node.
+     * The main root tree node.
      */
     this._rootNode;
 
     /**
      * The flattened array of tree nodes.
      */
-    this._flattenTreeNodes;
+    this._flattenedTreeNodes;
 
     /**
      * Mistreevous init logic.
@@ -235,23 +248,34 @@ export default function BehaviourTree(definition, board) {
         // Convert the definition into some tokens.
         const tokens = this._parseDefinition();
 
-        // Try to create the behaviour tree AST from tokens, this could fail if the definition is invalid.
-        let rootASTNode;
         try {
-            rootASTNode = this._createRootASTNode(tokens);
+            // Try to create the behaviour tree AST from tokens, this could fail if the definition is invalid.
+            const rootASTNodes = this._createRootASTNodes(tokens);
+
+            // Create a symbol to use as the main root key in our root node mapping.
+            const mainRootNodeKey = Symbol("__root__");
+
+            // Create a mapping of root node names to root AST tokens. The main root node will have a key of Symbol("__root__").
+            const rootNodeMap = {};
+            for (const rootASTNode of rootASTNodes) {
+                rootNodeMap[rootASTNode.name === null ? mainRootNodeKey : rootASTNode.name] = rootASTNode;
+            }
+
+            // Create a provider for named root nodes.
+            const namedRootNodeProvider = function (name) { return rootNodeMap[name]; };
+
+            // Convert the AST to our actual tree.
+            this._rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(namedRootNodeProvider, []);
         } catch (exception) {
-            // There was an issue in trying to parse the tree definition.
+            // There was an issue in trying to parse and build the tree definition.
             throw `TreeParseError: ${exception}`;
         }
 
-        // Convert the AST to our actual tree.
-        this._rootNode = rootASTNode.createNodeInstance();
-
         // Get a flattened array of tree nodes.
-        this._flattenTreeNodes = [];
-        let currentNodeScopeId = 0;
+        this._flattenedTreeNodes = [];
+        let currentNodeScopeId   = 0;
         const findNestedNodes = (node, depth, nodeScopeId) => {
-            this._flattenTreeNodes.push({ node, depth, nodeScopeId });
+            this._flattenedTreeNodes.push({ node, depth, nodeScopeId });
 
             nodeScopeId = ++currentNodeScopeId;
 
@@ -274,25 +298,19 @@ export default function BehaviourTree(definition, board) {
         cleansedDefinition = cleansedDefinition.replace(/\]/g, " ] ");
         cleansedDefinition = cleansedDefinition.replace(/\[/g, " [ ");
         cleansedDefinition = cleansedDefinition.replace(/\,/g, " , ");
-        cleansedDefinition = cleansedDefinition.replace(/\:/g, " : ");
 
         // Split the definition into raw token form and return it.
         return cleansedDefinition.replace(/\s+/g, " ").trim().split(" ");
     };
 
     /**
-     * Create a BT AST node based on the remaining tokens.
+     * Create an array of root AST nodes based on the remaining tokens.
      * @param tokens The remaining tokens.
      */
-    this._createRootASTNode = function(tokens) {
+    this._createRootASTNodes = function(tokens) {
         // There must be at least 3 tokens for the tree definition to be valid. 'ROOT', '{' and '}'.
         if (tokens.length < 3) {
             throw "invalid token count";
-        }
-
-        // The first token MUST be our 'ROOT' token.
-        if (tokens[0].toUpperCase() !== "ROOT") {
-            throw "initial node must be the 'ROOT' node";
         }
 
         // We should have a matching number of '{' and '}' tokens. If not, then there are scopes that have not been properly closed.
@@ -354,15 +372,8 @@ export default function BehaviourTree(definition, board) {
             return argumentList;
         }
 
-        // Throw the 'ROOT' and opening '{' token away.
-        popAndCheck("root");
-        popAndCheck("{");
-
-        // Create the root node.
-        const rootASTNode = ASTNodeFactories.ROOT();
-
-        // Create a stack of node children arrays, with the root child array as the initial one.
-        const stack = [rootASTNode.children];
+        // Create a stack of node children arrays, starting with a definition scope.
+        const stack = [[]];
 
         // We should keep processing the raw tokens until we run out of them.
         while (tokens.length) {
@@ -373,6 +384,56 @@ export default function BehaviourTree(definition, board) {
 
             // How we create the next AST token depends on the current raw token value.
             switch (token.toUpperCase()) {
+                case "ROOT": 
+                    // Create a ROOT AST node.
+                    node = ASTNodeFactories.ROOT();
+
+                    // Push the ROOT node into the current scope.
+                    stack[stack.length - 1].push(node);
+
+                    // We may have a root node name defined as an argument.
+                    if (tokens[0] === "[") {
+                        const rootArguments = getArguments();
+
+                        // We should have only a single argument that is not an empty string for a root node, which is the root name.
+                        if (rootArguments.length === 1 && rootArguments[0] !== "") {
+                            // The root  name will be the first and only node argument.
+                            node.name = rootArguments[0];
+                        } else {
+                            throw "expected single root name argument";
+                        }
+                    }
+
+                    popAndCheck("{");
+
+                    // The new scope is that of the new ROOT nodes children.
+                    stack.push(node.children);
+                    break;
+
+                case "BRANCH": 
+                    // Create a BRANCH AST node.
+                    node = ASTNodeFactories.BRANCH();
+
+                    // Push the BRANCH node into the current scope.
+                    stack[stack.length - 1].push(node);
+
+                    // We must have arguments defined, as we require a branch name argument.
+                    if (tokens[0] !== "[") {
+                        throw "expected single branch name argument";
+                    } 
+
+                    // The branch name will be defined as a node argument.
+                    const branchArguments = getArguments();
+
+                    // We should have only a single argument that is not an empty string for a branch node, which is the branch name.
+                    if (branchArguments.length === 1 && branchArguments[0] !== "") {
+                        // The branch name will be the first and only node argument.
+                        node.branchName = branchArguments[0];
+                    } else {
+                        throw "expected single branch name argument";
+                    } 
+                    break;
+
                 case "SELECTOR": 
                     // Create a SELECTOR AST node.
                     node = ASTNodeFactories.SELECTOR();
@@ -583,10 +644,41 @@ export default function BehaviourTree(definition, board) {
             // Validate each child of the node.
             (node.children ||[]).forEach((child) => validateASTNode(child));
         };
-        validateASTNode(rootASTNode);
+        // Start node validation from the definition root.
+        validateASTNode({ 
+            children: stack[0],
+            validate: function () {
+                // We must have at least one node defined as the definition scope, which should be a root node.
+                if (this.children.length === 0) {
+                    throw "expected root node to have been defined";
+                }
 
-        // Return the root BT AST node.
-        return rootASTNode;
+                // Each node at the base of the definition scope MUST be a root node.
+                for (const definitionLevelNode of this.children) {
+                    if (definitionLevelNode.type !== "root") {
+                        throw "expected root node at base of definition";
+                    }
+                }
+
+                // No two named root nodes can have matching names.
+                const rootNodeNames = [];
+                for (const definitionLevelNode of this.children) {
+                    if (rootNodeNames.indexOf(definitionLevelNode.name) !== -1) {
+                        throw `multiple root nodes found with duplicate name '${definitionLevelNode.name}'`;
+                    } else {
+                        rootNodeNames.push(definitionLevelNode.name);
+                    }
+                }
+
+                // Exactly one root node must not have a name defined. This will be the main root, others will have to be referenced via branch nodes.
+                if (this.children.filter(function (definitionLevelNode) { return definitionLevelNode.name === null; }).length !== 1) {
+                    throw "expected single unnamed root node at base of definition to act as main root";
+                }
+            }
+        });
+
+        // Return the root AST nodes.
+        return stack[0];
     };
 
     // Call Mistreevous init logic.
