@@ -162,6 +162,7 @@ function BehaviourTree(definition, board) {
 
     /**
      * Get a randomly generated uid.
+     * @returns A randomly generated uid.
      */
     const getUid = () => {
         var S4 = function () {
@@ -386,35 +387,29 @@ function BehaviourTree(definition, board) {
         // Convert the definition into some tokens.
         const tokens = this._parseDefinition();
 
-        // Try to create the behaviour tree AST from tokens, this could fail if the definition is invalid.
-        let rootASTNodes;
         try {
-            rootASTNodes = this._createRootASTNodes(tokens);
-        } catch (exception) {
-            // There was an issue in trying to parse the tree definition.
-            throw `TreeParseError: ${exception}`;
-        }
+            // Try to create the behaviour tree AST from tokens, this could fail if the definition is invalid.
+            const rootASTNodes = this._createRootASTNodes(tokens);
 
-        // Create a symbol to use as the main root key in our root node mapping.
-        const mainRootNodeKey = Symbol("__root__");
+            // Create a symbol to use as the main root key in our root node mapping.
+            const mainRootNodeKey = Symbol("__root__");
 
-        // Create a mapping of root node names to root AST tokens. The main root node will have a key of Symbol("__root__").
-        const rootNodeMap = {};
-        for (const rootASTNode of rootASTNodes) {
-            rootNodeMap[rootASTNode.name === null ? mainRootNodeKey : rootASTNode.name] = rootASTNode;
-        }
+            // Create a mapping of root node names to root AST tokens. The main root node will have a key of Symbol("__root__").
+            const rootNodeMap = {};
+            for (const rootASTNode of rootASTNodes) {
+                rootNodeMap[rootASTNode.name === null ? mainRootNodeKey : rootASTNode.name] = rootASTNode;
+            }
 
-        // Create a provider for named root nodes.
-        const namedRootNodeProvider = function (name) {
-            return rootNodeMap[name];
-        };
+            // Create a provider for named root nodes.
+            const namedRootNodeProvider = function (name) {
+                return rootNodeMap[name];
+            };
 
-        // Convert the AST to our actual tree.
-        try {
+            // Convert the AST to our actual tree.
             this._rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(namedRootNodeProvider);
         } catch (exception) {
-            // There was an issue in trying to generate a tree node.
-            throw `TreeNodeGenerationError: ${exception}`;
+            // There was an issue in trying to parse and build the tree definition.
+            throw `TreeParseError: ${exception}`;
         }
 
         // Get a flattened array of tree nodes.
