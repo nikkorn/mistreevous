@@ -3,6 +3,8 @@ const resultTextArea     = document.getElementById("result-text-area");
 const blackboardTextArea = document.getElementById("blackboard-text-area");
 const treeViewWrapper    = document.getElementById("tree-view-wrapper");
 
+const SidebarViewState = { "NONE": 0, "DEFINITION": 1, "BOARD": 2 };
+
 /**
  * The behaviour tree.
  */
@@ -180,6 +182,40 @@ function onTickButtonPressed() {
 function onResetButtonPressed() {
     // Do the definition update.
     onDefinitionUpdate();
+};
+
+/**
+ * Change the sidebar view.
+ * @param view The view to show.
+ */
+function changeSidebarView(view) {
+    // Get the sidebar view button elements.
+    const definitionViewButton = document.getElementById("definition-view-button");
+    const boardViewButton      = document.getElementById("board-view-button");
+    const clearViewButton      = document.getElementById("clear-view-button");
+
+    switch (view) {
+        case SidebarViewState.DEFINITION:
+            definitionViewButton.style.display = "none";
+            boardViewButton.style.display      = "inline";
+            clearViewButton.style.display      = "inline";
+
+            break;
+        case SidebarViewState.BOARD:
+            definitionViewButton.style.display = "inline";
+            boardViewButton.style.display      = "none";
+            clearViewButton.style.display      = "inline";
+
+            break;
+        case SidebarViewState.NONE:
+            definitionViewButton.style.display = "inline";
+            boardViewButton.style.display      = "inline";
+            clearViewButton.style.display      = "none";
+
+            break;
+        default:
+            // What the dickens!
+    }
 };
 
 /**

@@ -38,9 +38,9 @@
 				</div>
 				<div class="tree-view-container page-tile">
 					<div class="tree-view-controls sidebar-controls">
-						<img src="icons/code.png" title="definition panel">
-						<img src="icons/board.png" title="board panel">
-						<img src="icons/close.png" title="close panel">
+						<img src="icons/code.png" id="definition-view-button" title="definition panel" onclick="changeSidebarView(1)">
+						<img src="icons/board.png"  id="board-view-button" title="board panel" onclick="changeSidebarView(2)">
+						<img src="icons/close.png"  id="clear-view-button" title="close panel" onclick="changeSidebarView(0)">
 					</div>
 					<div class="tree-view-controls runtime-controls">
 						<img src="icons/step.png" title="step" onclick="onTickButtonPressed()">
