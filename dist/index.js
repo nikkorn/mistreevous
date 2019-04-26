@@ -179,8 +179,13 @@ function BehaviourTree(definition, board) {
             type: "root",
             name: null,
             children: [],
-            validate: function () {
-                // A root node must have a single node.
+            validate: function (depth) {
+                // A root node cannot be the child of another node.
+                if (depth > 1) {
+                    throw "a root node cannot be the child of another node";
+                }
+
+                // A root node must have a single child node.
                 if (this.children.length !== 1) {
                     throw "a root node must have a single child";
                 }
@@ -192,7 +197,7 @@ function BehaviourTree(definition, board) {
         "BRANCH": () => ({
             type: "branch",
             branchName: "",
-            validate: function () {},
+            validate: function (depth) {},
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
                 // Try to find the root node with a matching branch name.
                 const targetRootNode = namedRootNodeProvider(this.branchName);
@@ -213,7 +218,7 @@ function BehaviourTree(definition, board) {
         "SELECTOR": () => ({
             type: "selector",
             children: [],
-            validate: function () {
+            validate: function (depth) {
                 // A selector node must have at least a single node.
                 if (this.children.length < 1) {
                     throw "a selector node must have at least a single child";
@@ -226,7 +231,7 @@ function BehaviourTree(definition, board) {
         "SEQUENCE": () => ({
             type: "sequence",
             children: [],
-            validate: function () {
+            validate: function (depth) {
                 // A sequence node must have at least a single node.
                 if (this.children.length < 1) {
                     throw "a sequence node must have at least a single child";
@@ -240,7 +245,7 @@ function BehaviourTree(definition, board) {
             type: "lotto",
             children: [],
             tickets: [],
-            validate: function () {
+            validate: function (depth) {
                 // A lotto node must have at least a single node.
                 if (this.children.length < 1) {
                     throw "a lotto node must have at least a single child";
@@ -255,7 +260,7 @@ function BehaviourTree(definition, board) {
             iterations: null,
             maximumIterations: null,
             children: [],
-            validate: function () {
+            validate: function (depth) {
                 // A repeat node must have a single node.
                 if (this.children.length !== 1) {
                     throw "a repeat node must have a single child";
@@ -287,7 +292,7 @@ function BehaviourTree(definition, board) {
             type: "while",
             conditionFunction: null,
             children: [],
-            validate: function () {
+            validate: function (depth) {
                 // A while node must have a single node.
                 if (this.children.length !== 1) {
                     throw "a while node must have a single child";
@@ -300,7 +305,7 @@ function BehaviourTree(definition, board) {
         "CONDITION": () => ({
             type: "condition",
             conditionFunction: "",
-            validate: function () {},
+            validate: function (depth) {},
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
                 return new __WEBPACK_IMPORTED_MODULE_1__nodes_condition__["a" /* default */](getUid(), this.conditionFunction);
             }
@@ -308,7 +313,7 @@ function BehaviourTree(definition, board) {
         "FLIP": () => ({
             type: "flip",
             children: [],
-            validate: function () {
+            validate: function (depth) {
                 // A flip node must have a single node.
                 if (this.children.length !== 1) {
                     throw "a flip node must have a single child";
@@ -322,7 +327,7 @@ function BehaviourTree(definition, board) {
             type: "wait",
             duration: null,
             longestDuration: null,
-            validate: function () {
+            validate: function (depth) {
                 // A wait node must have a positive duration. 
                 if (this.duration < 0) {
                     throw "a wait node must have a positive duration";
@@ -348,7 +353,7 @@ function BehaviourTree(definition, board) {
         "ACTION": () => ({
             type: "action",
             actionName: "",
-            validate: function () {},
+            validate: function (depth) {},
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
                 return new __WEBPACK_IMPORTED_MODULE_0__nodes_action__["a" /* default */](getUid(), this.actionName);
             }
@@ -433,6 +438,7 @@ function BehaviourTree(definition, board) {
 
     /**
      * Parse the BT tree definition into an array of raw tokens.
+     * @returns An array of tokens parsed from the definition.
      */
     this._parseDefinition = function () {
         // Firstly, create a copy of the raw definition.
@@ -452,6 +458,7 @@ function BehaviourTree(definition, board) {
     /**
      * Create an array of root AST nodes based on the remaining tokens.
      * @param tokens The remaining tokens.
+     * @returns The base definition AST nodes.
      */
     this._createRootASTNodes = function (tokens) {
         // There must be at least 3 tokens for the tree definition to be valid. 'ROOT', '{' and '}'.
@@ -787,18 +794,19 @@ function BehaviourTree(definition, board) {
             }
         }
 
-        // Validate each of the nodes.
-        const validateASTNode = node => {
+        // A function to recursively validate each of the nodes in the AST.
+        const validateASTNode = (node, depth) => {
             // Validate the node.
-            node.validate();
+            node.validate(depth);
 
             // Validate each child of the node.
-            (node.children || []).forEach(child => validateASTNode(child));
+            (node.children || []).forEach(child => validateASTNode(child, depth + 1));
         };
+
         // Start node validation from the definition root.
         validateASTNode({
             children: stack[0],
-            validate: function () {
+            validate: function (depth) {
                 // We must have at least one node defined as the definition scope, which should be a root node.
                 if (this.children.length === 0) {
                     throw "expected root node to have been defined";
@@ -828,7 +836,7 @@ function BehaviourTree(definition, board) {
                     }
                 }
             }
-        });
+        }, 0);
 
         // Return the root AST nodes.
         return stack[0];
