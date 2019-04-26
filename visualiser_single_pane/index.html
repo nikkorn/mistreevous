@@ -18,30 +18,23 @@
 
 <body>
 	<div class="page-container">
-		<div class="editor-container">
-			<div class="page-tile">
-				<p>Definition</p>
-				<textarea id="definition-text-area" onkeyup="onDefinitionUpdate()" spellcheck="false" style="width: 100%;"></textarea>
-			</div>
-			<div class="blackboard-view-container page-tile">
-				<p>Board</p>
-				<textarea id="blackboard-text-area" spellcheck="false" style="width: 100%;"></textarea>
-			</div>
-		</div>
-		<div class="result-view-container page-tile">
-			<textarea id="result-text-area" spellcheck="false" style="width: 100%;" readonly></textarea>
-		</div>
-		<div class="buttons-container">
-			<button type="button" onclick="onTickButtonPressed()">Tick</button>
-			<button type="button" onclick="onResetButtonPressed()">Reset</button>
-		</div>
 		<div class="main-container">
 			<div class="header-bar">
 				<p>Header</p>
 			</div>
 			<div class="editor-panel">
 				<div class="sidebar-panel">
-					<p>SideBar</p>
+					<div class="definition-panel page-tile">
+						<p>Definition</p>
+						<textarea id="definition-text-area" onkeyup="onDefinitionUpdate()" spellcheck="false" style="width: 100%;"></textarea>
+						<div class="result-view-container page-tile">
+							<textarea id="result-text-area" spellcheck="false" style="width: 100%;" readonly></textarea>
+						</div>
+					</div>
+					<div class="blackboard-panel page-tile">
+						<p>Board</p>
+						<textarea id="blackboard-text-area" spellcheck="false" style="width: 100%;"></textarea>
+					</div>
 				</div>
 				<div class="tree-view-container page-tile">
 					<div class="tree-view-controls sidebar-controls">
@@ -50,8 +43,8 @@
 						<img src="icons/close.png" title="close panel">
 					</div>
 					<div class="tree-view-controls runtime-controls">
-						<img src="icons/step.png" title="step">
-						<img src="icons/reload.png" title="reload">
+						<img src="icons/step.png" title="step" onclick="onTickButtonPressed()">
+						<img src="icons/reload.png" title="reload" onclick="onResetButtonPressed()">
 					</div>
 					<div id="tree-view-wrapper" style="width: 100%;"></div>
 				</div>

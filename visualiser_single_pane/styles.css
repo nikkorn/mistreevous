@@ -22,7 +22,7 @@ html, body {
 }
 
 .header-bar {
-    background-color: #4c4c4c;
+    background-color: #444444;
     color: #FFFFFF;
 }
 
@@ -38,12 +38,17 @@ html, body {
     flex-grow: 1;
 }
 
+.sidebar-panel {
+    resize: horizontal;
+    overflow: hidden;
+}
+
 .tree-view-controls {
     position: absolute;
-    background-color: #4c4c4c;
+    background-color: #444444;
     box-shadow: 2px 2px 5px grey;
     border-radius: 12px;
-    margin: 15px;
+    margin: 20px;
     height: 44px;
 }
 
@@ -99,11 +104,15 @@ html, body {
 
 /* Worklo Nodes */
 
+#tree-view-wrapper {
+    overflow: auto;
+}
+
 .tree-view-node {
     display: flex;
     border-radius: 15px 12px 12px 15px;
     box-shadow: 2px 2px 5px grey;
-    background-color: #4c4c4c;
+    background-color: #444444;
     color: #FFFFFF;
     font-size: 0px;
 }
@@ -120,7 +129,7 @@ html, body {
 
 .tree-view-node.running {
     background-color: #ffffff;
-    color: #4c4c4c
+    color: #444444
 }
 
 .tree-view-node.failed {
