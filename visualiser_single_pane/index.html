@@ -36,7 +36,7 @@
 			<button type="button" onclick="onResetButtonPressed()">Reset</button>
 		</div>
 		<div class="main-container">
-			<div class="main-header-bar">
+			<div class="header-bar">
 				<p>Header</p>
 			</div>
 			<div class="editor-panel">
@@ -44,8 +44,15 @@
 					<p>SideBar</p>
 				</div>
 				<div class="tree-view-container page-tile">
-					<div class="tree-view-controls sidebar-controls"><p>DEF|BOARD|CLEAR</p></div>
-					<div class="tree-view-controls runtime-controls"><p>TICK|RESET|CENTER</p></div>
+					<div class="tree-view-controls sidebar-controls">
+						<img src="icons/code.png" title="definition panel">
+						<img src="icons/board.png" title="board panel">
+						<img src="icons/close.png" title="close panel">
+					</div>
+					<div class="tree-view-controls runtime-controls">
+						<img src="icons/step.png" title="step">
+						<img src="icons/reload.png" title="reload">
+					</div>
 					<div id="tree-view-wrapper" style="width: 100%;"></div>
 				</div>
 			</div>
