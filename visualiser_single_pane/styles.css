@@ -1,0 +1,171 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    font-family: "Courier New", Courier, monospace;
+}
+
+.page-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.buttons-container {
+    display: flex;
+    flex-direction: row;
+    flex-grow: 0;
+    justify-content: center;
+}
+
+.buttons-container button {
+    margin: 5px;
+}
+
+.main-container {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.editor-panel {
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+.tree-view-controls {
+    position: absolute;
+    background-color: #4c4c4c;
+    box-shadow: 2px 2px 5px grey;
+    border-radius: 12px;
+    margin: 15px;
+}
+
+.sidebar-controls {
+    
+}
+
+.runtime-controls {
+    right: 0px;
+}
+
+.tree-view-container.page-tile {
+    flex-grow: 2;
+}
+
+#tree-view-wrapper {
+    background-color: #FFFFFF;
+    font-size: 0.8em;
+}
+
+#tree-view-wrapper p {
+    margin: 3px;
+}
+
+.page-tile {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.page-tile > p {
+    margin: 5px 0;
+}
+
+.page-tile > textarea, #tree-view-wrapper {
+    font-family: "Courier New", Courier, monospace;
+    flex-grow: 1;
+    -webkit-box-sizing:border-box;
+    -moz-box-sizing:border-box;
+    box-sizing:border-box;
+}
+
+.result-view-container {
+    flex-grow: 0;
+}
+
+/* Worklo Nodes */
+
+.tree-view-node {
+    display: flex;
+    border-radius: 15px 12px 12px 15px;
+    box-shadow: 2px 2px 5px grey;
+    background-color: #4c4c4c;
+    color: #FFFFFF;
+    font-size: 0px;
+}
+
+.tree-view-caption {
+    line-height: 20px;
+}
+
+.tree-view-node > * {
+    display: inline-block;
+    padding: 5px 7px;
+    font-size: 12px;
+}
+
+.tree-view-node.running {
+    background-color: #ffffff;
+    color: #4c4c4c
+}
+
+.tree-view-node.failed {
+    background-color: rgb(131, 0, 0);
+    color: #ffffff
+}
+
+.tree-view-node.succeeded {
+    background-color: rgb(29, 145, 0);
+    color: #ffffff
+}
+
+.tree-view-icon {
+    border-radius: 12px 0px 0px 12px;
+}
+
+.tree-view-icon img {
+    vertical-align: middle;
+    height: 20px;
+    width: 20px;
+}
+
+.tree-view-icon-action {
+    background-color: rgb(42, 89, 218);
+}
+
+.tree-view-icon-condition {
+    background-color: rgb(196, 199, 7);
+}
+
+.tree-view-icon-selector {
+    background-color: rgb(143, 62, 209);
+}
+
+.tree-view-icon-sequence {
+    background-color: rgb(158, 36, 107);
+}
+
+.tree-view-icon-repeat {
+    background-color: rgb(224, 85, 115);
+}
+
+.tree-view-icon-while {
+    background-color: rgb(224, 85, 115);
+}
+
+.tree-view-icon-root {
+    background-color: rgb(99, 98, 104);
+}
+
+.tree-view-icon-flip {
+    background-color: rgb(207, 144, 7);
+}
+
+.tree-view-icon-lotto {
+    background-color: rgb(12, 185, 133);
+}
+
+.tree-view-icon-wait {
+    background-color: rgb(224, 125, 248);
+}

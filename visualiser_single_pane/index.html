@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<title>mistreevous</title>
+<link rel="stylesheet" type="text/css" href="styles.css">
+
+<!-- WorkFlo-->
+<script src="../lib/workflo/node.js"></script>
+<script src="../lib/workflo/nodecontainer.js"></script>
+<script src="../lib/workflo/connector.js"></script>
+<script src="../lib/workflo/workflo.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/workflo/workflo.css">
+
+<script src="../dist/index.js"></script>
+
+<head>
+	<meta charset="utf-8">
+</head>
+
+<body>
+	<div class="page-container">
+		<div class="editor-container">
+			<div class="page-tile">
+				<p>Definition</p>
+				<textarea id="definition-text-area" onkeyup="onDefinitionUpdate()" spellcheck="false" style="width: 100%;"></textarea>
+			</div>
+			<div class="blackboard-view-container page-tile">
+				<p>Board</p>
+				<textarea id="blackboard-text-area" spellcheck="false" style="width: 100%;"></textarea>
+			</div>
+		</div>
+		<div class="result-view-container page-tile">
+			<textarea id="result-text-area" spellcheck="false" style="width: 100%;" readonly></textarea>
+		</div>
+		<div class="buttons-container">
+			<button type="button" onclick="onTickButtonPressed()">Tick</button>
+			<button type="button" onclick="onResetButtonPressed()">Reset</button>
+		</div>
+		<div class="main-container">
+			<div class="main-header-bar">
+				<p>Header</p>
+			</div>
+			<div class="editor-panel">
+				<div class="sidebar-panel">
+					<p>SideBar</p>
+				</div>
+				<div class="tree-view-container page-tile">
+					<div class="tree-view-controls sidebar-controls"><p>DEF|BOARD|CLEAR</p></div>
+					<div class="tree-view-controls runtime-controls"><p>TICK|RESET|CENTER</p></div>
+					<div id="tree-view-wrapper" style="width: 100%;"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+<script src="index.js"></script>
+</html>
