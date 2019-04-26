@@ -73,6 +73,7 @@ html, body {
 
 .tree-view-node {
     display: flex;
+    border-radius: 15px 12px 12px 15px;
     background-color: #4c4c4c;
     color: #FFFFFF;
     font-size: 0px;
@@ -84,7 +85,7 @@ html, body {
 
 .tree-view-node > * {
     display: inline-block;
-    padding: 5px;
+    padding: 5px 7px;
     font-size: 12px;
 }
 
@@ -101,6 +102,10 @@ html, body {
 .tree-view-node.succeeded {
     background-color: rgb(29, 145, 0);
     color: #ffffff
+}
+
+.tree-view-icon {
+    border-radius: 12px 0px 0px 12px;
 }
 
 .tree-view-icon img {
