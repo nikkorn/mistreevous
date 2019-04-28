@@ -38,9 +38,10 @@ html, body {
     flex-grow: 1;
 }
 
-.sidebar-panel {
+#sidebar-panel {
     resize: horizontal;
     overflow: hidden;
+    display: none;
 }
 
 .tree-view-controls {

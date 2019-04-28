@@ -194,25 +194,48 @@ function changeSidebarView(view) {
     const boardViewButton      = document.getElementById("board-view-button");
     const clearViewButton      = document.getElementById("clear-view-button");
 
+    // Get the sidebar panel elements.
+    const sidebarPanel    = document.getElementById("sidebar-panel");
+    const definitionPanel = document.getElementById("definition-panel");
+    const blackboardPanel = document.getElementById("blackboard-panel");
+
     switch (view) {
         case SidebarViewState.DEFINITION:
+            // Show/hide the relevant sidebar buttons.
             definitionViewButton.style.display = "none";
             boardViewButton.style.display      = "inline";
             clearViewButton.style.display      = "inline";
 
+            // Show/hide the relevant sidebar panels.
+            sidebarPanel.style.display    = "block";
+            definitionPanel.style.display = "flex";
+            blackboardPanel.style.display = "none";
             break;
+
         case SidebarViewState.BOARD:
+            // Show/hide the relevant sidebar buttons.
             definitionViewButton.style.display = "inline";
             boardViewButton.style.display      = "none";
             clearViewButton.style.display      = "inline";
 
+            // Show/hide the relevant sidebar panels.
+            sidebarPanel.style.display    = "block";
+            definitionPanel.style.display = "none";
+            blackboardPanel.style.display = "flex";
             break;
+
         case SidebarViewState.NONE:
+            // Show/hide the relevant sidebar buttons.
             definitionViewButton.style.display = "inline";
             boardViewButton.style.display      = "inline";
             clearViewButton.style.display      = "none";
 
+            // Show/hide the relevant sidebar panels.
+            sidebarPanel.style.display    = "none";
+            definitionPanel.style.display = "flex";
+            blackboardPanel.style.display = "flex";
             break;
+
         default:
             // What the dickens!
     }
@@ -294,3 +317,6 @@ function buildTreeView() {
 
 // Do the initial definition update.
 onDefinitionUpdate();
+
+// Set the initial sidebar state so that it is not shown.
+changeSidebarView(SidebarViewState.NONE);
