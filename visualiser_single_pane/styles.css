@@ -21,9 +21,30 @@ html, body {
     margin: 5px;
 }
 
-.header-bar {
+#header-bar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
     background-color: #444444;
     color: #FFFFFF;
+}
+
+#title-bar {
+    margin-left: 10px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    font-weight: 900;
+}
+
+#mistreevous-icon {
+    width: 36px;
+    height: 36px;
+    margin-right: 6px;
+}
+
+#details-bar {
+    margin-right: 10px;
 }
 
 .main-container {
@@ -42,6 +63,7 @@ html, body {
     resize: horizontal;
     overflow: hidden;
     display: none;
+    width: 30%;
 }
 
 .tree-view-controls {
@@ -124,8 +146,8 @@ html, body {
 
 .tree-view-node > * {
     display: inline-block;
-    padding: 5px 7px;
-    font-size: 12px;
+    padding: 2px 6px;
+    font-size: 14px;
 }
 
 .tree-view-node.running {
@@ -145,12 +167,15 @@ html, body {
 
 .tree-view-icon {
     border-radius: 12px 0px 0px 12px;
+    padding: 2px 4px;
 }
 
 .tree-view-icon img {
     vertical-align: middle;
-    height: 20px;
-    width: 20px;
+    height: 16px;
+    width: 16px;
+    margin-top: 2px;
+    margin-left: 2px;
 }
 
 .tree-view-icon-action {
