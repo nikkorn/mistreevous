@@ -243,6 +243,28 @@ function changeSidebarView(view) {
     }
 };
 
+
+
+/**
+ * Called in response to the snippet select input value changing.
+ */
+function onSnippetSelect() {
+    // Clear away the existing tree view.
+    treeViewWrapper.innerHTML = "";
+    
+    // Get the selected snippet.
+    var snippet = example_snippets[document.getElementById("template-select-list").value];
+
+    // Update the definition textarea to match the snippet definition.
+    definitionTextArea.innerHTML = snippet.definition;
+
+    // Update the blackboard textarea to match the snippet blackboard.
+    blackboardTextArea.innerHTML = snippet.blackboard;
+
+    // Do another initial definition update.
+    onDefinitionUpdate();
+};
+
 /**
  * Build the tree view.
  */
