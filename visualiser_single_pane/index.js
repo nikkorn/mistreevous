@@ -57,55 +57,57 @@ root [AttemptDoorOpen] {
 
 // Set a test blackboard in the blackboard text area.
 blackboardTextArea.innerHTML = 
-`DoorIsOpen: () => false,
-DoorIsSmashed: () => true,  
+`{
+    DoorIsOpen: () => false,
+    DoorIsSmashed: () => true,  
 
-WalkToDoor: {
-    onStart: () => {},
-    onUpdate: () => Mistreevous.State.SUCCEEDED,
-    onFinish: (succeeded) => {}
-},
+    WalkToDoor: {
+        onStart: () => {},
+        onUpdate: () => Mistreevous.State.SUCCEEDED,
+        onFinish: (succeeded) => {}
+    },
 
-OpenDoor: {
-    onStart: () => {},
-    onUpdate: () => Mistreevous.State.FAILED,
-    onFinish: (succeeded) => {}
-},
+    OpenDoor: {
+        onStart: () => {},
+        onUpdate: () => Mistreevous.State.FAILED,
+        onFinish: (succeeded) => {}
+    },
 
-UnlockDoor: {
-    onStart: () => {},
-    onUpdate: () => Mistreevous.State.FAILED,
-    onFinish: (succeeded) => {}
-},
+    UnlockDoor: {
+        onStart: () => {},
+        onUpdate: () => Mistreevous.State.FAILED,
+        onFinish: (succeeded) => {}
+    },
 
-SmashDoor: {
-    onStart: () => {},
-    onUpdate: () => {},
-    onFinish: (succeeded) => {}
-},
+    SmashDoor: {
+        onStart: () => {},
+        onUpdate: () => {},
+        onFinish: (succeeded) => {}
+    },
 
-WalkThroughDoor: {
-    onStart: () => {},
-    onUpdate: () => Mistreevous.State.SUCCEEDED,
-    onFinish: (succeeded) => {}
-},
+    WalkThroughDoor: {
+        onStart: () => {},
+        onUpdate: () => Mistreevous.State.SUCCEEDED,
+        onFinish: (succeeded) => {}
+    },
 
-CloseDoor: {
-    onStart: () => {},
-    onUpdate: () => Mistreevous.State.SUCCEEDED,
-    onFinish: (succeeded) => {}
-},
+    CloseDoor: {
+        onStart: () => {},
+        onUpdate: () => Mistreevous.State.SUCCEEDED,
+        onFinish: (succeeded) => {}
+    },
 
-ScreamLoudly: {
-    onStart: () => {},
-    onUpdate: () => Mistreevous.State.SUCCEEDED,
-    onFinish: (succeeded) => {}
-},
+    ScreamLoudly: {
+        onStart: () => {},
+        onUpdate: () => Mistreevous.State.SUCCEEDED,
+        onFinish: (succeeded) => {}
+    },
 
-MutterAngrily: {
-    onStart: () => {},
-    onUpdate: () => Mistreevous.State.SUCCEEDED,
-    onFinish: (succeeded) => {}
+    MutterAngrily: {
+        onStart: () => {},
+        onUpdate: () => Mistreevous.State.SUCCEEDED,
+        onFinish: (succeeded) => {}
+    }
 }`;
 
 /**
@@ -147,7 +149,7 @@ function onDefinitionUpdate() {
  */
 function onBlackboardUpdate() {
     // Create the blackboard proxy.
-    const blackboardProxy = eval('({' + blackboardTextArea.value + '})');
+    const blackboardProxy = eval('(' + blackboardTextArea.value + ')');
 
     // Update the blackboard.
     for (var key in blackboardProxy) {

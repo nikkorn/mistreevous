@@ -37,13 +37,16 @@ html, body {
     font-weight: 900;
 }
 
-#mistreevous-icon {
+#header-icon {
     width: 36px;
     height: 36px;
     margin-right: 6px;
 }
 
 #details-bar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     margin-right: 10px;
 }
 
@@ -68,9 +71,9 @@ html, body {
     width: 30%;
 }
 
-#definition-panel {
+#sidebar-panel > div {
     padding: 5px;
-    padding-bottom: 15px;
+    padding-bottom: 20px;
 }
 
 .tree-view-controls {
@@ -136,6 +139,17 @@ html, body {
     border: none;
     overflow: auto;
     outline: none;
+    white-space: nowrap;
+}
+
+
+#blackboard-text-area {
+    background-color: #272727;
+    color: #FFFFFF;
+    border: none;
+    overflow: auto;
+    outline: none;
+    white-space: nowrap;
 }
 
 .result-view-container {
@@ -155,6 +169,7 @@ html, body {
     background-color: #444444;
     color: #FFFFFF;
     font-size: 0px;
+    white-space: nowrap;
 }
 
 .tree-view-caption {
