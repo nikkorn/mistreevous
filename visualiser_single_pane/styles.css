@@ -29,25 +29,33 @@ html, body {
     color: #FFFFFF;
 }
 
-#title-bar {
-    margin-left: 10px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    font-weight: 900;
-}
-
 #header-icon {
     width: 36px;
     height: 36px;
     margin-right: 6px;
 }
 
-#details-bar {
+#header-bar > div {
     display: flex;
     flex-direction: row;
     align-items: center;
+}
+
+#title-bar {
+    margin-left: 10px;
+    font-weight: 900;
+}
+
+#details-bar {
     margin-right: 10px;
+}
+
+#template-select-list {
+    width: 150px;
+    margin-right: 30px;
+    margin-left: 5px;
+    border-radius: 15px;
+    padding: 2px;
 }
 
 .main-container {
