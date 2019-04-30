@@ -60,10 +60,17 @@ html, body {
 }
 
 #sidebar-panel {
+    background-color: #444444;
+    color: #FFFFFF;
     resize: horizontal;
     overflow: hidden;
     display: none;
     width: 30%;
+}
+
+#definition-panel {
+    padding: 5px;
+    padding-bottom: 15px;
 }
 
 .tree-view-controls {
@@ -119,6 +126,16 @@ html, body {
     -webkit-box-sizing:border-box;
     -moz-box-sizing:border-box;
     box-sizing:border-box;
+    resize: none;
+    overflow: auto;
+}
+
+#definition-text-area {
+    background-color: #272727;
+    color: #FFFFFF;
+    border: none;
+    overflow: auto;
+    outline: none;
 }
 
 .result-view-container {

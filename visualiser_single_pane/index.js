@@ -207,7 +207,7 @@ function changeSidebarView(view) {
             clearViewButton.style.display      = "inline";
 
             // Show/hide the relevant sidebar panels.
-            sidebarPanel.style.display    = "block";
+            sidebarPanel.style.display    = "flex";
             definitionPanel.style.display = "flex";
             blackboardPanel.style.display = "none";
             break;
@@ -219,7 +219,7 @@ function changeSidebarView(view) {
             clearViewButton.style.display      = "inline";
 
             // Show/hide the relevant sidebar panels.
-            sidebarPanel.style.display    = "block";
+            sidebarPanel.style.display    = "flex";
             definitionPanel.style.display = "none";
             blackboardPanel.style.display = "flex";
             break;
