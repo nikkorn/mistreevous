@@ -261,8 +261,11 @@ function onSnippetSelect() {
     // Update the blackboard textarea to match the snippet blackboard.
     blackboardTextArea.innerHTML = snippet.blackboard;
 
-    // Do another initial definition update.
+    // Do another definition update.
     onDefinitionUpdate();
+
+    // Show the definition sidebar panel
+    changeSidebarView(SidebarViewState.DEFINITION);
 };
 
 /**
