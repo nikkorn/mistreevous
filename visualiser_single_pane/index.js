@@ -15,6 +15,12 @@ let behaviourTree;
  */
 let blackboard;
 
+/**
+ * The play interval id.
+ * This will be set while playing a tree.
+ */
+let playIntervalId = null;
+
 // Set a test definition.
 definitionTextArea.innerHTML =
 `root {
@@ -160,9 +166,71 @@ function onBlackboardUpdate() {
 };
 
 /**
- * Handles clicks on the 'tick' button.
+ * Handles clicks on the 'play' button.
  */
-function onTickButtonPressed() {
+function onPlayButtonPressed() {
+    // If there is no behaviour tree then there is nothing to do here.
+    if (!behaviourTree) {
+        return;
+    }
+
+    // Reset the tree.
+    behaviourTree.reset();
+
+    // Get an interval duration with which to step the tree.
+    let interval = prompt("Please enter a step interval in milliseconds", "1000");
+
+    // Check to make sure that the user specified an integer value.
+    if (isNaN(interval)) {
+        alert("step interval must be an integer value");
+
+        return;
+    }
+
+    // Set running state.
+    setRunningState(true);
+
+    // Create an interval to step the tree until it is finished.
+    playIntervalId = setInterval(() => {
+         // Step the behaviour tree.
+        behaviourTree.step();
+
+        // Rebuild the tree view.
+        buildTreeView();
+
+        // If the tree root is in a finished state then stop the interval.
+        if (behaviourTree.getRootNode().getState() !== Mistreevous.State.RUNNING) {
+            clearInterval(playIntervalId);
+
+            // Clear the play interval id.
+            playIntervalId = null;
+        }
+    }, parseInt(interval, 10));
+};
+
+/**
+ * Handles clicks on the 'stop' button.
+ */
+function onStopButtonPressed() {
+    // Stop running the tree if we are running it.
+    if (playIntervalId) {
+        clearInterval(playIntervalId);
+
+        // Clear the play interval id.
+        playIntervalId = null;
+    }
+
+    // Set running state.
+    setRunningState(false);
+
+    // Do the definition update.
+    onDefinitionUpdate();
+};
+
+/**
+ * Handles clicks on the 'step' button.
+ */
+function onStepButtonPressed() {
     // If there is no behaviour tree then there is nothing to do here.
     if (!behaviourTree) {
         return;
@@ -184,6 +252,17 @@ function onTickButtonPressed() {
 function onResetButtonPressed() {
     // Do the definition update.
     onDefinitionUpdate();
+};
+
+/**
+ * Set the running state of the editor.
+ */
+function setRunningState(isRunning) {
+    // TODO Make the definition/blackboard editors readonly based on 'isRunning'.
+
+    // TODO Enable/disable runtime controls based on 'isRunning'.
+
+    // TODO Enable/disable the snipped drop-down based on 'isRunning'.
 };
 
 /**
