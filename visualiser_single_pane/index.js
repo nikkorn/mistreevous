@@ -34,7 +34,7 @@ let blackboard;
 let playIntervalId = null;
 
 // Set a test definition.
-definitionTextArea.innerHTML =
+definitionTextArea.value =
 `root {
     sequence {
         action [WalkToDoor]
@@ -74,7 +74,7 @@ root [AttemptDoorOpen] {
 }`;
 
 // Set a test blackboard in the blackboard text area.
-blackboardTextArea.innerHTML = 
+blackboardTextArea.value =
 `{
     DoorIsOpen: () => false,
     DoorIsSmashed: () => true,  
@@ -132,7 +132,7 @@ blackboardTextArea.innerHTML =
  * Reload the visualiser.
  */
 function reloadVisualiser() {
-    // Stop running the tree if we are running it.
+    // Stop any tree playback.
     if (playIntervalId) {
         clearInterval(playIntervalId);
 
@@ -191,7 +191,7 @@ function onPlayButtonPressed() {
     behaviourTree.reset();
 
     // Get an interval duration with which to step the tree.
-    let interval = prompt("Please enter a step interval in milliseconds", "1000");
+    let interval = prompt("Please enter a step interval in milliseconds", "100");
 
     // Check to make sure that the user specified an integer value.
     if (isNaN(interval)) {
@@ -324,10 +324,10 @@ function onSnippetSelect() {
     var snippet = example_snippets[document.getElementById("template-select-list").value];
 
     // Update the definition textarea to match the snippet definition.
-    definitionTextArea.innerHTML = snippet.definition;
+    definitionTextArea.value = snippet.definition;
 
     // Update the blackboard textarea to match the snippet blackboard.
-    blackboardTextArea.innerHTML = snippet.blackboard;
+    blackboardTextArea.value = snippet.blackboard;
 
     // Now to reload the visualiser.
     reloadVisualiser();
