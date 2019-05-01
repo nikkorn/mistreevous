@@ -1,8 +1,20 @@
+/** The text areas. */
 const definitionTextArea = document.getElementById("definition-text-area");
 const resultTextArea     = document.getElementById("result-text-area");
 const blackboardTextArea = document.getElementById("blackboard-text-area");
-const treeViewWrapper    = document.getElementById("tree-view-wrapper");
 
+/** The tree view control buttons/panel. */
+const runtimeButtonPanel  = document.getElementById("runtime-controls");
+const playRuntimeButton   = document.getElementById("control-play-button");
+const reloadRuntimeButton = document.getElementById("control-play-button");
+
+/** The snippet selection input. */
+const snippetSelectBox = document.getElementById("template-select-list");
+
+/** The element wrapping the tree view. */
+const treeViewWrapper = document.getElementById("tree-view-wrapper");
+
+/** Enumeration of sidebar states. */
 const SidebarViewState = { "NONE": 0, "DEFINITION": 1, "BOARD": 2 };
 
 /**
@@ -117,23 +129,33 @@ blackboardTextArea.innerHTML =
 }`;
 
 /**
- * Handles definition updates.
+ * Reload the visualiser.
  */
-function onDefinitionUpdate() {
-    // Create the blackboard.
-    // In this page the blackboard will be kept up-to-date with changes made to the blackboard text area. 
-    blackboard = {};
+function reloadVisualiser() {
+    // Stop running the tree if we are running it.
+    if (playIntervalId) {
+        clearInterval(playIntervalId);
 
-    // Do the initial blackboard update.
-    onBlackboardUpdate();
+        // Clear the play interval id.
+        playIntervalId = null;
+    }
+
+    // There should be no running tree.
+    setRunningState(false);
 
     try {
+        // Create the blackboard.
+        const blackboard = eval('(' + blackboardTextArea.value + ')');
+
         // Try to create the behaviour tree.
         behaviourTree = new Mistreevous.BehaviourTree(definitionTextArea.value, blackboard);
 
         // We created the behaviour tree without an issue.
         resultTextArea.innerHTML             = "OK";
         resultTextArea.style.backgroundColor = "#d6f9d4";
+
+        // Show the runtime controls.
+        runtimeButtonPanel.style.display = "block";
     } catch (exception) {
         // There was an error creating the behaviour tree!
         behaviourTree = null;
@@ -142,27 +164,18 @@ function onDefinitionUpdate() {
         resultTextArea.innerHTML             = exception;
         resultTextArea.style.backgroundColor = "#fcc2c2";
 
+        // Hide the runtime controls.
+        runtimeButtonPanel.style.display = "none";
+
+        // Clear any existing tree view as it is no longer valid.
+        clearTreeView();
+
         // There is nothing left to do.
         return;
     }
 
     // Build the tree view.
     buildTreeView();
-};
-
-/**
- * Update the behaviour tree blackboard to match the blackboard defined in the editor.
- */
-function onBlackboardUpdate() {
-    // Create the blackboard proxy.
-    const blackboardProxy = eval('(' + blackboardTextArea.value + ')');
-
-    // Update the blackboard.
-    for (var key in blackboardProxy) {
-        if (blackboardProxy.hasOwnProperty(key)) {
-            blackboard[key] = blackboardProxy[key];
-        }
-    }
 };
 
 /**
@@ -192,8 +205,16 @@ function onPlayButtonPressed() {
 
     // Create an interval to step the tree until it is finished.
     playIntervalId = setInterval(() => {
-         // Step the behaviour tree.
-        behaviourTree.step();
+         // Step the behaviour tree, if anything goes wrong we will stop the tree playback.
+        try {
+            behaviourTree.step();
+        } catch (exception) {
+            // Notify the user of the exception.
+            alert(exception);
+
+            // Reload the visualiser.
+            reloadVisualiser();
+        }
 
         // Rebuild the tree view.
         buildTreeView();
@@ -209,60 +230,30 @@ function onPlayButtonPressed() {
 };
 
 /**
- * Handles clicks on the 'stop' button.
- */
-function onStopButtonPressed() {
-    // Stop running the tree if we are running it.
-    if (playIntervalId) {
-        clearInterval(playIntervalId);
-
-        // Clear the play interval id.
-        playIntervalId = null;
-    }
-
-    // Set running state.
-    setRunningState(false);
-
-    // Do the definition update.
-    onDefinitionUpdate();
-};
-
-/**
- * Handles clicks on the 'step' button.
- */
-function onStepButtonPressed() {
-    // If there is no behaviour tree then there is nothing to do here.
-    if (!behaviourTree) {
-        return;
-    }
-
-    // Update the BT blackboard.
-    onBlackboardUpdate();
-
-    // Step the behaviour tree.
-    behaviourTree.step();
-
-    // Rebuild the tree view.
-    buildTreeView();
-};
-
-/**
- * Handles clicks on the 'reset' button.
- */
-function onResetButtonPressed() {
-    // Do the definition update.
-    onDefinitionUpdate();
-};
-
-/**
  * Set the running state of the editor.
  */
 function setRunningState(isRunning) {
-    // TODO Make the definition/blackboard editors readonly based on 'isRunning'.
+    if (isRunning) {
+        //  Make the definition/blackboard editors readonly based on 'isRunning'.
+        definitionTextArea.setAttribute("readonly", "readonly");
+        blackboardTextArea.setAttribute("readonly", "readonly");
 
-    // TODO Enable/disable runtime controls based on 'isRunning'.
+        // Enable/disable runtime controls based on 'isRunning'.
+        playRuntimeButton.style.display = "none";
 
-    // TODO Enable/disable the snipped drop-down based on 'isRunning'.
+        // Enable/disable the snipped drop-down based on 'isRunning'.
+        snippetSelectBox.setAttribute("disabled", "disabled");
+    } else {
+        //  Make the definition/blackboard editors readonly based on 'isRunning'.
+        definitionTextArea.removeAttribute("readonly");
+        blackboardTextArea.removeAttribute("readonly");
+
+        // Enable/disable runtime controls based on 'isRunning'.
+        playRuntimeButton.style.display = "inline";
+
+        // Enable/disable the snipped drop-down based on 'isRunning'.
+        snippetSelectBox.removeAttribute("disabled");
+    }
 };
 
 /**
@@ -322,14 +313,12 @@ function changeSidebarView(view) {
     }
 };
 
-
-
 /**
  * Called in response to the snippet select input value changing.
  */
 function onSnippetSelect() {
     // Clear away the existing tree view.
-    treeViewWrapper.innerHTML = "";
+    clearTreeView();
     
     // Get the selected snippet.
     var snippet = example_snippets[document.getElementById("template-select-list").value];
@@ -340,8 +329,8 @@ function onSnippetSelect() {
     // Update the blackboard textarea to match the snippet blackboard.
     blackboardTextArea.innerHTML = snippet.blackboard;
 
-    // Do another definition update.
-    onDefinitionUpdate();
+    // Now to reload the visualiser.
+    reloadVisualiser();
 
     // Show the definition sidebar panel
     changeSidebarView(SidebarViewState.DEFINITION);
@@ -351,8 +340,8 @@ function onSnippetSelect() {
  * Build the tree view.
  */
 function buildTreeView() {
-    // Clear away the existing tree view.
-    treeViewWrapper.innerHTML = "";
+    // Clear away any existing tree view.
+    clearTreeView();
 
     const nodes = [];
 
@@ -421,8 +410,16 @@ function buildTreeView() {
     new Workflo(treeViewWrapper, options);
 };
 
-// Do the initial definition update.
-onDefinitionUpdate();
+/**
+ * Clear the tree view.
+ */
+function clearTreeView() {
+    treeViewWrapper.innerHTML = "";
+    treeViewWrapper.className = "";
+};
+
+// Do the initial visualiser reload.
+reloadVisualiser();
 
 // Set the initial sidebar state so that it is not shown.
 changeSidebarView(SidebarViewState.NONE);

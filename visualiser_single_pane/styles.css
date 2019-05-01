@@ -100,11 +100,11 @@ html, body {
     cursor: pointer;
 }
 
-.sidebar-controls {
+#sidebar-controls {
     
 }
 
-.runtime-controls {
+#runtime-controls {
     right: 0px;
 }
 
@@ -141,23 +141,17 @@ html, body {
     overflow: auto;
 }
 
-#definition-text-area {
+.sidebar-input-text-area {
     background-color: #272727;
     color: #FFFFFF;
     border: none;
     overflow: auto;
     outline: none;
-    white-space: nowrap;
+    white-space: pre;
 }
 
-
-#blackboard-text-area {
-    background-color: #272727;
-    color: #FFFFFF;
-    border: none;
-    overflow: auto;
-    outline: none;
-    white-space: nowrap;
+.sidebar-input-text-area:read-only  {
+    color: rgb(134, 133, 133);
 }
 
 .result-view-container {
