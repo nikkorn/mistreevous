@@ -1082,9 +1082,6 @@ function Condition(uid, conditionFunction) {
     this.reset = () => {
         // Reset the state of this node.
         state = Mistreevous.State.READY;
-
-        // Reset the child node.
-        child.reset();
     };
 };
 
