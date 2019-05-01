@@ -18,30 +18,57 @@
 
 <body>
 	<div class="page-container">
-		<div class="editor-container">
-			<div class="page-tile">
-				<p>Definition</p>
-				<textarea id="definition-text-area" onkeyup="onDefinitionUpdate()" spellcheck="false" style="width: 100%;"></textarea>
+		<div class="main-container">
+			<div id="header-bar">
+				<div id="title-bar">
+					<img id="header-icon" src="icons/mistreevous_icon_white.png" title="mistreevous">
+					<p>Mistreevous</p>
+				</div>
+				
+				<div id="details-bar">
+					<p>snippet</p>
+					<select id="template-select-list" onchange="onSnippetSelect()">
+						<option value="none"></option>
+						<option value="basic-action">a basic action</option>
+						<option value="wait-one-second">wait a second</option>
+						<option value="wait-for-one-to-five-seconds">wait for one-five seconds</option>
+					</select>
+					<a href="https://github.com/nikkorn/mistreevous" style="height:36px;">
+						<img id="header-icon" src="icons/github-circle.png" title="github">
+					</a>
+				</div>
 			</div>
-			<div class="blackboard-view-container page-tile">
-				<p>Board</p>
-				<textarea id="blackboard-text-area" spellcheck="false" style="width: 100%;"></textarea>
-			</div>
-		</div>
-		<div class="result-view-container page-tile">
-			<textarea id="result-text-area" spellcheck="false" style="width: 100%;" readonly></textarea>
-		</div>
-		<div class="buttons-container">
-			<button type="button" onclick="onTickButtonPressed()">Tick</button>
-			<button type="button" onclick="onResetButtonPressed()">Reset</button>
-		</div>
-		<div class="review-container">
-			<div class="tree-view-container page-tile">
-				<p>Tree View</p>
-				<div id="tree-view-wrapper" style="width: 100%;"></div>
+			<div class="editor-panel">
+				<div id="sidebar-panel">
+					<div id="definition-panel" class="page-tile">
+						<p>Definition</p>
+						<textarea id="definition-text-area" class="sidebar-input-text-area" oninput="reloadVisualiser()" spellcheck="false" style="width: 100%;"></textarea>
+						<br>
+						<div class="result-view-container page-tile">
+							<textarea id="result-text-area" spellcheck="false" style="width: 100%;" rows=3 readonly></textarea>
+						</div>
+					</div>
+					<div id="blackboard-panel" class="page-tile">
+						<p>Board</p>
+						<textarea id="blackboard-text-area" class="sidebar-input-text-area" oninput="reloadVisualiser()" spellcheck="false" style="width: 100%;"></textarea>
+					</div>
+				</div>
+				<div class="tree-view-container page-tile">
+					<div id="sidebar-controls" class="tree-view-controls">
+						<img src="icons/code.png" id="definition-view-button" title="definition panel" onclick="changeSidebarView(1)">
+						<img src="icons/board.png" id="board-view-button" title="board panel" onclick="changeSidebarView(2)">
+						<img src="icons/close.png" id="clear-view-button" title="close panel" onclick="changeSidebarView(0)">
+					</div>
+					<div id="runtime-controls" class="tree-view-controls">
+						<img src="icons/play.png" id="control-play-button" title="play" onclick="onPlayButtonPressed()">
+						<img src="icons/reload.png" id="control-reload-button" title="reload" onclick="reloadVisualiser()">
+					</div>
+					<div id="tree-view-wrapper" style="width: 100%;"></div>
+				</div>
 			</div>
 		</div>
 	</div>
 </body>
+<script src="snippets.js"></script>
 <script src="index.js"></script>
 </html>

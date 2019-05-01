@@ -1,7 +1,21 @@
+/** The text areas. */
 const definitionTextArea = document.getElementById("definition-text-area");
 const resultTextArea     = document.getElementById("result-text-area");
 const blackboardTextArea = document.getElementById("blackboard-text-area");
-const treeViewWrapper    = document.getElementById("tree-view-wrapper");
+
+/** The tree view control buttons/panel. */
+const runtimeButtonPanel  = document.getElementById("runtime-controls");
+const playRuntimeButton   = document.getElementById("control-play-button");
+const reloadRuntimeButton = document.getElementById("control-play-button");
+
+/** The snippet selection input. */
+const snippetSelectBox = document.getElementById("template-select-list");
+
+/** The element wrapping the tree view. */
+const treeViewWrapper = document.getElementById("tree-view-wrapper");
+
+/** Enumeration of sidebar states. */
+const SidebarViewState = { "NONE": 0, "DEFINITION": 1, "BOARD": 2 };
 
 /**
  * The behaviour tree.
@@ -13,8 +27,14 @@ let behaviourTree;
  */
 let blackboard;
 
+/**
+ * The play interval id.
+ * This will be set while playing a tree.
+ */
+let playIntervalId = null;
+
 // Set a test definition.
-definitionTextArea.innerHTML =
+definitionTextArea.value =
 `root {
     sequence {
         action [WalkToDoor]
@@ -54,76 +74,88 @@ root [AttemptDoorOpen] {
 }`;
 
 // Set a test blackboard in the blackboard text area.
-blackboardTextArea.innerHTML = 
-`DoorIsOpen: () => false,
-DoorIsSmashed: () => true,  
+blackboardTextArea.value =
+`{
+    DoorIsOpen: () => false,
+    DoorIsSmashed: () => true,  
 
-WalkToDoor: {
-    onStart: () => {},
-    onUpdate: () => Mistreevous.State.SUCCEEDED,
-    onFinish: (succeeded) => {}
-},
+    WalkToDoor: {
+        onStart: () => {},
+        onUpdate: () => Mistreevous.State.SUCCEEDED,
+        onFinish: (succeeded) => {}
+    },
 
-OpenDoor: {
-    onStart: () => {},
-    onUpdate: () => Mistreevous.State.FAILED,
-    onFinish: (succeeded) => {}
-},
+    OpenDoor: {
+        onStart: () => {},
+        onUpdate: () => Mistreevous.State.FAILED,
+        onFinish: (succeeded) => {}
+    },
 
-UnlockDoor: {
-    onStart: () => {},
-    onUpdate: () => Mistreevous.State.FAILED,
-    onFinish: (succeeded) => {}
-},
+    UnlockDoor: {
+        onStart: () => {},
+        onUpdate: () => Mistreevous.State.FAILED,
+        onFinish: (succeeded) => {}
+    },
 
-SmashDoor: {
-    onStart: () => {},
-    onUpdate: () => {},
-    onFinish: (succeeded) => {}
-},
+    SmashDoor: {
+        onStart: () => {},
+        onUpdate: () => {},
+        onFinish: (succeeded) => {}
+    },
 
-WalkThroughDoor: {
-    onStart: () => {},
-    onUpdate: () => Mistreevous.State.SUCCEEDED,
-    onFinish: (succeeded) => {}
-},
+    WalkThroughDoor: {
+        onStart: () => {},
+        onUpdate: () => Mistreevous.State.SUCCEEDED,
+        onFinish: (succeeded) => {}
+    },
 
-CloseDoor: {
-    onStart: () => {},
-    onUpdate: () => Mistreevous.State.SUCCEEDED,
-    onFinish: (succeeded) => {}
-},
+    CloseDoor: {
+        onStart: () => {},
+        onUpdate: () => Mistreevous.State.SUCCEEDED,
+        onFinish: (succeeded) => {}
+    },
 
-ScreamLoudly: {
-    onStart: () => {},
-    onUpdate: () => Mistreevous.State.SUCCEEDED,
-    onFinish: (succeeded) => {}
-},
+    ScreamLoudly: {
+        onStart: () => {},
+        onUpdate: () => Mistreevous.State.SUCCEEDED,
+        onFinish: (succeeded) => {}
+    },
 
-MutterAngrily: {
-    onStart: () => {},
-    onUpdate: () => Mistreevous.State.SUCCEEDED,
-    onFinish: (succeeded) => {}
+    MutterAngrily: {
+        onStart: () => {},
+        onUpdate: () => Mistreevous.State.SUCCEEDED,
+        onFinish: (succeeded) => {}
+    }
 }`;
 
 /**
- * Handles definition updates.
+ * Reload the visualiser.
  */
-function onDefinitionUpdate() {
-    // Create the blackboard.
-    // In this page the blackboard will be kept up-to-date with changes made to the blackboard text area. 
-    blackboard = {};
+function reloadVisualiser() {
+    // Stop any tree playback.
+    if (playIntervalId) {
+        clearInterval(playIntervalId);
 
-    // Do the initial blackboard update.
-    onBlackboardUpdate();
+        // Clear the play interval id.
+        playIntervalId = null;
+    }
+
+    // There should be no running tree.
+    setRunningState(false);
 
     try {
+        // Create the blackboard.
+        const blackboard = eval('(' + blackboardTextArea.value + ')');
+
         // Try to create the behaviour tree.
         behaviourTree = new Mistreevous.BehaviourTree(definitionTextArea.value, blackboard);
 
         // We created the behaviour tree without an issue.
         resultTextArea.innerHTML             = "OK";
         resultTextArea.style.backgroundColor = "#d6f9d4";
+
+        // Show the runtime controls.
+        runtimeButtonPanel.style.display = "block";
     } catch (exception) {
         // There was an error creating the behaviour tree!
         behaviourTree = null;
@@ -131,6 +163,12 @@ function onDefinitionUpdate() {
         // Show the exception on the page.
         resultTextArea.innerHTML             = exception;
         resultTextArea.style.backgroundColor = "#fcc2c2";
+
+        // Hide the runtime controls.
+        runtimeButtonPanel.style.display = "none";
+
+        // Clear any existing tree view as it is no longer valid.
+        clearTreeView();
 
         // There is nothing left to do.
         return;
@@ -141,53 +179,169 @@ function onDefinitionUpdate() {
 };
 
 /**
- * Update the behaviour tree blackboard to match the blackboard defined in the editor.
+ * Handles clicks on the 'play' button.
  */
-function onBlackboardUpdate() {
-    // Create the blackboard proxy.
-    const blackboardProxy = eval('({' + blackboardTextArea.value + '})');
-
-    // Update the blackboard.
-    for (var key in blackboardProxy) {
-        if (blackboardProxy.hasOwnProperty(key)) {
-            blackboard[key] = blackboardProxy[key];
-        }
-    }
-};
-
-/**
- * Handles clicks on the 'tick' button.
- */
-function onTickButtonPressed() {
+function onPlayButtonPressed() {
     // If there is no behaviour tree then there is nothing to do here.
     if (!behaviourTree) {
         return;
     }
 
-    // Update the BT blackboard.
-    onBlackboardUpdate();
+    // Reset the tree.
+    behaviourTree.reset();
 
-    // Step the behaviour tree.
-    behaviourTree.step();
+    // Get an interval duration with which to step the tree.
+    let interval = prompt("Please enter a step interval in milliseconds", "100");
 
-    // Rebuild the tree view.
-    buildTreeView();
+    // Check to make sure that the user specified an integer value.
+    if (isNaN(interval)) {
+        alert("step interval must be an integer value");
+
+        return;
+    }
+
+    // Set running state.
+    setRunningState(true);
+
+    // Create an interval to step the tree until it is finished.
+    playIntervalId = setInterval(() => {
+         // Step the behaviour tree, if anything goes wrong we will stop the tree playback.
+        try {
+            behaviourTree.step();
+        } catch (exception) {
+            // Notify the user of the exception.
+            alert(exception);
+
+            // Reload the visualiser.
+            reloadVisualiser();
+        }
+
+        // Rebuild the tree view.
+        buildTreeView();
+
+        // If the tree root is in a finished state then stop the interval.
+        if (behaviourTree.getRootNode().getState() !== Mistreevous.State.RUNNING) {
+            clearInterval(playIntervalId);
+
+            // Clear the play interval id.
+            playIntervalId = null;
+        }
+    }, parseInt(interval, 10));
 };
 
 /**
- * Handles clicks on the 'reset' button.
+ * Set the running state of the editor.
  */
-function onResetButtonPressed() {
-    // Do the definition update.
-    onDefinitionUpdate();
+function setRunningState(isRunning) {
+    if (isRunning) {
+        //  Make the definition/blackboard editors readonly based on 'isRunning'.
+        definitionTextArea.setAttribute("readonly", "readonly");
+        blackboardTextArea.setAttribute("readonly", "readonly");
+
+        // Enable/disable runtime controls based on 'isRunning'.
+        playRuntimeButton.style.display = "none";
+
+        // Enable/disable the snipped drop-down based on 'isRunning'.
+        snippetSelectBox.setAttribute("disabled", "disabled");
+    } else {
+        //  Make the definition/blackboard editors readonly based on 'isRunning'.
+        definitionTextArea.removeAttribute("readonly");
+        blackboardTextArea.removeAttribute("readonly");
+
+        // Enable/disable runtime controls based on 'isRunning'.
+        playRuntimeButton.style.display = "inline";
+
+        // Enable/disable the snipped drop-down based on 'isRunning'.
+        snippetSelectBox.removeAttribute("disabled");
+    }
+};
+
+/**
+ * Change the sidebar view.
+ * @param view The view to show.
+ */
+function changeSidebarView(view) {
+    // Get the sidebar view button elements.
+    const definitionViewButton = document.getElementById("definition-view-button");
+    const boardViewButton      = document.getElementById("board-view-button");
+    const clearViewButton      = document.getElementById("clear-view-button");
+
+    // Get the sidebar panel elements.
+    const sidebarPanel    = document.getElementById("sidebar-panel");
+    const definitionPanel = document.getElementById("definition-panel");
+    const blackboardPanel = document.getElementById("blackboard-panel");
+
+    switch (view) {
+        case SidebarViewState.DEFINITION:
+            // Show/hide the relevant sidebar buttons.
+            definitionViewButton.style.display = "none";
+            boardViewButton.style.display      = "inline";
+            clearViewButton.style.display      = "inline";
+
+            // Show/hide the relevant sidebar panels.
+            sidebarPanel.style.display    = "flex";
+            definitionPanel.style.display = "flex";
+            blackboardPanel.style.display = "none";
+            break;
+
+        case SidebarViewState.BOARD:
+            // Show/hide the relevant sidebar buttons.
+            definitionViewButton.style.display = "inline";
+            boardViewButton.style.display      = "none";
+            clearViewButton.style.display      = "inline";
+
+            // Show/hide the relevant sidebar panels.
+            sidebarPanel.style.display    = "flex";
+            definitionPanel.style.display = "none";
+            blackboardPanel.style.display = "flex";
+            break;
+
+        case SidebarViewState.NONE:
+            // Show/hide the relevant sidebar buttons.
+            definitionViewButton.style.display = "inline";
+            boardViewButton.style.display      = "inline";
+            clearViewButton.style.display      = "none";
+
+            // Show/hide the relevant sidebar panels.
+            sidebarPanel.style.display    = "none";
+            definitionPanel.style.display = "flex";
+            blackboardPanel.style.display = "flex";
+            break;
+
+        default:
+            // What the dickens!
+    }
+};
+
+/**
+ * Called in response to the snippet select input value changing.
+ */
+function onSnippetSelect() {
+    // Clear away the existing tree view.
+    clearTreeView();
+    
+    // Get the selected snippet.
+    var snippet = example_snippets[document.getElementById("template-select-list").value];
+
+    // Update the definition textarea to match the snippet definition.
+    definitionTextArea.value = snippet.definition;
+
+    // Update the blackboard textarea to match the snippet blackboard.
+    blackboardTextArea.value = snippet.blackboard;
+
+    // Now to reload the visualiser.
+    reloadVisualiser();
+
+    // Show the definition sidebar panel
+    changeSidebarView(SidebarViewState.DEFINITION);
 };
 
 /**
  * Build the tree view.
  */
 function buildTreeView() {
-    // Clear away the existing tree view.
-    treeViewWrapper.innerHTML = "";
+    // Clear away any existing tree view.
+    clearTreeView();
 
     const nodes = [];
 
@@ -256,5 +410,16 @@ function buildTreeView() {
     new Workflo(treeViewWrapper, options);
 };
 
-// Do the initial definition update.
-onDefinitionUpdate();
+/**
+ * Clear the tree view.
+ */
+function clearTreeView() {
+    treeViewWrapper.innerHTML = "";
+    treeViewWrapper.className = "";
+};
+
+// Do the initial visualiser reload.
+reloadVisualiser();
+
+// Set the initial sidebar state so that it is not shown.
+changeSidebarView(SidebarViewState.NONE);
