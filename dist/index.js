@@ -880,7 +880,7 @@ BehaviourTree.prototype.reset = function () {
 /**
  * An Action node.
  * This represents an immediate or ongoing state of behaviour.
- * @param uid The unique node it.
+ * @param uid The unique node id.
  * @param actionName The action name.
  */
 function Action(uid, actionName) {
@@ -1013,10 +1013,10 @@ function Action(uid, actionName) {
 /**
  * A Condition node.
  * This acts as a guard and will succeed or fail immediately based on a board predicate, without moving to the 'RUNNING' state.
- * @param uid The unique node it.
- * @param conditionFunction The condition function. 
+ * @param uid The unique node id.
+ * @param condition The name of the condition function. 
  */
-function Condition(uid, conditionFunction) {
+function Condition(uid, condition) {
     /**
      * The node state.
      */
@@ -1038,10 +1038,10 @@ function Condition(uid, conditionFunction) {
         }
 
         // Call the condition function to determine the state of this node, but it must exist in the blackboard.
-        if (typeof board[conditionFunction] === "function") {
-            state = !!board[conditionFunction]() ? Mistreevous.State.SUCCEEDED : Mistreevous.State.FAILED;
+        if (typeof board[condition] === "function") {
+            state = !!board[condition]() ? Mistreevous.State.SUCCEEDED : Mistreevous.State.FAILED;
         } else {
-            throw `cannot update condition node as function '${conditionFunction}' is not defined in the blackboard`;
+            throw `cannot update condition node as function '${condition}' is not defined in the blackboard`;
         }
 
         // Return whether the state of this node has changed.
@@ -1056,7 +1056,7 @@ function Condition(uid, conditionFunction) {
     /**
      * Gets the name of the node.
      */
-    this.getName = () => conditionFunction;
+    this.getName = () => condition;
 
     /**
      * Gets the state of the node.
@@ -1091,7 +1091,7 @@ function Condition(uid, conditionFunction) {
 /**
  * A Flip node.
  * This node wraps a single child and will flip the state of the child state.
- * @param uid The unique node it.
+ * @param uid The unique node id.
  * @param child The child node. 
  */
 function Flip(uid, child) {
@@ -1188,7 +1188,7 @@ function Flip(uid, child) {
  * A LOTTO node.
  * A winning child is picked on the initial update of this node, based on ticket weighting.
  * The state of this node will match the state of the winning child.
- * @param uid The unique node it.
+ * @param uid The unique node id.
  * @param tickets The child node tickets
  * @param children The child nodes. 
  */
@@ -1348,7 +1348,7 @@ function Lotto(uid, tickets, children) {
  * -- An infinite repeat loop if neither an iteration count or a condition function is defined.
  * The REPEAT node will stop and have a 'FAILED' state if its child is ever in a 'FAILED' state after an update.
  * The REPEAT node will attempt to move on to the next iteration if its child is ever in a 'SUCCEEDED' state.
- * @param uid The unique node it.
+ * @param uid The unique node id.
  * @param iterations The number of iterations to repeat the child node, or the minimum number of iterations if maximumIterations is defined.
  * @param maximumIterations The maximum number of iterations to repeat the child node.
  * @param child The child node. 
@@ -1520,11 +1520,11 @@ function Repeat(uid, iterations, maximumIterations, child) {
  * The node has a single child which will have a condition function that determines whether to repeat the update of the child node.
  * The WHILE node will stop and have a 'FAILED' state if its child is ever in a 'FAILED' state after an update.
  * The WHILE node will attempt to move on to the next iteration if its child is ever in a 'SUCCEEDED' state.
- * @param uid The unique node it.
- * @param conditionFunction The name of the condition function that determines whether to repeat the update of the child node.
+ * @param uid The unique node id.
+ * @param condition The name of the condition function that determines whether to repeat the update of the child node.
  * @param child The child node. 
  */
-function While(uid, conditionFunction, child) {
+function While(uid, condition, child) {
     /**
      * The node state.
      */
@@ -1609,7 +1609,7 @@ function While(uid, conditionFunction, child) {
     /**
      * Gets the name of the node.
      */
-    this.getName = () => `WHILE ${conditionFunction}`;
+    this.getName = () => `WHILE ${condition}`;
 
     /**
      * Gets the state of the node.
@@ -1644,10 +1644,10 @@ function While(uid, conditionFunction, child) {
      */
     this._canIterate = board => {
         // Call the condition function to determine whether we can iterate.
-        if (typeof board[conditionFunction] === "function") {
-            return !!board[conditionFunction]();
+        if (typeof board[condition] === "function") {
+            return !!board[condition]();
         } else {
-            throw `cannot update repeat node as condition function '${conditionFunction}' is not defined in the blackboard`;
+            throw `cannot update repeat node as condition function '${condition}' is not defined in the blackboard`;
         }
     };
 };
@@ -1661,7 +1661,7 @@ function While(uid, conditionFunction, child) {
 /**
  * A Root node.
  * The root node will have a single child.
- * @param uid The unique node it.
+ * @param uid The unique node id.
  * @param child The child node. 
  */
 function Root(uid, child) {
@@ -1743,7 +1743,7 @@ function Root(uid, child) {
 /**
  * A SELECTOR node.
  * The child nodes are executed in sequence until one succeeds or all fail.
- * @param uid The unique node it.
+ * @param uid The unique node id.
  * @param children The child nodes. 
  */
 function Selector(uid, children) {
@@ -1859,7 +1859,7 @@ function Selector(uid, children) {
 /**
  * A SEQUENCE node.
  * The child nodes are executed in sequence until one fails or all succeed.
- * @param uid The unique node it.
+ * @param uid The unique node id.
  * @param children The child nodes. 
  */
 function Sequence(uid, children) {
@@ -1975,7 +1975,7 @@ function Sequence(uid, children) {
 /**
  * A WAIT node.
  * The state of this node will change to SUCCEEDED after a duration of time.
- * @param uid The unique node it.
+ * @param uid The unique node id.
  * @param duration The duration that this node will wait to succeed in milliseconds, or the earliest if longestDuration is defined.
  * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
  */

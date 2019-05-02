@@ -1,10 +1,10 @@
 /**
  * A Condition node.
  * This acts as a guard and will succeed or fail immediately based on a board predicate, without moving to the 'RUNNING' state.
- * @param uid The unique node it.
- * @param conditionFunction The condition function. 
+ * @param uid The unique node id.
+ * @param condition The name of the condition function. 
  */
-export default function Condition(uid, conditionFunction) {
+export default function Condition(uid, condition) {
     /**
      * The node state.
      */
@@ -26,10 +26,10 @@ export default function Condition(uid, conditionFunction) {
         }
 
         // Call the condition function to determine the state of this node, but it must exist in the blackboard.
-        if (typeof board[conditionFunction] === "function") {
-            state = !!(board[conditionFunction]()) ? Mistreevous.State.SUCCEEDED : Mistreevous.State.FAILED;
+        if (typeof board[condition] === "function") {
+            state = !!(board[condition]()) ? Mistreevous.State.SUCCEEDED : Mistreevous.State.FAILED;
         } else {
-            throw `cannot update condition node as function '${conditionFunction}' is not defined in the blackboard`;
+            throw `cannot update condition node as function '${condition}' is not defined in the blackboard`;
         }
 
         // Return whether the state of this node has changed.
@@ -44,7 +44,7 @@ export default function Condition(uid, conditionFunction) {
     /**
      * Gets the name of the node.
      */
-    this.getName = () => conditionFunction;
+    this.getName = () => condition;
 
     /**
      * Gets the state of the node.

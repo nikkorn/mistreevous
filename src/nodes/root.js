@@ -1,7 +1,7 @@
 /**
  * A Root node.
  * The root node will have a single child.
- * @param uid The unique node it.
+ * @param uid The unique node id.
  * @param child The child node. 
  */
 export default function Root(uid, child) {

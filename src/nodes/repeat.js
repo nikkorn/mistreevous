@@ -5,7 +5,7 @@
  * -- An infinite repeat loop if neither an iteration count or a condition function is defined.
  * The REPEAT node will stop and have a 'FAILED' state if its child is ever in a 'FAILED' state after an update.
  * The REPEAT node will attempt to move on to the next iteration if its child is ever in a 'SUCCEEDED' state.
- * @param uid The unique node it.
+ * @param uid The unique node id.
  * @param iterations The number of iterations to repeat the child node, or the minimum number of iterations if maximumIterations is defined.
  * @param maximumIterations The maximum number of iterations to repeat the child node.
  * @param child The child node. 

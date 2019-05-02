@@ -1,7 +1,7 @@
 /**
  * An Action node.
  * This represents an immediate or ongoing state of behaviour.
- * @param uid The unique node it.
+ * @param uid The unique node id.
  * @param actionName The action name.
  */
 export default function Action(uid, actionName) {

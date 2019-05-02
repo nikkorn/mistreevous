@@ -3,11 +3,11 @@
  * The node has a single child which will have a condition function that determines whether to repeat the update of the child node.
  * The WHILE node will stop and have a 'FAILED' state if its child is ever in a 'FAILED' state after an update.
  * The WHILE node will attempt to move on to the next iteration if its child is ever in a 'SUCCEEDED' state.
- * @param uid The unique node it.
- * @param conditionFunction The name of the condition function that determines whether to repeat the update of the child node.
+ * @param uid The unique node id.
+ * @param condition The name of the condition function that determines whether to repeat the update of the child node.
  * @param child The child node. 
  */
-export default function While(uid, conditionFunction, child) {
+export default function While(uid, condition, child) {
     /**
      * The node state.
      */
@@ -92,7 +92,7 @@ export default function While(uid, conditionFunction, child) {
     /**
      * Gets the name of the node.
      */
-    this.getName = () => `WHILE ${conditionFunction}`;
+    this.getName = () => `WHILE ${condition}`;
 
     /**
      * Gets the state of the node.
@@ -127,10 +127,10 @@ export default function While(uid, conditionFunction, child) {
      */
     this._canIterate = (board) => {
         // Call the condition function to determine whether we can iterate.
-        if (typeof board[conditionFunction] === "function") {
-            return !!(board[conditionFunction]());
+        if (typeof board[condition] === "function") {
+            return !!(board[condition]());
         } else {
-            throw `cannot update repeat node as condition function '${conditionFunction}' is not defined in the blackboard`;
+            throw `cannot update repeat node as condition function '${condition}' is not defined in the blackboard`;
         }
     };
 };
