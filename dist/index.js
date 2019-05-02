@@ -904,38 +904,29 @@ function Action(uid, actionName) {
             return false;
         }
 
-        // An action node should be updated until it fails or succeeds.
-        if (state === Mistreevous.State.READY || state === Mistreevous.State.RUNNING) {
-            // Get the corresponding action object.
-            const action = board[actionName];
+        // Get the corresponding action object or function.
+        const action = board[actionName];
 
-            // Validate the action.
-            this._validateAction(action);
+        // Validate the action.
+        this._validateAction(action);
 
-            // If the state of this node is 'READY' then this is the fist time that we are updating this node, so call onStart if it exists.
-            if (state === Mistreevous.State.READY && typeof action.onStart === "function") {
-                action.onStart();
-            }
+        // If the state of this node is 'READY' then this is the first time that we are updating this node, so call onStart if it exists.
+        if (state === Mistreevous.State.READY && typeof action === "object" && typeof action.onStart === "function") {
+            action.onStart();
+        }
 
-            // Call the action 'onUpdate' function, the result of which will be the new state of this action node, or 'RUNNING' if undefined.
-            // Unlike 'onStart' and 'onFinish', this function must be defined, as it is critical in determining node state.
-            if (typeof action.onUpdate === "function") {
-                // Do the action update and get the returned state.
-                const updateResult = action.onUpdate();
+        // Call the action 'onUpdate' function, the result of which will be the new state of this action node, or 'RUNNING' if undefined.
+        const updateResult = typeof action === "function" ? action() : action.onUpdate();
 
-                // Validate the returned value.
-                this._validateUpdateResult(updateResult);
+        // Validate the returned value.
+        this._validateUpdateResult(updateResult);
 
-                // Set the state of this node, this may be undefined, which just means that the node is still in the 'RUNNING' state.
-                state = updateResult || Mistreevous.State.RUNNING;
-            } else {
-                throw `cannot update action node as action '${actionName}' has no 'onUpdate' callback defined`;
-            }
+        // Set the state of this node, this may be undefined, which just means that the node is still in the 'RUNNING' state.
+        state = updateResult || Mistreevous.State.RUNNING;
 
-            // If the new action node state is either 'SUCCEEDED' or 'FAILED' then we are finished, so call onFinish if it exists.
-            if ((state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) && typeof action.onFinish === "function") {
-                action.onFinish(state === Mistreevous.State.SUCCEEDED);
-            }
+        // If the new action node state is either 'SUCCEEDED' or 'FAILED' then we are finished, so call onFinish if it exists.
+        if ((state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) && typeof action === "object" && typeof action.onFinish === "function") {
+            action.onFinish(state === Mistreevous.State.SUCCEEDED);
         }
 
         // Return whether the state of this node has changed.
@@ -985,8 +976,14 @@ function Action(uid, actionName) {
             throw `cannot update action node as action '${actionName}' is not defined in the blackboard`;
         }
 
+        // The action will need to be a function or an object, anything else is not valid.
+        if (typeof action !== "function" || typeof action !== "object") {
+            return `action '${actionName}' must be a function or object`;
+        }
+
         // The action should at the very least have a onUpdate function defined.
-        if (typeof action.onUpdate !== "function") {
+        // Unlike 'onStart' and 'onFinish', this function must be defined as it is critical in determining node state.
+        if (typeof action === "object" && typeof action.onUpdate !== "function") {
             throw `action '${actionName}' does not have an 'onUpdate()' function defined`;
         }
     };

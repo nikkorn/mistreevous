@@ -35,5 +35,35 @@ const example_snippets = {
     wait [1000, 5000]
 }`,
         "blackboard": "{}"
+    },
+
+
+    "basic-sequence": {
+        "definition": `root {
+    sequence {
+        action [Walk]
+        action [Fall]
+        action [Laugh]
+    }
+}`,
+        "blackboard": `{
+    Walk: () => {
+        console.log("walking!");
+        return Mistreevous.State.SUCCEEDED;
+    },
+    Fall: {
+        onStart: () => {
+            console.log("starting to fall!");
+        },
+        onUpdate: () => Mistreevous.State.SUCCEEDED,
+        onFinish: (succeeded) => {
+            console.log("finished falling!");
+        }
+    },
+    Laugh: () => {
+        console.log("laughing!");
+        return Mistreevous.State.SUCCEEDED;
+    },
+}`
     }
 };
