@@ -8,6 +8,9 @@ const example_snippets = {
     },
 
 
+
+
+
     "basic-action": {
         "definition": `root {
     action [SomeAction]
@@ -20,6 +23,9 @@ const example_snippets = {
     }
 }`
     },
+
+
+
 
 
     "wait-one-second": {
@@ -36,6 +42,9 @@ const example_snippets = {
 }`,
         "blackboard": "{}"
     },
+
+
+
 
 
     "basic-sequence": {
@@ -64,6 +73,41 @@ const example_snippets = {
         console.log("laughing!");
         return Mistreevous.State.SUCCEEDED;
     },
+}`
+    },
+
+
+
+    "basic-lotto": {
+        "definition": `root {
+    lotto {
+        action [PickLeftPath]
+        action [PickRightPath]
+    }
+}`,
+        "blackboard": `{
+    PickLeftPath: () => Mistreevous.State.SUCCEEDED,
+    PickRightPath: () => Mistreevous.State.SUCCEEDED
+}`
+    },
+
+
+
+
+    "weighted-lotto": {
+        "definition": `root {
+    lotto [10,5,3,1] {
+        action [CommonAction]
+        action [UncommonAction]
+        action [RareAction]
+        action [VeryRareAction]
+    }
+}`,
+        "blackboard": `{
+    CommonAction: () => Mistreevous.State.SUCCEEDED,
+    UncommonAction: () => Mistreevous.State.SUCCEEDED,
+    RareAction: () => Mistreevous.State.SUCCEEDED,
+    VeryRareAction: () => Mistreevous.State.SUCCEEDED
 }`
     }
 };
