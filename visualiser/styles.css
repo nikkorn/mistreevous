@@ -91,6 +91,7 @@ html, body {
     border-radius: 12px;
     margin: 20px;
     height: 44px;
+    z-index: 1000;
 }
 
 .tree-view-controls img {
