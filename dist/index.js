@@ -172,7 +172,7 @@ function BehaviourTree(definition, board) {
     };
 
     /**
-     * Node factories.
+     * The AST node factories.
      */
     const ASTNodeFactories = {
         "ROOT": () => ({
@@ -842,15 +842,32 @@ function BehaviourTree(definition, board) {
         return stack[0];
     };
 
-    // Call Mistreevous init logic.
+    // Call init logic.
     this._init();
 }
 
 /**
- *  Get the root node.
+ * Get the root node.
+ * @returns The root node.
  */
 BehaviourTree.prototype.getRootNode = function () {
     return this._rootNode;
+};
+
+/**
+ * Get whether the tree is in the running state.
+ * @returns Whether the tree is in the running state.
+ */
+BehaviourTree.prototype.isRunning = function () {
+    return this._rootNode.getState() === Mistreevous.State.RUNNING;
+};
+
+/**
+ * Get the current tree state.
+ * @returns The current tree state.
+ */
+BehaviourTree.prototype.getState = function () {
+    return this._rootNode.getState();
 };
 
 /**
