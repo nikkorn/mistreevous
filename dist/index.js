@@ -874,6 +874,11 @@ BehaviourTree.prototype.getState = function () {
  * Step the tree.
  */
 BehaviourTree.prototype.step = function () {
+    // If the root node has already been stepped to completion then we need to reset it.
+    if (this._rootNode.getState() === Mistreevous.State.SUCCEEDED || this._rootNode.getState() === Mistreevous.State.FAILED) {
+        this._rootNode.reset();
+    }
+
     try {
         this._rootNode.update(this._blackboard);
     } catch (exception) {

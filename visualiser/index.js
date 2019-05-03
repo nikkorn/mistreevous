@@ -220,7 +220,7 @@ function onPlayButtonPressed() {
         buildTreeView();
 
         // If the tree root is in a finished state then stop the interval.
-        if (behaviourTree.getRootNode().getState() !== Mistreevous.State.RUNNING) {
+        if (!behaviourTree.isRunning()) {
             clearInterval(playIntervalId);
 
             // Clear the play interval id.
