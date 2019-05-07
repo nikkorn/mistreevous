@@ -86,7 +86,7 @@ const Mistreevous = {
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
     module.exports = Mistreevous;
 } else {
-    if (typeof define === 'function' && __webpack_require__(13)) {
+    if (typeof define === 'function' && __webpack_require__(14)) {
         define([], function () {
             return Mistreevous;
         });
@@ -137,11 +137,13 @@ module.exports = function(originalModule) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__nodes_flip__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nodes_lotto__ = __webpack_require__(6);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__nodes_repeat__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__nodes_while__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_root__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_selector__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_sequence__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__nodes_wait__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__nodes_root__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_selector__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_sequence__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_wait__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__guards_while__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__guards_until__ = __webpack_require__(13);
+
 
 
 
@@ -177,6 +179,7 @@ function BehaviourTree(definition, board) {
     const ASTNodeFactories = {
         "ROOT": () => ({
             type: "root",
+            guard: null,
             name: null,
             children: [],
             validate: function (depth) {
@@ -191,7 +194,7 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-                return new __WEBPACK_IMPORTED_MODULE_6__nodes_root__["a" /* default */](getUid(), this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
+                return new __WEBPACK_IMPORTED_MODULE_5__nodes_root__["a" /* default */](getUid(), this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
             }
         }),
         "BRANCH": () => ({
@@ -217,6 +220,7 @@ function BehaviourTree(definition, board) {
         }),
         "SELECTOR": () => ({
             type: "selector",
+            guard: null,
             children: [],
             validate: function (depth) {
                 // A selector node must have at least a single node.
@@ -225,11 +229,12 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-                return new __WEBPACK_IMPORTED_MODULE_7__nodes_selector__["a" /* default */](getUid(), this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+                return new __WEBPACK_IMPORTED_MODULE_6__nodes_selector__["a" /* default */](getUid(), this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
             }
         }),
         "SEQUENCE": () => ({
             type: "sequence",
+            guard: null,
             children: [],
             validate: function (depth) {
                 // A sequence node must have at least a single node.
@@ -238,11 +243,12 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-                return new __WEBPACK_IMPORTED_MODULE_8__nodes_sequence__["a" /* default */](getUid(), this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+                return new __WEBPACK_IMPORTED_MODULE_7__nodes_sequence__["a" /* default */](getUid(), this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
             }
         }),
         "LOTTO": () => ({
             type: "lotto",
+            guard: null,
             children: [],
             tickets: [],
             validate: function (depth) {
@@ -257,6 +263,7 @@ function BehaviourTree(definition, board) {
         }),
         "REPEAT": () => ({
             type: "repeat",
+            guard: null,
             iterations: null,
             maximumIterations: null,
             children: [],
@@ -288,30 +295,9 @@ function BehaviourTree(definition, board) {
                 return new __WEBPACK_IMPORTED_MODULE_4__nodes_repeat__["a" /* default */](getUid(), this.iterations, this.maximumIterations, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
             }
         }),
-        "WHILE": () => ({
-            type: "while",
-            conditionFunction: null,
-            children: [],
-            validate: function (depth) {
-                // A while node must have a single node.
-                if (this.children.length !== 1) {
-                    throw "a while node must have a single child";
-                }
-            },
-            createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-                return new __WEBPACK_IMPORTED_MODULE_5__nodes_while__["a" /* default */](getUid(), this.conditionFunction, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
-            }
-        }),
-        "CONDITION": () => ({
-            type: "condition",
-            conditionFunction: "",
-            validate: function (depth) {},
-            createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-                return new __WEBPACK_IMPORTED_MODULE_1__nodes_condition__["a" /* default */](getUid(), this.conditionFunction);
-            }
-        }),
         "FLIP": () => ({
             type: "flip",
+            guard: null,
             children: [],
             validate: function (depth) {
                 // A flip node must have a single node.
@@ -321,6 +307,14 @@ function BehaviourTree(definition, board) {
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
                 return new __WEBPACK_IMPORTED_MODULE_2__nodes_flip__["a" /* default */](getUid(), this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
+            }
+        }),
+        "CONDITION": () => ({
+            type: "condition",
+            conditionFunction: "",
+            validate: function (depth) {},
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
+                return new __WEBPACK_IMPORTED_MODULE_1__nodes_condition__["a" /* default */](getUid(), this.conditionFunction);
             }
         }),
         "WAIT": () => ({
@@ -347,7 +341,7 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-                return new __WEBPACK_IMPORTED_MODULE_9__nodes_wait__["a" /* default */](getUid(), this.duration, this.longestDuration);
+                return new __WEBPACK_IMPORTED_MODULE_8__nodes_wait__["a" /* default */](getUid(), this.duration, this.longestDuration);
             }
         }),
         "ACTION": () => ({
@@ -358,6 +352,14 @@ function BehaviourTree(definition, board) {
                 return new __WEBPACK_IMPORTED_MODULE_0__nodes_action__["a" /* default */](getUid(), this.actionName);
             }
         })
+    };
+
+    /**
+     * The node guard factories.
+     */
+    const GuardFactories = {
+        "WHILE": condition => new __WEBPACK_IMPORTED_MODULE_9__guards_while__["a" /* default */](condition),
+        "UNTIL": condition => new __WEBPACK_IMPORTED_MODULE_10__guards_until__["a" /* default */](condition)
     };
 
     /**
@@ -445,6 +447,8 @@ function BehaviourTree(definition, board) {
         let cleansedDefinition = definition;
 
         // Add some space around various important characters so that they can be plucked out easier as individual tokens.
+        cleansedDefinition = cleansedDefinition.replace(/\(/g, " ( ");
+        cleansedDefinition = cleansedDefinition.replace(/\)/g, " ) ");
         cleansedDefinition = cleansedDefinition.replace(/\{/g, " { ");
         cleansedDefinition = cleansedDefinition.replace(/\}/g, " } ");
         cleansedDefinition = cleansedDefinition.replace(/\]/g, " ] ");
@@ -471,7 +475,11 @@ function BehaviourTree(definition, board) {
             throw "scope character mismatch";
         }
 
-        // Helper function to pop the next raw token off of the stack and throw an error if it wasn't the expected one.
+        /**
+         * Helper function to pop the next raw token off of the stack and throw an error if it wasn't the expected one.
+         * @param expected An optional string that we expect the next popped token to match.
+         * @returns The popped token.
+         */
         const popAndCheck = expected => {
             // Get and remove the next token.
             const popped = tokens.shift();
@@ -481,13 +489,21 @@ function BehaviourTree(definition, board) {
                 throw "unexpected end of definition";
             }
 
-            // Was it the expected token?
-            if (popped.toUpperCase() !== expected.toUpperCase()) {
+            // If an expected token was defined, was it the expected one?
+            if (expected && popped.toUpperCase() !== expected.toUpperCase()) {
                 throw "unexpected token found on the stack. Expected '" + expected + "' but got '" + popped + "'";
             }
+
+            // Return the popped token.
+            return popped;
         };
 
-        // Helper function to pull an argument list off of the stack.
+        /**
+         * Helper function to pull an argument list off of the token stack.
+         * @param argumentValidator The argument validator function.
+         * @param validationFailedMessage  The exception message to throw if argument validation fails.
+         * @returns The arguments list.
+         */
         const getArguments = (argumentValidator, validationFailedMessage) => {
             // Any lists of arguments will always be wrapped in '[]'. so we are looking for an opening
             popAndCheck("[");
@@ -530,6 +546,29 @@ function BehaviourTree(definition, board) {
             return argumentList;
         };
 
+        /**
+         * Helper function to try to pull a guard off of the token stack.
+         * @returns The guard defined by any directly following tokens, or null if not guard is defined.
+         */
+        const getGuard = () => {
+            // Try to get the guard factory for the next token.
+            const guardFactory = GuardFactories[(tokens[0] || "").toUpperCase()];
+
+            // There is nothing to do if the next token is not a guard name token.
+            if (!guardFactory) {
+                return null;
+            }
+
+            // The guard definition should consist of the tokens 'NAME', '(', 'CONDITION' and ')'.
+            popAndCheck(tokens[0].toUpperCase());
+            popAndCheck("(");
+            const condition = popAndCheck();
+            popAndCheck(")");
+
+            // Create and return the guard.
+            return guardFactory(condition);
+        };
+
         // Create a stack of node children arrays, starting with a definition scope.
         const stack = [[]];
 
@@ -561,6 +600,9 @@ function BehaviourTree(definition, board) {
                             throw "expected single root name argument";
                         }
                     }
+
+                    // Try to pick a node guard off of the token stack.
+                    node.guard = getGuard();
 
                     popAndCheck("{");
 
@@ -599,6 +641,9 @@ function BehaviourTree(definition, board) {
                     // Push the SELECTOR node into the current scope.
                     stack[stack.length - 1].push(node);
 
+                    // Try to pick a node guard off of the token stack.
+                    node.guard = getGuard();
+
                     popAndCheck("{");
 
                     // The new scope is that of the new SELECTOR nodes children.
@@ -611,6 +656,9 @@ function BehaviourTree(definition, board) {
 
                     // Push the SEQUENCE node into the current scope.
                     stack[stack.length - 1].push(node);
+
+                    // Try to pick a node guard off of the token stack.
+                    node.guard = getGuard();
 
                     popAndCheck("{");
 
@@ -630,6 +678,9 @@ function BehaviourTree(definition, board) {
                         // Get the ticket count arguments, each argument must be a number.
                         node.tickets = getArguments(arg => !isNaN(arg) && parseFloat(arg, 10) === parseInt(arg, 10), "lotto node ticket counts must be integer values");
                     }
+
+                    // Try to pick a node guard off of the token stack.
+                    node.guard = getGuard();
 
                     popAndCheck("{");
 
@@ -667,6 +718,9 @@ function BehaviourTree(definition, board) {
 
                     // Push the Flip node into the current scope.
                     stack[stack.length - 1].push(node);
+
+                    // Try to pick a node guard off of the token stack.
+                    node.guard = getGuard();
 
                     popAndCheck("{");
 
@@ -724,39 +778,12 @@ function BehaviourTree(definition, board) {
                         }
                     }
 
+                    // Try to pick a node guard off of the token stack.
+                    node.guard = getGuard();
+
                     popAndCheck("{");
 
                     // The new scope is that of the new REPEAT nodes children.
-                    stack.push(node.children);
-                    break;
-
-                case "WHILE":
-                    // Create a WHILE AST node.
-                    node = ASTNodeFactories.WHILE();
-
-                    // Push the WHILE node into the current scope.
-                    stack[stack.length - 1].push(node);
-
-                    // We must have arguments defined, as we require a condition function name argument.
-                    if (tokens[0] !== "[") {
-                        throw "expected single while condition name argument";
-                    }
-
-                    // The condition name will be defined as a node argument.
-                    const whileArguments = getArguments();
-
-                    // We should have only a single argument that is not an empty string for a while node, which is the while condition function name.
-                    if (whileArguments.length === 1 && whileArguments[0] !== "") {
-                        // The condition function name will be the first and only node argument.
-                        node.conditionFunction = whileArguments[0];
-                    } else {
-                        throw "expected single while condition name argument";
-                    }
-
-                    // A while node must wrap other nodes.
-                    popAndCheck("{");
-
-                    // The new scope is that of the new WHILE nodes children.
                     stack.push(node.children);
                     break;
 
@@ -1536,149 +1563,6 @@ function Repeat(uid, iterations, maximumIterations, child) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = While;
-/**
- * A WHILE node.
- * The node has a single child which will have a condition function that determines whether to repeat the update of the child node.
- * The WHILE node will stop and have a 'FAILED' state if its child is ever in a 'FAILED' state after an update.
- * The WHILE node will attempt to move on to the next iteration if its child is ever in a 'SUCCEEDED' state.
- * @param uid The unique node id.
- * @param condition The name of the condition function that determines whether to repeat the update of the child node.
- * @param child The child node. 
- */
-function While(uid, condition, child) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
-
-    /**
-     * Update the node and get whether the node state has changed.
-     * @param board The board.
-     * @returns Whether the state of this node has changed as part of the update.
-     */
-    this.update = function (board) {
-        // Get the pre-update node state.
-        const initialState = state;
-
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
-            // We have not changed state.
-            return false;
-        }
-
-        // If this node is in the READY state then we need to reset the iteration count and determine which method we will use as a repeat condition.
-        if (state === Mistreevous.State.READY) {
-            // Reset the child node.
-            child.reset();
-
-            // Do an initial check to see if we can iterate. If we can then this node will be in the 'RUNNING' state.
-            // If we cannot iterate then we have immediately failed our condition or hit our target iteration count, then the node has succeeded.
-            if (this._canIterate(board)) {
-                // This node is in the running state and can do its initial iteration.
-                state = Mistreevous.State.RUNNING;
-            } else {
-                // This node is in the 'SUCCEEDED' state.
-                state = Mistreevous.State.SUCCEEDED;
-
-                // Return whether the state of this node has changed.
-                return state !== initialState;
-            }
-        }
-
-        do {
-            // Reset the child node if it is already in the 'SUCCEEDED' state.
-            if (child.getState() === Mistreevous.State.SUCCEEDED) {
-                child.reset();
-            }
-
-            // If the child has never been updated or is running then we will need to update it now.
-            if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
-                child.update(board);
-            }
-
-            // If the child node is in the 'SUCCEEDED' state then we may be moving on to the next iteration or setting this 
-            // node as 'SUCCEEDED' if we cant. If this node is in the 'FAILED' state then this node has completely failed.
-            if (child.getState() === Mistreevous.State.SUCCEEDED) {
-                // The child node has reached the 'SUCCEEDED' state, so we have completed an iteration.
-            } else if (child.getState() === Mistreevous.State.FAILED) {
-                // The has failed, meaning that this node has failed.
-                state = Mistreevous.State.FAILED;
-
-                // Return whether the state of this node has changed.
-                return state !== initialState;
-            } else if (child.getState() === Mistreevous.State.RUNNING) {
-                // This node is in the running state as its child is in the running state.
-                state = Mistreevous.State.RUNNING;
-
-                // Return whether the state of this node has changed.
-                return state !== initialState;
-            }
-        } while (this._canIterate(board));
-
-        // If we were able to complete our iterations without our child going into the 'FAILED' state then this node has succeeded.
-        state = Mistreevous.State.SUCCEEDED;
-
-        // Return whether the state of this node has changed.
-        return state !== initialState;
-    };
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
-
-    /**
-     * Gets the name of the node.
-     */
-    this.getName = () => `WHILE ${condition}`;
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => [child];
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "while";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
-
-    /**
-     * Reset the state of the node.
-     */
-    this.reset = () => {
-        // Reset the state of this node.
-        state = Mistreevous.State.READY;
-
-        // Reset the child node.
-        child.reset();
-    };
-
-    /**
-     * Gets whether an iteration can be made.
-     * @param board The board.
-     * @returns Whether an iteration can be made.
-     */
-    this._canIterate = board => {
-        // Call the condition function to determine whether we can iterate.
-        if (typeof board[condition] === "function") {
-            return !!board[condition]();
-        } else {
-            throw `cannot update repeat node as condition function '${condition}' is not defined in the blackboard`;
-        }
-    };
-};
-
-/***/ }),
-/* 9 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Root;
 /**
  * A Root node.
@@ -1757,7 +1641,7 @@ function Root(uid, child) {
 };
 
 /***/ }),
-/* 10 */
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1873,7 +1757,7 @@ function Selector(uid, children) {
 };
 
 /***/ }),
-/* 11 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1989,7 +1873,7 @@ function Sequence(uid, children) {
 };
 
 /***/ }),
-/* 12 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2090,7 +1974,61 @@ function Wait(uid, duration, longestDuration) {
 };
 
 /***/ }),
+/* 12 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = While;
+/**
+ * A WHILE guard which is satisfied as long as the given condition remains true.
+ * @param condition The name of the condition function that determines whether the guard is satisfied.
+ */
+function While(condition) {
+
+    /**
+     * Gets whether the guard is satisfied.
+     * @param board The board.
+     * @returns Whether the guard is satisfied.
+     */
+    this.isSatisfied = board => {
+        // Call the condition function to determine whether this guard is satisfied.
+        if (typeof board[condition] === "function") {
+            return !!board[condition]();
+        } else {
+            throw `cannot evaluate node guard as function '${condition}' is not defined in the blackboard`;
+        }
+    };
+};
+
+/***/ }),
 /* 13 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = Until;
+/**
+ * An UNTIL guard which is satisfied as long as the given condition remains false.
+ * @param condition The name of the condition function that determines whether the guard is satisfied.
+ */
+function Until(condition) {
+
+    /**
+     * Gets whether the guard is satisfied.
+     * @param board The board.
+     * @returns Whether the guard is satisfied.
+     */
+    this.isSatisfied = board => {
+        // Call the condition function to determine whether this guard is satisfied.
+        if (typeof board[condition] === "function") {
+            return !!!board[condition]();
+        } else {
+            throw `cannot evaluate node guard as function '${condition}' is not defined in the blackboard`;
+        }
+    };
+};
+
+/***/ }),
+/* 14 */
 /***/ (function(module, exports) {
 
 /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {/* globals __webpack_amd_options__ */
