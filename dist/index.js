@@ -194,7 +194,7 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-                return new __WEBPACK_IMPORTED_MODULE_5__nodes_root__["a" /* default */](getUid(), this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
+                return new __WEBPACK_IMPORTED_MODULE_5__nodes_root__["a" /* default */](getUid(), this.guard, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
             }
         }),
         "BRANCH": () => ({
@@ -229,7 +229,7 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-                return new __WEBPACK_IMPORTED_MODULE_6__nodes_selector__["a" /* default */](getUid(), this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+                return new __WEBPACK_IMPORTED_MODULE_6__nodes_selector__["a" /* default */](getUid(), this.guard, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
             }
         }),
         "SEQUENCE": () => ({
@@ -243,7 +243,7 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-                return new __WEBPACK_IMPORTED_MODULE_7__nodes_sequence__["a" /* default */](getUid(), this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+                return new __WEBPACK_IMPORTED_MODULE_7__nodes_sequence__["a" /* default */](getUid(), this.guard, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
             }
         }),
         "LOTTO": () => ({
@@ -258,7 +258,7 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-                return new __WEBPACK_IMPORTED_MODULE_3__nodes_lotto__["a" /* default */](getUid(), this.tickets, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+                return new __WEBPACK_IMPORTED_MODULE_3__nodes_lotto__["a" /* default */](getUid(), this.guard, this.tickets, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
             }
         }),
         "REPEAT": () => ({
@@ -292,7 +292,7 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-                return new __WEBPACK_IMPORTED_MODULE_4__nodes_repeat__["a" /* default */](getUid(), this.iterations, this.maximumIterations, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
+                return new __WEBPACK_IMPORTED_MODULE_4__nodes_repeat__["a" /* default */](getUid(), this.guard, this.iterations, this.maximumIterations, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
             }
         }),
         "FLIP": () => ({
@@ -306,7 +306,7 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-                return new __WEBPACK_IMPORTED_MODULE_2__nodes_flip__["a" /* default */](getUid(), this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
+                return new __WEBPACK_IMPORTED_MODULE_2__nodes_flip__["a" /* default */](getUid(), this.guard, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
             }
         }),
         "CONDITION": () => ({
@@ -1066,69 +1066,69 @@ function Action(uid, actionName) {
  * @param condition The name of the condition function. 
  */
 function Condition(uid, condition) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+  /**
+   * The node state.
+   */
+  let state = Mistreevous.State.READY;
 
-    /**
-     * Update the node and get whether the node state has changed.
-     * @param board The board.
-     * @returns Whether the state of this node has changed as part of the update.
-     */
-    this.update = function (board) {
-        // Get the pre-update node state.
-        const initialState = state;
+  /**
+   * Update the node and get whether the node state has changed.
+   * @param board The board.
+   * @returns Whether the state of this node has changed as part of the update.
+   */
+  this.update = function (board) {
+    // Get the pre-update node state.
+    const initialState = state;
 
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
-            // We have not changed state.
-            return false;
-        }
+    // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
+    if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
+      // We have not changed state.
+      return false;
+    }
 
-        // Call the condition function to determine the state of this node, but it must exist in the blackboard.
-        if (typeof board[condition] === "function") {
-            state = !!board[condition]() ? Mistreevous.State.SUCCEEDED : Mistreevous.State.FAILED;
-        } else {
-            throw `cannot update condition node as function '${condition}' is not defined in the blackboard`;
-        }
+    // Call the condition function to determine the state of this node, but it must exist in the blackboard.
+    if (typeof board[condition] === "function") {
+      state = !!board[condition]() ? Mistreevous.State.SUCCEEDED : Mistreevous.State.FAILED;
+    } else {
+      throw `cannot update condition node as function '${condition}' is not defined in the blackboard`;
+    }
 
-        // Return whether the state of this node has changed.
-        return state !== initialState;
-    };
+    // Return whether the state of this node has changed.
+    return state !== initialState;
+  };
 
-    /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
+  /**
+   * Gets the state of the node.
+   */
+  this.getState = () => state;
 
-    /**
-     * Gets the name of the node.
-     */
-    this.getName = () => condition;
+  /**
+   * Gets the name of the node.
+   */
+  this.getName = () => condition;
 
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => null;
+  /**
+   * Gets the state of the node.
+   */
+  this.getChildren = () => null;
 
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "condition";
+  /**
+   * Gets the type of the node.
+   */
+  this.getType = () => "condition";
 
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
+  /**
+   * Gets the unique id of the node.
+   */
+  this.getUid = () => uid;
 
-    /**
-     * Reset the state of the node.
-     */
-    this.reset = () => {
-        // Reset the state of this node.
-        state = Mistreevous.State.READY;
-    };
+  /**
+   * Reset the state of the node.
+   */
+  this.reset = () => {
+    // Reset the state of this node.
+    state = Mistreevous.State.READY;
+  };
 };
 
 /***/ }),
@@ -1141,90 +1141,91 @@ function Condition(uid, condition) {
  * A Flip node.
  * This node wraps a single child and will flip the state of the child state.
  * @param uid The unique node id.
+ * @param guard The node guard.
  * @param child The child node. 
  */
-function Flip(uid, child) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+function Flip(uid, guard, child) {
+  /**
+   * The node state.
+   */
+  let state = Mistreevous.State.READY;
 
-    /**
-     * Update the node and get whether the node state has changed.
-     * @param board The board.
-     * @returns Whether the state of this node has changed as part of the update.
-     */
-    this.update = function (board) {
-        // Get the pre-update node state.
-        const initialState = state;
+  /**
+   * Update the node and get whether the node state has changed.
+   * @param board The board.
+   * @returns Whether the state of this node has changed as part of the update.
+   */
+  this.update = function (board) {
+    // Get the pre-update node state.
+    const initialState = state;
 
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
-            // We have not changed state.
-            return false;
-        }
+    // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
+    if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
+      // We have not changed state.
+      return false;
+    }
 
-        // If the child has never been updated or is running then we will need to update it now.
-        if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
-            child.update(board);
-        }
+    // If the child has never been updated or is running then we will need to update it now.
+    if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
+      child.update(board);
+    }
 
-        // The state of this node will depend in the state of its child.
-        switch (child.getState()) {
-            case Mistreevous.State.RUNNING:
-                state = Mistreevous.State.RUNNING;
-                break;
+    // The state of this node will depend in the state of its child.
+    switch (child.getState()) {
+      case Mistreevous.State.RUNNING:
+        state = Mistreevous.State.RUNNING;
+        break;
 
-            case Mistreevous.State.SUCCEEDED:
-                state = Mistreevous.State.FAILED;
-                break;
+      case Mistreevous.State.SUCCEEDED:
+        state = Mistreevous.State.FAILED;
+        break;
 
-            case Mistreevous.State.FAILED:
-                state = Mistreevous.State.SUCCEEDED;
-                break;
-            default:
-                state = Mistreevous.State.READY;
-        }
-
-        // Return whether the state of this node has changed.
-        return state !== initialState;
-    };
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
-
-    /**
-     * Gets the name of the node.
-     */
-    this.getName = () => "FLIP";
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => [child];
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "flip";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
-
-    /**
-     * Reset the state of the node.
-     */
-    this.reset = () => {
-        // Reset the state of this node.
+      case Mistreevous.State.FAILED:
+        state = Mistreevous.State.SUCCEEDED;
+        break;
+      default:
         state = Mistreevous.State.READY;
+    }
 
-        // Reset the child node.
-        child.reset();
-    };
+    // Return whether the state of this node has changed.
+    return state !== initialState;
+  };
+
+  /**
+   * Gets the state of the node.
+   */
+  this.getState = () => state;
+
+  /**
+   * Gets the name of the node.
+   */
+  this.getName = () => "FLIP";
+
+  /**
+   * Gets the state of the node.
+   */
+  this.getChildren = () => [child];
+
+  /**
+   * Gets the type of the node.
+   */
+  this.getType = () => "flip";
+
+  /**
+   * Gets the unique id of the node.
+   */
+  this.getUid = () => uid;
+
+  /**
+   * Reset the state of the node.
+   */
+  this.reset = () => {
+    // Reset the state of this node.
+    state = Mistreevous.State.READY;
+
+    // Reset the child node.
+    child.reset();
+  };
 };
 
 /***/ }),
@@ -1238,150 +1239,151 @@ function Flip(uid, child) {
  * A winning child is picked on the initial update of this node, based on ticket weighting.
  * The state of this node will match the state of the winning child.
  * @param uid The unique node id.
+ * @param guard The node guard.
  * @param tickets The child node tickets
  * @param children The child nodes. 
  */
-function Lotto(uid, tickets, children) {
+function Lotto(uid, guard, tickets, children) {
+  /**
+   * The node state.
+   */
+  let state = Mistreevous.State.READY;
+
+  /**
+   * The winning child node.
+   */
+  let winningChild;
+
+  /**
+   * Represents a lotto draw.
+   */
+  function LottoDraw() {
     /**
-     * The node state.
+     * The participants
      */
-    let state = Mistreevous.State.READY;
+    this.participants = [];
 
     /**
-     * The winning child node.
+     * Add a participant.
+     * @param participant The participant.
+     * @param tickets The number of tickets held by the participant.
      */
-    let winningChild;
+    this.add = function (participant, tickets) {
+      this.participants.push({ participant, tickets });
+      return this;
+    };
 
     /**
-     * Represents a lotto draw.
+     * Draw a winning participant.
+     * @returns A winning participant.
      */
-    function LottoDraw() {
-        /**
-         * The participants
-         */
-        this.participants = [];
+    this.draw = function () {
+      // We cannot do anything if there are no participants.
+      if (!this.participants.length) {
+        throw "cannot draw a lotto winner when there are no participants";
+      }
 
-        /**
-         * Add a participant.
-         * @param participant The participant.
-         * @param tickets The number of tickets held by the participant.
-         */
-        this.add = function (participant, tickets) {
-            this.participants.push({ participant, tickets });
-            return this;
-        };
+      const pickable = [];
 
-        /**
-         * Draw a winning participant.
-         * @returns A winning participant.
-         */
-        this.draw = function () {
-            // We cannot do anything if there are no participants.
-            if (!this.participants.length) {
-                throw "cannot draw a lotto winner when there are no participants";
-            }
+      this.participants.forEach(({ participant, tickets }) => {
+        for (let ticketCount = 0; ticketCount < tickets; ticketCount++) {
+          pickable.push(participant);
+        }
+      });
 
-            const pickable = [];
+      return this.getRandomItem(pickable);
+    };
 
-            this.participants.forEach(({ participant, tickets }) => {
-                for (let ticketCount = 0; ticketCount < tickets; ticketCount++) {
-                    pickable.push(participant);
-                }
-            });
+    /**
+     * Get a random item form an array. 
+     * @param items Th array of items.
+     * @returns The randomly picked item.
+     */
+    this.getRandomItem = function (items) {
+      // We cant pick a random item from an empty array.
+      if (!items.length) {
+        return undefined;
+      }
 
-            return this.getRandomItem(pickable);
-        };
+      // Return a random item.
+      return items[Math.floor(Math.random() * items.length)];
+    };
+  }
 
-        /**
-         * Get a random item form an array. 
-         * @param items Th array of items.
-         * @returns The randomly picked item.
-         */
-        this.getRandomItem = function (items) {
-            // We cant pick a random item from an empty array.
-            if (!items.length) {
-                return undefined;
-            }
+  /**
+   * Update the node and get whether the node state has changed.
+   * @param board The board.
+   * @returns Whether the state of this node has changed as part of the update.
+   */
+  this.update = function (board) {
+    // Get the pre-update node state.
+    const initialState = state;
 
-            // Return a random item.
-            return items[Math.floor(Math.random() * items.length)];
-        };
+    // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
+    if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
+      // We have not changed state.
+      return false;
     }
 
-    /**
-     * Update the node and get whether the node state has changed.
-     * @param board The board.
-     * @returns Whether the state of this node has changed as part of the update.
-     */
-    this.update = function (board) {
-        // Get the pre-update node state.
-        const initialState = state;
+    // If this node is in the READY state then we need to pick a winning child node.
+    if (state === Mistreevous.State.READY) {
+      // Create a lotto draw.
+      const lottoDraw = new LottoDraw();
 
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
-            // We have not changed state.
-            return false;
-        }
+      // Add each child of this node to a lotto draw, with each child's corresponding ticket weighting, or a single ticket if not defined.
+      children.forEach((child, index) => lottoDraw.add(child, tickets[index] || 1));
 
-        // If this node is in the READY state then we need to pick a winning child node.
-        if (state === Mistreevous.State.READY) {
-            // Create a lotto draw.
-            const lottoDraw = new LottoDraw();
+      // Randomly pick a child based on ticket weighting.
+      winningChild = lottoDraw.draw();
+    }
 
-            // Add each child of this node to a lotto draw, with each child's corresponding ticket weighting, or a single ticket if not defined.
-            children.forEach((child, index) => lottoDraw.add(child, tickets[index] || 1));
+    // If the winning child has never been updated or is running then we will need to update it now.
+    if (winningChild.getState() === Mistreevous.State.READY || winningChild.getState() === Mistreevous.State.RUNNING) {
+      winningChild.update(board);
+    }
 
-            // Randomly pick a child based on ticket weighting.
-            winningChild = lottoDraw.draw();
-        }
+    // The state of the lotto node is the state of its winning child.
+    state = winningChild.getState();
 
-        // If the winning child has never been updated or is running then we will need to update it now.
-        if (winningChild.getState() === Mistreevous.State.READY || winningChild.getState() === Mistreevous.State.RUNNING) {
-            winningChild.update(board);
-        }
+    // Return whether the state of this node has changed.
+    return state !== initialState;
+  };
 
-        // The state of the lotto node is the state of its winning child.
-        state = winningChild.getState();
+  /**
+   * Gets the state of the node.
+   */
+  this.getState = () => state;
 
-        // Return whether the state of this node has changed.
-        return state !== initialState;
-    };
+  /**
+   * Gets the name of the node.
+   */
+  this.getName = () => tickets.length ? `LOTTO [${tickets.join(",")}]` : "LOTTO";
 
-    /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
+  /**
+   * Gets the state of the node.
+   */
+  this.getChildren = () => children;
 
-    /**
-     * Gets the name of the node.
-     */
-    this.getName = () => tickets.length ? `LOTTO [${tickets.join(",")}]` : "LOTTO";
+  /**
+   * Gets the type of the node.
+   */
+  this.getType = () => "lotto";
 
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => children;
+  /**
+   * Gets the unique id of the node.
+   */
+  this.getUid = () => uid;
 
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "lotto";
+  /**
+   * Reset the state of the node.
+   */
+  this.reset = () => {
+    // Reset the state of this node.
+    state = Mistreevous.State.READY;
 
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
-
-    /**
-     * Reset the state of the node.
-     */
-    this.reset = () => {
-        // Reset the state of this node.
-        state = Mistreevous.State.READY;
-
-        // Reset each child node.
-        children.forEach(child => child.reset());
-    };
+    // Reset each child node.
+    children.forEach(child => child.reset());
+  };
 };
 
 /***/ }),
@@ -1398,11 +1400,12 @@ function Lotto(uid, tickets, children) {
  * The REPEAT node will stop and have a 'FAILED' state if its child is ever in a 'FAILED' state after an update.
  * The REPEAT node will attempt to move on to the next iteration if its child is ever in a 'SUCCEEDED' state.
  * @param uid The unique node id.
+ * @param guard The node guard.
  * @param iterations The number of iterations to repeat the child node, or the minimum number of iterations if maximumIterations is defined.
  * @param maximumIterations The maximum number of iterations to repeat the child node.
  * @param child The child node. 
  */
-function Repeat(uid, iterations, maximumIterations, child) {
+function Repeat(uid, guard, iterations, maximumIterations, child) {
     /**
      * The node state.
      */
@@ -1568,76 +1571,77 @@ function Repeat(uid, iterations, maximumIterations, child) {
  * A Root node.
  * The root node will have a single child.
  * @param uid The unique node id.
+ * @param guard The node guard.
  * @param child The child node. 
  */
-function Root(uid, child) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+function Root(uid, guard, child) {
+  /**
+   * The node state.
+   */
+  let state = Mistreevous.State.READY;
 
-    /**
-     * Update the node and get whether the node state has changed.
-     * @param board The board.
-     * @returns Whether the state of this node has changed as part of the update.
-     */
-    this.update = function (board) {
-        // Get the pre-update node state.
-        const initialState = state;
+  /**
+   * Update the node and get whether the node state has changed.
+   * @param board The board.
+   * @returns Whether the state of this node has changed as part of the update.
+   */
+  this.update = function (board) {
+    // Get the pre-update node state.
+    const initialState = state;
 
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
-            // We have not changed state.
-            return false;
-        }
+    // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
+    if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
+      // We have not changed state.
+      return false;
+    }
 
-        // If the child has never been updated or is running then we will need to update it now.
-        if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
-            child.update(board);
-        }
+    // If the child has never been updated or is running then we will need to update it now.
+    if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
+      child.update(board);
+    }
 
-        // The state of the root node is the state of its child.
-        state = child.getState();
+    // The state of the root node is the state of its child.
+    state = child.getState();
 
-        // Return whether the state of this node has changed.
-        return state !== initialState;
-    };
+    // Return whether the state of this node has changed.
+    return state !== initialState;
+  };
 
-    /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
+  /**
+   * Gets the state of the node.
+   */
+  this.getState = () => state;
 
-    /**
-     * Gets the name of the node.
-     */
-    this.getName = () => "ROOT";
+  /**
+   * Gets the name of the node.
+   */
+  this.getName = () => "ROOT";
 
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => [child];
+  /**
+   * Gets the state of the node.
+   */
+  this.getChildren = () => [child];
 
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "root";
+  /**
+   * Gets the type of the node.
+   */
+  this.getType = () => "root";
 
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
+  /**
+   * Gets the unique id of the node.
+   */
+  this.getUid = () => uid;
 
-    /**
-     * Reset the state of the node.
-     */
-    this.reset = () => {
-        // Reset the state of this node.
-        state = Mistreevous.State.READY;
+  /**
+   * Reset the state of the node.
+   */
+  this.reset = () => {
+    // Reset the state of this node.
+    state = Mistreevous.State.READY;
 
-        // Reset the child node.
-        child.reset();
-    };
+    // Reset the child node.
+    child.reset();
+  };
 };
 
 /***/ }),
@@ -1650,9 +1654,10 @@ function Root(uid, child) {
  * A SELECTOR node.
  * The child nodes are executed in sequence until one succeeds or all fail.
  * @param uid The unique node id.
- * @param children The child nodes. 
+ * @param guard The node guard.
+ * @param children The child nodes.
  */
-function Selector(uid, children) {
+function Selector(uid, guard, children) {
     /**
      * The node state.
      */
@@ -1766,9 +1771,10 @@ function Selector(uid, children) {
  * A SEQUENCE node.
  * The child nodes are executed in sequence until one fails or all succeed.
  * @param uid The unique node id.
+ * @param guard The node guard.
  * @param children The child nodes. 
  */
-function Sequence(uid, children) {
+function Sequence(uid, guard, children) {
     /**
      * The node state.
      */
@@ -1886,91 +1892,91 @@ function Sequence(uid, children) {
  * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
  */
 function Wait(uid, duration, longestDuration) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+  /**
+   * The node state.
+   */
+  let state = Mistreevous.State.READY;
 
-    /** 
-     * The time in milliseconds at which this node was first updated.
-     */
-    let initialUpdateTime;
+  /** 
+   * The time in milliseconds at which this node was first updated.
+   */
+  let initialUpdateTime;
 
-    /**
-     * The duration in milliseconds that this node will be waiting for. 
-     */
-    let waitDuration;
+  /**
+   * The duration in milliseconds that this node will be waiting for. 
+   */
+  let waitDuration;
 
-    /**
-     * Update the node and get whether the node state has changed.
-     * @param board The board.
-     * @returns Whether the state of this node has changed as part of the update.
-     */
-    this.update = function (board) {
-        // Get the pre-update node state.
-        const initialState = state;
+  /**
+   * Update the node and get whether the node state has changed.
+   * @param board The board.
+   * @returns Whether the state of this node has changed as part of the update.
+   */
+  this.update = function (board) {
+    // Get the pre-update node state.
+    const initialState = state;
 
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
-            // We have not changed state.
-            return false;
-        }
+    // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
+    if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
+      // We have not changed state.
+      return false;
+    }
 
-        // If this node is in the READY state then we need to set the initial update time.
-        if (state === Mistreevous.State.READY) {
-            // Set the initial update time.
-            initialUpdateTime = new Date().getTime();
+    // If this node is in the READY state then we need to set the initial update time.
+    if (state === Mistreevous.State.READY) {
+      // Set the initial update time.
+      initialUpdateTime = new Date().getTime();
 
-            // If a longestDuration value was defined then we will be randomly picking a duration between the
-            // shortest and longest duration. If it was not defined, then we will be just using the duration.
-            waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
+      // If a longestDuration value was defined then we will be randomly picking a duration between the
+      // shortest and longest duration. If it was not defined, then we will be just using the duration.
+      waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
 
-            // The node is now running until we finish waiting.
-            state = Mistreevous.State.RUNNING;
-        }
+      // The node is now running until we finish waiting.
+      state = Mistreevous.State.RUNNING;
+    }
 
-        // Have we waited long enough?
-        if (new Date().getTime() >= initialUpdateTime + waitDuration) {
-            // We have finished waiting!
-            state = Mistreevous.State.SUCCEEDED;
-        }
+    // Have we waited long enough?
+    if (new Date().getTime() >= initialUpdateTime + waitDuration) {
+      // We have finished waiting!
+      state = Mistreevous.State.SUCCEEDED;
+    }
 
-        // Return whether the state of this node has changed.
-        return state !== initialState;
-    };
+    // Return whether the state of this node has changed.
+    return state !== initialState;
+  };
 
-    /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
+  /**
+   * Gets the state of the node.
+   */
+  this.getState = () => state;
 
-    /**
-     * Gets the name of the node.
-     */
-    this.getName = () => `WAIT ${longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms"}`;
+  /**
+   * Gets the name of the node.
+   */
+  this.getName = () => `WAIT ${longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms"}`;
 
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => [];
+  /**
+   * Gets the state of the node.
+   */
+  this.getChildren = () => [];
 
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "wait";
+  /**
+   * Gets the type of the node.
+   */
+  this.getType = () => "wait";
 
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
+  /**
+   * Gets the unique id of the node.
+   */
+  this.getUid = () => uid;
 
-    /**
-     * Reset the state of the node.
-     */
-    this.reset = () => {
-        // Reset the state of this node.
-        state = Mistreevous.State.READY;
-    };
+  /**
+   * Reset the state of the node.
+   */
+  this.reset = () => {
+    // Reset the state of this node.
+    state = Mistreevous.State.READY;
+  };
 };
 
 /***/ }),
