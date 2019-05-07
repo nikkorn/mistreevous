@@ -2,9 +2,10 @@
  * A SELECTOR node.
  * The child nodes are executed in sequence until one succeeds or all fail.
  * @param uid The unique node id.
- * @param children The child nodes. 
+ * @param guard The node guard.
+ * @param children The child nodes.
  */
-export default function Selector(uid, children) {
+export default function Selector(uid, guard, children) {
     /**
      * The node state.
      */

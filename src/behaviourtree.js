@@ -49,7 +49,11 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
-                return new Root(getUid(), this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
+                return new Root(
+                    getUid(),
+                    this.guard,
+                    this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
+                );
             }
         }),
         "BRANCH": () => ({ 
@@ -84,7 +88,11 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
-                return new Selector(getUid(), this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+                return new Selector(
+                    getUid(),
+                    this.guard,
+                    this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
+                );
             }
         }),
         "SEQUENCE": () => ({
@@ -98,7 +106,11 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
-                return new Sequence(getUid(), this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+                return new Sequence(
+                    getUid(),
+                    this.guard,
+                    this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
+                );
             }
         }),
         "LOTTO": () => ({
@@ -113,7 +125,11 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
-                return new Lotto(getUid(), this.tickets, this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+                return new Lotto(
+                    getUid(),
+                    this.guard,
+                    this.tickets, this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
+                );
             }
         }),
         "REPEAT": () => ({
@@ -147,7 +163,13 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
-                return new Repeat(getUid(), this.iterations, this.maximumIterations, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
+                return new Repeat(
+                    getUid(),
+                    this.guard,
+                    this.iterations,
+                    this.maximumIterations,
+                    this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
+                );
             }
         }),
         "FLIP": () => ({
@@ -161,7 +183,11 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
-                return new Flip(getUid(), this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
+                return new Flip(
+                    getUid(),
+                    this.guard,
+                    this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
+                );
             }
         }),
         "CONDITION": () => ({

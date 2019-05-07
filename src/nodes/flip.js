@@ -2,9 +2,10 @@
  * A Flip node.
  * This node wraps a single child and will flip the state of the child state.
  * @param uid The unique node id.
+ * @param guard The node guard.
  * @param child The child node. 
  */
-export default function Flip(uid, child) {
+export default function Flip(uid, guard, child) {
     /**
      * The node state.
      */

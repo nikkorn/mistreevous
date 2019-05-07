@@ -2,9 +2,10 @@
  * A SEQUENCE node.
  * The child nodes are executed in sequence until one fails or all succeed.
  * @param uid The unique node id.
+ * @param guard The node guard.
  * @param children The child nodes. 
  */
-export default function Sequence(uid, children) {
+export default function Sequence(uid, guard, children) {
     /**
      * The node state.
      */

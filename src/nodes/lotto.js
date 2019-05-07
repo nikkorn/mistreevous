@@ -3,10 +3,11 @@
  * A winning child is picked on the initial update of this node, based on ticket weighting.
  * The state of this node will match the state of the winning child.
  * @param uid The unique node id.
+ * @param guard The node guard.
  * @param tickets The child node tickets
  * @param children The child nodes. 
  */
-export default function Lotto(uid, tickets, children) {
+export default function Lotto(uid, guard, tickets, children) {
     /**
      * The node state.
      */

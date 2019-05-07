@@ -6,11 +6,12 @@
  * The REPEAT node will stop and have a 'FAILED' state if its child is ever in a 'FAILED' state after an update.
  * The REPEAT node will attempt to move on to the next iteration if its child is ever in a 'SUCCEEDED' state.
  * @param uid The unique node id.
+ * @param guard The node guard.
  * @param iterations The number of iterations to repeat the child node, or the minimum number of iterations if maximumIterations is defined.
  * @param maximumIterations The maximum number of iterations to repeat the child node.
  * @param child The child node. 
  */
-export default function Repeat(uid, iterations, maximumIterations, child) {
+export default function Repeat(uid, guard, iterations, maximumIterations, child) {
     /**
      * The node state.
      */

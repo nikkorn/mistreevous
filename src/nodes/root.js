@@ -2,9 +2,10 @@
  * A Root node.
  * The root node will have a single child.
  * @param uid The unique node id.
+ * @param guard The node guard.
  * @param child The child node. 
  */
-export default function Root(uid, child) {
+export default function Root(uid, guard, child) {
     /**
      * The node state.
      */
