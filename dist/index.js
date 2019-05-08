@@ -919,7 +919,7 @@ BehaviourTree.prototype.getFlattenedNodeDetails = function () {
             caption: node.getName(),
             state: node.getState(),
             guard: node.getGuard() ? getGuardDetails(node.getGuard()) : null,
-            parentUid
+            parentId: parentUid
         });
 
         // Process each of the nodes children.

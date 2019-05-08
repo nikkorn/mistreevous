@@ -343,38 +343,22 @@ function buildTreeView() {
     // Clear away any existing tree view.
     clearTreeView();
 
-    const nodes = [];
+    // Get the behaviour tree details as an array of flattened nodes.
+    const nodes = behaviourTree.getFlattenedNodeDetails();
 
-    const processNode = (node, parentUid) => {
-        // A function to convert a node state to a string.
-        const convertNodeStateToString = (state) => {
-            switch (state) {
-                case Mistreevous.State.RUNNING:
-                    return "running";
-                case Mistreevous.State.SUCCEEDED:
-                    return "succeeded";
-                case Mistreevous.State.FAILED:
-                    return "failed";
-                default:
-                    return "ready";
-            }
-        };
-
-        // Push the current node into the nodes array.
-        nodes.push({ 
-            id: node.getUid(),
-            type: node.getType(), 
-            caption: node.getName(),
-            state: convertNodeStateToString(node.getState()),
-            parent: parentUid 
-        });
-
-        // Process each of the nodes children.
-        (node.getChildren() || []).forEach((child) => processNode(child, node.getUid()));
+    // A function to convert a node state to a string.
+    const convertNodeStateToString = (state) => {
+        switch (state) {
+            case Mistreevous.State.RUNNING:
+                return "running";
+            case Mistreevous.State.SUCCEEDED:
+                return "succeeded";
+            case Mistreevous.State.FAILED:
+                return "failed";
+            default:
+                return "ready";
+        }
     };
-
-    // Convert the nested AST node structure into an array of nodes with which to build the tree view.
-    processNode(behaviourTree.getRootNode(), null);
 
     // Build the tree view.
     var options = {
@@ -382,11 +366,11 @@ function buildTreeView() {
         nodeIdField: "id",
         nodeNameField: "caption",
         nodeTypeField: "type",
-        nodeParentField: "parent",
+        nodeParentField: "parentId",
         definition: {
             default: {
                 tooltip: function (node) { return node.item.caption },
-                template: (node) => `<div class='tree-view-node ${node.item.state}'>
+                template: (node) => `<div class='tree-view-node ${convertNodeStateToString(node.item.state)}'>
                 <div class='tree-view-icon tree-view-icon-${node.item.type}'>
                 <img src="icons/${node.item.type}.png">
                 </div>
