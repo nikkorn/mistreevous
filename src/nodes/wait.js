@@ -75,6 +75,11 @@ export default function Wait(uid, duration, longestDuration) {
     this.getChildren = () => [];
 
     /**
+     * Gets the guard of the node.
+     */
+    this.getGuard = () => null;
+
+    /**
      * Gets the type of the node.
      */
     this.getType = () => "wait";

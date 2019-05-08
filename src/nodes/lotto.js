@@ -129,6 +129,11 @@ export default function Lotto(uid, guard, tickets, children) {
     this.getChildren = () => children;
 
     /**
+     * Gets the guard of the node.
+     */
+    this.getGuard = () => guard;
+
+    /**
      * Gets the type of the node.
      */
     this.getType = () => "lotto";

@@ -5,6 +5,16 @@
 export default function While(condition) {
 
     /**
+     * Gets the type of the guard.
+     */
+    this.getType = () => "while";
+
+    /**
+     * Gets the condition of the guard.
+     */
+    this.getCondition = () => condition;
+
+    /**
      * Gets whether the guard is satisfied.
      * @param board The board.
      * @returns Whether the guard is satisfied.

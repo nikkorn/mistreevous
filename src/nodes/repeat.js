@@ -133,6 +133,11 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
     this.getChildren = () => [child];
 
     /**
+     * Gets the guard of the node.
+     */
+    this.getGuard = () => guard;
+
+    /**
      * Gets the type of the node.
      */
     this.getType = () => "repeat";
