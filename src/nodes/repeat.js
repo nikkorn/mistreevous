@@ -1,3 +1,5 @@
+import { defaultCipherList } from "constants";
+
 /**
  * A REPEAT node.
  * The node has a single child which can have:
@@ -51,69 +53,46 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
             return true;
         }
 
-        // If this node is in the READY state then we need to reset the iteration count and determine which method we will use as a repeat condition.
+        // If this node is in the READY state then we need to reset the child and the target iteration count.
         if (state === Mistreevous.State.READY) {
-            // Reset the current iteration count.
-            currentIterationCount = 0;
-
             // Reset the child node.
             child.reset();
 
-            // Are we dealing with a finite number of iterations?
-            if (typeof iterations === "number") {
-                // If we have maximumIterations defined then we will want a random iteration count bounded by iterations and maximumIterations.
-                targetIterationCount = (typeof maximumIterations === "number") ? 
-                    Math.floor(Math.random() * (maximumIterations - iterations + 1) + iterations) : 
-                    iterations;
-            }
-
-            // Do an initial check to see if we can iterate. If we can then this node will be in the 'RUNNING' state.
-            // If we cannot iterate then we have immediately failed our condition or hit our target iteration count, then the node has succeeded.
-            if (this._canIterate(board)) {
-                // This node is in the running state and can do its initial iteration.
-                state = Mistreevous.State.RUNNING;
-            } else {
-                // This node is in the 'SUCCEEDED' state.
-                state = Mistreevous.State.SUCCEEDED;
-
-                // Return whether the state of this node has changed.
-                return state !== initialState;
-            }
+            // Set the target iteration count.
+            this._setTargetIterationCount();
         }
 
-        do {
-            // Reset the child node if it is already in the 'SUCCEEDED' state.
+        // Do a check to see if we can iterate. If we can then this node will move into the 'RUNNING' state.
+        // If we cannot iterate then we have hit our target iteration count, which means that the node has succeeded.
+        if (this._canIterate()) {
+            // This node is in the running state and can do its initial iteration.
+            state = Mistreevous.State.RUNNING;
+
+            // We may have already completed an iteration, meaning that the child node will be in the SUCCEEDED state.
+            // If this is the case then we will have to reset the child node now.
             if (child.getState() === Mistreevous.State.SUCCEEDED) {
                 child.reset();
-            } 
-
-            // If the child has never been updated or is running then we will need to update it now.
-            if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
-                child.update(board);
             }
 
-            // If the child node is in the 'SUCCEEDED' state then we may be moving on to the next iteration or setting this 
-            // node as 'SUCCEEDED' if we cant. If this node is in the 'FAILED' state then this node has completely failed.
-            if (child.getState() === Mistreevous.State.SUCCEEDED) {
-                // The child node has reached the 'SUCCEEDED' state, so we have completed an iteration.
-                currentIterationCount += 1;
-            } else if (child.getState() === Mistreevous.State.FAILED) {
-                // The has failed, meaning that this node has failed.
+            // Update the child node.
+            child.update(board);
+
+            // If the child moved into the FAILED state when we updated it then there is nothing left to do and this node has also failed.
+            // If it has moved into the SUCCEEDED state then we have completed the current iteration.
+            if (child.getState() === Mistreevous.State.FAILED) {
+                // The child has failed, meaning that this node has failed.
                 state = Mistreevous.State.FAILED;
 
                 // Return whether the state of this node has changed.
                 return state !== initialState;
-            } else if (child.getState() === Mistreevous.State.RUNNING) {
-                // This node is in the running state as its child is in the running state.
-                state = Mistreevous.State.RUNNING;
-
-                // Return whether the state of this node has changed.
-                return state !== initialState;
+            } else if (child.getState() === Mistreevous.State.SUCCEEDED) {
+                // We have completed an iteration.
+                currentIterationCount += 1;
             }
-        } while (this._canIterate(board));
-
-        // If we were able to complete our iterations without our child going into the 'FAILED' state then this node has succeeded.
-        state = Mistreevous.State.SUCCEEDED;
+        } else {
+            // This node is in the 'SUCCEEDED' state as we cannot iterate any more.
+            state = Mistreevous.State.SUCCEEDED;
+        }
 
         // Return whether the state of this node has changed.
         return state !== initialState;
@@ -163,16 +142,18 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
         // Reset the state of this node.
         state = Mistreevous.State.READY;
 
+        // Reset the current iteration count.
+        currentIterationCount = 0;
+
         // Reset the child node.
         child.reset();
     };
 
     /**
      * Gets whether an iteration can be made.
-     * @param board The board.
      * @returns Whether an iteration can be made.
      */
-    this._canIterate = (board) => {
+    this._canIterate = () => {
         if (targetIterationCount !== null) {
             // We can iterate as long as we have not reached our target iteration count.
             return currentIterationCount < targetIterationCount;
@@ -181,4 +162,19 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
         // If neither an iteration count or a condition function were defined then we can iterate indefinitely.
         return true;
     };
+
+    /**
+     * Sets the target iteration count.
+     */
+    this._setTargetIterationCount = () => {
+        // Are we dealing with a finite number of iterations?
+        if (typeof iterations === "number") {
+            // If we have maximumIterations defined then we will want a random iteration count bounded by iterations and maximumIterations.
+            targetIterationCount = (typeof maximumIterations === "number") ? 
+                Math.floor(Math.random() * (maximumIterations - iterations + 1) + iterations) : 
+                iterations;
+        } else {
+            targetIterationCount = null;
+        }
+    }
 };

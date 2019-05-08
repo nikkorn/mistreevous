@@ -38,7 +38,7 @@ definitionTextArea.value =
 `root {
     sequence {
         action [WalkToDoor]
-        repeat [1,3] {
+        repeat [3] {
             sequence {
                 wait [1000]
                 wait [1000]
