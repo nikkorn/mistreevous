@@ -370,12 +370,27 @@ function buildTreeView() {
         definition: {
             default: {
                 tooltip: function (node) { return node.item.caption },
-                template: (node) => `<div class='tree-view-node ${convertNodeStateToString(node.item.state)}'>
-                <div class='tree-view-icon tree-view-icon-${node.item.type}'>
-                <img src="icons/${node.item.type}.png">
-                </div>
-                <div><p class='tree-view-caption' style="margin:0px;">${node.item.caption}</p></div>
-                </div>`
+                template: (node) => {
+                    if (node.item.guard) {
+                        return `<div class='tree-view-node ${convertNodeStateToString(node.item.state)}'>
+                            <div class='tree-view-icon tree-view-icon-${node.item.type}'>
+                            <img src="icons/${node.item.type}.png">
+                            </div>
+                            <div>
+                            <i class='tree-view-caption' style="margin:0px;">${node.item.guard.type.toUpperCase()} ${node.item.guard.condition}</i>
+                            <hr style="margin-top: 1px; margin-bottom: 1px;">
+                            <p class='tree-view-caption' style="margin:0px;">${node.item.caption}</p>
+                            </div>
+                            </div>`;
+                    } else {
+                        return `<div class='tree-view-node ${convertNodeStateToString(node.item.state)}'>
+                            <div class='tree-view-icon tree-view-icon-${node.item.type}'>
+                            <img src="icons/${node.item.type}.png">
+                            </div>
+                            <div><p class='tree-view-caption' style="margin:0px;">${node.item.caption}</p></div>
+                            </div>`;
+                    }
+                }
             }
         },
         line: {
