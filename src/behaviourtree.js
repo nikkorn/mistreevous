@@ -195,11 +195,15 @@ export default function BehaviourTree(definition, board) {
             conditionFunction: "",
             validate: function (depth) {},
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
-                return new Condition(getUid(), this.conditionFunction);
+                return new Condition(
+                    getUid(),
+                    this.conditionFunction
+                );
             }
         }),
         "WAIT": () => ({
             type: "wait",
+            guard: null,
             duration: null,
             longestDuration: null,
             validate: function (depth) {
@@ -222,7 +226,12 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
-                return new Wait(getUid(), this.duration, this.longestDuration);
+                return new Wait(
+                    getUid(),
+                    this.guard,
+                    this.duration,
+                    this.longestDuration
+                );
             }
         }),
         "ACTION": () => ({
@@ -230,7 +239,10 @@ export default function BehaviourTree(definition, board) {
             actionName: "",
             validate: function (depth) {},
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-                return new Action(getUid(), this.actionName);
+                return new Action(
+                    getUid(),
+                    this.actionName
+                );
             }
         })
     };
@@ -629,6 +641,9 @@ export default function BehaviourTree(definition, board) {
                         // An incorrect number of durations was defined.
                         throw "invalid number of wait node duration arguments defined";
                     }
+
+                    // Try to pick a node guard off of the token stack.
+                    node.guard = getGuard();
                     break;
 
                 case "REPEAT":

@@ -42,6 +42,15 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
             return false;
         }
 
+        // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
+        if (guard && !guard.isSatisfied(board)) {
+            // The guard is not satisfied and therefore we are finished with the node.
+            state = Mistreevous.State.FAILED;
+
+            // The node has moved to the FAILED state.
+            return true;
+        }
+
         // If this node is in the READY state then we need to reset the iteration count and determine which method we will use as a repeat condition.
         if (state === Mistreevous.State.READY) {
             // Reset the current iteration count.

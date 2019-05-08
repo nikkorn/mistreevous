@@ -319,6 +319,7 @@ function BehaviourTree(definition, board) {
         }),
         "WAIT": () => ({
             type: "wait",
+            guard: null,
             duration: null,
             longestDuration: null,
             validate: function (depth) {
@@ -341,7 +342,7 @@ function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-                return new __WEBPACK_IMPORTED_MODULE_8__nodes_wait__["a" /* default */](getUid(), this.duration, this.longestDuration);
+                return new __WEBPACK_IMPORTED_MODULE_8__nodes_wait__["a" /* default */](getUid(), this.guard, this.duration, this.longestDuration);
             }
         }),
         "ACTION": () => ({
@@ -750,6 +751,9 @@ function BehaviourTree(definition, board) {
                         // An incorrect number of durations was defined.
                         throw "invalid number of wait node duration arguments defined";
                     }
+
+                    // Try to pick a node guard off of the token stack.
+                    node.guard = getGuard();
                     break;
 
                 case "REPEAT":
@@ -1349,6 +1353,15 @@ function Lotto(uid, guard, tickets, children) {
             return false;
         }
 
+        // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
+        if (guard && !guard.isSatisfied(board)) {
+            // The guard is not satisfied and therefore we are finished with the node.
+            state = Mistreevous.State.FAILED;
+
+            // The node has moved to the FAILED state.
+            return true;
+        }
+
         // If this node is in the READY state then we need to pick a winning child node.
         if (state === Mistreevous.State.READY) {
             // Create a lotto draw.
@@ -1463,6 +1476,15 @@ function Repeat(uid, guard, iterations, maximumIterations, child) {
         if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
             // We have not changed state.
             return false;
+        }
+
+        // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
+        if (guard && !guard.isSatisfied(board)) {
+            // The guard is not satisfied and therefore we are finished with the node.
+            state = Mistreevous.State.FAILED;
+
+            // The node has moved to the FAILED state.
+            return true;
         }
 
         // If this node is in the READY state then we need to reset the iteration count and determine which method we will use as a repeat condition.
@@ -1966,10 +1988,11 @@ function Sequence(uid, guard, children) {
  * A WAIT node.
  * The state of this node will change to SUCCEEDED after a duration of time.
  * @param uid The unique node id.
+ * @param guard The node guard.
  * @param duration The duration that this node will wait to succeed in milliseconds, or the earliest if longestDuration is defined.
  * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
  */
-function Wait(uid, duration, longestDuration) {
+function Wait(uid, guard, duration, longestDuration) {
     /**
      * The node state.
      */
@@ -1998,6 +2021,15 @@ function Wait(uid, duration, longestDuration) {
         if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
             // We have not changed state.
             return false;
+        }
+
+        // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
+        if (guard && !guard.isSatisfied(board)) {
+            // The guard is not satisfied and therefore we are finished with the node.
+            state = Mistreevous.State.FAILED;
+
+            // The node has moved to the FAILED state.
+            return true;
         }
 
         // If this node is in the READY state then we need to set the initial update time.
@@ -2041,7 +2073,7 @@ function Wait(uid, duration, longestDuration) {
     /**
      * Gets the guard of the node.
      */
-    this.getGuard = () => null;
+    this.getGuard = () => guard;
 
     /**
      * Gets the type of the node.

@@ -89,6 +89,15 @@ export default function Lotto(uid, guard, tickets, children) {
             return false;
         }
 
+        // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
+        if (guard && !guard.isSatisfied(board)) {
+            // The guard is not satisfied and therefore we are finished with the node.
+            state = Mistreevous.State.FAILED;
+
+            // The node has moved to the FAILED state.
+            return true;
+        }
+
         // If this node is in the READY state then we need to pick a winning child node.
         if (state === Mistreevous.State.READY) {
             // Create a lotto draw.
