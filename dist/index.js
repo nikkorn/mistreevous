@@ -886,6 +886,53 @@ BehaviourTree.prototype.getRootNode = function () {
 };
 
 /**
+ * Get flattened details of every node in the tree.
+ * @returns The flattened details of every node in the tree.
+ */
+BehaviourTree.prototype.getFlattenedNodeDetails = function () {
+    // Create an empty flattened array of tree nodes.
+    const flattenedTreeNodes = [];
+
+    /**
+     * Helper function to process a node instance and push details into the flattened tree nodes array.
+     * @param node The current node.
+     * @param parentUid The UID of the node parent, or null if the node is the main root node.
+     */
+    const processNode = (node, parentUid) => {
+
+        /**
+         * Helper function to get details for a node guard.
+         * @param guard The node guard.
+         * @returns The details for a guard node.
+         */
+        const getGuardDetails = guard => {
+            return {
+                type: guard.getType(),
+                condition: guard.getCondition()
+            };
+        };
+
+        // Push the current node into the flattened nodes array.
+        flattenedTreeNodes.push({
+            id: node.getUid(),
+            type: node.getType(),
+            caption: node.getName(),
+            state: node.getState(),
+            guard: node.getGuard() ? getGuardDetails(node.getGuard()) : null,
+            parentUid
+        });
+
+        // Process each of the nodes children.
+        (node.getChildren() || []).forEach(child => processNode(child, node.getUid()));
+    };
+
+    // Convert the nested node structure into a flattened array of node details.
+    processNode(this._rootNode, null);
+
+    return flattenedTreeNodes;
+};
+
+/**
  * Get whether the tree is in the running state.
  * @returns Whether the tree is in the running state.
  */
