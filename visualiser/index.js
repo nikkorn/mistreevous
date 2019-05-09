@@ -377,9 +377,9 @@ function buildTreeView() {
                             <img src="icons/${node.item.type}.png">
                             </div>
                             <div>
-                            <i class='tree-view-caption' style="margin:0px;">${node.item.guard.type.toUpperCase()} ${node.item.guard.condition}</i>
-                            <hr style="margin-top: 1px; margin-bottom: 1px;">
                             <p class='tree-view-caption' style="margin:0px;">${node.item.caption}</p>
+                            <hr style="margin-top: 1px; margin-bottom: 1px;">
+                            <i class='tree-view-caption' style="margin:0px;">${node.item.guard.type.toUpperCase()} ${node.item.guard.condition}</i>
                             </div>
                             </div>`;
                     } else {
