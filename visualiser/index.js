@@ -145,7 +145,9 @@ function reloadVisualiser() {
 
     try {
         // Create the blackboard.
-        const blackboard = eval('(' + blackboardTextArea.value + ')');
+        const blackboard = (new Function("IsKeyPressed", `return (${blackboardTextArea.value});`))((keyCode) => {
+            return window.allPressedKeyCodes[keyCode];
+        });
 
         // Try to create the behaviour tree.
         behaviourTree = new Mistreevous.BehaviourTree(definitionTextArea.value, blackboard);
@@ -416,6 +418,15 @@ function clearTreeView() {
     treeViewWrapper.innerHTML = "";
     treeViewWrapper.className = "";
 };
+
+// Keep track of all key press states for use within the blackboard.
+window.allPressedKeyCodes = {};
+window.onkeyup = function (event) {
+    this.allPressedKeyCodes[event.keyCode] = false;
+}
+window.onkeydown = function (event) {
+    this.allPressedKeyCodes[event.keyCode] = true;
+}
 
 // Do the initial visualiser reload.
 reloadVisualiser();
