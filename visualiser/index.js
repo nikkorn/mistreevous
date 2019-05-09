@@ -145,7 +145,9 @@ function reloadVisualiser() {
 
     try {
         // Create the blackboard.
-        const blackboard = eval('(' + blackboardTextArea.value + ')');
+        const blackboard = (new Function("IsKeyPressed", `return (${blackboardTextArea.value});`))((keyCode) => {
+            return window.allPressedKeyCodes[keyCode];
+        });
 
         // Try to create the behaviour tree.
         behaviourTree = new Mistreevous.BehaviourTree(definitionTextArea.value, blackboard);
@@ -343,38 +345,22 @@ function buildTreeView() {
     // Clear away any existing tree view.
     clearTreeView();
 
-    const nodes = [];
+    // Get the behaviour tree details as an array of flattened nodes.
+    const nodes = behaviourTree.getFlattenedNodeDetails();
 
-    const processNode = (node, parentUid) => {
-        // A function to convert a node state to a string.
-        const convertNodeStateToString = (state) => {
-            switch (state) {
-                case Mistreevous.State.RUNNING:
-                    return "running";
-                case Mistreevous.State.SUCCEEDED:
-                    return "succeeded";
-                case Mistreevous.State.FAILED:
-                    return "failed";
-                default:
-                    return "ready";
-            }
-        };
-
-        // Push the current node into the nodes array.
-        nodes.push({ 
-            id: node.getUid(),
-            type: node.getType(), 
-            caption: node.getName(),
-            state: convertNodeStateToString(node.getState()),
-            parent: parentUid 
-        });
-
-        // Process each of the nodes children.
-        (node.getChildren() || []).forEach((child) => processNode(child, node.getUid()));
+    // A function to convert a node state to a string.
+    const convertNodeStateToString = (state) => {
+        switch (state) {
+            case Mistreevous.State.RUNNING:
+                return "running";
+            case Mistreevous.State.SUCCEEDED:
+                return "succeeded";
+            case Mistreevous.State.FAILED:
+                return "failed";
+            default:
+                return "ready";
+        }
     };
-
-    // Convert the nested AST node structure into an array of nodes with which to build the tree view.
-    processNode(behaviourTree.getRootNode(), null);
 
     // Build the tree view.
     var options = {
@@ -382,16 +368,31 @@ function buildTreeView() {
         nodeIdField: "id",
         nodeNameField: "caption",
         nodeTypeField: "type",
-        nodeParentField: "parent",
+        nodeParentField: "parentId",
         definition: {
             default: {
                 tooltip: function (node) { return node.item.caption },
-                template: (node) => `<div class='tree-view-node ${node.item.state}'>
-                <div class='tree-view-icon tree-view-icon-${node.item.type}'>
-                <img src="icons/${node.item.type}.png">
-                </div>
-                <div><p class='tree-view-caption' style="margin:0px;">${node.item.caption}</p></div>
-                </div>`
+                template: (node) => {
+                    if (node.item.guard) {
+                        return `<div class='tree-view-node ${convertNodeStateToString(node.item.state)}'>
+                            <div class='tree-view-icon tree-view-icon-${node.item.type}'>
+                            <img src="icons/${node.item.type}.png">
+                            </div>
+                            <div>
+                            <p class='tree-view-caption'>${node.item.caption}</p>
+                            <hr style="margin-top: 1px; margin-bottom: 1px;">
+                            <i class='tree-view-caption'>${node.item.guard.type.toUpperCase()} ${node.item.guard.condition}</i>
+                            </div>
+                            </div>`;
+                    } else {
+                        return `<div class='tree-view-node ${convertNodeStateToString(node.item.state)}'>
+                            <div class='tree-view-icon tree-view-icon-${node.item.type}'>
+                            <img src="icons/${node.item.type}.png">
+                            </div>
+                            <div><p class='tree-view-caption'>${node.item.caption}</p></div>
+                            </div>`;
+                    }
+                }
             }
         },
         line: {
@@ -417,6 +418,15 @@ function clearTreeView() {
     treeViewWrapper.innerHTML = "";
     treeViewWrapper.className = "";
 };
+
+// Keep track of all key press states for use within the blackboard.
+window.allPressedKeyCodes = {};
+window.onkeyup = function (event) {
+    this.allPressedKeyCodes[event.keyCode] = false;
+}
+window.onkeydown = function (event) {
+    this.allPressedKeyCodes[event.keyCode] = true;
+}
 
 // Do the initial visualiser reload.
 reloadVisualiser();

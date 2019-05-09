@@ -109,5 +109,37 @@ const example_snippets = {
     RareAction: () => Mistreevous.State.SUCCEEDED,
     VeryRareAction: () => Mistreevous.State.SUCCEEDED
 }`
+    },
+
+
+
+
+    "node-guards": {
+        "definition": `root {
+  selector {
+    repeat until(IsSpaceKeyPressed) {
+      action [Succeed]
+    }
+    repeat while(IsSpaceKeyPressed) {
+      action [Succeed]
+    }
+    repeat until(IsSpaceKeyPressed) {
+      action [Succeed]
+    }
+    repeat while(IsSpaceKeyPressed) {
+      action [Succeed]
+    }
+  }
+}`,
+        "blackboard": `{
+    // An action that will immediately succeed.
+    Succeed: () => Mistreevous.State.SUCCEEDED,
+
+    // A condition that returns whether the space key is currently pressed.
+    IsSpaceKeyPressed: function () {
+        // Is the space key pressed?
+        return IsKeyPressed(32);
+    }
+}`
     }
 };

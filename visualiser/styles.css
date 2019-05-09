@@ -118,10 +118,6 @@ html, body {
     font-size: 0.8em;
 }
 
-#tree-view-wrapper p {
-    margin: 3px;
-}
-
 .page-tile {
     display: flex;
     flex-direction: column;
@@ -177,6 +173,7 @@ html, body {
 
 .tree-view-caption {
     line-height: 20px;
+    margin: 0px 2px;
 }
 
 .tree-view-node > * {

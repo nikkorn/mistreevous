@@ -2,9 +2,10 @@
  * A SEQUENCE node.
  * The child nodes are executed in sequence until one fails or all succeed.
  * @param uid The unique node id.
+ * @param guard The node guard.
  * @param children The child nodes. 
  */
-export default function Sequence(uid, children) {
+export default function Sequence(uid, guard, children) {
     /**
      * The node state.
      */
@@ -27,6 +28,16 @@ export default function Sequence(uid, children) {
 
         // Iterate over all of the children of this node.
         for (const child of children) {
+            // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
+            // The guard is checked once per child pre-update in order to better respond to changes of state between child updates.
+            if (guard && !guard.isSatisfied(board)) {
+                // The guard is not satisfied and therefore we are finished with the node.
+                state = Mistreevous.State.FAILED;
+
+                // The node has moved to the FAILED state.
+                return true;
+            }
+
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
                 child.update(board);
@@ -85,6 +96,11 @@ export default function Sequence(uid, children) {
      * Gets the state of the node.
      */
     this.getChildren = () => children;
+
+    /**
+     * Gets the guard of the node.
+     */
+    this.getGuard = () => guard;
 
     /**
      * Gets the type of the node.

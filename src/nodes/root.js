@@ -2,9 +2,10 @@
  * A Root node.
  * The root node will have a single child.
  * @param uid The unique node id.
+ * @param guard The node guard.
  * @param child The child node. 
  */
-export default function Root(uid, child) {
+export default function Root(uid, guard, child) {
     /**
      * The node state.
      */
@@ -23,6 +24,15 @@ export default function Root(uid, child) {
         if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
             // We have not changed state.
             return false;
+        }
+
+        // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
+        if (guard && !guard.isSatisfied(board)) {
+            // The guard is not satisfied and therefore we are finished with the node.
+            state = Mistreevous.State.FAILED;
+
+            // The node has moved to the FAILED state.
+            return true;
         }
 
         // If the child has never been updated or is running then we will need to update it now.
@@ -51,6 +61,11 @@ export default function Root(uid, child) {
      * Gets the state of the node.
      */
     this.getChildren = () => [child];
+
+    /**
+     * Gets the guard of the node.
+     */
+    this.getGuard = () => guard;
 
     /**
      * Gets the type of the node.

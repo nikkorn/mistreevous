@@ -3,10 +3,11 @@
  * A winning child is picked on the initial update of this node, based on ticket weighting.
  * The state of this node will match the state of the winning child.
  * @param uid The unique node id.
+ * @param guard The node guard.
  * @param tickets The child node tickets
  * @param children The child nodes. 
  */
-export default function Lotto(uid, tickets, children) {
+export default function Lotto(uid, guard, tickets, children) {
     /**
      * The node state.
      */
@@ -88,6 +89,15 @@ export default function Lotto(uid, tickets, children) {
             return false;
         }
 
+        // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
+        if (guard && !guard.isSatisfied(board)) {
+            // The guard is not satisfied and therefore we are finished with the node.
+            state = Mistreevous.State.FAILED;
+
+            // The node has moved to the FAILED state.
+            return true;
+        }
+
         // If this node is in the READY state then we need to pick a winning child node.
         if (state === Mistreevous.State.READY) {
             // Create a lotto draw.
@@ -126,6 +136,11 @@ export default function Lotto(uid, tickets, children) {
      * Gets the state of the node.
      */
     this.getChildren = () => children;
+
+    /**
+     * Gets the guard of the node.
+     */
+    this.getGuard = () => guard;
 
     /**
      * Gets the type of the node.

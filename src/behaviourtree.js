@@ -3,11 +3,12 @@ import Condition from './nodes/condition'
 import Flip from './nodes/flip'
 import Lotto from './nodes/lotto'
 import Repeat from './nodes/repeat'
-import While from './nodes/while'
 import Root from './nodes/root'
 import Selector from './nodes/selector'
 import Sequence from './nodes/sequence'
 import Wait from './nodes/wait'
+import While from './guards/while'
+import Until from './guards/until'
 
 /**
  * The behaviour tree.
@@ -33,6 +34,7 @@ export default function BehaviourTree(definition, board) {
     const ASTNodeFactories = {
         "ROOT": () => ({ 
             type: "root",
+            guard: null,
             name: null,
             children: [],
             validate: function (depth) {
@@ -47,7 +49,11 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
-                return new Root(getUid(), this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
+                return new Root(
+                    getUid(),
+                    this.guard,
+                    this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
+                );
             }
         }),
         "BRANCH": () => ({ 
@@ -73,6 +79,7 @@ export default function BehaviourTree(definition, board) {
         }),
         "SELECTOR": () => ({
             type: "selector",
+            guard: null,
             children: [],
             validate: function (depth) {
                 // A selector node must have at least a single node.
@@ -81,11 +88,16 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
-                return new Selector(getUid(), this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+                return new Selector(
+                    getUid(),
+                    this.guard,
+                    this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
+                );
             }
         }),
         "SEQUENCE": () => ({
             type: "sequence",
+            guard: null,
             children: [], 
             validate: function (depth) {
                 // A sequence node must have at least a single node.
@@ -94,11 +106,16 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
-                return new Sequence(getUid(), this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+                return new Sequence(
+                    getUid(),
+                    this.guard,
+                    this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
+                );
             }
         }),
         "LOTTO": () => ({
             type: "lotto",
+            guard: null,
             children: [],
             tickets: [], 
             validate: function (depth) {
@@ -108,11 +125,16 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
-                return new Lotto(getUid(), this.tickets, this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+                return new Lotto(
+                    getUid(),
+                    this.guard,
+                    this.tickets, this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
+                );
             }
         }),
         "REPEAT": () => ({
             type: "repeat",
+            guard: null,
             iterations: null,
             maximumIterations: null,
             children: [],
@@ -141,33 +163,18 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
-                return new Repeat(getUid(), this.iterations, this.maximumIterations, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
-            }
-        }),
-        "WHILE": () => ({
-            type: "while",
-            conditionFunction: null,
-            children: [],
-            validate: function (depth) {
-                // A while node must have a single node.
-                if (this.children.length !== 1) {
-                    throw "a while node must have a single child";
-                }
-            },
-            createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
-                return new While(getUid(), this.conditionFunction, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
-            }
-        }),
-        "CONDITION": () => ({
-            type: "condition",
-            conditionFunction: "",
-            validate: function (depth) {},
-            createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
-                return new Condition(getUid(), this.conditionFunction);
+                return new Repeat(
+                    getUid(),
+                    this.guard,
+                    this.iterations,
+                    this.maximumIterations,
+                    this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
+                );
             }
         }),
         "FLIP": () => ({
             type: "flip",
+            guard: null,
             children: [],
             validate: function (depth) {
                 // A flip node must have a single node.
@@ -176,11 +183,27 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
-                return new Flip(getUid(), this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
+                return new Flip(
+                    getUid(),
+                    this.guard,
+                    this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
+                );
+            }
+        }),
+        "CONDITION": () => ({
+            type: "condition",
+            conditionFunction: "",
+            validate: function (depth) {},
+            createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+                return new Condition(
+                    getUid(),
+                    this.conditionFunction
+                );
             }
         }),
         "WAIT": () => ({
             type: "wait",
+            guard: null,
             duration: null,
             longestDuration: null,
             validate: function (depth) {
@@ -203,7 +226,12 @@ export default function BehaviourTree(definition, board) {
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
-                return new Wait(getUid(), this.duration, this.longestDuration);
+                return new Wait(
+                    getUid(),
+                    this.guard,
+                    this.duration,
+                    this.longestDuration
+                );
             }
         }),
         "ACTION": () => ({
@@ -211,9 +239,20 @@ export default function BehaviourTree(definition, board) {
             actionName: "",
             validate: function (depth) {},
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-                return new Action(getUid(), this.actionName);
+                return new Action(
+                    getUid(),
+                    this.actionName
+                );
             }
         })
+    };
+
+    /**
+     * The node guard factories.
+     */
+    const GuardFactories = {
+        "WHILE": (condition) => new While(condition),
+        "UNTIL": (condition) => new Until(condition)
     };
 
     /**
@@ -299,6 +338,8 @@ export default function BehaviourTree(definition, board) {
         let cleansedDefinition = definition;
 
         // Add some space around various important characters so that they can be plucked out easier as individual tokens.
+        cleansedDefinition = cleansedDefinition.replace(/\(/g, " ( ");
+        cleansedDefinition = cleansedDefinition.replace(/\)/g, " ) ");
         cleansedDefinition = cleansedDefinition.replace(/\{/g, " { ");
         cleansedDefinition = cleansedDefinition.replace(/\}/g, " } ");
         cleansedDefinition = cleansedDefinition.replace(/\]/g, " ] ");
@@ -325,7 +366,11 @@ export default function BehaviourTree(definition, board) {
             throw "scope character mismatch";
         }
 
-        // Helper function to pop the next raw token off of the stack and throw an error if it wasn't the expected one.
+        /**
+         * Helper function to pop the next raw token off of the stack and throw an error if it wasn't the expected one.
+         * @param expected An optional string that we expect the next popped token to match.
+         * @returns The popped token.
+         */
         const popAndCheck = (expected) => {
             // Get and remove the next token.
             const popped = tokens.shift();
@@ -335,13 +380,21 @@ export default function BehaviourTree(definition, board) {
                 throw "unexpected end of definition"; 
             }
 
-            // Was it the expected token?
-            if (popped.toUpperCase() !== expected.toUpperCase()) {
+            // If an expected token was defined, was it the expected one?
+            if (expected && popped.toUpperCase() !== expected.toUpperCase()) {
                 throw "unexpected token found on the stack. Expected '" + expected + "' but got '" + popped + "'"; 
             }
+
+            // Return the popped token.
+            return popped;
         };
 
-        // Helper function to pull an argument list off of the stack.
+        /**
+         * Helper function to pull an argument list off of the token stack.
+         * @param argumentValidator The argument validator function.
+         * @param validationFailedMessage  The exception message to throw if argument validation fails.
+         * @returns The arguments list.
+         */
         const getArguments = (argumentValidator, validationFailedMessage) => {
             // Any lists of arguments will always be wrapped in '[]'. so we are looking for an opening
             popAndCheck("[");
@@ -382,7 +435,30 @@ export default function BehaviourTree(definition, board) {
 
             // Return the argument list.
             return argumentList;
-        }
+        };
+
+        /**
+         * Helper function to try to pull a guard off of the token stack.
+         * @returns The guard defined by any directly following tokens, or null if not guard is defined.
+         */
+        const getGuard = () => {
+            // Try to get the guard factory for the next token.
+            const guardFactory = GuardFactories[(tokens[0] || "").toUpperCase()];
+
+            // There is nothing to do if the next token is not a guard name token.
+            if (!guardFactory) {
+                return null;
+            }
+
+            // The guard definition should consist of the tokens 'NAME', '(', 'CONDITION' and ')'.
+            popAndCheck(tokens[0].toUpperCase());
+            popAndCheck("(");
+            const condition = popAndCheck();
+            popAndCheck(")");
+
+            // Create and return the guard.
+            return guardFactory(condition);
+        };
 
         // Create a stack of node children arrays, starting with a definition scope.
         const stack = [[]];
@@ -415,6 +491,9 @@ export default function BehaviourTree(definition, board) {
                             throw "expected single root name argument";
                         }
                     }
+
+                    // Try to pick a node guard off of the token stack.
+                    node.guard = getGuard();
 
                     popAndCheck("{");
 
@@ -453,6 +532,9 @@ export default function BehaviourTree(definition, board) {
                     // Push the SELECTOR node into the current scope.
                     stack[stack.length-1].push(node);
 
+                    // Try to pick a node guard off of the token stack.
+                    node.guard = getGuard();
+
                     popAndCheck("{");
 
                     // The new scope is that of the new SELECTOR nodes children.
@@ -465,6 +547,9 @@ export default function BehaviourTree(definition, board) {
 
                     // Push the SEQUENCE node into the current scope.
                     stack[stack.length-1].push(node);
+
+                    // Try to pick a node guard off of the token stack.
+                    node.guard = getGuard();
 
                     popAndCheck("{");
 
@@ -484,6 +569,9 @@ export default function BehaviourTree(definition, board) {
                         // Get the ticket count arguments, each argument must be a number.
                         node.tickets = getArguments((arg) => (!isNaN(arg)) && parseFloat(arg, 10) === parseInt(arg, 10), "lotto node ticket counts must be integer values");
                     }
+
+                    // Try to pick a node guard off of the token stack.
+                    node.guard = getGuard();
 
                     popAndCheck("{");
 
@@ -522,6 +610,9 @@ export default function BehaviourTree(definition, board) {
                     // Push the Flip node into the current scope.
                     stack[stack.length-1].push(node);
 
+                    // Try to pick a node guard off of the token stack.
+                    node.guard = getGuard();
+
                     popAndCheck("{");
 
                     // The new scope is that of the new FLIP nodes children.
@@ -550,6 +641,9 @@ export default function BehaviourTree(definition, board) {
                         // An incorrect number of durations was defined.
                         throw "invalid number of wait node duration arguments defined";
                     }
+
+                    // Try to pick a node guard off of the token stack.
+                    node.guard = getGuard();
                     break;
 
                 case "REPEAT":
@@ -578,39 +672,12 @@ export default function BehaviourTree(definition, board) {
                         }
                     }
 
+                    // Try to pick a node guard off of the token stack.
+                    node.guard = getGuard();
+
                     popAndCheck("{");
 
                     // The new scope is that of the new REPEAT nodes children.
-                    stack.push(node.children);
-                    break;
-
-                case "WHILE":
-                    // Create a WHILE AST node.
-                    node = ASTNodeFactories.WHILE();
-
-                    // Push the WHILE node into the current scope.
-                    stack[stack.length-1].push(node);
-
-                    // We must have arguments defined, as we require a condition function name argument.
-                    if (tokens[0] !== "[") {
-                        throw "expected single while condition name argument";
-                    } 
-
-                    // The condition name will be defined as a node argument.
-                    const whileArguments = getArguments();
-
-                    // We should have only a single argument that is not an empty string for a while node, which is the while condition function name.
-                    if (whileArguments.length === 1 && whileArguments[0] !== "") {
-                        // The condition function name will be the first and only node argument.
-                        node.conditionFunction = whileArguments[0];
-                    } else {
-                        throw "expected single while condition name argument";
-                    }
-
-                    // A while node must wrap other nodes.
-                    popAndCheck("{");
-
-                    // The new scope is that of the new WHILE nodes children.
                     stack.push(node.children);
                     break;
 
@@ -704,6 +771,53 @@ export default function BehaviourTree(definition, board) {
  */
 BehaviourTree.prototype.getRootNode = function () {
     return this._rootNode;
+};
+
+/**
+ * Get flattened details of every node in the tree.
+ * @returns The flattened details of every node in the tree.
+ */
+BehaviourTree.prototype.getFlattenedNodeDetails = function () {
+    // Create an empty flattened array of tree nodes.
+    const flattenedTreeNodes = [];
+
+    /**
+     * Helper function to process a node instance and push details into the flattened tree nodes array.
+     * @param node The current node.
+     * @param parentUid The UID of the node parent, or null if the node is the main root node.
+     */
+    const processNode = (node, parentUid) => {
+
+        /**
+         * Helper function to get details for a node guard.
+         * @param guard The node guard.
+         * @returns The details for a guard node.
+         */
+        const getGuardDetails = (guard) => {
+            return {
+                type: guard.getType(),
+                condition: guard.getCondition()
+            }
+        };
+
+        // Push the current node into the flattened nodes array.
+        flattenedTreeNodes.push({ 
+            id: node.getUid(),
+            type: node.getType(), 
+            caption: node.getName(),
+            state: node.getState(),
+            guard: node.getGuard() ? getGuardDetails(node.getGuard()) : null,
+            parentId: parentUid
+        });
+
+        // Process each of the nodes children.
+        (node.getChildren() || []).forEach((child) => processNode(child, node.getUid()));
+    };
+
+    // Convert the nested node structure into a flattened array of node details.
+    processNode(this._rootNode, null);
+
+    return flattenedTreeNodes;
 };
 
 /**

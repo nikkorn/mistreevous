@@ -2,10 +2,11 @@
  * A WAIT node.
  * The state of this node will change to SUCCEEDED after a duration of time.
  * @param uid The unique node id.
+ * @param guard The node guard.
  * @param duration The duration that this node will wait to succeed in milliseconds, or the earliest if longestDuration is defined.
  * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
  */
-export default function Wait(uid, duration, longestDuration) {
+export default function Wait(uid, guard, duration, longestDuration) {
     /**
      * The node state.
      */
@@ -34,6 +35,15 @@ export default function Wait(uid, duration, longestDuration) {
         if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
             // We have not changed state.
             return false;
+        }
+
+        // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
+        if (guard && !guard.isSatisfied(board)) {
+            // The guard is not satisfied and therefore we are finished with the node.
+            state = Mistreevous.State.FAILED;
+
+            // The node has moved to the FAILED state.
+            return true;
         }
 
         // If this node is in the READY state then we need to set the initial update time.
@@ -73,6 +83,11 @@ export default function Wait(uid, duration, longestDuration) {
      * Gets the state of the node.
      */
     this.getChildren = () => [];
+
+    /**
+     * Gets the guard of the node.
+     */
+    this.getGuard = () => guard;
 
     /**
      * Gets the type of the node.
