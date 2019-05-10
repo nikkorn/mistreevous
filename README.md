@@ -186,7 +186,30 @@ TODO
 TODO
 
 ### Wait
-TODO
+A wait node will remain in a running state for a specified duration, after which it will move into the succeeded state. The duration in milliseconds can be defined as a single integer node argument.
+```
+root {
+    repeat {
+        sequence {
+            action [FireWeapon]
+            wait [2000]
+        }
+    }
+}
+```
+In the above example, we are using a wait node to wait 2 seconds between each run of the **FireWeapon** action.
+
+The duration to wait in milliseconds can also be selected at random within a lower and upper bound if these are defined as two integer node arguments. In the example below, we would run the **PickUpProjectile** action and then wait for 2 to 8 seconds before running the **ThrowProjectile** action.
+
+```
+root {
+    sequence {
+        action [PickUpProjectile]
+        wait [2000,8000]
+        action [ThrowProjectile]
+    }
+}
+```
 
 ### Branch
 TODO
@@ -205,11 +228,32 @@ root {
 In the above example, we have a **wait** node that waits for 10 seconds before moving to a succeeded state. We are using a **while** guard to give up on waiting this long if the condition **CanWait** evaluates to false during a tree step.
 
 ### While
-TODO
+A while guard will be satisfied as long as its condition evaluates to true.
 
+```
+root {
+    sequence while(IsWandering) {
+        action [Whistle]
+        wait [5000]
+        action [Yawn]
+        wait [5000]
+    }
+}
+```
 
 ### Until
-TODO
+An until guard will be satisfied as long as its condition evaluates to false.
+
+```
+root {
+    sequence until(CanSeePlayer) {
+        action [LookLeft]
+        wait [5000]
+        action [LookRight]
+        wait [5000]
+    }
+}
+```
 
 # Visualiser
 A visualiser/editor can be found as part of this repo within the *visualiser* directory, and includes most of the the examples included in this README.
