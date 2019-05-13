@@ -32,9 +32,10 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
     /**
      * Update the node and get whether the node state has changed.
      * @param board The board.
+     * @param guardScope The guard scope.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.update = function(board) {
+    this.update = function(board, guardScope) {
         // Get the pre-update node state.
         const initialState = state;
 
@@ -75,7 +76,7 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
             }
 
             // Update the child node.
-            child.update(board);
+            child.update(board, guardScope.createScope(guard, this));
 
             // If the child moved into the FAILED state when we updated it then there is nothing left to do and this node has also failed.
             // If it has moved into the SUCCEEDED state then we have completed the current iteration.

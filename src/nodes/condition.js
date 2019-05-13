@@ -1,6 +1,3 @@
-import GuardScope from './guards/guardScope'
-import GuardUnsatisfiedException from './guards/guardUnsatisfiedException'
-
 /**
  * A Condition node.
  * This acts as a guard and will succeed or fail immediately based on a board predicate, without moving to the 'RUNNING' state.
@@ -16,11 +13,15 @@ export default function Condition(uid, condition) {
     /**
      * Update the node and get whether the node state has changed.
      * @param board The board.
+     * @param guardScope The guard scope.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.update = function(board) {
+    this.update = function(board, guardScope) {
         // Get the pre-update node state.
         const initialState = state;
+
+        // Evaluate all of the guard scope conditions for the current tree path.
+        guardScope.evaluate(board);
 
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
         if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {

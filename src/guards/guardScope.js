@@ -42,6 +42,12 @@ export default function GuardScope(guard, node, parent = null) {
 
         // We need to evaluate guard conditions for nodes up the tree, moving outwards from the root.
         for (const guardScope of guardScopes) {
+            // There may not be a guard defined for this scope.
+            if (!guardScope.getGuard()) {
+                continue;
+            }
+
+            // Check whether the guard condition passes.
             if (!guardScope.getGuard().isSatisfied(board)) {
                 // We need to throw a GuardUnsatisfiedException which will eventually be handled by the node that is decorated with the unsatisfied guard. 
                 throw new GuardUnsatisfiedException(guardScope.getNode());

@@ -1,3 +1,5 @@
+import GuardScope from "../guards/guardScope";
+
 /**
  * A Root node.
  * The root node will have a single child.
@@ -20,6 +22,9 @@ export default function Root(uid, guard, child) {
         // Get the pre-update node state.
         const initialState = state;
 
+        // We will need to create the root guard scope here.
+        const guardScope = new GuardScope(guard, this);
+
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
         if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
             // We have not changed state.
@@ -37,7 +42,7 @@ export default function Root(uid, guard, child) {
 
         // If the child has never been updated or is running then we will need to update it now.
         if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
-            child.update(board);
+            child.update(board, guardScope);
         }
 
         // The state of the root node is the state of its child.

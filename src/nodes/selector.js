@@ -14,9 +14,10 @@ export default function Selector(uid, guard, children) {
     /**
      * Update the node and get whether the node state has changed.
      * @param board The board.
+     * @param guardScope The guard scope.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.update = function(board) {
+    this.update = function(board, guardScope) {
         // Get the pre-update node state.
         const initialState = state;
 
@@ -28,19 +29,9 @@ export default function Selector(uid, guard, children) {
 
         // Iterate over all of the children of this node.
         for (const child of children) {
-            // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
-            // The guard is checked once per child pre-update in order to better respond to changes of state between child updates.
-            if (guard && !guard.isSatisfied(board)) {
-                // The guard is not satisfied and therefore we are finished with the node.
-                state = Mistreevous.State.FAILED;
-
-                // The node has moved to the FAILED state.
-                return true;
-            }
-
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
-                child.update(board);
+                child.update(board, guardScope.createScope(guard, this));
             }
 
             // If the current child has a state of 'SUCCEEDED' then this node is also a 'SUCCEEDED' node.

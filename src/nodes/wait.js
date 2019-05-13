@@ -1,3 +1,5 @@
+import GuardUnsatisfiedException from './guards/guardUnsatisfiedException'
+
 /**
  * A WAIT node.
  * The state of this node will change to SUCCEEDED after a duration of time.
@@ -25,25 +27,33 @@ export default function Wait(uid, guard, duration, longestDuration) {
     /**
      * Update the node and get whether the node state has changed.
      * @param board The board.
+     * @param guardScope The guard scope.
      * @returns Whether the state of this node has changed as part of the update.
+     * @throws GuardUnsatisfiedException Thrown when any node guard condition in the current tree path fails.
      */
-    this.update = function(board) {
+    this.update = function(board, guardScope) {
         // Get the pre-update node state.
         const initialState = state;
+
+        // Evaluate all of the guard scope conditions for the current tree path, including the guard that this node may be decorated with.
+        try {
+            guardScope.createScope(guard, this).evaluate(board);
+        } catch (exception) {
+            if (typeof exception === GuardUnsatisfiedException && exception.isForNode(this)) {
+                // The guard condition for this node did not pass, so this node will move into the FAILED state.
+                state = Mistreevous.State.FAILED;
+
+                // Return whether the state of this node has changed.
+                return state !== initialState;
+            } else {
+                throw exception;
+            }
+        }
 
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
         if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
             // We have not changed state.
             return false;
-        }
-
-        // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
-        if (guard && !guard.isSatisfied(board)) {
-            // The guard is not satisfied and therefore we are finished with the node.
-            state = Mistreevous.State.FAILED;
-
-            // The node has moved to the FAILED state.
-            return true;
         }
 
         // If this node is in the READY state then we need to set the initial update time.

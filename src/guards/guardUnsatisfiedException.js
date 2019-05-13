@@ -10,7 +10,9 @@ export default function GuardUnsatisfiedException(node) {
     this.name = 'GuardUnsatisfiedException';
 
     /**
-     * Gets the node decorated with the failed guard condition.
+     * Gets whether the specified node is the one attached to the failed guard condition.
+     * @param value The specified node value
+     * @returns Whether the specified node is the one attached to the failed guard condition.
      */
-    this.getGuardNode = () => node;
+    this.isForNode = (value) => value === node;
 };
