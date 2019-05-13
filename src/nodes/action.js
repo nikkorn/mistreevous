@@ -1,3 +1,6 @@
+import GuardScope from './guards/guardScope'
+import GuardUnsatisfiedException from './guards/guardUnsatisfiedException'
+
 /**
  * An Action node.
  * This represents an immediate or ongoing state of behaviour.
