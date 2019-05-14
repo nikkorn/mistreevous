@@ -11,22 +11,29 @@ export default function Condition(uid, condition) {
     let state = Mistreevous.State.READY;
    
     /**
-     * Update the node and get whether the node state has changed.
+     * Update the node.
      * @param board The board.
      * @param guardScope The guard scope.
-     * @returns Whether the state of this node has changed as part of the update.
+     * @returns The result of the update.
      */
     this.update = function(board, guardScope) {
         // Get the pre-update node state.
         const initialState = state;
 
-        // Evaluate all of the guard scope conditions for the current tree path.
-        guardScope.evaluate(board);
-
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
         if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
             // We have not changed state.
-            return false;
+            return { hasStateChanged: false };
+        }
+
+        // Evaluate all of the guard scope conditions for the current tree path and return result if any guard conditions fail.
+        const guardScopeEvaluationResult = guardScope.evaluate(board);
+        if (guardScopeEvaluationResult.hasFailedCondition) {
+            // We have not changed state, but a node guard condition has failed.
+            return {
+                hasStateChanged: false,
+                failedGuardNode: guardScopeEvaluationResult.node
+            };
         }
 
         // Call the condition function to determine the state of this node, but it must exist in the blackboard.
@@ -37,7 +44,7 @@ export default function Condition(uid, condition) {
         }
 
         // Return whether the state of this node has changed.
-        return state !== initialState;
+        return { hasStateChanged: state !== initialState };
     };
 
     /**
@@ -72,8 +79,9 @@ export default function Condition(uid, condition) {
 
     /**
      * Reset the state of the node.
+     * @param isAbort Whether the reset is part of an abort.
      */
-    this.reset = () => {
+    this.reset = (isAbort) => {
         // Reset the state of this node.
         state = Mistreevous.State.READY;
     };

@@ -26,7 +26,7 @@ export default function GuardScope(guard, node, parent = null) {
     /**
      * Evaluate guard conditions for all guards scopes in a tree path, moving outwards from the root.
      * @param board The blackboard, required for guard evaluation.
-     * @throws GuardUnsatisfiedException Thrown when any node guard condition in the current tree path fails.
+     * @returns An evaluation results object.
      */
     this.evaluate = (board) => {
         // Create an array to hold every guard scope within this scope heirarchy.
@@ -49,10 +49,15 @@ export default function GuardScope(guard, node, parent = null) {
 
             // Check whether the guard condition passes.
             if (!guardScope.getGuard().isSatisfied(board)) {
-                // We need to throw a GuardUnsatisfiedException which will eventually be handled by the node that is decorated with the unsatisfied guard. 
-                throw new GuardUnsatisfiedException(guardScope.getNode());
+                return { 
+                    hasFailedCondition: true,
+                    node: guardScope.getNode()
+                };
             }
         }
+
+        // We did not come across a failed guard condition on this path.
+        return { hasFailedCondition: false };
     };
 
     /**

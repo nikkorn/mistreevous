@@ -138,8 +138,9 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
 
     /**
      * Reset the state of the node.
+     * @param isAbort Whether the reset is part of an abort.
      */
-    this.reset = () => {
+    this.reset = (isAbort) => {
         // Reset the state of this node.
         state = Mistreevous.State.READY;
 
@@ -147,7 +148,7 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
         currentIterationCount = 0;
 
         // Reset the child node.
-        child.reset();
+        child.reset(isAbort);
     };
 
     /**

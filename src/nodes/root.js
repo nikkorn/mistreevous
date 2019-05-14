@@ -84,12 +84,13 @@ export default function Root(uid, guard, child) {
 
     /**
      * Reset the state of the node.
+     * @param isAbort Whether the reset is part of an abort.
      */
-    this.reset = () => {
+    this.reset = (isAbort) => {
         // Reset the state of this node.
         state = Mistreevous.State.READY;
 
         // Reset the child node.
-        child.reset();
+        child.reset(isAbort);
     };
 };

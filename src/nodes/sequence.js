@@ -105,12 +105,13 @@ export default function Sequence(uid, guard, children) {
 
     /**
      * Reset the state of the node.
+     * @param isAbort Whether the reset is part of an abort.
      */
-    this.reset = () => {
+    this.reset = (isAbort) => {
         // Reset the state of this node.
         state = Mistreevous.State.READY;
 
         // Reset each child node.
-        children.forEach((child) => child.reset());
+        children.forEach((child) => child.reset(isAbort));
     };
 };

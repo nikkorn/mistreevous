@@ -25,35 +25,39 @@ export default function Wait(uid, guard, duration, longestDuration) {
     let waitDuration;
    
     /**
-     * Update the node and get whether the node state has changed.
+     * Update the node.
      * @param board The board.
      * @param guardScope The guard scope.
-     * @returns Whether the state of this node has changed as part of the update.
-     * @throws GuardUnsatisfiedException Thrown when any node guard condition in the current tree path fails.
+     * @returns The result of the update.
      */
     this.update = function(board, guardScope) {
         // Get the pre-update node state.
         const initialState = state;
 
-        // Evaluate all of the guard scope conditions for the current tree path, including the guard that this node may be decorated with.
-        try {
-            guardScope.createScope(guard, this).evaluate(board);
-        } catch (exception) {
-            if (typeof exception === GuardUnsatisfiedException && exception.isForNode(this)) {
+        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
+        if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
+            // We have not changed state.
+            return { hasStateChanged: false };
+        }
+
+        // Evaluate guard scope and return result if any guard conditions fail.
+        const guardScopeEvaluationResult = guardScope.createScope(guard, this).evaluate(board);
+        if (guardScopeEvaluationResult.hasFailedCondition) {
+            // Is this node the one with the failed guard condition?
+            if (guardScopeEvaluationResult.node === this) {
                 // The guard condition for this node did not pass, so this node will move into the FAILED state.
                 state = Mistreevous.State.FAILED;
 
                 // Return whether the state of this node has changed.
-                return state !== initialState;
+                // A node guard condition has failed higher up the tree.
+                return { hasStateChanged: true };
             } else {
-                throw exception;
+                // A node guard condition has failed higher up the tree.
+                return {
+                    hasStateChanged: false,
+                    failedGuardNode: guardScopeEvaluationResult.node
+                };
             }
-        }
-
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
-            // We have not changed state.
-            return false;
         }
 
         // If this node is in the READY state then we need to set the initial update time.
@@ -76,7 +80,7 @@ export default function Wait(uid, guard, duration, longestDuration) {
         }
 
         // Return whether the state of this node has changed.
-        return state !== initialState;
+        return { hasStateChanged: state !== initialState };
     };
 
     /**
@@ -111,8 +115,9 @@ export default function Wait(uid, guard, duration, longestDuration) {
 
     /**
      * Reset the state of the node.
+     * @param isAbort Whether the reset is part of an abort.
      */
-    this.reset = () => {
+    this.reset = (isAbort) => {
         // Reset the state of this node.
         state = Mistreevous.State.READY;
     };
