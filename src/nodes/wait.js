@@ -49,7 +49,6 @@ export default function Wait(uid, guard, duration, longestDuration) {
                 state = Mistreevous.State.FAILED;
 
                 // Return whether the state of this node has changed.
-                // A node guard condition has failed higher up the tree.
                 return { hasStateChanged: true };
             } else {
                 // A node guard condition has failed higher up the tree.
