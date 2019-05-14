@@ -1,5 +1,3 @@
-import GuardUnsatisfiedException from './guards/guardUnsatisfiedException'
-
 /**
  * Represents a scoped node guard.
  * @param guard The node guard. 

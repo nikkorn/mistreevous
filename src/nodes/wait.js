@@ -1,5 +1,3 @@
-import GuardUnsatisfiedException from './guards/guardUnsatisfiedException'
-
 /**
  * A WAIT node.
  * The state of this node will change to SUCCEEDED after a duration of time.
