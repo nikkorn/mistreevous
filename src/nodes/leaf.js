@@ -10,6 +10,17 @@ export default function Leaf(uid, type, guard) {
     Node.call(this, uid, type, guard);
 
     /**
+     * The guard path to evaluate as part of a node update.
+     */
+    let guardPath;
+
+    /**
+     * Gets/Sets the guard path to evaluate as part of a node update.
+     */
+    this.getGuardPath = () => guardPath;
+    this.setGuardPath = (value) => guardPath = value;
+
+    /**
      * Gets whether this node is a leaf node.
      */
     this.isLeafNode = () => true;

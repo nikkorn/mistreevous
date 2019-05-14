@@ -36,11 +36,11 @@ export default function Wait(uid, guard, duration, longestDuration) {
             return { hasStateChanged: false };
         }
 
-        // Evaluate guard scope and return result if any guard conditions fail.
-        const guardScopeEvaluationResult = guardScope.createScope(guard, this).evaluate(board);
-        if (guardScopeEvaluationResult.hasFailedCondition) {
+        // Evaluate guard path and return result if any guard conditions fail.
+        const guardPathEvaluationResult = this.getGuardPath().evaluate(board);
+        if (guardPathEvaluationResult.hasFailedCondition) {
             // Is this node the one with the failed guard condition?
-            if (guardScopeEvaluationResult.node === this) {
+            if (guardPathEvaluationResult.node === this) {
                 // The guard condition for this node did not pass, so this node will move into the FAILED state.
                 state = Mistreevous.State.FAILED;
 
@@ -50,7 +50,7 @@ export default function Wait(uid, guard, duration, longestDuration) {
                 // A node guard condition has failed higher up the tree.
                 return {
                     hasStateChanged: false,
-                    failedGuardNode: guardScopeEvaluationResult.node
+                    failedGuardNode: guardPathEvaluationResult.node
                 };
             }
         }

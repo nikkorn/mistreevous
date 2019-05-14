@@ -34,13 +34,13 @@ export default function Action(uid, actionName) {
             onFinish = action.onFinish;
         }
 
-        // Evaluate all of the guard scope conditions for the current tree path and return result if any guard conditions fail.
-        const guardScopeEvaluationResult = guardScope.evaluate(board);
-        if (guardScopeEvaluationResult.hasFailedCondition) {
+        // Evaluate all of the guard path conditions for the current tree path and return result if any guard conditions fail.
+        const guardPathEvaluationResult = this.getGuardPath().evaluate(board);
+        if (guardPathEvaluationResult.hasFailedCondition) {
             // We have not changed state, but a node guard condition has failed.
             return {
                 hasStateChanged: false,
-                failedGuardNode: guardScopeEvaluationResult.node
+                failedGuardNode: guardPathEvaluationResult.node
             };
         }
 
