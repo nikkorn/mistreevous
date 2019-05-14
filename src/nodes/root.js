@@ -1,4 +1,3 @@
-import GuardScope from "../guards/guardScope";
 import Composite from './composite'
 
 /**
@@ -20,27 +19,15 @@ export default function Root(uid, guard, child) {
         // Get the pre-update node state.
         const initialState = state;
 
-        // We will need to create the root guard scope here.
-        const guardScope = new GuardScope(guard, this);
-
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
         if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
             // We have not changed state.
             return false;
         }
 
-        // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
-        if (guard && !guard.isSatisfied(board)) {
-            // The guard is not satisfied and therefore we are finished with the node.
-            state = Mistreevous.State.FAILED;
-
-            // The node has moved to the FAILED state.
-            return true;
-        }
-
         // If the child has never been updated or is running then we will need to update it now.
         if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
-            child.update(board, guardScope);
+            child.update(board);
         }
 
         // The state of the root node is the state of its child.

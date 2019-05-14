@@ -29,10 +29,9 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
     /**
      * Update the node.
      * @param board The board.
-     * @param guardScope The guard scope.
      * @returns The result of the update.
      */
-    this.update = function(board, guardScope) {
+    this.update = function(board) {
         // Get the pre-update node state.
         const initialState = state;
 
@@ -64,7 +63,7 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
             }
 
             // Update the child of this node and get the result.
-            const updateResult = child.update(board, guardScope.createScope(guard, this));
+            const updateResult = child.update(board);
 
             // Check to see whether a node guard condition failed during the child node update.
             if (updateResult.failedGuardNode) {

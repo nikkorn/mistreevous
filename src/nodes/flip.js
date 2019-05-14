@@ -13,10 +13,9 @@ export default function Flip(uid, guard, child) {
     /**
      * Update the node.
      * @param board The board.
-     * @param guardScope The guard scope.
      * @returns The result of the update.
      */
-    this.update = function(board, guardScope) {
+    this.update = function(board) {
         // Get the pre-update node state.
         const initialState = state;
 
@@ -29,7 +28,7 @@ export default function Flip(uid, guard, child) {
         // If the child has never been updated or is running then we will need to update it now.
         if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
             // Update the child of this node and get the result.
-            const updateResult = child.update(board, guardScope.createScope(guard, this));
+            const updateResult = child.update(board);
 
             // Check to see whether a node guard condition failed during the child node update.
             if (updateResult.failedGuardNode) {

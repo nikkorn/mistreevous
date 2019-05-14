@@ -13,10 +13,9 @@ export default function Sequence(uid, guard, children) {
     /**
      * Update the node and get whether the node state has changed.
      * @param board The board.
-     * @param guardScope The guard scope.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.update = function(board, guardScope) {
+    this.update = function(board) {
         // Get the pre-update node state.
         const initialState = state;
 
@@ -30,7 +29,7 @@ export default function Sequence(uid, guard, children) {
         for (const child of children) {
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
-                child.update(board, guardScope.createScope(guard, this));
+                child.update(board);
             }
 
             // If the current child has a state of 'SUCCEEDED' then we should move on to the next child.

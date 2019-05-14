@@ -76,10 +76,9 @@ export default function Lotto(uid, guard, tickets, children) {
     /**
      * Update the node and get whether the node state has changed.
      * @param board The board.
-     * @param guardScope The guard scope.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.update = function(board, guardScope) {
+    this.update = function(board) {
         // Get the pre-update node state.
         const initialState = state;
 
@@ -112,7 +111,7 @@ export default function Lotto(uid, guard, tickets, children) {
 
         // If the winning child has never been updated or is running then we will need to update it now.
         if (winningChild.getState() === Mistreevous.State.READY || winningChild.getState() === Mistreevous.State.RUNNING) {
-            winningChild.update(board, guardScope.createScope(guard, this));
+            winningChild.update(board);
         }
 
         // The state of the lotto node is the state of its winning child.

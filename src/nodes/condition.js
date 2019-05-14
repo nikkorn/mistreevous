@@ -12,10 +12,9 @@ export default function Condition(uid, condition) {
     /**
      * Update the node.
      * @param board The board.
-     * @param guardScope The guard scope.
      * @returns The result of the update.
      */
-    this.update = function(board, guardScope) {
+    this.update = function(board) {
         // Get the pre-update node state.
         const initialState = state;
 
