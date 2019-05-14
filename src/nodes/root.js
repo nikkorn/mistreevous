@@ -93,4 +93,12 @@ export default function Root(uid, guard, child) {
         // Reset the child node.
         child.reset(isAbort);
     };
+
+    /**
+     * Set the guard scope at any tree leaf nodes.
+     * @param guardScope The guard scope.
+     */
+    this.setGuardScopeOnLeafNodes = (guardScope) => {
+       
+    };
 };

@@ -86,7 +86,7 @@ const Mistreevous = {
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
     module.exports = Mistreevous;
 } else {
-    if (typeof define === 'function' && __webpack_require__(15)) {
+    if (typeof define === 'function' && __webpack_require__(18)) {
         define([], function () {
             return Mistreevous;
         });
@@ -133,16 +133,16 @@ module.exports = function(originalModule) {
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = BehaviourTree;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__nodes_action__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__nodes_condition__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__nodes_flip__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nodes_lotto__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__nodes_repeat__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__nodes_root__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_selector__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_sequence__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_wait__ = __webpack_require__(12);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__guards_while__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__guards_until__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__nodes_condition__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__nodes_flip__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nodes_lotto__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__nodes_repeat__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__nodes_root__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_selector__ = __webpack_require__(13);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_sequence__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_wait__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__guards_while__ = __webpack_require__(16);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__guards_until__ = __webpack_require__(17);
 
 
 
@@ -433,8 +433,10 @@ function BehaviourTree(definition, board) {
 
             nodeScopeId = ++currentNodeScopeId;
 
-            // Find each child of the node.
-            (node.getChildren() || []).forEach(child => findNestedNodes(child, depth + 1, nodeScopeId));
+            // Find each child of the node if it is not a leaf node..
+            if (!node.isLeafNode()) {
+                node.getChildren().forEach(child => findNestedNodes(child, depth + 1, nodeScopeId));
+            }
         };
         findNestedNodes(this._rootNode, 0, currentNodeScopeId);
     };
@@ -977,6 +979,9 @@ BehaviourTree.prototype.reset = function () {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Action;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(4);
+
+
 /**
  * An Action node.
  * This represents an immediate or ongoing state of behaviour.
@@ -984,24 +989,42 @@ BehaviourTree.prototype.reset = function () {
  * @param actionName The action name.
  */
 function Action(uid, actionName) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, uid, null);
 
     /**
-     * Update the node and get whether the node state has changed.
-     * @param board The board.
-     * @returns Whether the state of this node has changed as part of the update.
+     * The onFinish action function, if one was defined.
      */
-    this.update = function (board) {
+    let onFinish;
+
+    /**
+     * Update the node.
+     * @param board The board.
+     * @param guardScope The guard scope.
+     * @returns The result of the update.
+     */
+    this.update = function (board, guardScope) {
         // Get the pre-update node state.
         const initialState = state;
 
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
         if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
             // We have not changed state.
-            return false;
+            return { hasStateChanged: false };
+        }
+
+        // Get a reference to the onFinish action function if it exists so that we can call it outside of an update.
+        if (state === Mistreevous.State.READY && typeof action === "object" && typeof action.onFinish === "function") {
+            onFinish = action.onFinish;
+        }
+
+        // Evaluate all of the guard scope conditions for the current tree path and return result if any guard conditions fail.
+        const guardScopeEvaluationResult = guardScope.evaluate(board);
+        if (guardScopeEvaluationResult.hasFailedCondition) {
+            // We have not changed state, but a node guard condition has failed.
+            return {
+                hasStateChanged: false,
+                failedGuardNode: guardScopeEvaluationResult.node
+            };
         }
 
         // Get the corresponding action object or function.
@@ -1025,18 +1048,13 @@ function Action(uid, actionName) {
         state = updateResult || Mistreevous.State.RUNNING;
 
         // If the new action node state is either 'SUCCEEDED' or 'FAILED' then we are finished, so call onFinish if it exists.
-        if ((state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) && typeof action === "object" && typeof action.onFinish === "function") {
-            action.onFinish(state === Mistreevous.State.SUCCEEDED);
+        if ((state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) && onFinish) {
+            onFinish({ succeeded: state === Mistreevous.State.SUCCEEDED, aborted: false });
         }
 
         // Return whether the state of this node has changed.
-        return state !== initialState;
+        return { hasStateChanged: state !== initialState };
     };
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
 
     /**
      * Gets the name of the node.
@@ -1044,29 +1062,20 @@ function Action(uid, actionName) {
     this.getName = () => actionName;
 
     /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => null;
-
-    /**
-     * Gets the guard of the node.
-     */
-    this.getGuard = () => null;
-
-    /**
      * Gets the type of the node.
      */
     this.getType = () => "action";
 
     /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
-
-    /**
      * Reset the state of the node.
+     * @param isAbort Whether the reset is part of an abort.
      */
-    this.reset = () => {
+    this.reset = isAbort => {
+        // If the reset is due to an abort, and this node is running, call onFinish() if it is defined.
+        if (isAbort && state === Mistreevous.State.RUNNING && onFinish) {
+            onFinish({ succeeded: false, aborted: true });
+        }
+
         // Reset the state of this node.
         state = Mistreevous.State.READY;
     };
@@ -1109,8 +1118,77 @@ function Action(uid, actionName) {
     };
 };
 
+Action.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
+
 /***/ }),
 /* 4 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = Leaf;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(5);
+
+
+/**
+ * A leaf node.
+ * @param uid The unique node id.
+ * @param guard The node guard.
+ */
+function Leaf(uid, guard) {
+  __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, uid, guard);
+
+  /**
+   * Gets whether this node is a leaf node.
+   */
+  this.isLeafNode = () => true;
+};
+
+Leaf.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
+
+/***/ }),
+/* 5 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = Node;
+/**
+ * A base node.
+ * @param uid The unique node id.
+ * @param guard The node guard.
+ */
+function Node(uid, guard) {
+  /**
+   * The node state.
+   */
+  let state = Mistreevous.State.READY;
+
+  /**
+   * Gets the state of the node.
+   */
+  this.getState = () => state;
+
+  /**
+   * Gets the guard of the node.
+   */
+  this.getGuard = () => guard;
+
+  /**
+   * Gets the unique id of the node.
+   */
+  this.getUid = () => uid;
+
+  /**
+   * Reset the state of the node.
+   * @param isAbort Whether the reset is part of an abort.
+   */
+  this.reset = isAbort => {
+    // Reset the state of this node.
+    state = Mistreevous.State.READY;
+  };
+};
+
+/***/ }),
+/* 6 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1128,18 +1206,29 @@ function Condition(uid, condition) {
     let state = Mistreevous.State.READY;
 
     /**
-     * Update the node and get whether the node state has changed.
+     * Update the node.
      * @param board The board.
-     * @returns Whether the state of this node has changed as part of the update.
+     * @param guardScope The guard scope.
+     * @returns The result of the update.
      */
-    this.update = function (board) {
+    this.update = function (board, guardScope) {
         // Get the pre-update node state.
         const initialState = state;
 
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
         if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
             // We have not changed state.
-            return false;
+            return { hasStateChanged: false };
+        }
+
+        // Evaluate all of the guard scope conditions for the current tree path and return result if any guard conditions fail.
+        const guardScopeEvaluationResult = guardScope.evaluate(board);
+        if (guardScopeEvaluationResult.hasFailedCondition) {
+            // We have not changed state, but a node guard condition has failed.
+            return {
+                hasStateChanged: false,
+                failedGuardNode: guardScopeEvaluationResult.node
+            };
         }
 
         // Call the condition function to determine the state of this node, but it must exist in the blackboard.
@@ -1150,7 +1239,7 @@ function Condition(uid, condition) {
         }
 
         // Return whether the state of this node has changed.
-        return state !== initialState;
+        return { hasStateChanged: state !== initialState };
     };
 
     /**
@@ -1185,15 +1274,16 @@ function Condition(uid, condition) {
 
     /**
      * Reset the state of the node.
+     * @param isAbort Whether the reset is part of an abort.
      */
-    this.reset = () => {
+    this.reset = isAbort => {
         // Reset the state of this node.
         state = Mistreevous.State.READY;
     };
 };
 
 /***/ }),
-/* 5 */
+/* 7 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1212,32 +1302,46 @@ function Flip(uid, guard, child) {
     let state = Mistreevous.State.READY;
 
     /**
-     * Update the node and get whether the node state has changed.
+     * Update the node.
      * @param board The board.
-     * @returns Whether the state of this node has changed as part of the update.
+     * @param guardScope The guard scope.
+     * @returns The result of the update.
      */
-    this.update = function (board) {
+    this.update = function (board, guardScope) {
         // Get the pre-update node state.
         const initialState = state;
 
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
         if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
             // We have not changed state.
-            return false;
-        }
-
-        // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
-        if (guard && !guard.isSatisfied(board)) {
-            // The guard is not satisfied and therefore we are finished with the node.
-            state = Mistreevous.State.FAILED;
-
-            // The node has moved to the FAILED state.
-            return true;
+            return { hasStateChanged: false };
         }
 
         // If the child has never been updated or is running then we will need to update it now.
         if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
-            child.update(board);
+            // Update the child of this node and get the result.
+            const updateResult = child.update(board, guardScope.createScope(guard, this));
+
+            // Check to see whether a node guard condition failed during the child node update.
+            if (updateResult.failedGuardNode) {
+                // Is this node the one with the failed guard condition?
+                if (updateResult.failedGuardNode === this) {
+                    // We need to reset this node, passing a flag to say that this is an abort.
+                    this.reset(true);
+
+                    // The guard condition for this node did not pass, so this node will move into the FAILED state.
+                    state = Mistreevous.State.FAILED;
+
+                    // Return whether the state of this node has changed.
+                    return { hasStateChanged: true };
+                } else {
+                    // A node guard condition has failed higher up the tree.
+                    return {
+                        hasStateChanged: false,
+                        failedGuardNode: guardScopeEvaluationResult.node
+                    };
+                }
+            }
         }
 
         // The state of this node will depend in the state of its child.
@@ -1258,7 +1362,7 @@ function Flip(uid, guard, child) {
         }
 
         // Return whether the state of this node has changed.
-        return state !== initialState;
+        return { hasStateChanged: state !== initialState };
     };
 
     /**
@@ -1293,18 +1397,19 @@ function Flip(uid, guard, child) {
 
     /**
      * Reset the state of the node.
+     * @param isAbort Whether the reset is part of an abort.
      */
-    this.reset = () => {
+    this.reset = isAbort => {
         // Reset the state of this node.
         state = Mistreevous.State.READY;
 
         // Reset the child node.
-        child.reset();
+        child.reset(isAbort);
     };
 };
 
 /***/ }),
-/* 6 */
+/* 8 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1388,9 +1493,10 @@ function Lotto(uid, guard, tickets, children) {
     /**
      * Update the node and get whether the node state has changed.
      * @param board The board.
+     * @param guardScope The guard scope.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.update = function (board) {
+    this.update = function (board, guardScope) {
         // Get the pre-update node state.
         const initialState = state;
 
@@ -1423,7 +1529,7 @@ function Lotto(uid, guard, tickets, children) {
 
         // If the winning child has never been updated or is running then we will need to update it now.
         if (winningChild.getState() === Mistreevous.State.READY || winningChild.getState() === Mistreevous.State.RUNNING) {
-            winningChild.update(board);
+            winningChild.update(board, guardScope.createScope(guard, this));
         }
 
         // The state of the lotto node is the state of its winning child.
@@ -1465,23 +1571,24 @@ function Lotto(uid, guard, tickets, children) {
 
     /**
      * Reset the state of the node.
+     * @param isAbort Whether the reset is part of an abort.
      */
-    this.reset = () => {
+    this.reset = isAbort => {
         // Reset the state of this node.
         state = Mistreevous.State.READY;
 
         // Reset each child node.
-        children.forEach(child => child.reset());
+        children.forEach(child => child.reset(isAbort));
     };
 };
 
 /***/ }),
-/* 7 */
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Repeat;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_constants__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_constants__ = __webpack_require__(10);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_constants___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_constants__);
 
 
@@ -1515,27 +1622,19 @@ function Repeat(uid, guard, iterations, maximumIterations, child) {
     let currentIterationCount = 0;
 
     /**
-     * Update the node and get whether the node state has changed.
+     * Update the node.
      * @param board The board.
-     * @returns Whether the state of this node has changed as part of the update.
+     * @param guardScope The guard scope.
+     * @returns The result of the update.
      */
-    this.update = function (board) {
+    this.update = function (board, guardScope) {
         // Get the pre-update node state.
         const initialState = state;
 
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
         if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
             // We have not changed state.
-            return false;
-        }
-
-        // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
-        if (guard && !guard.isSatisfied(board)) {
-            // The guard is not satisfied and therefore we are finished with the node.
-            state = Mistreevous.State.FAILED;
-
-            // The node has moved to the FAILED state.
-            return true;
+            return { hasStateChanged: false };
         }
 
         // If this node is in the READY state then we need to reset the child and the target iteration count.
@@ -1559,8 +1658,29 @@ function Repeat(uid, guard, iterations, maximumIterations, child) {
                 child.reset();
             }
 
-            // Update the child node.
-            child.update(board);
+            // Update the child of this node and get the result.
+            const updateResult = child.update(board, guardScope.createScope(guard, this));
+
+            // Check to see whether a node guard condition failed during the child node update.
+            if (updateResult.failedGuardNode) {
+                // Is this node the one with the failed guard condition?
+                if (updateResult.failedGuardNode === this) {
+                    // We need to reset this node, passing a flag to say that this is an abort.
+                    this.reset(true);
+
+                    // The guard condition for this node did not pass, so this node will move into the FAILED state.
+                    state = Mistreevous.State.FAILED;
+
+                    // Return whether the state of this node has changed.
+                    return { hasStateChanged: true };
+                } else {
+                    // A node guard condition has failed higher up the tree.
+                    return {
+                        hasStateChanged: false,
+                        failedGuardNode: guardScopeEvaluationResult.node
+                    };
+                }
+            }
 
             // If the child moved into the FAILED state when we updated it then there is nothing left to do and this node has also failed.
             // If it has moved into the SUCCEEDED state then we have completed the current iteration.
@@ -1569,7 +1689,7 @@ function Repeat(uid, guard, iterations, maximumIterations, child) {
                 state = Mistreevous.State.FAILED;
 
                 // Return whether the state of this node has changed.
-                return state !== initialState;
+                return { hasStateChanged: state !== initialState };
             } else if (child.getState() === Mistreevous.State.SUCCEEDED) {
                 // We have completed an iteration.
                 currentIterationCount += 1;
@@ -1580,7 +1700,7 @@ function Repeat(uid, guard, iterations, maximumIterations, child) {
         }
 
         // Return whether the state of this node has changed.
-        return state !== initialState;
+        return { hasStateChanged: state !== initialState };
     };
 
     /**
@@ -1622,8 +1742,9 @@ function Repeat(uid, guard, iterations, maximumIterations, child) {
 
     /**
      * Reset the state of the node.
+     * @param isAbort Whether the reset is part of an abort.
      */
-    this.reset = () => {
+    this.reset = isAbort => {
         // Reset the state of this node.
         state = Mistreevous.State.READY;
 
@@ -1631,7 +1752,7 @@ function Repeat(uid, guard, iterations, maximumIterations, child) {
         currentIterationCount = 0;
 
         // Reset the child node.
-        child.reset();
+        child.reset(isAbort);
     };
 
     /**
@@ -1663,17 +1784,20 @@ function Repeat(uid, guard, iterations, maximumIterations, child) {
 };
 
 /***/ }),
-/* 8 */
+/* 10 */
 /***/ (function(module, exports) {
 
 module.exports = {"O_RDONLY":0,"O_WRONLY":1,"O_RDWR":2,"S_IFMT":61440,"S_IFREG":32768,"S_IFDIR":16384,"S_IFCHR":8192,"S_IFBLK":24576,"S_IFIFO":4096,"S_IFLNK":40960,"S_IFSOCK":49152,"O_CREAT":512,"O_EXCL":2048,"O_NOCTTY":131072,"O_TRUNC":1024,"O_APPEND":8,"O_DIRECTORY":1048576,"O_NOFOLLOW":256,"O_SYNC":128,"O_SYMLINK":2097152,"O_NONBLOCK":4,"S_IRWXU":448,"S_IRUSR":256,"S_IWUSR":128,"S_IXUSR":64,"S_IRWXG":56,"S_IRGRP":32,"S_IWGRP":16,"S_IXGRP":8,"S_IRWXO":7,"S_IROTH":4,"S_IWOTH":2,"S_IXOTH":1,"E2BIG":7,"EACCES":13,"EADDRINUSE":48,"EADDRNOTAVAIL":49,"EAFNOSUPPORT":47,"EAGAIN":35,"EALREADY":37,"EBADF":9,"EBADMSG":94,"EBUSY":16,"ECANCELED":89,"ECHILD":10,"ECONNABORTED":53,"ECONNREFUSED":61,"ECONNRESET":54,"EDEADLK":11,"EDESTADDRREQ":39,"EDOM":33,"EDQUOT":69,"EEXIST":17,"EFAULT":14,"EFBIG":27,"EHOSTUNREACH":65,"EIDRM":90,"EILSEQ":92,"EINPROGRESS":36,"EINTR":4,"EINVAL":22,"EIO":5,"EISCONN":56,"EISDIR":21,"ELOOP":62,"EMFILE":24,"EMLINK":31,"EMSGSIZE":40,"EMULTIHOP":95,"ENAMETOOLONG":63,"ENETDOWN":50,"ENETRESET":52,"ENETUNREACH":51,"ENFILE":23,"ENOBUFS":55,"ENODATA":96,"ENODEV":19,"ENOENT":2,"ENOEXEC":8,"ENOLCK":77,"ENOLINK":97,"ENOMEM":12,"ENOMSG":91,"ENOPROTOOPT":42,"ENOSPC":28,"ENOSR":98,"ENOSTR":99,"ENOSYS":78,"ENOTCONN":57,"ENOTDIR":20,"ENOTEMPTY":66,"ENOTSOCK":38,"ENOTSUP":45,"ENOTTY":25,"ENXIO":6,"EOPNOTSUPP":102,"EOVERFLOW":84,"EPERM":1,"EPIPE":32,"EPROTO":100,"EPROTONOSUPPORT":43,"EPROTOTYPE":41,"ERANGE":34,"EROFS":30,"ESPIPE":29,"ESRCH":3,"ESTALE":70,"ETIME":101,"ETIMEDOUT":60,"ETXTBSY":26,"EWOULDBLOCK":35,"EXDEV":18,"SIGHUP":1,"SIGINT":2,"SIGQUIT":3,"SIGILL":4,"SIGTRAP":5,"SIGABRT":6,"SIGIOT":6,"SIGBUS":10,"SIGFPE":8,"SIGKILL":9,"SIGUSR1":30,"SIGSEGV":11,"SIGUSR2":31,"SIGPIPE":13,"SIGALRM":14,"SIGTERM":15,"SIGCHLD":20,"SIGCONT":19,"SIGSTOP":17,"SIGTSTP":18,"SIGTTIN":21,"SIGTTOU":22,"SIGURG":16,"SIGXCPU":24,"SIGXFSZ":25,"SIGVTALRM":26,"SIGPROF":27,"SIGWINCH":28,"SIGIO":23,"SIGSYS":12,"SSL_OP_ALL":2147486719,"SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION":262144,"SSL_OP_CIPHER_SERVER_PREFERENCE":4194304,"SSL_OP_CISCO_ANYCONNECT":32768,"SSL_OP_COOKIE_EXCHANGE":8192,"SSL_OP_CRYPTOPRO_TLSEXT_BUG":2147483648,"SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS":2048,"SSL_OP_EPHEMERAL_RSA":0,"SSL_OP_LEGACY_SERVER_CONNECT":4,"SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER":32,"SSL_OP_MICROSOFT_SESS_ID_BUG":1,"SSL_OP_MSIE_SSLV2_RSA_PADDING":0,"SSL_OP_NETSCAPE_CA_DN_BUG":536870912,"SSL_OP_NETSCAPE_CHALLENGE_BUG":2,"SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG":1073741824,"SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG":8,"SSL_OP_NO_COMPRESSION":131072,"SSL_OP_NO_QUERY_MTU":4096,"SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION":65536,"SSL_OP_NO_SSLv2":16777216,"SSL_OP_NO_SSLv3":33554432,"SSL_OP_NO_TICKET":16384,"SSL_OP_NO_TLSv1":67108864,"SSL_OP_NO_TLSv1_1":268435456,"SSL_OP_NO_TLSv1_2":134217728,"SSL_OP_PKCS1_CHECK_1":0,"SSL_OP_PKCS1_CHECK_2":0,"SSL_OP_SINGLE_DH_USE":1048576,"SSL_OP_SINGLE_ECDH_USE":524288,"SSL_OP_SSLEAY_080_CLIENT_DH_BUG":128,"SSL_OP_SSLREF2_REUSE_CERT_TYPE_BUG":0,"SSL_OP_TLS_BLOCK_PADDING_BUG":512,"SSL_OP_TLS_D5_BUG":256,"SSL_OP_TLS_ROLLBACK_BUG":8388608,"ENGINE_METHOD_DSA":2,"ENGINE_METHOD_DH":4,"ENGINE_METHOD_RAND":8,"ENGINE_METHOD_ECDH":16,"ENGINE_METHOD_ECDSA":32,"ENGINE_METHOD_CIPHERS":64,"ENGINE_METHOD_DIGESTS":128,"ENGINE_METHOD_STORE":256,"ENGINE_METHOD_PKEY_METHS":512,"ENGINE_METHOD_PKEY_ASN1_METHS":1024,"ENGINE_METHOD_ALL":65535,"ENGINE_METHOD_NONE":0,"DH_CHECK_P_NOT_SAFE_PRIME":2,"DH_CHECK_P_NOT_PRIME":1,"DH_UNABLE_TO_CHECK_GENERATOR":4,"DH_NOT_SUITABLE_GENERATOR":8,"NPN_ENABLED":1,"RSA_PKCS1_PADDING":1,"RSA_SSLV23_PADDING":2,"RSA_NO_PADDING":3,"RSA_PKCS1_OAEP_PADDING":4,"RSA_X931_PADDING":5,"RSA_PKCS1_PSS_PADDING":6,"POINT_CONVERSION_COMPRESSED":2,"POINT_CONVERSION_UNCOMPRESSED":4,"POINT_CONVERSION_HYBRID":6,"F_OK":0,"R_OK":4,"W_OK":2,"X_OK":1,"UV_UDP_REUSEADDR":4}
 
 /***/ }),
-/* 9 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Root;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__guards_guardScope__ = __webpack_require__(12);
+
+
 /**
  * A Root node.
  * The root node will have a single child.
@@ -1696,6 +1820,9 @@ function Root(uid, guard, child) {
         // Get the pre-update node state.
         const initialState = state;
 
+        // We will need to create the root guard scope here.
+        const guardScope = new __WEBPACK_IMPORTED_MODULE_0__guards_guardScope__["a" /* default */](guard, this);
+
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
         if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
             // We have not changed state.
@@ -1713,7 +1840,7 @@ function Root(uid, guard, child) {
 
         // If the child has never been updated or is running then we will need to update it now.
         if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
-            child.update(board);
+            child.update(board, guardScope);
         }
 
         // The state of the root node is the state of its child.
@@ -1755,18 +1882,102 @@ function Root(uid, guard, child) {
 
     /**
      * Reset the state of the node.
+     * @param isAbort Whether the reset is part of an abort.
      */
-    this.reset = () => {
+    this.reset = isAbort => {
         // Reset the state of this node.
         state = Mistreevous.State.READY;
 
         // Reset the child node.
-        child.reset();
+        child.reset(isAbort);
+    };
+
+    /**
+     * Set the guard scope at any tree leaf nodes.
+     * @param guardScope The guard scope.
+     */
+    this.setGuardScopeOnLeafNodes = guardScope => {};
+};
+
+/***/ }),
+/* 12 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = GuardScope;
+/**
+ * Represents a scoped node guard.
+ * @param guard The node guard. 
+ * @param node The guarded node.
+ * @param parent The parent scope.
+ */
+function GuardScope(guard, node, parent = null) {
+
+    /**
+     * Gets the guard for this scope.
+     */
+    this.getGuard = () => guard;
+
+    /**
+     * Gets the guarded node for this scope.
+     */
+    this.getNode = () => node;
+
+    /**
+     * Gets the parent for this scope, or null if there is no parent.
+     */
+    this.getParent = () => parent;
+
+    /**
+     * Evaluate guard conditions for all guards scopes in a tree path, moving outwards from the root.
+     * @param board The blackboard, required for guard evaluation.
+     * @returns An evaluation results object.
+     */
+    this.evaluate = board => {
+        // Create an array to hold every guard scope within this scope heirarchy.
+        const guardScopes = [];
+
+        // Move up the scope heirarchy to find every relevant guard.
+        const currentScope = this;
+        while (currentScope !== null) {
+            guardScopes.unshift(currentScope);
+
+            currentScope = currentScope.getParent();
+        }
+
+        // We need to evaluate guard conditions for nodes up the tree, moving outwards from the root.
+        for (const guardScope of guardScopes) {
+            // There may not be a guard defined for this scope.
+            if (!guardScope.getGuard()) {
+                continue;
+            }
+
+            // Check whether the guard condition passes.
+            if (!guardScope.getGuard().isSatisfied(board)) {
+                return {
+                    hasFailedCondition: true,
+                    node: guardScope.getNode()
+                };
+            }
+        }
+
+        // We did not come across a failed guard condition on this path.
+        return { hasFailedCondition: false };
+    };
+
+    /**
+     * Gets a new guard scope hanging off of this one.
+     * @param guard The guard.
+     * @param node The guarded node.
+     * @returns A new guard scope.
+     */
+    this.createScope = (guard, node) => {
+        return new GuardScope(guard, node, this);
     };
 };
 
 /***/ }),
-/* 10 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1787,9 +1998,10 @@ function Selector(uid, guard, children) {
     /**
      * Update the node and get whether the node state has changed.
      * @param board The board.
+     * @param guardScope The guard scope.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.update = function (board) {
+    this.update = function (board, guardScope) {
         // Get the pre-update node state.
         const initialState = state;
 
@@ -1801,19 +2013,9 @@ function Selector(uid, guard, children) {
 
         // Iterate over all of the children of this node.
         for (const child of children) {
-            // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
-            // The guard is checked once per child pre-update in order to better respond to changes of state between child updates.
-            if (guard && !guard.isSatisfied(board)) {
-                // The guard is not satisfied and therefore we are finished with the node.
-                state = Mistreevous.State.FAILED;
-
-                // The node has moved to the FAILED state.
-                return true;
-            }
-
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
-                child.update(board);
+                child.update(board, guardScope.createScope(guard, this));
             }
 
             // If the current child has a state of 'SUCCEEDED' then this node is also a 'SUCCEEDED' node.
@@ -1887,18 +2089,19 @@ function Selector(uid, guard, children) {
 
     /**
      * Reset the state of the node.
+     * @param isAbort Whether the reset is part of an abort.
      */
-    this.reset = () => {
+    this.reset = isAbort => {
         // Reset the state of this node.
         state = Mistreevous.State.READY;
 
         // Reset each child node.
-        children.forEach(child => child.reset());
+        children.forEach(child => child.reset(isAbort));
     };
 };
 
 /***/ }),
-/* 11 */
+/* 14 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1919,9 +2122,10 @@ function Sequence(uid, guard, children) {
     /**
      * Update the node and get whether the node state has changed.
      * @param board The board.
+     * @param guardScope The guard scope.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.update = function (board) {
+    this.update = function (board, guardScope) {
         // Get the pre-update node state.
         const initialState = state;
 
@@ -1933,19 +2137,9 @@ function Sequence(uid, guard, children) {
 
         // Iterate over all of the children of this node.
         for (const child of children) {
-            // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
-            // The guard is checked once per child pre-update in order to better respond to changes of state between child updates.
-            if (guard && !guard.isSatisfied(board)) {
-                // The guard is not satisfied and therefore we are finished with the node.
-                state = Mistreevous.State.FAILED;
-
-                // The node has moved to the FAILED state.
-                return true;
-            }
-
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
-                child.update(board);
+                child.update(board, guardScope.createScope(guard, this));
             }
 
             // If the current child has a state of 'SUCCEEDED' then we should move on to the next child.
@@ -2019,18 +2213,19 @@ function Sequence(uid, guard, children) {
 
     /**
      * Reset the state of the node.
+     * @param isAbort Whether the reset is part of an abort.
      */
-    this.reset = () => {
+    this.reset = isAbort => {
         // Reset the state of this node.
         state = Mistreevous.State.READY;
 
         // Reset each child node.
-        children.forEach(child => child.reset());
+        children.forEach(child => child.reset(isAbort));
     };
 };
 
 /***/ }),
-/* 12 */
+/* 15 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2060,27 +2255,38 @@ function Wait(uid, guard, duration, longestDuration) {
     let waitDuration;
 
     /**
-     * Update the node and get whether the node state has changed.
+     * Update the node.
      * @param board The board.
-     * @returns Whether the state of this node has changed as part of the update.
+     * @param guardScope The guard scope.
+     * @returns The result of the update.
      */
-    this.update = function (board) {
+    this.update = function (board, guardScope) {
         // Get the pre-update node state.
         const initialState = state;
 
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
         if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
             // We have not changed state.
-            return false;
+            return { hasStateChanged: false };
         }
 
-        // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
-        if (guard && !guard.isSatisfied(board)) {
-            // The guard is not satisfied and therefore we are finished with the node.
-            state = Mistreevous.State.FAILED;
+        // Evaluate guard scope and return result if any guard conditions fail.
+        const guardScopeEvaluationResult = guardScope.createScope(guard, this).evaluate(board);
+        if (guardScopeEvaluationResult.hasFailedCondition) {
+            // Is this node the one with the failed guard condition?
+            if (guardScopeEvaluationResult.node === this) {
+                // The guard condition for this node did not pass, so this node will move into the FAILED state.
+                state = Mistreevous.State.FAILED;
 
-            // The node has moved to the FAILED state.
-            return true;
+                // Return whether the state of this node has changed.
+                return { hasStateChanged: true };
+            } else {
+                // A node guard condition has failed higher up the tree.
+                return {
+                    hasStateChanged: false,
+                    failedGuardNode: guardScopeEvaluationResult.node
+                };
+            }
         }
 
         // If this node is in the READY state then we need to set the initial update time.
@@ -2103,7 +2309,7 @@ function Wait(uid, guard, duration, longestDuration) {
         }
 
         // Return whether the state of this node has changed.
-        return state !== initialState;
+        return { hasStateChanged: state !== initialState };
     };
 
     /**
@@ -2138,15 +2344,16 @@ function Wait(uid, guard, duration, longestDuration) {
 
     /**
      * Reset the state of the node.
+     * @param isAbort Whether the reset is part of an abort.
      */
-    this.reset = () => {
+    this.reset = isAbort => {
         // Reset the state of this node.
         state = Mistreevous.State.READY;
     };
 };
 
 /***/ }),
-/* 13 */
+/* 16 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2183,7 +2390,7 @@ function While(condition) {
 };
 
 /***/ }),
-/* 14 */
+/* 17 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2220,7 +2427,7 @@ function Until(condition) {
 };
 
 /***/ }),
-/* 15 */
+/* 18 */
 /***/ (function(module, exports) {
 
 /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {/* globals __webpack_amd_options__ */

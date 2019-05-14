@@ -323,8 +323,10 @@ export default function BehaviourTree(definition, board) {
 
             nodeScopeId = ++currentNodeScopeId;
 
-            // Find each child of the node.
-            (node.getChildren() || []).forEach((child) => findNestedNodes(child, depth + 1, nodeScopeId));
+            // Find each child of the node if it is not a leaf node..
+            if (!node.isLeafNode()) {
+                node.getChildren().forEach((child) => findNestedNodes(child, depth + 1, nodeScopeId));
+            }
         };
         findNestedNodes(this._rootNode, 0, currentNodeScopeId);
     };

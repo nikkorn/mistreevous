@@ -1,3 +1,5 @@
+import Leaf from './leaf'
+
 /**
  * An Action node.
  * This represents an immediate or ongoing state of behaviour.
@@ -5,10 +7,7 @@
  * @param actionName The action name.
  */
 export default function Action(uid, actionName) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+    Leaf.call(this, uid, null);
 
     /**
      * The onFinish action function, if one was defined.
@@ -76,34 +75,14 @@ export default function Action(uid, actionName) {
     };
 
     /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
-
-    /**
      * Gets the name of the node.
      */
     this.getName = () => actionName;
 
     /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => null;
-
-    /**
-     * Gets the guard of the node.
-     */
-    this.getGuard = () => null;
-
-    /**
      * Gets the type of the node.
      */
     this.getType = () => "action";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
 
     /**
      * Reset the state of the node.
@@ -156,3 +135,5 @@ export default function Action(uid, actionName) {
         }
     };
 };
+
+Action.prototype = Object.create(Leaf.prototype);
