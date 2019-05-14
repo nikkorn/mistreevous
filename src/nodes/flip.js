@@ -36,6 +36,9 @@ export default function Flip(uid, guard, child) {
             if (updateResult.failedGuardNode) {
                 // Is this node the one with the failed guard condition?
                 if (updateResult.failedGuardNode === this) {
+                    // We need to reset this node, passing a flag to say that this is an abort.
+                    this.reset(true);
+                    
                     // The guard condition for this node did not pass, so this node will move into the FAILED state.
                     state = Mistreevous.State.FAILED;
     
