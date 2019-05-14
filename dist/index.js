@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = 3);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -68,8 +68,137 @@
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = Composite;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(2);
+
+
+/**
+ * A composite node that wraps child nodes.
+ * @param uid The unique node id.
+ * @param type The node type.
+ * @param guard The node guard.
+ * @param children The child nodes. 
+ */
+function Composite(uid, type, guard, children) {
+    __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, uid, type, guard);
+
+    /**
+     * Gets whether this node is a leaf node.
+     */
+    this.isLeafNode = () => false;
+
+    /**
+     * Gets the children of this node.
+     */
+    this.getChildren = () => children;
+
+    /**
+     * Reset the state of the node.
+     * @param isAbort Whether the reset is part of an abort.
+     */
+    this.reset = isAbort => {
+        // Reset the state of this node.
+        state = Mistreevous.State.READY;
+
+        // Reset the state of any child nodes.
+        this.getChildren().forEach(child => child.reset(isAbort));
+    };
+};
+
+Composite.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
+
+/***/ }),
+/* 1 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = Leaf;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(2);
+
+
+/**
+ * A leaf node.
+ * @param uid The unique node id.
+ * @param type The node type.
+ * @param guard The node guard.
+ */
+function Leaf(uid, type, guard) {
+  __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, uid, type, guard);
+
+  /**
+   * The guard path to evaluate as part of a node update.
+   */
+  let guardPath;
+
+  /**
+   * Gets/Sets the guard path to evaluate as part of a node update.
+   */
+  this.getGuardPath = () => guardPath;
+  this.setGuardPath = value => guardPath = value;
+
+  /**
+   * Gets whether this node is a leaf node.
+   */
+  this.isLeafNode = () => true;
+};
+
+Leaf.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
+
+/***/ }),
+/* 2 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = Node;
+/**
+ * A base node.
+ * @param uid The unique node id.
+ * @param type The node type.
+ * @param guard The node guard.
+ */
+function Node(uid, type, guard) {
+  /**
+   * The node state.
+   */
+  let state = Mistreevous.State.READY;
+
+  /**
+   * Gets the state of the node.
+   */
+  this.getState = () => state;
+
+  /**
+   * Gets the unique id of the node.
+   */
+  this.getUid = () => uid;
+
+  /**
+   * Gets the type of the node.
+   */
+  this.getType = () => type;
+
+  /**
+   * Gets the guard of the node.
+   */
+  this.getGuard = () => guard;
+
+  /**
+   * Reset the state of the node.
+   * @param isAbort Whether the reset is part of an abort.
+   */
+  this.reset = isAbort => {
+    // Reset the state of this node.
+    state = Mistreevous.State.READY;
+  };
+};
+
+/***/ }),
+/* 3 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* WEBPACK VAR INJECTION */(function(module) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__behaviourtree__ = __webpack_require__(2);
+/* WEBPACK VAR INJECTION */(function(module) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__behaviourtree__ = __webpack_require__(5);
 
 
 const Mistreevous = {
@@ -86,7 +215,7 @@ const Mistreevous = {
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
     module.exports = Mistreevous;
 } else {
-    if (typeof define === 'function' && __webpack_require__(18)) {
+    if (typeof define === 'function' && __webpack_require__(17)) {
         define([], function () {
             return Mistreevous;
         });
@@ -94,10 +223,10 @@ if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
         window.Mistreevous = Mistreevous;
     }
 }
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(1)(module)))
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(4)(module)))
 
 /***/ }),
-/* 1 */
+/* 4 */
 /***/ (function(module, exports) {
 
 module.exports = function(originalModule) {
@@ -127,22 +256,22 @@ module.exports = function(originalModule) {
 
 
 /***/ }),
-/* 2 */
+/* 5 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = BehaviourTree;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__nodes_action__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__nodes_condition__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__nodes_flip__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nodes_lotto__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__nodes_repeat__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__nodes_action__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__nodes_condition__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__nodes_flip__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nodes_lotto__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__nodes_repeat__ = __webpack_require__(10);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__nodes_root__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_selector__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_sequence__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_wait__ = __webpack_require__(15);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__guards_while__ = __webpack_require__(16);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__guards_until__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_selector__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_sequence__ = __webpack_require__(13);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_wait__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__guards_while__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__guards_until__ = __webpack_require__(16);
 
 
 
@@ -420,6 +549,9 @@ function BehaviourTree(definition, board) {
 
             // Convert the AST to our actual tree.
             this._rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(namedRootNodeProvider, []);
+
+            // TODO Get all leaf nodes of the tree as well as an array of nodes (and their guards) on the way to it.
+            // TODO Set a NodeGuardPath (to be made) on every leaf not ofr it to evaluate as part of its update.
         } catch (exception) {
             // There was an issue in trying to parse and build the tree definition.
             throw `TreeParseError: ${exception}`;
@@ -924,8 +1056,10 @@ BehaviourTree.prototype.getFlattenedNodeDetails = function () {
             parentId: parentUid
         });
 
-        // Process each of the nodes children.
-        (node.getChildren() || []).forEach(child => processNode(child, node.getUid()));
+        // Process each of the nodes children if it is not a leaf node.
+        if (!node.isLeafNode()) {
+            node.getChildren().forEach(child => processNode(child, node.getUid()));
+        }
     };
 
     // Convert the nested node structure into a flattened array of node details.
@@ -974,22 +1108,22 @@ BehaviourTree.prototype.reset = function () {
 };
 
 /***/ }),
-/* 3 */
+/* 6 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Action;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(1);
 
 
 /**
- * An Action node.
+ * An Action leaf node.
  * This represents an immediate or ongoing state of behaviour.
  * @param uid The unique node id.
  * @param actionName The action name.
  */
 function Action(uid, actionName) {
-    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, uid, null);
+    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, uid, "action", null);
 
     /**
      * The onFinish action function, if one was defined.
@@ -999,10 +1133,9 @@ function Action(uid, actionName) {
     /**
      * Update the node.
      * @param board The board.
-     * @param guardScope The guard scope.
      * @returns The result of the update.
      */
-    this.update = function (board, guardScope) {
+    this.update = function (board) {
         // Get the pre-update node state.
         const initialState = state;
 
@@ -1017,13 +1150,13 @@ function Action(uid, actionName) {
             onFinish = action.onFinish;
         }
 
-        // Evaluate all of the guard scope conditions for the current tree path and return result if any guard conditions fail.
-        const guardScopeEvaluationResult = guardScope.evaluate(board);
-        if (guardScopeEvaluationResult.hasFailedCondition) {
+        // Evaluate all of the guard path conditions for the current tree path and return result if any guard conditions fail.
+        const guardPathEvaluationResult = this.getGuardPath().evaluate(board);
+        if (guardPathEvaluationResult.hasFailedCondition) {
             // We have not changed state, but a node guard condition has failed.
             return {
                 hasStateChanged: false,
-                failedGuardNode: guardScopeEvaluationResult.node
+                failedGuardNode: guardPathEvaluationResult.node
             };
         }
 
@@ -1060,11 +1193,6 @@ function Action(uid, actionName) {
      * Gets the name of the node.
      */
     this.getName = () => actionName;
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "action";
 
     /**
      * Reset the state of the node.
@@ -1121,97 +1249,29 @@ function Action(uid, actionName) {
 Action.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
 
 /***/ }),
-/* 4 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = Leaf;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(5);
-
-
-/**
- * A leaf node.
- * @param uid The unique node id.
- * @param guard The node guard.
- */
-function Leaf(uid, guard) {
-  __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, uid, guard);
-
-  /**
-   * Gets whether this node is a leaf node.
-   */
-  this.isLeafNode = () => true;
-};
-
-Leaf.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
-
-/***/ }),
-/* 5 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = Node;
-/**
- * A base node.
- * @param uid The unique node id.
- * @param guard The node guard.
- */
-function Node(uid, guard) {
-  /**
-   * The node state.
-   */
-  let state = Mistreevous.State.READY;
-
-  /**
-   * Gets the state of the node.
-   */
-  this.getState = () => state;
-
-  /**
-   * Gets the guard of the node.
-   */
-  this.getGuard = () => guard;
-
-  /**
-   * Gets the unique id of the node.
-   */
-  this.getUid = () => uid;
-
-  /**
-   * Reset the state of the node.
-   * @param isAbort Whether the reset is part of an abort.
-   */
-  this.reset = isAbort => {
-    // Reset the state of this node.
-    state = Mistreevous.State.READY;
-  };
-};
-
-/***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Condition;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(1);
+
+
 /**
- * A Condition node.
- * This acts as a guard and will succeed or fail immediately based on a board predicate, without moving to the 'RUNNING' state.
+ * A Condition leaf node.
+ * This will succeed or fail immediately based on a board predicate, without moving to the 'RUNNING' state.
  * @param uid The unique node id.
  * @param condition The name of the condition function. 
  */
 function Condition(uid, condition) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, uid, "condition", null);
 
     /**
      * Update the node.
      * @param board The board.
-     * @param guardScope The guard scope.
      * @returns The result of the update.
      */
-    this.update = function (board, guardScope) {
+    this.update = function (board) {
         // Get the pre-update node state.
         const initialState = state;
 
@@ -1221,13 +1281,13 @@ function Condition(uid, condition) {
             return { hasStateChanged: false };
         }
 
-        // Evaluate all of the guard scope conditions for the current tree path and return result if any guard conditions fail.
-        const guardScopeEvaluationResult = guardScope.evaluate(board);
-        if (guardScopeEvaluationResult.hasFailedCondition) {
+        // Evaluate all of the guard path conditions for the current tree path and return result if any guard conditions fail.
+        const guardPathEvaluationResult = this.getGuardPath().evaluate(board);
+        if (guardPathEvaluationResult.hasFailedCondition) {
             // We have not changed state, but a node guard condition has failed.
             return {
                 hasStateChanged: false,
-                failedGuardNode: guardScopeEvaluationResult.node
+                failedGuardNode: guardPathEvaluationResult.node
             };
         }
 
@@ -1243,51 +1303,22 @@ function Condition(uid, condition) {
     };
 
     /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
-
-    /**
      * Gets the name of the node.
      */
     this.getName = () => condition;
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => null;
-
-    /**
-     * Gets the guard of the node.
-     */
-    this.getGuard = () => null;
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "condition";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
-
-    /**
-     * Reset the state of the node.
-     * @param isAbort Whether the reset is part of an abort.
-     */
-    this.reset = isAbort => {
-        // Reset the state of this node.
-        state = Mistreevous.State.READY;
-    };
 };
 
+Condition.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
+
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Flip;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(0);
+
+
 /**
  * A Flip node.
  * This node wraps a single child and will flip the state of the child state.
@@ -1296,18 +1327,14 @@ function Condition(uid, condition) {
  * @param child The child node. 
  */
 function Flip(uid, guard, child) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+    __WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].call(this, uid, "flip", guard, [child]);
 
     /**
      * Update the node.
      * @param board The board.
-     * @param guardScope The guard scope.
      * @returns The result of the update.
      */
-    this.update = function (board, guardScope) {
+    this.update = function (board) {
         // Get the pre-update node state.
         const initialState = state;
 
@@ -1320,7 +1347,7 @@ function Flip(uid, guard, child) {
         // If the child has never been updated or is running then we will need to update it now.
         if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
             // Update the child of this node and get the result.
-            const updateResult = child.update(board, guardScope.createScope(guard, this));
+            const updateResult = child.update(board);
 
             // Check to see whether a node guard condition failed during the child node update.
             if (updateResult.failedGuardNode) {
@@ -1366,54 +1393,22 @@ function Flip(uid, guard, child) {
     };
 
     /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
-
-    /**
      * Gets the name of the node.
      */
     this.getName = () => "FLIP";
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => [child];
-
-    /**
-     * Gets the guard of the node.
-     */
-    this.getGuard = () => guard;
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "flip";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
-
-    /**
-     * Reset the state of the node.
-     * @param isAbort Whether the reset is part of an abort.
-     */
-    this.reset = isAbort => {
-        // Reset the state of this node.
-        state = Mistreevous.State.READY;
-
-        // Reset the child node.
-        child.reset(isAbort);
-    };
 };
 
+Flip.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
+
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Lotto;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(0);
+
+
 /**
  * A LOTTO node.
  * A winning child is picked on the initial update of this node, based on ticket weighting.
@@ -1424,10 +1419,7 @@ function Flip(uid, guard, child) {
  * @param children The child nodes. 
  */
 function Lotto(uid, guard, tickets, children) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+    __WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].call(this, uid, "lotto", guard, children);
 
     /**
      * The winning child node.
@@ -1493,10 +1485,9 @@ function Lotto(uid, guard, tickets, children) {
     /**
      * Update the node and get whether the node state has changed.
      * @param board The board.
-     * @param guardScope The guard scope.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.update = function (board, guardScope) {
+    this.update = function (board) {
         // Get the pre-update node state.
         const initialState = state;
 
@@ -1529,7 +1520,7 @@ function Lotto(uid, guard, tickets, children) {
 
         // If the winning child has never been updated or is running then we will need to update it now.
         if (winningChild.getState() === Mistreevous.State.READY || winningChild.getState() === Mistreevous.State.RUNNING) {
-            winningChild.update(board, guardScope.createScope(guard, this));
+            winningChild.update(board);
         }
 
         // The state of the lotto node is the state of its winning child.
@@ -1540,56 +1531,20 @@ function Lotto(uid, guard, tickets, children) {
     };
 
     /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
-
-    /**
      * Gets the name of the node.
      */
     this.getName = () => tickets.length ? `LOTTO [${tickets.join(",")}]` : "LOTTO";
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => children;
-
-    /**
-     * Gets the guard of the node.
-     */
-    this.getGuard = () => guard;
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "lotto";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
-
-    /**
-     * Reset the state of the node.
-     * @param isAbort Whether the reset is part of an abort.
-     */
-    this.reset = isAbort => {
-        // Reset the state of this node.
-        state = Mistreevous.State.READY;
-
-        // Reset each child node.
-        children.forEach(child => child.reset(isAbort));
-    };
 };
 
+Lotto.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
+
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Repeat;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_constants__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_constants___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_constants__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(0);
 
 
 /**
@@ -1606,10 +1561,7 @@ function Lotto(uid, guard, tickets, children) {
  * @param child The child node. 
  */
 function Repeat(uid, guard, iterations, maximumIterations, child) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+    __WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].call(this, uid, "repeat", guard, [child]);
 
     /**
      * The number of target iterations to make.
@@ -1624,10 +1576,9 @@ function Repeat(uid, guard, iterations, maximumIterations, child) {
     /**
      * Update the node.
      * @param board The board.
-     * @param guardScope The guard scope.
      * @returns The result of the update.
      */
-    this.update = function (board, guardScope) {
+    this.update = function (board) {
         // Get the pre-update node state.
         const initialState = state;
 
@@ -1659,7 +1610,7 @@ function Repeat(uid, guard, iterations, maximumIterations, child) {
             }
 
             // Update the child of this node and get the result.
-            const updateResult = child.update(board, guardScope.createScope(guard, this));
+            const updateResult = child.update(board);
 
             // Check to see whether a node guard condition failed during the child node update.
             if (updateResult.failedGuardNode) {
@@ -1704,11 +1655,6 @@ function Repeat(uid, guard, iterations, maximumIterations, child) {
     };
 
     /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
-
-    /**
      * Gets the name of the node.
      */
     this.getName = () => {
@@ -1719,26 +1665,6 @@ function Repeat(uid, guard, iterations, maximumIterations, child) {
         // Return the default repeat node name.
         return "REPEAT";
     };
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => [child];
-
-    /**
-     * Gets the guard of the node.
-     */
-    this.getGuard = () => guard;
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "repeat";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
 
     /**
      * Reset the state of the node.
@@ -1783,11 +1709,7 @@ function Repeat(uid, guard, iterations, maximumIterations, child) {
     };
 };
 
-/***/ }),
-/* 10 */
-/***/ (function(module, exports) {
-
-module.exports = {"O_RDONLY":0,"O_WRONLY":1,"O_RDWR":2,"S_IFMT":61440,"S_IFREG":32768,"S_IFDIR":16384,"S_IFCHR":8192,"S_IFBLK":24576,"S_IFIFO":4096,"S_IFLNK":40960,"S_IFSOCK":49152,"O_CREAT":512,"O_EXCL":2048,"O_NOCTTY":131072,"O_TRUNC":1024,"O_APPEND":8,"O_DIRECTORY":1048576,"O_NOFOLLOW":256,"O_SYNC":128,"O_SYMLINK":2097152,"O_NONBLOCK":4,"S_IRWXU":448,"S_IRUSR":256,"S_IWUSR":128,"S_IXUSR":64,"S_IRWXG":56,"S_IRGRP":32,"S_IWGRP":16,"S_IXGRP":8,"S_IRWXO":7,"S_IROTH":4,"S_IWOTH":2,"S_IXOTH":1,"E2BIG":7,"EACCES":13,"EADDRINUSE":48,"EADDRNOTAVAIL":49,"EAFNOSUPPORT":47,"EAGAIN":35,"EALREADY":37,"EBADF":9,"EBADMSG":94,"EBUSY":16,"ECANCELED":89,"ECHILD":10,"ECONNABORTED":53,"ECONNREFUSED":61,"ECONNRESET":54,"EDEADLK":11,"EDESTADDRREQ":39,"EDOM":33,"EDQUOT":69,"EEXIST":17,"EFAULT":14,"EFBIG":27,"EHOSTUNREACH":65,"EIDRM":90,"EILSEQ":92,"EINPROGRESS":36,"EINTR":4,"EINVAL":22,"EIO":5,"EISCONN":56,"EISDIR":21,"ELOOP":62,"EMFILE":24,"EMLINK":31,"EMSGSIZE":40,"EMULTIHOP":95,"ENAMETOOLONG":63,"ENETDOWN":50,"ENETRESET":52,"ENETUNREACH":51,"ENFILE":23,"ENOBUFS":55,"ENODATA":96,"ENODEV":19,"ENOENT":2,"ENOEXEC":8,"ENOLCK":77,"ENOLINK":97,"ENOMEM":12,"ENOMSG":91,"ENOPROTOOPT":42,"ENOSPC":28,"ENOSR":98,"ENOSTR":99,"ENOSYS":78,"ENOTCONN":57,"ENOTDIR":20,"ENOTEMPTY":66,"ENOTSOCK":38,"ENOTSUP":45,"ENOTTY":25,"ENXIO":6,"EOPNOTSUPP":102,"EOVERFLOW":84,"EPERM":1,"EPIPE":32,"EPROTO":100,"EPROTONOSUPPORT":43,"EPROTOTYPE":41,"ERANGE":34,"EROFS":30,"ESPIPE":29,"ESRCH":3,"ESTALE":70,"ETIME":101,"ETIMEDOUT":60,"ETXTBSY":26,"EWOULDBLOCK":35,"EXDEV":18,"SIGHUP":1,"SIGINT":2,"SIGQUIT":3,"SIGILL":4,"SIGTRAP":5,"SIGABRT":6,"SIGIOT":6,"SIGBUS":10,"SIGFPE":8,"SIGKILL":9,"SIGUSR1":30,"SIGSEGV":11,"SIGUSR2":31,"SIGPIPE":13,"SIGALRM":14,"SIGTERM":15,"SIGCHLD":20,"SIGCONT":19,"SIGSTOP":17,"SIGTSTP":18,"SIGTTIN":21,"SIGTTOU":22,"SIGURG":16,"SIGXCPU":24,"SIGXFSZ":25,"SIGVTALRM":26,"SIGPROF":27,"SIGWINCH":28,"SIGIO":23,"SIGSYS":12,"SSL_OP_ALL":2147486719,"SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION":262144,"SSL_OP_CIPHER_SERVER_PREFERENCE":4194304,"SSL_OP_CISCO_ANYCONNECT":32768,"SSL_OP_COOKIE_EXCHANGE":8192,"SSL_OP_CRYPTOPRO_TLSEXT_BUG":2147483648,"SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS":2048,"SSL_OP_EPHEMERAL_RSA":0,"SSL_OP_LEGACY_SERVER_CONNECT":4,"SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER":32,"SSL_OP_MICROSOFT_SESS_ID_BUG":1,"SSL_OP_MSIE_SSLV2_RSA_PADDING":0,"SSL_OP_NETSCAPE_CA_DN_BUG":536870912,"SSL_OP_NETSCAPE_CHALLENGE_BUG":2,"SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG":1073741824,"SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG":8,"SSL_OP_NO_COMPRESSION":131072,"SSL_OP_NO_QUERY_MTU":4096,"SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION":65536,"SSL_OP_NO_SSLv2":16777216,"SSL_OP_NO_SSLv3":33554432,"SSL_OP_NO_TICKET":16384,"SSL_OP_NO_TLSv1":67108864,"SSL_OP_NO_TLSv1_1":268435456,"SSL_OP_NO_TLSv1_2":134217728,"SSL_OP_PKCS1_CHECK_1":0,"SSL_OP_PKCS1_CHECK_2":0,"SSL_OP_SINGLE_DH_USE":1048576,"SSL_OP_SINGLE_ECDH_USE":524288,"SSL_OP_SSLEAY_080_CLIENT_DH_BUG":128,"SSL_OP_SSLREF2_REUSE_CERT_TYPE_BUG":0,"SSL_OP_TLS_BLOCK_PADDING_BUG":512,"SSL_OP_TLS_D5_BUG":256,"SSL_OP_TLS_ROLLBACK_BUG":8388608,"ENGINE_METHOD_DSA":2,"ENGINE_METHOD_DH":4,"ENGINE_METHOD_RAND":8,"ENGINE_METHOD_ECDH":16,"ENGINE_METHOD_ECDSA":32,"ENGINE_METHOD_CIPHERS":64,"ENGINE_METHOD_DIGESTS":128,"ENGINE_METHOD_STORE":256,"ENGINE_METHOD_PKEY_METHS":512,"ENGINE_METHOD_PKEY_ASN1_METHS":1024,"ENGINE_METHOD_ALL":65535,"ENGINE_METHOD_NONE":0,"DH_CHECK_P_NOT_SAFE_PRIME":2,"DH_CHECK_P_NOT_PRIME":1,"DH_UNABLE_TO_CHECK_GENERATOR":4,"DH_NOT_SUITABLE_GENERATOR":8,"NPN_ENABLED":1,"RSA_PKCS1_PADDING":1,"RSA_SSLV23_PADDING":2,"RSA_NO_PADDING":3,"RSA_PKCS1_OAEP_PADDING":4,"RSA_X931_PADDING":5,"RSA_PKCS1_PSS_PADDING":6,"POINT_CONVERSION_COMPRESSED":2,"POINT_CONVERSION_UNCOMPRESSED":4,"POINT_CONVERSION_HYBRID":6,"F_OK":0,"R_OK":4,"W_OK":2,"X_OK":1,"UV_UDP_REUSEADDR":4}
+Repeat.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
 /* 11 */
@@ -1795,7 +1717,7 @@ module.exports = {"O_RDONLY":0,"O_WRONLY":1,"O_RDWR":2,"S_IFMT":61440,"S_IFREG":
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Root;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__guards_guardScope__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(0);
 
 
 /**
@@ -1806,10 +1728,7 @@ module.exports = {"O_RDONLY":0,"O_WRONLY":1,"O_RDWR":2,"S_IFMT":61440,"S_IFREG":
  * @param child The child node. 
  */
 function Root(uid, guard, child) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+    __WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].call(this, uid, "root", guard, [child]);
 
     /**
      * Update the node and get whether the node state has changed.
@@ -1820,27 +1739,15 @@ function Root(uid, guard, child) {
         // Get the pre-update node state.
         const initialState = state;
 
-        // We will need to create the root guard scope here.
-        const guardScope = new __WEBPACK_IMPORTED_MODULE_0__guards_guardScope__["a" /* default */](guard, this);
-
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
         if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
             // We have not changed state.
             return false;
         }
 
-        // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
-        if (guard && !guard.isSatisfied(board)) {
-            // The guard is not satisfied and therefore we are finished with the node.
-            state = Mistreevous.State.FAILED;
-
-            // The node has moved to the FAILED state.
-            return true;
-        }
-
         // If the child has never been updated or is running then we will need to update it now.
         if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
-            child.update(board, guardScope);
+            child.update(board);
         }
 
         // The state of the root node is the state of its child.
@@ -1851,137 +1758,22 @@ function Root(uid, guard, child) {
     };
 
     /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
-
-    /**
      * Gets the name of the node.
      */
     this.getName = () => "ROOT";
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => [child];
-
-    /**
-     * Gets the guard of the node.
-     */
-    this.getGuard = () => guard;
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "root";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
-
-    /**
-     * Reset the state of the node.
-     * @param isAbort Whether the reset is part of an abort.
-     */
-    this.reset = isAbort => {
-        // Reset the state of this node.
-        state = Mistreevous.State.READY;
-
-        // Reset the child node.
-        child.reset(isAbort);
-    };
-
-    /**
-     * Set the guard scope at any tree leaf nodes.
-     * @param guardScope The guard scope.
-     */
-    this.setGuardScopeOnLeafNodes = guardScope => {};
 };
+
+Root.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
 /* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = GuardScope;
-/**
- * Represents a scoped node guard.
- * @param guard The node guard. 
- * @param node The guarded node.
- * @param parent The parent scope.
- */
-function GuardScope(guard, node, parent = null) {
-
-    /**
-     * Gets the guard for this scope.
-     */
-    this.getGuard = () => guard;
-
-    /**
-     * Gets the guarded node for this scope.
-     */
-    this.getNode = () => node;
-
-    /**
-     * Gets the parent for this scope, or null if there is no parent.
-     */
-    this.getParent = () => parent;
-
-    /**
-     * Evaluate guard conditions for all guards scopes in a tree path, moving outwards from the root.
-     * @param board The blackboard, required for guard evaluation.
-     * @returns An evaluation results object.
-     */
-    this.evaluate = board => {
-        // Create an array to hold every guard scope within this scope heirarchy.
-        const guardScopes = [];
-
-        // Move up the scope heirarchy to find every relevant guard.
-        const currentScope = this;
-        while (currentScope !== null) {
-            guardScopes.unshift(currentScope);
-
-            currentScope = currentScope.getParent();
-        }
-
-        // We need to evaluate guard conditions for nodes up the tree, moving outwards from the root.
-        for (const guardScope of guardScopes) {
-            // There may not be a guard defined for this scope.
-            if (!guardScope.getGuard()) {
-                continue;
-            }
-
-            // Check whether the guard condition passes.
-            if (!guardScope.getGuard().isSatisfied(board)) {
-                return {
-                    hasFailedCondition: true,
-                    node: guardScope.getNode()
-                };
-            }
-        }
-
-        // We did not come across a failed guard condition on this path.
-        return { hasFailedCondition: false };
-    };
-
-    /**
-     * Gets a new guard scope hanging off of this one.
-     * @param guard The guard.
-     * @param node The guarded node.
-     * @returns A new guard scope.
-     */
-    this.createScope = (guard, node) => {
-        return new GuardScope(guard, node, this);
-    };
-};
-
-/***/ }),
-/* 13 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Selector;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(0);
+
+
 /**
  * A SELECTOR node.
  * The child nodes are executed in sequence until one succeeds or all fail.
@@ -1990,18 +1782,14 @@ function GuardScope(guard, node, parent = null) {
  * @param children The child nodes.
  */
 function Selector(uid, guard, children) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+    __WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].call(this, uid, "selector", guard, children);
 
     /**
      * Update the node and get whether the node state has changed.
      * @param board The board.
-     * @param guardScope The guard scope.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.update = function (board, guardScope) {
+    this.update = function (board) {
         // Get the pre-update node state.
         const initialState = state;
 
@@ -2015,7 +1803,7 @@ function Selector(uid, guard, children) {
         for (const child of children) {
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
-                child.update(board, guardScope.createScope(guard, this));
+                child.update(board);
             }
 
             // If the current child has a state of 'SUCCEEDED' then this node is also a 'SUCCEEDED' node.
@@ -2058,54 +1846,22 @@ function Selector(uid, guard, children) {
     };
 
     /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
-
-    /**
      * Gets the name of the node.
      */
     this.getName = () => "SELECTOR";
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => children;
-
-    /**
-     * Gets the guard of the node.
-     */
-    this.getGuard = () => guard;
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "selector";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
-
-    /**
-     * Reset the state of the node.
-     * @param isAbort Whether the reset is part of an abort.
-     */
-    this.reset = isAbort => {
-        // Reset the state of this node.
-        state = Mistreevous.State.READY;
-
-        // Reset each child node.
-        children.forEach(child => child.reset(isAbort));
-    };
 };
 
+Selector.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
+
 /***/ }),
-/* 14 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Sequence;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(0);
+
+
 /**
  * A SEQUENCE node.
  * The child nodes are executed in sequence until one fails or all succeed.
@@ -2114,18 +1870,14 @@ function Selector(uid, guard, children) {
  * @param children The child nodes. 
  */
 function Sequence(uid, guard, children) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+    __WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].call(this, uid, "sequence", guard, children);
 
     /**
      * Update the node and get whether the node state has changed.
      * @param board The board.
-     * @param guardScope The guard scope.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.update = function (board, guardScope) {
+    this.update = function (board) {
         // Get the pre-update node state.
         const initialState = state;
 
@@ -2139,7 +1891,7 @@ function Sequence(uid, guard, children) {
         for (const child of children) {
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
-                child.update(board, guardScope.createScope(guard, this));
+                child.update(board);
             }
 
             // If the current child has a state of 'SUCCEEDED' then we should move on to the next child.
@@ -2182,54 +1934,22 @@ function Sequence(uid, guard, children) {
     };
 
     /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
-
-    /**
      * Gets the name of the node.
      */
     this.getName = () => "SEQUENCE";
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => children;
-
-    /**
-     * Gets the guard of the node.
-     */
-    this.getGuard = () => guard;
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "sequence";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
-
-    /**
-     * Reset the state of the node.
-     * @param isAbort Whether the reset is part of an abort.
-     */
-    this.reset = isAbort => {
-        // Reset the state of this node.
-        state = Mistreevous.State.READY;
-
-        // Reset each child node.
-        children.forEach(child => child.reset(isAbort));
-    };
 };
 
+Sequence.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
+
 /***/ }),
-/* 15 */
+/* 14 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Wait;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(1);
+
+
 /**
  * A WAIT node.
  * The state of this node will change to SUCCEEDED after a duration of time.
@@ -2239,10 +1959,7 @@ function Sequence(uid, guard, children) {
  * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
  */
 function Wait(uid, guard, duration, longestDuration) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, uid, "wait", guard);
 
     /** 
      * The time in milliseconds at which this node was first updated.
@@ -2257,10 +1974,9 @@ function Wait(uid, guard, duration, longestDuration) {
     /**
      * Update the node.
      * @param board The board.
-     * @param guardScope The guard scope.
      * @returns The result of the update.
      */
-    this.update = function (board, guardScope) {
+    this.update = function (board) {
         // Get the pre-update node state.
         const initialState = state;
 
@@ -2270,11 +1986,11 @@ function Wait(uid, guard, duration, longestDuration) {
             return { hasStateChanged: false };
         }
 
-        // Evaluate guard scope and return result if any guard conditions fail.
-        const guardScopeEvaluationResult = guardScope.createScope(guard, this).evaluate(board);
-        if (guardScopeEvaluationResult.hasFailedCondition) {
+        // Evaluate guard path and return result if any guard conditions fail.
+        const guardPathEvaluationResult = this.getGuardPath().evaluate(board);
+        if (guardPathEvaluationResult.hasFailedCondition) {
             // Is this node the one with the failed guard condition?
-            if (guardScopeEvaluationResult.node === this) {
+            if (guardPathEvaluationResult.node === this) {
                 // The guard condition for this node did not pass, so this node will move into the FAILED state.
                 state = Mistreevous.State.FAILED;
 
@@ -2284,7 +2000,7 @@ function Wait(uid, guard, duration, longestDuration) {
                 // A node guard condition has failed higher up the tree.
                 return {
                     hasStateChanged: false,
-                    failedGuardNode: guardScopeEvaluationResult.node
+                    failedGuardNode: guardPathEvaluationResult.node
                 };
             }
         }
@@ -2313,47 +2029,15 @@ function Wait(uid, guard, duration, longestDuration) {
     };
 
     /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
-
-    /**
      * Gets the name of the node.
      */
     this.getName = () => `WAIT ${longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms"}`;
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => [];
-
-    /**
-     * Gets the guard of the node.
-     */
-    this.getGuard = () => guard;
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "wait";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
-
-    /**
-     * Reset the state of the node.
-     * @param isAbort Whether the reset is part of an abort.
-     */
-    this.reset = isAbort => {
-        // Reset the state of this node.
-        state = Mistreevous.State.READY;
-    };
 };
 
+Wait.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
+
 /***/ }),
-/* 16 */
+/* 15 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2390,7 +2074,7 @@ function While(condition) {
 };
 
 /***/ }),
-/* 17 */
+/* 16 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2427,7 +2111,7 @@ function Until(condition) {
 };
 
 /***/ }),
-/* 18 */
+/* 17 */
 /***/ (function(module, exports) {
 
 /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {/* globals __webpack_amd_options__ */

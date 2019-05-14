@@ -815,8 +815,10 @@ BehaviourTree.prototype.getFlattenedNodeDetails = function () {
             parentId: parentUid
         });
 
-        // Process each of the nodes children.
-        (node.getChildren() || []).forEach((child) => processNode(child, node.getUid()));
+        // Process each of the nodes children if it is not a leaf node.
+        if (!node.isLeafNode()) {
+            node.getChildren().forEach((child) => processNode(child, node.getUid()));
+        }
     };
 
     // Convert the nested node structure into a flattened array of node details.

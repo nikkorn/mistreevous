@@ -143,7 +143,7 @@ function reloadVisualiser() {
     // There should be no running tree.
     setRunningState(false);
 
-    //try {
+    try {
         // Create the blackboard.
         const blackboard = (new Function("IsKeyPressed", `return (${blackboardTextArea.value});`))((keyCode) => {
             return window.allPressedKeyCodes[keyCode];
@@ -158,23 +158,23 @@ function reloadVisualiser() {
 
         // Show the runtime controls.
         runtimeButtonPanel.style.display = "block";
-    //} catch (exception) {
+    } catch (exception) {
         // There was an error creating the behaviour tree!
-   //     behaviourTree = null;
+        behaviourTree = null;
 
         // Show the exception on the page.
-   //     resultTextArea.innerHTML             = exception;
-    //    resultTextArea.style.backgroundColor = "#fcc2c2";
+        resultTextArea.innerHTML             = exception;
+        resultTextArea.style.backgroundColor = "#fcc2c2";
 
         // Hide the runtime controls.
-    //    runtimeButtonPanel.style.display = "none";
+        runtimeButtonPanel.style.display = "none";
 
         // Clear any existing tree view as it is no longer valid.
-   //     clearTreeView();
+        clearTreeView();
 
         // There is nothing left to do.
-    //    return;
-   // }
+        return;
+    }
 
     // Build the tree view.
     buildTreeView();
