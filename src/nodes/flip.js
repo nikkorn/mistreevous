@@ -32,7 +32,7 @@ export default function Flip(uid, guard, child) {
             // Update the child of this node and get the result.
             const updateResult = child.update(board, guardScope.createScope(guard, this));
 
-            // Check to see whether we have a failed node guard condition.
+            // Check to see whether a node guard condition failed during the child node update.
             if (updateResult.failedGuardNode) {
                 // Is this node the one with the failed guard condition?
                 if (updateResult.failedGuardNode === this) {

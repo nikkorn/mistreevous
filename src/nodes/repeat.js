@@ -30,10 +30,10 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
     let currentIterationCount = 0;
 
     /**
-     * Update the node and get whether the node state has changed.
+     * Update the node.
      * @param board The board.
      * @param guardScope The guard scope.
-     * @returns Whether the state of this node has changed as part of the update.
+     * @returns The result of the update.
      */
     this.update = function(board, guardScope) {
         // Get the pre-update node state.
@@ -42,16 +42,7 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
         if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
             // We have not changed state.
-            return false;
-        }
-
-        // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
-        if (guard && !guard.isSatisfied(board)) {
-            // The guard is not satisfied and therefore we are finished with the node.
-            state = Mistreevous.State.FAILED;
-
-            // The node has moved to the FAILED state.
-            return true;
+            return { hasStateChanged: false };
         }
 
         // If this node is in the READY state then we need to reset the child and the target iteration count.
@@ -75,8 +66,29 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
                 child.reset();
             }
 
-            // Update the child node.
-            child.update(board, guardScope.createScope(guard, this));
+            // Update the child of this node and get the result.
+            const updateResult = child.update(board, guardScope.createScope(guard, this));
+
+            // Check to see whether a node guard condition failed during the child node update.
+            if (updateResult.failedGuardNode) {
+                // Is this node the one with the failed guard condition?
+                if (updateResult.failedGuardNode === this) {
+                    // We need to reset this node, passing a flag to say that this is an abort.
+                    this.reset(true);
+                    
+                    // The guard condition for this node did not pass, so this node will move into the FAILED state.
+                    state = Mistreevous.State.FAILED;
+
+                    // Return whether the state of this node has changed.
+                    return { hasStateChanged: true };
+                } else {
+                    // A node guard condition has failed higher up the tree.
+                    return {
+                        hasStateChanged: false,
+                        failedGuardNode: guardScopeEvaluationResult.node
+                    };
+                }
+            }
 
             // If the child moved into the FAILED state when we updated it then there is nothing left to do and this node has also failed.
             // If it has moved into the SUCCEEDED state then we have completed the current iteration.
@@ -85,7 +97,7 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
                 state = Mistreevous.State.FAILED;
 
                 // Return whether the state of this node has changed.
-                return state !== initialState;
+                return { hasStateChanged: state !== initialState };
             } else if (child.getState() === Mistreevous.State.SUCCEEDED) {
                 // We have completed an iteration.
                 currentIterationCount += 1;
@@ -96,7 +108,7 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
         }
 
         // Return whether the state of this node has changed.
-        return state !== initialState;
+        return { hasStateChanged: state !== initialState };
     };
 
     /**
