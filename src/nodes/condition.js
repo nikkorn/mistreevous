@@ -36,7 +36,7 @@ export default function Condition(uid, condition) {
 
         // Call the condition function to determine the state of this node, but it must exist in the blackboard.
         if (typeof board[condition] === "function") {
-            state = !!(board[condition]()) ? Mistreevous.State.SUCCEEDED : Mistreevous.State.FAILED;
+            this.setState(!!(board[condition]()) ? Mistreevous.State.SUCCEEDED : Mistreevous.State.FAILED);
         } else {
             throw `cannot update condition node as function '${condition}' is not defined in the blackboard`;
         }

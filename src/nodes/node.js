@@ -11,9 +11,10 @@ export default function Node(uid, type, guard) {
   let state = Mistreevous.State.READY;
 
   /**
-   * Gets the state of the node.
+   * Gets/Sets the state of the node.
    */
   this.getState = () => state;
+  this.setState = (value) => state = value;
 
   /**
    * Gets the unique id of the node.
@@ -31,11 +32,19 @@ export default function Node(uid, type, guard) {
   this.getGuard = () => guard;
 
   /**
+   * Gets whether this node is in the specified state.
+   * @param value The value to compare to the node state.
+   */
+  this.is = (value) => {
+    return state === value;
+  };
+
+  /**
    * Reset the state of the node.
    * @param isAbort Whether the reset is part of an abort.
    */
   this.reset = (isAbort) => {
-      // Reset the state of this node.
-      state = Mistreevous.State.READY;
+    // Reset the state of this node.
+    this.setState(Mistreevous.State.READY);
   };
 };

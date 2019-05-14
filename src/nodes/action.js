@@ -21,16 +21,16 @@ export default function Action(uid, actionName) {
      */
     this.update = function(board) {
         // Get the pre-update node state.
-        const initialState = state;
+        const initialState = this.getState();
 
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
+        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
             // We have not changed state.
             return { hasStateChanged: false };
         }
 
         // Get a reference to the onFinish action function if it exists so that we can call it outside of an update.
-        if (state === Mistreevous.State.READY && typeof action === "object" && typeof action.onFinish === "function") {
+        if (this.is(Mistreevous.State.READY) && typeof action === "object" && typeof action.onFinish === "function") {
             onFinish = action.onFinish;
         }
 
@@ -51,7 +51,7 @@ export default function Action(uid, actionName) {
         this._validateAction(action);
 
         // If the state of this node is 'READY' then this is the first time that we are updating this node, so call onStart if it exists.
-        if (state === Mistreevous.State.READY && typeof action === "object" && typeof action.onStart === "function") {
+        if (this.is(Mistreevous.State.READY) && typeof action === "object" && typeof action.onStart === "function") {
             action.onStart();
         }
 
@@ -62,15 +62,15 @@ export default function Action(uid, actionName) {
         this._validateUpdateResult(updateResult);
 
         // Set the state of this node, this may be undefined, which just means that the node is still in the 'RUNNING' state.
-        state = updateResult || Mistreevous.State.RUNNING;
+        this.setState(updateResult || Mistreevous.State.RUNNING);
 
         // If the new action node state is either 'SUCCEEDED' or 'FAILED' then we are finished, so call onFinish if it exists.
-        if ((state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) && onFinish) {
-            onFinish({ succeeded: state === Mistreevous.State.SUCCEEDED, aborted: false });
+        if ((this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) && onFinish) {
+            onFinish({ succeeded: this.is(Mistreevous.State.SUCCEEDED), aborted: false });
         }
 
         // Return whether the state of this node has changed.
-        return { hasStateChanged: state !== initialState };
+        return { hasStateChanged: this.getState() !== initialState };
     };
 
     /**
@@ -89,7 +89,7 @@ export default function Action(uid, actionName) {
         }
 
         // Reset the state of this node.
-        state = Mistreevous.State.READY;
+        this.setState(Mistreevous.State.READY);
     };
 
     /**

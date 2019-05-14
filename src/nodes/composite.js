@@ -26,7 +26,7 @@ export default function Composite(uid, type, guard, children) {
      */
     this.reset = (isAbort) => {
         // Reset the state of this node.
-        state = Mistreevous.State.READY;
+        this.setState(Mistreevous.State.READY);
 
         // Reset the state of any child nodes.
         this.getChildren().forEach(child => child.reset(isAbort));

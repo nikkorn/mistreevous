@@ -98,7 +98,7 @@ function Composite(uid, type, guard, children) {
      */
     this.reset = isAbort => {
         // Reset the state of this node.
-        state = Mistreevous.State.READY;
+        this.setState(Mistreevous.State.READY);
 
         // Reset the state of any child nodes.
         this.getChildren().forEach(child => child.reset(isAbort));
@@ -163,9 +163,10 @@ function Node(uid, type, guard) {
   let state = Mistreevous.State.READY;
 
   /**
-   * Gets the state of the node.
+   * Gets/Sets the state of the node.
    */
   this.getState = () => state;
+  this.setState = value => state = value;
 
   /**
    * Gets the unique id of the node.
@@ -183,12 +184,20 @@ function Node(uid, type, guard) {
   this.getGuard = () => guard;
 
   /**
+   * Gets whether this node is in the specified state.
+   * @param value The value to compare to the node state.
+   */
+  this.is = value => {
+    return state === value;
+  };
+
+  /**
    * Reset the state of the node.
    * @param isAbort Whether the reset is part of an abort.
    */
   this.reset = isAbort => {
     // Reset the state of this node.
-    state = Mistreevous.State.READY;
+    this.setState(Mistreevous.State.READY);
   };
 };
 
@@ -1137,16 +1146,16 @@ function Action(uid, actionName) {
      */
     this.update = function (board) {
         // Get the pre-update node state.
-        const initialState = state;
+        const initialState = this.getState();
 
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
+        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
             // We have not changed state.
             return { hasStateChanged: false };
         }
 
         // Get a reference to the onFinish action function if it exists so that we can call it outside of an update.
-        if (state === Mistreevous.State.READY && typeof action === "object" && typeof action.onFinish === "function") {
+        if (this.is(Mistreevous.State.READY) && typeof action === "object" && typeof action.onFinish === "function") {
             onFinish = action.onFinish;
         }
 
@@ -1167,7 +1176,7 @@ function Action(uid, actionName) {
         this._validateAction(action);
 
         // If the state of this node is 'READY' then this is the first time that we are updating this node, so call onStart if it exists.
-        if (state === Mistreevous.State.READY && typeof action === "object" && typeof action.onStart === "function") {
+        if (this.is(Mistreevous.State.READY) && typeof action === "object" && typeof action.onStart === "function") {
             action.onStart();
         }
 
@@ -1178,15 +1187,15 @@ function Action(uid, actionName) {
         this._validateUpdateResult(updateResult);
 
         // Set the state of this node, this may be undefined, which just means that the node is still in the 'RUNNING' state.
-        state = updateResult || Mistreevous.State.RUNNING;
+        this.setState(updateResult || Mistreevous.State.RUNNING);
 
         // If the new action node state is either 'SUCCEEDED' or 'FAILED' then we are finished, so call onFinish if it exists.
-        if ((state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) && onFinish) {
-            onFinish({ succeeded: state === Mistreevous.State.SUCCEEDED, aborted: false });
+        if ((this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) && onFinish) {
+            onFinish({ succeeded: this.is(Mistreevous.State.SUCCEEDED), aborted: false });
         }
 
         // Return whether the state of this node has changed.
-        return { hasStateChanged: state !== initialState };
+        return { hasStateChanged: this.getState() !== initialState };
     };
 
     /**
@@ -1205,7 +1214,7 @@ function Action(uid, actionName) {
         }
 
         // Reset the state of this node.
-        state = Mistreevous.State.READY;
+        this.setState(Mistreevous.State.READY);
     };
 
     /**
@@ -1293,7 +1302,7 @@ function Condition(uid, condition) {
 
         // Call the condition function to determine the state of this node, but it must exist in the blackboard.
         if (typeof board[condition] === "function") {
-            state = !!board[condition]() ? Mistreevous.State.SUCCEEDED : Mistreevous.State.FAILED;
+            this.setState(!!board[condition]() ? Mistreevous.State.SUCCEEDED : Mistreevous.State.FAILED);
         } else {
             throw `cannot update condition node as function '${condition}' is not defined in the blackboard`;
         }
@@ -1357,7 +1366,7 @@ function Flip(uid, guard, child) {
                     this.reset(true);
 
                     // The guard condition for this node did not pass, so this node will move into the FAILED state.
-                    state = Mistreevous.State.FAILED;
+                    this.setState(Mistreevous.State.FAILED);
 
                     // Return whether the state of this node has changed.
                     return { hasStateChanged: true };
@@ -1374,18 +1383,19 @@ function Flip(uid, guard, child) {
         // The state of this node will depend in the state of its child.
         switch (child.getState()) {
             case Mistreevous.State.RUNNING:
-                state = Mistreevous.State.RUNNING;
+                this.setState(Mistreevous.State.RUNNING);
                 break;
 
             case Mistreevous.State.SUCCEEDED:
-                state = Mistreevous.State.FAILED;
+                this.setState(Mistreevous.State.FAILED);
                 break;
 
             case Mistreevous.State.FAILED:
-                state = Mistreevous.State.SUCCEEDED;
+                this.setState(Mistreevous.State.SUCCEEDED);
                 break;
+
             default:
-                state = Mistreevous.State.READY;
+                this.setState(Mistreevous.State.READY);
         }
 
         // Return whether the state of this node has changed.
@@ -1500,7 +1510,7 @@ function Lotto(uid, guard, tickets, children) {
         // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
         if (guard && !guard.isSatisfied(board)) {
             // The guard is not satisfied and therefore we are finished with the node.
-            state = Mistreevous.State.FAILED;
+            this.setState(Mistreevous.State.FAILED);
 
             // The node has moved to the FAILED state.
             return true;
@@ -1524,7 +1534,7 @@ function Lotto(uid, guard, tickets, children) {
         }
 
         // The state of the lotto node is the state of its winning child.
-        state = winningChild.getState();
+        this.setState(winningChild.getState());
 
         // Return whether the state of this node has changed.
         return state !== initialState;

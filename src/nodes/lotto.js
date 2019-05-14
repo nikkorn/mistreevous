@@ -91,7 +91,7 @@ export default function Lotto(uid, guard, tickets, children) {
         // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
         if (guard && !guard.isSatisfied(board)) {
             // The guard is not satisfied and therefore we are finished with the node.
-            state = Mistreevous.State.FAILED;
+            this.setState(Mistreevous.State.FAILED);
 
             // The node has moved to the FAILED state.
             return true;
@@ -115,7 +115,7 @@ export default function Lotto(uid, guard, tickets, children) {
         }
 
         // The state of the lotto node is the state of its winning child.
-        state = winningChild.getState();
+        this.setState(winningChild.getState());
 
         // Return whether the state of this node has changed.
         return state !== initialState;

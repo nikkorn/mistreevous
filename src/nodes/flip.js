@@ -38,7 +38,7 @@ export default function Flip(uid, guard, child) {
                     this.reset(true);
                     
                     // The guard condition for this node did not pass, so this node will move into the FAILED state.
-                    state = Mistreevous.State.FAILED;
+                    this.setState(Mistreevous.State.FAILED);
     
                     // Return whether the state of this node has changed.
                     return { hasStateChanged: true };
@@ -55,18 +55,19 @@ export default function Flip(uid, guard, child) {
         // The state of this node will depend in the state of its child.
         switch (child.getState()) {
             case Mistreevous.State.RUNNING:
-                state = Mistreevous.State.RUNNING;
+                this.setState(Mistreevous.State.RUNNING);
                 break;
 
             case Mistreevous.State.SUCCEEDED:
-                state = Mistreevous.State.FAILED;
+                this.setState(Mistreevous.State.FAILED);
                 break;
 
             case Mistreevous.State.FAILED:
-                state = Mistreevous.State.SUCCEEDED;
+                this.setState(Mistreevous.State.SUCCEEDED);
                 break;
+
             default:
-                state = Mistreevous.State.READY;
+                this.setState(Mistreevous.State.READY);
         }
 
         // Return whether the state of this node has changed.
