@@ -1,4 +1,5 @@
 import GuardScope from "../guards/guardScope";
+import Composite from './composite'
 
 /**
  * A Root node.
@@ -8,10 +9,7 @@ import GuardScope from "../guards/guardScope";
  * @param child The child node. 
  */
 export default function Root(uid, guard, child) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+    Composite.call(this, uid, "root", guard, [child]);
    
     /**
      * Update the node and get whether the node state has changed.
@@ -53,52 +51,9 @@ export default function Root(uid, guard, child) {
     };
 
     /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
-
-    /**
      * Gets the name of the node.
      */
     this.getName = () => "ROOT";
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => [child];
-
-    /**
-     * Gets the guard of the node.
-     */
-    this.getGuard = () => guard;
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "root";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
-
-    /**
-     * Reset the state of the node.
-     * @param isAbort Whether the reset is part of an abort.
-     */
-    this.reset = (isAbort) => {
-        // Reset the state of this node.
-        state = Mistreevous.State.READY;
-
-        // Reset the child node.
-        child.reset(isAbort);
-    };
-
-    /**
-     * Set the guard scope at any tree leaf nodes.
-     * @param guardScope The guard scope.
-     */
-    this.setGuardScopeOnLeafNodes = (guardScope) => {
-       
-    };
 };
+
+Root.prototype = Object.create(Composite.prototype);

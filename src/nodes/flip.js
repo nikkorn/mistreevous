@@ -1,3 +1,5 @@
+import Composite from './composite'
+
 /**
  * A Flip node.
  * This node wraps a single child and will flip the state of the child state.
@@ -6,10 +8,7 @@
  * @param child The child node. 
  */
 export default function Flip(uid, guard, child) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+    Composite.call(this, uid, "flip", guard, [child]);
    
     /**
      * Update the node.
@@ -74,46 +73,11 @@ export default function Flip(uid, guard, child) {
         // Return whether the state of this node has changed.
         return { hasStateChanged: state !== initialState };
     };
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
-
+   
     /**
      * Gets the name of the node.
      */
     this.getName = () => "FLIP";
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => [child];
-
-    /**
-     * Gets the guard of the node.
-     */
-    this.getGuard = () => guard;
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "flip";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
-
-    /**
-     * Reset the state of the node.
-     * @param isAbort Whether the reset is part of an abort.
-     */
-    this.reset = (isAbort) => {
-        // Reset the state of this node.
-        state = Mistreevous.State.READY;
-
-        // Reset the child node.
-        child.reset(isAbort);
-    };
 };
+
+Flip.prototype = Object.create(Composite.prototype);

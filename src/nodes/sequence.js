@@ -1,3 +1,5 @@
+import Composite from './composite'
+
 /**
  * A SEQUENCE node.
  * The child nodes are executed in sequence until one fails or all succeed.
@@ -6,10 +8,7 @@
  * @param children The child nodes. 
  */
 export default function Sequence(uid, guard, children) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+    Composite.call(this, uid, "sequence", guard, children);
    
     /**
      * Update the node and get whether the node state has changed.
@@ -72,46 +71,11 @@ export default function Sequence(uid, guard, children) {
             throw "Error: child node was not in an expected state.";
         }
     };
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
-
+ 
     /**
      * Gets the name of the node.
      */
     this.getName = () => "SEQUENCE";
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => children;
-
-    /**
-     * Gets the guard of the node.
-     */
-    this.getGuard = () => guard;
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "sequence";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
-
-    /**
-     * Reset the state of the node.
-     * @param isAbort Whether the reset is part of an abort.
-     */
-    this.reset = (isAbort) => {
-        // Reset the state of this node.
-        state = Mistreevous.State.READY;
-
-        // Reset each child node.
-        children.forEach((child) => child.reset(isAbort));
-    };
 };
+
+Sequence.prototype = Object.create(Composite.prototype);

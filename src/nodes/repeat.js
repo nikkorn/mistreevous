@@ -1,4 +1,4 @@
-import { defaultCipherList } from "constants";
+import Composite from './composite'
 
 /**
  * A REPEAT node.
@@ -14,10 +14,7 @@ import { defaultCipherList } from "constants";
  * @param child The child node. 
  */
 export default function Repeat(uid, guard, iterations, maximumIterations, child) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+    Composite.call(this, uid, "repeat", guard, [child]);
 
     /**
      * The number of target iterations to make.
@@ -112,11 +109,6 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
     };
 
     /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
-
-    /**
      * Gets the name of the node.
      */
     this.getName = () => {
@@ -127,26 +119,6 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
         // Return the default repeat node name.
         return "REPEAT";
     }
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => [child];
-
-    /**
-     * Gets the guard of the node.
-     */
-    this.getGuard = () => guard;
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "repeat";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
 
     /**
      * Reset the state of the node.
@@ -192,3 +164,5 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
         }
     }
 };
+
+Repeat.prototype = Object.create(Composite.prototype);

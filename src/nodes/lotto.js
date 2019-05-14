@@ -1,3 +1,5 @@
+import Composite from './composite'
+
 /**
  * A LOTTO node.
  * A winning child is picked on the initial update of this node, based on ticket weighting.
@@ -8,10 +10,7 @@
  * @param children The child nodes. 
  */
 export default function Lotto(uid, guard, tickets, children) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+    Composite.call(this, uid, "lotto", guard, children);
 
     /**
      * The winning child node.
@@ -124,44 +123,9 @@ export default function Lotto(uid, guard, tickets, children) {
     };
 
     /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
-
-    /**
      * Gets the name of the node.
      */
     this.getName = () => tickets.length ? `LOTTO [${ tickets.join(",") }]` : "LOTTO";
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => children;
-
-    /**
-     * Gets the guard of the node.
-     */
-    this.getGuard = () => guard;
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "lotto";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
-
-    /**
-     * Reset the state of the node.
-     * @param isAbort Whether the reset is part of an abort.
-     */
-    this.reset = (isAbort) => {
-        // Reset the state of this node.
-        state = Mistreevous.State.READY;
-
-        // Reset each child node.
-        children.forEach((child) => child.reset(isAbort));
-    };
 };
+
+Lotto.prototype = Object.create(Composite.prototype);

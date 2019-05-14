@@ -1,14 +1,13 @@
+import Leaf from './leaf'
+
 /**
- * A Condition node.
- * This acts as a guard and will succeed or fail immediately based on a board predicate, without moving to the 'RUNNING' state.
+ * A Condition leaf node.
+ * This will succeed or fail immediately based on a board predicate, without moving to the 'RUNNING' state.
  * @param uid The unique node id.
  * @param condition The name of the condition function. 
  */
 export default function Condition(uid, condition) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+    Leaf.call(this, uid, "condition", null);
    
     /**
      * Update the node.
@@ -48,41 +47,9 @@ export default function Condition(uid, condition) {
     };
 
     /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
-
-    /**
      * Gets the name of the node.
      */
     this.getName = () => condition;
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => null;
-
-    /**
-     * Gets the guard of the node.
-     */
-    this.getGuard = () => null;
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "condition";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
-
-    /**
-     * Reset the state of the node.
-     * @param isAbort Whether the reset is part of an abort.
-     */
-    this.reset = (isAbort) => {
-        // Reset the state of this node.
-        state = Mistreevous.State.READY;
-    };
 };
+
+Condition.prototype = Object.create(Leaf.prototype);

@@ -1,3 +1,5 @@
+import Composite from './composite'
+
 /**
  * A SELECTOR node.
  * The child nodes are executed in sequence until one succeeds or all fail.
@@ -6,11 +8,8 @@
  * @param children The child nodes.
  */
 export default function Selector(uid, guard, children) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
-   
+    Composite.call(this, uid, "selector", guard, children);
+
     /**
      * Update the node and get whether the node state has changed.
      * @param board The board.
@@ -74,44 +73,9 @@ export default function Selector(uid, guard, children) {
     };
 
     /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
-
-    /**
      * Gets the name of the node.
      */
     this.getName = () => "SELECTOR";
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => children;
-
-    /**
-     * Gets the guard of the node.
-     */
-    this.getGuard = () => guard;
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "selector";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
-
-    /**
-     * Reset the state of the node.
-     * @param isAbort Whether the reset is part of an abort.
-     */
-    this.reset = (isAbort) => {
-        // Reset the state of this node.
-        state = Mistreevous.State.READY;
-
-        // Reset each child node.
-        children.forEach((child) => child.reset(isAbort));
-    };
 };
+
+Selector.prototype = Object.create(Composite.prototype);

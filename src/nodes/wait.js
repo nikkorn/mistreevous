@@ -1,3 +1,5 @@
+import Leaf from './leaf'
+
 /**
  * A WAIT node.
  * The state of this node will change to SUCCEEDED after a duration of time.
@@ -7,10 +9,7 @@
  * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
  */
 export default function Wait(uid, guard, duration, longestDuration) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+    Leaf.call(this, uid, "wait", guard);
 
     /** 
      * The time in milliseconds at which this node was first updated.
@@ -81,41 +80,9 @@ export default function Wait(uid, guard, duration, longestDuration) {
     };
 
     /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
-
-    /**
      * Gets the name of the node.
      */
     this.getName = () => `WAIT ${ longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms" }`;
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => [];
-
-    /**
-     * Gets the guard of the node.
-     */
-    this.getGuard = () => guard;
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "wait";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
-
-    /**
-     * Reset the state of the node.
-     * @param isAbort Whether the reset is part of an abort.
-     */
-    this.reset = (isAbort) => {
-        // Reset the state of this node.
-        state = Mistreevous.State.READY;
-    };
 };
+
+Wait.prototype = Object.create(Leaf.prototype);

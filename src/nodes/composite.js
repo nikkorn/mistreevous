@@ -1,13 +1,14 @@
 import Node from './node'
 
 /**
- * A composite node.
+ * A composite node that wraps child nodes.
  * @param uid The unique node id.
+ * @param type The node type.
  * @param guard The node guard.
  * @param children The child nodes. 
  */
-export default function Composite(uid, guard, children) {
-    Node.call(this, uid, guard);
+export default function Composite(uid, type, guard, children) {
+    Node.call(this, uid, type, guard);
 
     /**
      * Gets whether this node is a leaf node.

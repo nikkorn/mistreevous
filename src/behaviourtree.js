@@ -310,6 +310,9 @@ export default function BehaviourTree(definition, board) {
 
             // Convert the AST to our actual tree.
             this._rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(namedRootNodeProvider, []);
+
+            // TODO Get all leaf nodes of the tree as well as an array of nodes (and their guards) on the way to it.
+            // TODO Set a NodeGuardPath (to be made) on every leaf not ofr it to evaluate as part of its update.
         } catch (exception) {
             // There was an issue in trying to parse and build the tree definition.
             throw `TreeParseError: ${exception}`;

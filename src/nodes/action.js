@@ -1,13 +1,13 @@
 import Leaf from './leaf'
 
 /**
- * An Action node.
+ * An Action leaf node.
  * This represents an immediate or ongoing state of behaviour.
  * @param uid The unique node id.
  * @param actionName The action name.
  */
 export default function Action(uid, actionName) {
-    Leaf.call(this, uid, null);
+    Leaf.call(this, uid, "action", null);
 
     /**
      * The onFinish action function, if one was defined.
@@ -78,11 +78,6 @@ export default function Action(uid, actionName) {
      * Gets the name of the node.
      */
     this.getName = () => actionName;
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "action";
 
     /**
      * Reset the state of the node.

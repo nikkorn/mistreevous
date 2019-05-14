@@ -1,9 +1,10 @@
 /**
  * A base node.
  * @param uid The unique node id.
+ * @param type The node type.
  * @param guard The node guard.
  */
-export default function Node(uid, guard) {
+export default function Node(uid, type, guard) {
   /**
    * The node state.
    */
@@ -15,14 +16,19 @@ export default function Node(uid, guard) {
   this.getState = () => state;
 
   /**
-   * Gets the guard of the node.
-   */
-  this.getGuard = () => guard;
-
-  /**
    * Gets the unique id of the node.
    */
   this.getUid = () => uid;
+
+  /**
+   * Gets the type of the node.
+   */
+  this.getType = () => type;
+
+  /**
+   * Gets the guard of the node.
+   */
+  this.getGuard = () => guard;
 
   /**
    * Reset the state of the node.
