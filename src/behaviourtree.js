@@ -9,6 +9,7 @@ import Sequence from './nodes/sequence'
 import Wait from './nodes/wait'
 import While from './guards/while'
 import Until from './guards/until'
+import GuardPath from './guards/guardPath';
 
 /**
  * The behaviour tree.
@@ -770,10 +771,19 @@ export default function BehaviourTree(definition, board) {
      * Sets guard paths for every leaf node in the behaviour tree.
      */
     this._setLeafNodeGuardPaths= function() {
-        // Firstly, get a multi-dimensional array of root->leaf node paths.
-        const allNodePaths = this._getAllNodePaths();
+        this._getAllNodePaths().forEach((path) => {
+            // Get the leaf node, which will be the last in the path.
+            const leaf = path[path.length - 1];
 
-        // TODO
+            // Create the guard path for the leaf node.
+            const guardPath = new GuardPath(
+                path
+                    .map((node) => ({ node, guard: node.getGuard() }))
+                    .filter((details) => details.guard)
+            )
+
+            leaf.setGuardPath(guardPath);
+        });
     };
 
     /**
@@ -781,7 +791,24 @@ export default function BehaviourTree(definition, board) {
      * @returns A multi-dimensional array of root->leaf node paths.
      */
     this._getAllNodePaths = function() {
-        // TODO
+        const nodePaths = [];
+
+        const findLeafNodes = (path, node) => {
+            // Add the current node to the path.
+            path = path.concat(node);
+
+            // Check whether the current node is a leaf node. 
+            if (node.isLeafNode()) {
+                nodePaths.push(path);
+            } else {
+                node.getChildren().forEach((child) => findLeafNodes(path, child));
+            }
+        };
+
+        // Find all leaf node paths, starting from the root.
+        findLeafNodes([], this._rootNode);
+
+        return nodePaths;
     };
 
     // Call init logic.

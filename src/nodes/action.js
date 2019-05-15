@@ -84,7 +84,7 @@ export default function Action(uid, actionName) {
      */
     this.reset = (isAbort) => {
         // If the reset is due to an abort, and this node is running, call onFinish() if it is defined.
-        if (isAbort && state === Mistreevous.State.RUNNING && onFinish) {
+        if (isAbort && this.is(Mistreevous.State.RUNNING) && onFinish) {
             onFinish({ succeeded: false, aborted: true });
         }
 

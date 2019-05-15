@@ -133,8 +133,7 @@ function Leaf(uid, type, guard) {
   /**
    * Gets/Sets the guard path to evaluate as part of a node update.
    */
-  //this.getGuardPath = () => guardPath;
-  this.getGuardPath = () => ({ evaluate: () => ({}) });
+  this.getGuardPath = () => guardPath;
   this.setGuardPath = value => guardPath = value;
 
   /**
@@ -225,7 +224,7 @@ const Mistreevous = {
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
     module.exports = Mistreevous;
 } else {
-    if (typeof define === 'function' && __webpack_require__(17)) {
+    if (typeof define === 'function' && __webpack_require__(18)) {
         define([], function () {
             return Mistreevous;
         });
@@ -282,6 +281,8 @@ module.exports = function(originalModule) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_wait__ = __webpack_require__(14);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__guards_while__ = __webpack_require__(15);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__guards_until__ = __webpack_require__(16);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__guards_guardPath__ = __webpack_require__(17);
+
 
 
 
@@ -1021,10 +1022,15 @@ function BehaviourTree(definition, board) {
      * Sets guard paths for every leaf node in the behaviour tree.
      */
     this._setLeafNodeGuardPaths = function () {
-        // Firstly, get a multi-dimensional array of root->leaf node paths.
-        const allNodePaths = this._getAllNodePaths();
+        this._getAllNodePaths().forEach(path => {
+            // Get the leaf node, which will be the last in the path.
+            const leaf = path[path.length - 1];
 
-        // TODO
+            // Create the guard path for the leaf node.
+            const guardPath = new __WEBPACK_IMPORTED_MODULE_11__guards_guardPath__["a" /* default */](path.map(node => ({ node, guard: node.getGuard() })).filter(details => details.guard));
+
+            leaf.setGuardPath(guardPath);
+        });
     };
 
     /**
@@ -1032,7 +1038,24 @@ function BehaviourTree(definition, board) {
      * @returns A multi-dimensional array of root->leaf node paths.
      */
     this._getAllNodePaths = function () {
-        // TODO
+        const nodePaths = [];
+
+        const findLeafNodes = (path, node) => {
+            // Add the current node to the path.
+            path = path.concat(node);
+
+            // Check whether the current node is a leaf node. 
+            if (node.isLeafNode()) {
+                nodePaths.push(path);
+            } else {
+                node.getChildren().forEach(child => findLeafNodes(path, child));
+            }
+        };
+
+        // Find all leaf node paths, starting from the root.
+        findLeafNodes([], this._rootNode);
+
+        return nodePaths;
     };
 
     // Call init logic.
@@ -1228,7 +1251,7 @@ function Action(uid, actionName) {
      */
     this.reset = isAbort => {
         // If the reset is due to an abort, and this node is running, call onFinish() if it is defined.
-        if (isAbort && state === Mistreevous.State.RUNNING && onFinish) {
+        if (isAbort && this.is(Mistreevous.State.RUNNING) && onFinish) {
             onFinish({ succeeded: false, aborted: true });
         }
 
@@ -2217,6 +2240,40 @@ function Until(condition) {
 
 /***/ }),
 /* 17 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = GuardPath;
+/**
+ * Represents a path of node guards along a root-to-leaf tree path.
+ * @param guardedNodes An array of objects defining a node instance -> guard link, ordered by node depth.
+ */
+function GuardPath(guardedNodes) {
+
+    /**
+     * Evaluate guard conditions for all guards in the tree path, moving outwards from the root.
+     * @param board The blackboard, required for guard evaluation.
+     * @returns An evaluation results object.
+     */
+    this.evaluate = board => {
+        // We need to evaluate guard conditions for nodes up the tree, moving outwards from the root.
+        for (const details of guardedNodes) {
+            // Check whether the guard condition passes.
+            if (!details.guard.isSatisfied(board)) {
+                return {
+                    hasFailedCondition: true,
+                    node: details.node
+                };
+            }
+        }
+
+        // We did not come across a failed guard condition on this path.
+        return { hasFailedCondition: false };
+    };
+};
+
+/***/ }),
+/* 18 */
 /***/ (function(module, exports) {
 
 /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {/* globals __webpack_amd_options__ */
