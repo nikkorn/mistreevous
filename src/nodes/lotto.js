@@ -102,7 +102,29 @@ export default function Lotto(uid, guard, tickets, children) {
 
         // If the winning child has never been updated or is running then we will need to update it now.
         if (winningChild.getState() === Mistreevous.State.READY || winningChild.getState() === Mistreevous.State.RUNNING) {
-            winningChild.update(board);
+            // Update the child of this node and get the result.
+            const updateResult = child.update(board);
+
+            // Check to see whether a node guard condition failed during the child node update.
+            if (updateResult.failedGuardNode) {
+                // Is this node the one with the failed guard condition?
+                if (updateResult.failedGuardNode === this) {
+                    // We need to reset this node, passing a flag to say that this is an abort.
+                    this.reset(true);
+                    
+                    // The guard condition for this node did not pass, so this node will move into the FAILED state.
+                    this.setState(Mistreevous.State.FAILED);
+
+                    // Return whether the state of this node has changed.
+                    return { hasStateChanged: true };
+                } else {
+                    // A node guard condition has failed higher up the tree.
+                    return {
+                        hasStateChanged: false,
+                        failedGuardNode: guardScopeEvaluationResult.node
+                    };
+                }
+            }
         }
 
         // The state of the lotto node is the state of its winning child.
