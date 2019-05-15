@@ -46,7 +46,7 @@ export default function Flip(uid, guard, child) {
                     // A node guard condition has failed higher up the tree.
                     return {
                         hasStateChanged: false,
-                        failedGuardNode: guardScopeEvaluationResult.node
+                        failedGuardNode: updateResult.failedGuardNode
                     };
                 }
             }

@@ -1416,7 +1416,7 @@ function Flip(uid, guard, child) {
                     // A node guard condition has failed higher up the tree.
                     return {
                         hasStateChanged: false,
-                        failedGuardNode: guardScopeEvaluationResult.node
+                        failedGuardNode: updateResult.failedGuardNode
                     };
                 }
             }
@@ -1582,7 +1582,7 @@ function Lotto(uid, guard, tickets, children) {
                     // A node guard condition has failed higher up the tree.
                     return {
                         hasStateChanged: false,
-                        failedGuardNode: guardScopeEvaluationResult.node
+                        failedGuardNode: updateResult.failedGuardNode
                     };
                 }
             }
@@ -1693,7 +1693,7 @@ function Repeat(uid, guard, iterations, maximumIterations, child) {
                     // A node guard condition has failed higher up the tree.
                     return {
                         hasStateChanged: false,
-                        failedGuardNode: guardScopeEvaluationResult.node
+                        failedGuardNode: updateResult.failedGuardNode
                     };
                 }
             }
@@ -1906,7 +1906,7 @@ function Selector(uid, guard, children) {
                         // A node guard condition has failed higher up the tree.
                         return {
                             hasStateChanged: false,
-                            failedGuardNode: guardScopeEvaluationResult.node
+                            failedGuardNode: updateResult.failedGuardNode
                         };
                     }
                 }
@@ -2016,7 +2016,7 @@ function Sequence(uid, guard, children) {
                         // A node guard condition has failed higher up the tree.
                         return {
                             hasStateChanged: false,
-                            failedGuardNode: guardScopeEvaluationResult.node
+                            failedGuardNode: updateResult.failedGuardNode
                         };
                     }
                 }

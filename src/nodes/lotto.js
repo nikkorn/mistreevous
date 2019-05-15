@@ -121,7 +121,7 @@ export default function Lotto(uid, guard, tickets, children) {
                     // A node guard condition has failed higher up the tree.
                     return {
                         hasStateChanged: false,
-                        failedGuardNode: guardScopeEvaluationResult.node
+                        failedGuardNode: updateResult.failedGuardNode
                     };
                 }
             }

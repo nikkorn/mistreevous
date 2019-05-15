@@ -48,7 +48,7 @@ export default function Selector(uid, guard, children) {
                         // A node guard condition has failed higher up the tree.
                         return {
                             hasStateChanged: false,
-                            failedGuardNode: guardScopeEvaluationResult.node
+                            failedGuardNode: updateResult.failedGuardNode
                         };
                     }
                 }
