@@ -17,7 +17,8 @@ export default function Leaf(uid, type, guard) {
     /**
      * Gets/Sets the guard path to evaluate as part of a node update.
      */
-    this.getGuardPath = () => guardPath;
+    //this.getGuardPath = () => guardPath;
+    this.getGuardPath = () => ({ evaluate: ()=> ({}) });
     this.setGuardPath = (value) => guardPath = value;
 
     /**

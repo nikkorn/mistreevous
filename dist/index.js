@@ -133,7 +133,8 @@ function Leaf(uid, type, guard) {
   /**
    * Gets/Sets the guard path to evaluate as part of a node update.
    */
-  this.getGuardPath = () => guardPath;
+  //this.getGuardPath = () => guardPath;
+  this.getGuardPath = () => ({ evaluate: () => ({}) });
   this.setGuardPath = value => guardPath = value;
 
   /**
@@ -1154,11 +1155,6 @@ function Action(uid, actionName) {
             return { hasStateChanged: false };
         }
 
-        // Get a reference to the onFinish action function if it exists so that we can call it outside of an update.
-        if (this.is(Mistreevous.State.READY) && typeof action === "object" && typeof action.onFinish === "function") {
-            onFinish = action.onFinish;
-        }
-
         // Evaluate all of the guard path conditions for the current tree path and return result if any guard conditions fail.
         const guardPathEvaluationResult = this.getGuardPath().evaluate(board);
         if (guardPathEvaluationResult.hasFailedCondition) {
@@ -1171,6 +1167,11 @@ function Action(uid, actionName) {
 
         // Get the corresponding action object or function.
         const action = board[actionName];
+
+        // Get a reference to the onFinish action function if it exists so that we can call it outside of an update.
+        if (this.is(Mistreevous.State.READY) && typeof action === "object" && typeof action.onFinish === "function") {
+            onFinish = action.onFinish;
+        }
 
         // Validate the action.
         this._validateAction(action);
@@ -1285,7 +1286,7 @@ function Condition(uid, condition) {
         const initialState = this.getState();
 
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(state === Mistreevous.State.FAILED)) {
+        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
             // We have not changed state.
             return { hasStateChanged: false };
         }
@@ -1521,8 +1522,8 @@ function Lotto(uid, guard, tickets, children) {
 
         // If the winning child has never been updated or is running then we will need to update it now.
         if (winningChild.getState() === Mistreevous.State.READY || winningChild.getState() === Mistreevous.State.RUNNING) {
-            // Update the child of this node and get the result.
-            const updateResult = child.update(board);
+            // Update the winning child of this node and get the result.
+            const updateResult = winningChild.update(board);
 
             // Check to see whether a node guard condition failed during the child node update.
             if (updateResult.failedGuardNode) {
@@ -2078,7 +2079,7 @@ function Wait(uid, guard, duration, longestDuration) {
             // Is this node the one with the failed guard condition?
             if (guardPathEvaluationResult.node === this) {
                 // The guard condition for this node did not pass, so this node will move into the FAILED state.
-                state = Mistreevous.State.FAILED;
+                this.setState(Mistreevous.State.FAILED);
 
                 // Return whether the state of this node has changed.
                 return { hasStateChanged: true };
@@ -2092,7 +2093,7 @@ function Wait(uid, guard, duration, longestDuration) {
         }
 
         // If this node is in the READY state then we need to set the initial update time.
-        if (state === Mistreevous.State.READY) {
+        if (this.is(Mistreevous.State.READY)) {
             // Set the initial update time.
             initialUpdateTime = new Date().getTime();
 
@@ -2101,13 +2102,13 @@ function Wait(uid, guard, duration, longestDuration) {
             waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
 
             // The node is now running until we finish waiting.
-            state = Mistreevous.State.RUNNING;
+            this.setState(Mistreevous.State.RUNNING);
         }
 
         // Have we waited long enough?
         if (new Date().getTime() >= initialUpdateTime + waitDuration) {
             // We have finished waiting!
-            state = Mistreevous.State.SUCCEEDED;
+            this.setState(Mistreevous.State.SUCCEEDED);
         }
 
         // Return whether the state of this node has changed.

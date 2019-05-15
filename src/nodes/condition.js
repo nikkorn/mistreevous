@@ -19,7 +19,7 @@ export default function Condition(uid, condition) {
         const initialState = this.getState();
 
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(state === Mistreevous.State.FAILED)) {
+        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
             // We have not changed state.
             return { hasStateChanged: false };
         }

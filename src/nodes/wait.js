@@ -42,7 +42,7 @@ export default function Wait(uid, guard, duration, longestDuration) {
             // Is this node the one with the failed guard condition?
             if (guardPathEvaluationResult.node === this) {
                 // The guard condition for this node did not pass, so this node will move into the FAILED state.
-                state = Mistreevous.State.FAILED;
+                this.setState(Mistreevous.State.FAILED);
 
                 // Return whether the state of this node has changed.
                 return { hasStateChanged: true };
@@ -56,7 +56,7 @@ export default function Wait(uid, guard, duration, longestDuration) {
         }
 
         // If this node is in the READY state then we need to set the initial update time.
-        if (state === Mistreevous.State.READY) {
+        if (this.is(Mistreevous.State.READY)) {
             // Set the initial update time.
             initialUpdateTime = new Date().getTime();
 
@@ -65,13 +65,13 @@ export default function Wait(uid, guard, duration, longestDuration) {
             waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
 
             // The node is now running until we finish waiting.
-            state = Mistreevous.State.RUNNING;
+            this.setState(Mistreevous.State.RUNNING);
         }
 
         // Have we waited long enough?
         if (new Date().getTime() >= (initialUpdateTime + waitDuration)) {
             // We have finished waiting!
-            state = Mistreevous.State.SUCCEEDED;
+            this.setState(Mistreevous.State.SUCCEEDED);
         }
 
         // Return whether the state of this node has changed.

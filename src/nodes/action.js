@@ -29,11 +29,6 @@ export default function Action(uid, actionName) {
             return { hasStateChanged: false };
         }
 
-        // Get a reference to the onFinish action function if it exists so that we can call it outside of an update.
-        if (this.is(Mistreevous.State.READY) && typeof action === "object" && typeof action.onFinish === "function") {
-            onFinish = action.onFinish;
-        }
-
         // Evaluate all of the guard path conditions for the current tree path and return result if any guard conditions fail.
         const guardPathEvaluationResult = this.getGuardPath().evaluate(board);
         if (guardPathEvaluationResult.hasFailedCondition) {
@@ -46,6 +41,11 @@ export default function Action(uid, actionName) {
 
         // Get the corresponding action object or function.
         const action = board[actionName];
+
+        // Get a reference to the onFinish action function if it exists so that we can call it outside of an update.
+        if (this.is(Mistreevous.State.READY) && typeof action === "object" && typeof action.onFinish === "function") {
+            onFinish = action.onFinish;
+        }
 
         // Validate the action.
         this._validateAction(action);

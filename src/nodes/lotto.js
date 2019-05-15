@@ -102,8 +102,8 @@ export default function Lotto(uid, guard, tickets, children) {
 
         // If the winning child has never been updated or is running then we will need to update it now.
         if (winningChild.getState() === Mistreevous.State.READY || winningChild.getState() === Mistreevous.State.RUNNING) {
-            // Update the child of this node and get the result.
-            const updateResult = child.update(board);
+            // Update the winning child of this node and get the result.
+            const updateResult = winningChild.update(board);
 
             // Check to see whether a node guard condition failed during the child node update.
             if (updateResult.failedGuardNode) {
