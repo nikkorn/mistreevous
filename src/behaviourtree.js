@@ -311,8 +311,8 @@ export default function BehaviourTree(definition, board) {
             // Convert the AST to our actual tree.
             this._rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(namedRootNodeProvider, []);
 
-            // TODO Get all leaf nodes of the tree as well as an array of nodes (and their guards) on the way to it.
-            // TODO Set a NodeGuardPath (to be made) on every leaf not ofr it to evaluate as part of its update.
+            // Set a guard path on every leaf of the tree to evaluate as part of its update.
+            this._setLeafNodeGuardPaths();
         } catch (exception) {
             // There was an issue in trying to parse and build the tree definition.
             throw `TreeParseError: ${exception}`;
@@ -764,6 +764,24 @@ export default function BehaviourTree(definition, board) {
 
         // Return the root AST nodes.
         return stack[0];
+    };
+
+    /**
+     * Sets guard paths for every leaf node in the behaviour tree.
+     */
+    this._setLeafNodeGuardPaths= function() {
+        // Firstly, get a multi-dimensional array of root->leaf node paths.
+        const allNodePaths = this._getAllNodePaths();
+
+        // TODO
+    };
+
+    /**
+     * Gets a multi-dimensional array of root->leaf node paths.
+     * @returns A multi-dimensional array of root->leaf node paths.
+     */
+    this._getAllNodePaths = function() {
+        // TODO
     };
 
     // Call init logic.
