@@ -80,25 +80,16 @@ export default function Lotto(uid, guard, tickets, children) {
      */
     this.update = function(board) {
         // Get the pre-update node state.
-        const initialState = state;
+        const initialState = this.getState();
 
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
+        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
             // We have not changed state.
-            return false;
-        }
-
-        // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
-        if (guard && !guard.isSatisfied(board)) {
-            // The guard is not satisfied and therefore we are finished with the node.
-            this.setState(Mistreevous.State.FAILED);
-
-            // The node has moved to the FAILED state.
-            return true;
+            return { hasStateChanged: false };
         }
 
         // If this node is in the READY state then we need to pick a winning child node.
-        if (state === Mistreevous.State.READY) {
+        if (this.is(Mistreevous.State.READY)) {
             // Create a lotto draw.
             const lottoDraw = new LottoDraw();
 
@@ -118,7 +109,7 @@ export default function Lotto(uid, guard, tickets, children) {
         this.setState(winningChild.getState());
 
         // Return whether the state of this node has changed.
-        return state !== initialState;
+        return { hasStateChanged: this.getState() !== initialState };
     };
 
     /**

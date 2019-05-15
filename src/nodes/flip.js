@@ -17,10 +17,10 @@ export default function Flip(uid, guard, child) {
      */
     this.update = function(board) {
         // Get the pre-update node state.
-        const initialState = state;
+        const initialState = this.getState();
 
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
+        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
             // We have not changed state.
             return { hasStateChanged: false };
         }
@@ -71,7 +71,7 @@ export default function Flip(uid, guard, child) {
         }
 
         // Return whether the state of this node has changed.
-        return { hasStateChanged: state !== initialState };
+        return { hasStateChanged: this.getState() !== initialState };
     };
    
     /**
