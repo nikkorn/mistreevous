@@ -1,3 +1,5 @@
+import Leaf from './leaf'
+
 /**
  * A WAIT node.
  * The state of this node will change to SUCCEEDED after a duration of time.
@@ -7,10 +9,7 @@
  * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
  */
 export default function Wait(uid, guard, duration, longestDuration) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+    Leaf.call(this, uid, "wait", guard);
 
     /** 
      * The time in milliseconds at which this node was first updated.
@@ -23,31 +22,41 @@ export default function Wait(uid, guard, duration, longestDuration) {
     let waitDuration;
    
     /**
-     * Update the node and get whether the node state has changed.
+     * Update the node.
      * @param board The board.
-     * @returns Whether the state of this node has changed as part of the update.
+     * @returns The result of the update.
      */
     this.update = function(board) {
         // Get the pre-update node state.
-        const initialState = state;
+        const initialState = this.getState();
 
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
+        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
             // We have not changed state.
-            return false;
+            return { hasStateChanged: false };
         }
 
-        // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
-        if (guard && !guard.isSatisfied(board)) {
-            // The guard is not satisfied and therefore we are finished with the node.
-            state = Mistreevous.State.FAILED;
+        // Evaluate guard path and return result if any guard conditions fail.
+        const guardPathEvaluationResult = this.getGuardPath().evaluate(board);
+        if (guardPathEvaluationResult.hasFailedCondition) {
+            // Is this node the one with the failed guard condition?
+            if (guardPathEvaluationResult.node === this) {
+                // The guard condition for this node did not pass, so this node will move into the FAILED state.
+                this.setState(Mistreevous.State.FAILED);
 
-            // The node has moved to the FAILED state.
-            return true;
+                // Return whether the state of this node has changed.
+                return { hasStateChanged: true };
+            } else {
+                // A node guard condition has failed higher up the tree.
+                return {
+                    hasStateChanged: false,
+                    failedGuardNode: guardPathEvaluationResult.node
+                };
+            }
         }
 
         // If this node is in the READY state then we need to set the initial update time.
-        if (state === Mistreevous.State.READY) {
+        if (this.is(Mistreevous.State.READY)) {
             // Set the initial update time.
             initialUpdateTime = new Date().getTime();
 
@@ -56,54 +65,23 @@ export default function Wait(uid, guard, duration, longestDuration) {
             waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
 
             // The node is now running until we finish waiting.
-            state = Mistreevous.State.RUNNING;
+            this.setState(Mistreevous.State.RUNNING);
         }
 
         // Have we waited long enough?
         if (new Date().getTime() >= (initialUpdateTime + waitDuration)) {
             // We have finished waiting!
-            state = Mistreevous.State.SUCCEEDED;
+            this.setState(Mistreevous.State.SUCCEEDED);
         }
 
         // Return whether the state of this node has changed.
-        return state !== initialState;
+        return { hasStateChanged: this.getState() !== initialState };
     };
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
 
     /**
      * Gets the name of the node.
      */
     this.getName = () => `WAIT ${ longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms" }`;
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => [];
-
-    /**
-     * Gets the guard of the node.
-     */
-    this.getGuard = () => guard;
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "wait";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
-
-    /**
-     * Reset the state of the node.
-     */
-    this.reset = () => {
-        // Reset the state of this node.
-        state = Mistreevous.State.READY;
-    };
 };
+
+Wait.prototype = Object.create(Leaf.prototype);

@@ -1,3 +1,5 @@
+import Composite from './composite'
+
 /**
  * A LOTTO node.
  * A winning child is picked on the initial update of this node, based on ticket weighting.
@@ -8,10 +10,7 @@
  * @param children The child nodes. 
  */
 export default function Lotto(uid, guard, tickets, children) {
-    /**
-     * The node state.
-     */
-    let state = Mistreevous.State.READY;
+    Composite.call(this, uid, "lotto", guard, children);
 
     /**
      * The winning child node.
@@ -81,25 +80,16 @@ export default function Lotto(uid, guard, tickets, children) {
      */
     this.update = function(board) {
         // Get the pre-update node state.
-        const initialState = state;
+        const initialState = this.getState();
 
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
+        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
             // We have not changed state.
-            return false;
-        }
-
-        // If a guard has been defined for the node, this node will move into the FAILED state if it is not satisfied.
-        if (guard && !guard.isSatisfied(board)) {
-            // The guard is not satisfied and therefore we are finished with the node.
-            state = Mistreevous.State.FAILED;
-
-            // The node has moved to the FAILED state.
-            return true;
+            return { hasStateChanged: false };
         }
 
         // If this node is in the READY state then we need to pick a winning child node.
-        if (state === Mistreevous.State.READY) {
+        if (this.is(Mistreevous.State.READY)) {
             // Create a lotto draw.
             const lottoDraw = new LottoDraw();
 
@@ -112,54 +102,42 @@ export default function Lotto(uid, guard, tickets, children) {
 
         // If the winning child has never been updated or is running then we will need to update it now.
         if (winningChild.getState() === Mistreevous.State.READY || winningChild.getState() === Mistreevous.State.RUNNING) {
-            winningChild.update(board);
+            // Update the winning child of this node and get the result.
+            const updateResult = winningChild.update(board);
+
+            // Check to see whether a node guard condition failed during the child node update.
+            if (updateResult.failedGuardNode) {
+                // Is this node the one with the failed guard condition?
+                if (updateResult.failedGuardNode === this) {
+                    // We need to reset this node, passing a flag to say that this is an abort.
+                    this.reset(true);
+                    
+                    // The guard condition for this node did not pass, so this node will move into the FAILED state.
+                    this.setState(Mistreevous.State.FAILED);
+
+                    // Return whether the state of this node has changed.
+                    return { hasStateChanged: true };
+                } else {
+                    // A node guard condition has failed higher up the tree.
+                    return {
+                        hasStateChanged: false,
+                        failedGuardNode: updateResult.failedGuardNode
+                    };
+                }
+            }
         }
 
         // The state of the lotto node is the state of its winning child.
-        state = winningChild.getState();
+        this.setState(winningChild.getState());
 
         // Return whether the state of this node has changed.
-        return state !== initialState;
+        return { hasStateChanged: this.getState() !== initialState };
     };
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
 
     /**
      * Gets the name of the node.
      */
     this.getName = () => tickets.length ? `LOTTO [${ tickets.join(",") }]` : "LOTTO";
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => children;
-
-    /**
-     * Gets the guard of the node.
-     */
-    this.getGuard = () => guard;
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "lotto";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
-
-    /**
-     * Reset the state of the node.
-     */
-    this.reset = () => {
-        // Reset the state of this node.
-        state = Mistreevous.State.READY;
-
-        // Reset each child node.
-        children.forEach((child) => child.reset());
-    };
 };
+
+Lotto.prototype = Object.create(Composite.prototype);

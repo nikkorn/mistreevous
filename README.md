@@ -215,7 +215,7 @@ root {
 TODO
 
 ## Guards
-Any composite node, as well as the **wait** node, can be decorated with a guard. A guard defines a condition that must be met in order for the node to remain active. Any running nodes will have their guard condition evaluated per tree step, and will move to a failed state if the guard condition is not met.
+Any composite node, as well as the **wait** node, can be decorated with a guard. A guard defines a condition that must be met in order for the node to remain active. Any running nodes will have their guard condition evaluated for each leaf node update, and will move to a failed state if the guard condition is not met.
 
 This functionality is useful as a means of aborting long running actions or branches that span across multiple steps of the tree.
 

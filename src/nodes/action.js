@@ -1,38 +1,57 @@
+import Leaf from './leaf'
+
 /**
- * An Action node.
+ * An Action leaf node.
  * This represents an immediate or ongoing state of behaviour.
  * @param uid The unique node id.
  * @param actionName The action name.
  */
 export default function Action(uid, actionName) {
+    Leaf.call(this, uid, "action", null);
+
     /**
-     * The node state.
+     * The onFinish action function, if one was defined.
      */
-    let state = Mistreevous.State.READY;
+    let onFinish;
    
     /**
-     * Update the node and get whether the node state has changed.
+     * Update the node.
      * @param board The board.
-     * @returns Whether the state of this node has changed as part of the update.
+     * @returns The result of the update.
      */
     this.update = function(board) {
         // Get the pre-update node state.
-        const initialState = state;
+        const initialState = this.getState();
 
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) {
+        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
             // We have not changed state.
-            return false;
+            return { hasStateChanged: false };
+        }
+
+        // Evaluate all of the guard path conditions for the current tree path and return result if any guard conditions fail.
+        const guardPathEvaluationResult = this.getGuardPath().evaluate(board);
+        if (guardPathEvaluationResult.hasFailedCondition) {
+            // We have not changed state, but a node guard condition has failed.
+            return {
+                hasStateChanged: false,
+                failedGuardNode: guardPathEvaluationResult.node
+            };
         }
 
         // Get the corresponding action object or function.
         const action = board[actionName];
 
+        // Get a reference to the onFinish action function if it exists so that we can call it outside of an update.
+        if (this.is(Mistreevous.State.READY) && typeof action === "object" && typeof action.onFinish === "function") {
+            onFinish = action.onFinish;
+        }
+
         // Validate the action.
         this._validateAction(action);
 
         // If the state of this node is 'READY' then this is the first time that we are updating this node, so call onStart if it exists.
-        if (state === Mistreevous.State.READY && typeof action === "object" && typeof action.onStart === "function") {
+        if (this.is(Mistreevous.State.READY) && typeof action === "object" && typeof action.onStart === "function") {
             action.onStart();
         }
 
@@ -43,21 +62,16 @@ export default function Action(uid, actionName) {
         this._validateUpdateResult(updateResult);
 
         // Set the state of this node, this may be undefined, which just means that the node is still in the 'RUNNING' state.
-        state = updateResult || Mistreevous.State.RUNNING;
+        this.setState(updateResult || Mistreevous.State.RUNNING);
 
         // If the new action node state is either 'SUCCEEDED' or 'FAILED' then we are finished, so call onFinish if it exists.
-        if ((state === Mistreevous.State.SUCCEEDED || state === Mistreevous.State.FAILED) && typeof action === "object" && typeof action.onFinish === "function") {
-            action.onFinish(state === Mistreevous.State.SUCCEEDED);
+        if ((this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) && onFinish) {
+            onFinish({ succeeded: this.is(Mistreevous.State.SUCCEEDED), aborted: false });
         }
 
         // Return whether the state of this node has changed.
-        return state !== initialState;
+        return { hasStateChanged: this.getState() !== initialState };
     };
-
-    /**
-     * Gets the state of the node.
-     */
-    this.getState = () => state;
 
     /**
      * Gets the name of the node.
@@ -65,31 +79,17 @@ export default function Action(uid, actionName) {
     this.getName = () => actionName;
 
     /**
-     * Gets the state of the node.
-     */
-    this.getChildren = () => null;
-
-    /**
-     * Gets the guard of the node.
-     */
-    this.getGuard = () => null;
-
-    /**
-     * Gets the type of the node.
-     */
-    this.getType = () => "action";
-
-    /**
-     * Gets the unique id of the node.
-     */
-    this.getUid = () => uid;
-
-    /**
      * Reset the state of the node.
+     * @param isAbort Whether the reset is part of an abort.
      */
-    this.reset = () => {
+    this.reset = (isAbort) => {
+        // If the reset is due to an abort, and this node is running, call onFinish() if it is defined.
+        if (isAbort && this.is(Mistreevous.State.RUNNING) && onFinish) {
+            onFinish({ succeeded: false, aborted: true });
+        }
+
         // Reset the state of this node.
-        state = Mistreevous.State.READY;
+        this.setState(Mistreevous.State.READY);
     };
 
     /**
@@ -129,3 +129,5 @@ export default function Action(uid, actionName) {
         }
     };
 };
+
+Action.prototype = Object.create(Leaf.prototype);

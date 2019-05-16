@@ -141,5 +141,38 @@ const example_snippets = {
         return IsKeyPressed(32);
     }
 }`
+    },
+
+
+    "nested-until-node-guard": {
+        "definition": `root {
+    sequence until(IsSpaceKeyPressed) {
+            sequence {
+                wait[1000]
+                wait[1000]
+                wait[1000]
+            }
+            sequence {
+                wait[1000]
+                wait[1000]
+                wait[1000]
+            }
+            sequence {
+                wait[1000]
+                wait[1000]
+                wait[1000]
+            }
+    }
+}`,
+        "blackboard": `{
+    // An action that will immediately succeed.
+    Succeed: () => Mistreevous.State.SUCCEEDED,
+
+    // A condition that returns whether the space key is currently pressed.
+    IsSpaceKeyPressed: function () {
+        // Is the space key pressed?
+        return IsKeyPressed(32);
+    }
+}`
     }
 };
