@@ -178,9 +178,50 @@ root {
 ## Leaf Nodes
 
 ### Action
-An action node represents an action that needs to be taken immediately, or ongoing behaviour that can take a prolonged amount of time. Each action node will correspond to functionality defined within the blackboard.
+An action node represents an action that can be completed immediately as part of a single tree step, or ongoing behaviour that can take a prolonged amount of time and may take multiple tree steps to complete. Each action node will correspond to functionality defined within the blackboard.
 
-TODO
+Actions can be defined in one of two different ways within the blackboard, the first is as a function that can optionally return a finished action state of **succeeded** or **failed**. If the **succeeded** or **failed** state is returned, then the action will move into that state.
+
+```js
+const board = {
+    //...
+    Attack: () => {
+        // If we do not have a weapon then we cannot attack.
+        if (!this.isHoldingWeapon()) {
+            // We have failed to carry out an attack!
+            return Mistreevous.State.FAILED;
+        }
+
+        // ... Attack with swiftness and precision ...
+
+        // We have carried out our attack.
+        return Mistreevous.State.SUCCEEDED;
+    }
+    // ...
+};
+```
+
+If no value is returned from the action function the action node will move into the **running** state and no following nodes will be processed as part of the current tree step. In the example below, any action node that references **WalkToPosition** will remain in the **running** state until the target position is reached.
+
+```js
+const board = {
+    //...
+    WalkToPosition: () => {
+        // ... Walk towards the position we are trying to reach ...
+
+        // Check whether we have finally reached the target position.
+        if (this.isAtTargetPosition()) {
+            // We have finally reached the target position!
+            return Mistreevous.State.SUCCEEDED;
+        }
+    }
+    // ...
+};
+```
+
+Further steps of the tree will resume processing from leaf nodes that were left in the **running** state until they succeed, fail, or processing of the running branch is aborted via a guard.
+
+TODO The other way that an action can be defined in the blackboard is ...
 
 ### Condition
 TODO
