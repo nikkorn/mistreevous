@@ -174,5 +174,24 @@ const example_snippets = {
         return IsKeyPressed(32);
     }
 }`
+    },
+
+
+
+    "flip-node": {
+        "definition": `root {
+    sequence {
+        flip {
+            condition [IsFalse]
+        }
+        flip {
+            condition [IsTrue]
+        }
+    }
+}`,
+        "blackboard": `{
+    IsTrue: () => true,
+    IsFalse: () => false
+}`
     }
 };
