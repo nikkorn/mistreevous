@@ -289,7 +289,7 @@ export default function buildRootASTNodes(tokens) {
                 // Try to pick a node guard off of the token stack.
                 node.guard = getGuard();
 
-                popAndCheck("{", tokens);
+                popAndCheck(tokens, "{");
 
                 // The new scope is that of the new ROOT nodes children.
                 stack.push(node.children);
@@ -329,7 +329,7 @@ export default function buildRootASTNodes(tokens) {
                 // Try to pick a node guard off of the token stack.
                 node.guard = getGuard();
 
-                popAndCheck("{", tokens);
+                popAndCheck(tokens, "{");
 
                 // The new scope is that of the new SELECTOR nodes children.
                 stack.push(node.children);
@@ -345,7 +345,7 @@ export default function buildRootASTNodes(tokens) {
                 // Try to pick a node guard off of the token stack.
                 node.guard = getGuard();
 
-                popAndCheck("{", tokens);
+                popAndCheck(tokens, "{");
 
                 // The new scope is that of the new SEQUENCE nodes children.
                 stack.push(node.children);
@@ -367,7 +367,7 @@ export default function buildRootASTNodes(tokens) {
                 // Try to pick a node guard off of the token stack.
                 node.guard = getGuard();
 
-                popAndCheck("{", tokens);
+                popAndCheck(tokens, "{");
 
                 // The new scope is that of the new LOTTO nodes children.
                 stack.push(node.children);
@@ -407,7 +407,7 @@ export default function buildRootASTNodes(tokens) {
                 // Try to pick a node guard off of the token stack.
                 node.guard = getGuard();
 
-                popAndCheck("{", tokens);
+                popAndCheck(tokens, "{");
 
                 // The new scope is that of the new FLIP nodes children.
                 stack.push(node.children);
@@ -469,7 +469,7 @@ export default function buildRootASTNodes(tokens) {
                 // Try to pick a node guard off of the token stack.
                 node.guard = getGuard();
 
-                popAndCheck("{", tokens);
+                popAndCheck(tokens, "{");
 
                 // The new scope is that of the new REPEAT nodes children.
                 stack.push(node.children);
@@ -557,11 +557,11 @@ export default function buildRootASTNodes(tokens) {
 
 /**
  * Pop the next raw token off of the stack and throw an error if it wasn't the expected one.
- * @param expected An optional string that we expect the next popped token to match.
  * @param tokens The array of remaining tokens.
+ * @param expected An optional string that we expect the next popped token to match.
  * @returns The popped token.
  */
-function popAndCheck(expected, tokens) {
+function popAndCheck(tokens, expected) {
     // Get and remove the next token.
     const popped = tokens.shift();
 
@@ -588,7 +588,7 @@ function popAndCheck(expected, tokens) {
  */
 function getArguments(tokens, argumentValidator, validationFailedMessage) {
     // Any lists of arguments will always be wrapped in '[]'. so we are looking for an opening
-    popAndCheck("[", tokens);
+    popAndCheck(tokens, "[");
 
     const argumentListTokens = [];
     const argumentList       = [];
@@ -622,32 +622,48 @@ function getArguments(tokens, argumentValidator, validationFailedMessage) {
     });
 
     // The arguments list should terminate with a ']' token.
-    popAndCheck("]", tokens);
+    popAndCheck(tokens, "]");
 
     // Return the argument list.
     return argumentList;
 };
 
 /**
- * Pull a guard off of the token stack.
+ * Pull any decorators off of the token stack.
  * @param tokens The array of remaining tokens.
- * @returns The guard defined by any directly following tokens, or null if not guard is defined.
+ * @returns An array od decorators defined by any directly following tokens.
  */
-function getGuard(tokens) {
-    // Try to get the guard factory for the next token.
-    const guardFactory = GuardFactories[(tokens[0] || "").toUpperCase()];
+function getDecorators(tokens) {
+	// Create an array to hold any decorators found. 
+	const decorators = [];
+  
+    // Keep track of names of decorators that we have found on the token stack, as we cannot have duplicates.
+    const decoratorsFound = [];
+  
+    // Try to get the decorator factory for the next token.
+    let decoratorFactory = DecoratorFactories[(tokens[0] || "").toUpperCase()];
 
-    // There is nothing to do if the next token is not a guard name token.
-    if (!guardFactory) {
-        return null;
+    // Pull decorator tokens off of the tokens stack until we have no more.
+    while (decoratorFactory) {
+        // Check to make sure that we have not already created a decorator of this type for this node.
+        if (decoratorsFound.indexOf(tokens[0]) !== -1) {
+            throw `duplicate decorator '${tokens[0].toUpperCase()}' found for node`;
+        }
+
+        decoratorsFound.push(tokens[0]);
+
+        // The decorator definition should consist of the tokens 'NAME', '(', 'ARGUMENT' and ')'.
+        popAndCheck(tokens, tokens[0].toUpperCase());
+        popAndCheck(tokens, "(");
+        const decoratorArgument = popAndCheck(tokens);
+        popAndCheck(tokens, ")");
+
+        // Create the decorator and add it to the array of decorators found.
+        decorators.push(decoratorFactory(decoratorArgument));
+
+        // Try to get the next decorator name token, as there could be multiple.
+        decoratorFactory = DecoratorFactories[(tokens[0] || "").toUpperCase()];
     }
-
-    // The guard definition should consist of the tokens 'NAME', '(', 'CONDITION' and ')'.
-    popAndCheck(tokens[0].toUpperCase(), tokens);
-    popAndCheck("(", tokens);
-    const condition = popAndCheck();
-    popAndCheck(")", tokens);
-
-    // Create and return the guard.
-    return guardFactory(condition);
+  
+	return decorators;
 };
