@@ -18,6 +18,17 @@ export default function Until(condition) {
     this.getCondition = () => condition;
 
     /**
+     * Gets the decorator details.
+     */
+    this.getDetails = () => {
+        return {
+            type: this.getType(),
+            isGuard: this.isGuard(),
+            condition: this.getCondition()
+        };
+    };
+
+    /**
      * Gets whether the guard is satisfied.
      * @param board The board.
      * @returns Whether the guard is satisfied.

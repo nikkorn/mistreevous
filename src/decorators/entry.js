@@ -13,6 +13,17 @@ export default function Entry(functionName) {
     this.getFunctionName = () => functionName;
 
     /**
+     * Gets the decorator details.
+     */
+    this.getDetails = () => {
+        return {
+            type: this.getType(),
+            isGuard: this.isGuard(),
+            functionName: this.getFunctionName()
+        };
+    };
+
+    /**
      * Attempt to call the blackboard function that this decorator refers to.
      * @param board The board.
      */

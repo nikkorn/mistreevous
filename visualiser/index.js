@@ -373,15 +373,20 @@ function buildTreeView() {
             default: {
                 tooltip: function (node) { return node.item.caption },
                 template: (node) => {
-                    if (node.item.guard) {
+                    if (node.item.decorators) {
+                        const getDecoratorHTMl = () => 
+                            node.item.decorators.map((decorator) => {
+                                return `<hr style="margin-top: 1px; margin-bottom: 1px;">
+                                <i class='tree-view-caption'>${decorator.type.toUpperCase()} ${decorator.condition || decorator.functionName}</i>`;
+                            }).join("");
+
                         return `<div class='tree-view-node ${convertNodeStateToString(node.item.state)}'>
                             <div class='tree-view-icon tree-view-icon-${node.item.type}'>
                             <img src="icons/${node.item.type}.png">
                             </div>
                             <div>
                             <p class='tree-view-caption'>${node.item.caption}</p>
-                            <hr style="margin-top: 1px; margin-bottom: 1px;">
-                            <i class='tree-view-caption'>${node.item.guard.type.toUpperCase()} ${node.item.guard.condition}</i>
+                            ${getDecoratorHTMl()}
                             </div>
                             </div>`;
                     } else {

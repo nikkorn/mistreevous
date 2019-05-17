@@ -127,6 +127,11 @@ function Decorator(type) {
    * Gets whether the decorator is a guard.
    */
   this.isGuard = () => false;
+
+  /**
+   * Gets the decorator details.
+   */
+  this.getDetails = () => ({ type: this.getType() });
 };
 
 /***/ }),
@@ -492,16 +497,11 @@ BehaviourTree.prototype.getFlattenedNodeDetails = function () {
     const processNode = (node, parentUid) => {
 
         /**
-         * Helper function to get details for a node guard.
-         * @param guard The node guard.
-         * @returns The details for a guard node.
+         * Helper function to get details for all node decorators.
+         * @param decorators The node decorators.
+         * @returns The decorator details for a node.
          */
-        const getGuardDetails = guard => {
-            return {
-                type: guard.getType(),
-                condition: guard.getCondition()
-            };
-        };
+        const getDecoratorDetails = decorators => decorators.length > 0 ? decorators.map(decorator => decorator.getDetails()) : null;
 
         // Push the current node into the flattened nodes array.
         flattenedTreeNodes.push({
@@ -509,7 +509,7 @@ BehaviourTree.prototype.getFlattenedNodeDetails = function () {
             type: node.getType(),
             caption: node.getName(),
             state: node.getState(),
-            guard: node.getGuard() ? getGuardDetails(node.getGuard()) : null,
+            decorators: getDecoratorDetails(node.getDecorators()),
             parentId: parentUid
         });
 
@@ -2292,6 +2292,17 @@ function While(condition) {
     this.getCondition = () => condition;
 
     /**
+     * Gets the decorator details.
+     */
+    this.getDetails = () => {
+        return {
+            type: this.getType(),
+            isGuard: this.isGuard(),
+            condition: this.getCondition()
+        };
+    };
+
+    /**
      * Gets whether the guard is satisfied.
      * @param board The board.
      * @returns Whether the guard is satisfied.
@@ -2335,6 +2346,17 @@ function Until(condition) {
     this.getCondition = () => condition;
 
     /**
+     * Gets the decorator details.
+     */
+    this.getDetails = () => {
+        return {
+            type: this.getType(),
+            isGuard: this.isGuard(),
+            condition: this.getCondition()
+        };
+    };
+
+    /**
      * Gets whether the guard is satisfied.
      * @param board The board.
      * @returns Whether the guard is satisfied.
@@ -2373,6 +2395,17 @@ function Entry(functionName) {
     this.getFunctionName = () => functionName;
 
     /**
+     * Gets the decorator details.
+     */
+    this.getDetails = () => {
+        return {
+            type: this.getType(),
+            isGuard: this.isGuard(),
+            functionName: this.getFunctionName()
+        };
+    };
+
+    /**
      * Attempt to call the blackboard function that this decorator refers to.
      * @param board The board.
      */
@@ -2408,6 +2441,17 @@ function Exit(functionName) {
      * Gets the function name.
      */
     this.getFunctionName = () => functionName;
+
+    /**
+     * Gets the decorator details.
+     */
+    this.getDetails = () => {
+        return {
+            type: this.getType(),
+            isGuard: this.isGuard(),
+            functionName: this.getFunctionName()
+        };
+    };
 
     /**
      * Attempt to call the blackboard function that this decorator refers to.

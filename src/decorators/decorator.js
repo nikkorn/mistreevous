@@ -13,4 +13,9 @@ export default function Decorator(type) {
      * Gets whether the decorator is a guard.
      */
     this.isGuard = () => false;
+
+    /**
+     * Gets the decorator details.
+     */
+    this.getDetails = () => ({ type: this.getType() });
 };

@@ -179,16 +179,12 @@ BehaviourTree.prototype.getFlattenedNodeDetails = function () {
     const processNode = (node, parentUid) => {
 
         /**
-         * Helper function to get details for a node guard.
-         * @param guard The node guard.
-         * @returns The details for a guard node.
+         * Helper function to get details for all node decorators.
+         * @param decorators The node decorators.
+         * @returns The decorator details for a node.
          */
-        const getGuardDetails = (guard) => {
-            return {
-                type: guard.getType(),
-                condition: guard.getCondition()
-            }
-        };
+        const getDecoratorDetails = (decorators) =>
+            decorators.length > 0 ? decorators.map((decorator) => decorator.getDetails()) : null;
 
         // Push the current node into the flattened nodes array.
         flattenedTreeNodes.push({ 
@@ -196,7 +192,7 @@ BehaviourTree.prototype.getFlattenedNodeDetails = function () {
             type: node.getType(), 
             caption: node.getName(),
             state: node.getState(),
-            guard: node.getGuard() ? getGuardDetails(node.getGuard()) : null,
+            decorators: getDecoratorDetails(node.getDecorators()),
             parentId: parentUid
         });
 
