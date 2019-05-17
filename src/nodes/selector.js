@@ -3,11 +3,11 @@ import Composite from './composite'
 /**
  * A SELECTOR node.
  * The child nodes are executed in sequence until one succeeds or all fail.
- * @param guard The node guard.
+ * @param decorators The node decorators.
  * @param children The child nodes.
  */
-export default function Selector(guard, children) {
-    Composite.call(this, "selector", guard, children);
+export default function Selector(decorators, children) {
+    Composite.call(this, "selector", decorators, children);
 
     /**
      * Update the node and get whether the node state has changed.

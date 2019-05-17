@@ -3,11 +3,11 @@ import Composite from './composite'
 /**
  * A Flip node.
  * This node wraps a single child and will flip the state of the child state.
- * @param guard The node guard.
+ * @param decorators The node decorators.
  * @param child The child node. 
  */
-export default function Flip(guard, child) {
-    Composite.call(this, "flip", guard, [child]);
+export default function Flip(decorators, child) {
+    Composite.call(this, "flip", decorators, [child]);
    
     /**
      * Update the node.

@@ -3,10 +3,11 @@ import Leaf from './leaf'
 /**
  * An Action leaf node.
  * This represents an immediate or ongoing state of behaviour.
+ * @param decorators The node decorators.
  * @param actionName The action name.
  */
-export default function Action(actionName) {
-    Leaf.call(this, "action", null);
+export default function Action(decorators, actionName) {
+    Leaf.call(this, "action", decorators);
 
     /**
      * The onFinish action function, if one was defined.

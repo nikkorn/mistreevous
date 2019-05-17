@@ -3,11 +3,11 @@ import Composite from './composite'
 /**
  * A SEQUENCE node.
  * The child nodes are executed in sequence until one fails or all succeed.
- * @param guard The node guard.
+ * @param decorators The node decorators.
  * @param children The child nodes. 
  */
-export default function Sequence(guard, children) {
-    Composite.call(this, "sequence", guard, children);
+export default function Sequence(decorators, children) {
+    Composite.call(this, "sequence", decorators, children);
    
     /**
      * Update the node and get whether the node state has changed.

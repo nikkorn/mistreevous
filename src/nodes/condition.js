@@ -3,10 +3,11 @@ import Leaf from './leaf'
 /**
  * A Condition leaf node.
  * This will succeed or fail immediately based on a board predicate, without moving to the 'RUNNING' state.
+ * @param decorators The node decorators.
  * @param condition The name of the condition function. 
  */
-export default function Condition(condition) {
-    Leaf.call(this, "condition", null);
+export default function Condition(decorators, condition) {
+    Leaf.call(this, "condition", decorators);
    
     /**
      * Update the node.

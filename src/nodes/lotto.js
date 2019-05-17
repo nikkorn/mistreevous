@@ -4,12 +4,12 @@ import Composite from './composite'
  * A LOTTO node.
  * A winning child is picked on the initial update of this node, based on ticket weighting.
  * The state of this node will match the state of the winning child.
- * @param guard The node guard.
+ * @param decorators The node decorators.
  * @param tickets The child node tickets
  * @param children The child nodes. 
  */
-export default function Lotto(guard, tickets, children) {
-    Composite.call(this, "lotto", guard, children);
+export default function Lotto(decorators, tickets, children) {
+    Composite.call(this, "lotto", decorators, children);
 
     /**
      * The winning child node.
