@@ -7,9 +7,11 @@ import Root from './nodes/root'
 import Selector from './nodes/selector'
 import Sequence from './nodes/sequence'
 import Wait from './nodes/wait'
-import While from './guards/while'
-import Until from './guards/until'
-import GuardPath from './guards/guardPath';
+import While from './decorators/guards/while'
+import Until from './decorators/guards/until'
+import GuardPath from './decorators/guards/guardPath';
+import Entry from './decorators/entry'
+import Exit from './decorators/exit'
 
 /**
  * The behaviour tree.
@@ -35,7 +37,7 @@ export default function BehaviourTree(definition, board) {
     const ASTNodeFactories = {
         "ROOT": () => ({ 
             type: "root",
-            guard: null,
+            decorators: [],
             name: null,
             children: [],
             validate: function (depth) {
@@ -80,7 +82,7 @@ export default function BehaviourTree(definition, board) {
         }),
         "SELECTOR": () => ({
             type: "selector",
-            guard: null,
+            decorators: [],
             children: [],
             validate: function (depth) {
                 // A selector node must have at least a single node.
@@ -98,7 +100,7 @@ export default function BehaviourTree(definition, board) {
         }),
         "SEQUENCE": () => ({
             type: "sequence",
-            guard: null,
+            decorators: [],
             children: [], 
             validate: function (depth) {
                 // A sequence node must have at least a single node.
@@ -116,7 +118,7 @@ export default function BehaviourTree(definition, board) {
         }),
         "LOTTO": () => ({
             type: "lotto",
-            guard: null,
+            decorators: [],
             children: [],
             tickets: [], 
             validate: function (depth) {
@@ -135,7 +137,7 @@ export default function BehaviourTree(definition, board) {
         }),
         "REPEAT": () => ({
             type: "repeat",
-            guard: null,
+            decorators: [],
             iterations: null,
             maximumIterations: null,
             children: [],
@@ -175,7 +177,7 @@ export default function BehaviourTree(definition, board) {
         }),
         "FLIP": () => ({
             type: "flip",
-            guard: null,
+            decorators: [],
             children: [],
             validate: function (depth) {
                 // A flip node must have a single node.
@@ -193,6 +195,7 @@ export default function BehaviourTree(definition, board) {
         }),
         "CONDITION": () => ({
             type: "condition",
+            decorators: [],
             conditionFunction: "",
             validate: function (depth) {},
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
@@ -204,7 +207,7 @@ export default function BehaviourTree(definition, board) {
         }),
         "WAIT": () => ({
             type: "wait",
-            guard: null,
+            decorators: [],
             duration: null,
             longestDuration: null,
             validate: function (depth) {
@@ -237,6 +240,7 @@ export default function BehaviourTree(definition, board) {
         }),
         "ACTION": () => ({
             type: "action",
+            decorators: [],
             actionName: "",
             validate: function (depth) {},
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
@@ -249,11 +253,13 @@ export default function BehaviourTree(definition, board) {
     };
 
     /**
-     * The node guard factories.
+     * The node decorator factories.
      */
-    const GuardFactories = {
+    const DecoratorFactories = {
         "WHILE": (condition) => new While(condition),
-        "UNTIL": (condition) => new Until(condition)
+        "UNTIL": (condition) => new Until(condition),
+        "ENTRY": (functionName) => new Entry(functionName),
+        "EXIT": (functionName) => new Exit(functionName)
     };
 
     /**

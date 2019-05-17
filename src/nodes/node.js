@@ -2,9 +2,9 @@
  * A base node.
  * @param uid The unique node id.
  * @param type The node type.
- * @param guard The node guard.
+ * @param decorators The node decorators.
  */
-export default function Node(uid, type, guard) {
+export default function Node(uid, type, decorators) {
   /**
    * The node state.
    */
@@ -27,9 +27,9 @@ export default function Node(uid, type, guard) {
   this.getType = () => type;
 
   /**
-   * Gets the guard of the node.
+   * Gets the node decorators.
    */
-  this.getGuard = () => guard;
+  this.getDecorators = () => decorators || [];
 
   /**
    * Gets whether this node is in the specified state.
