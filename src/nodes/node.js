@@ -1,10 +1,14 @@
 /**
  * A base node.
- * @param uid The unique node id.
  * @param type The node type.
  * @param decorators The node decorators.
  */
-export default function Node(uid, type, decorators) {
+export default function Node(type, decorators) {
+  /**
+   * The node uid.
+   */
+  const uid = createNodeUid();
+
   /**
    * The node state.
    */
@@ -48,3 +52,14 @@ export default function Node(uid, type, decorators) {
     this.setState(Mistreevous.State.READY);
   };
 };
+
+/**
+ * Create a randomly generated node uid.
+ * @returns A randomly generated node uid.
+ */
+function createNodeUid() {
+  var S4 = function() {
+      return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+  };
+  return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+}

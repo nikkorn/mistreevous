@@ -3,12 +3,11 @@ import Composite from './composite'
 /**
  * A Root node.
  * The root node will have a single child.
- * @param uid The unique node id.
  * @param guard The node guard.
  * @param child The child node. 
  */
-export default function Root(uid, guard, child) {
-    Composite.call(this, uid, "root", guard, [child]);
+export default function Root(guard, child) {
+    Composite.call(this, "root", guard, [child]);
    
     /**
      * Update the node and get whether the node state has changed.

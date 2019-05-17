@@ -2,12 +2,11 @@ import Node from './node'
 
 /**
  * A leaf node.
- * @param uid The unique node id.
  * @param type The node type.
  * @param decorators The node decorators.
  */
-export default function Leaf(uid, type, decorators) {
-    Node.call(this, uid, type, decorators);
+export default function Leaf(type, decorators) {
+    Node.call(this, type, decorators);
 
     /**
      * The guard path to evaluate as part of a node update.

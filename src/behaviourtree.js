@@ -19,17 +19,6 @@ import Exit from './decorators/exit'
  * @param board The board.
  */
 export default function BehaviourTree(definition, board) {
-    
-    /**
-     * Get a randomly generated uid.
-     * @returns A randomly generated uid.
-     */
-    const getUid = () => {
-        var S4 = function() {
-            return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
-        };
-        return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
-    }
 
     /**
      * The AST node factories.
@@ -53,8 +42,7 @@ export default function BehaviourTree(definition, board) {
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
                 return new Root(
-                    getUid(),
-                    this.guard,
+                    this.decorators,
                     this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
                 );
             }
@@ -92,8 +80,7 @@ export default function BehaviourTree(definition, board) {
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
                 return new Selector(
-                    getUid(),
-                    this.guard,
+                    this.decorators,
                     this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
                 );
             }
@@ -110,8 +97,7 @@ export default function BehaviourTree(definition, board) {
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
                 return new Sequence(
-                    getUid(),
-                    this.guard,
+                    this.decorators,
                     this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
                 );
             }
@@ -129,9 +115,9 @@ export default function BehaviourTree(definition, board) {
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
                 return new Lotto(
-                    getUid(),
-                    this.guard,
-                    this.tickets, this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
+                    this.decorators,
+                    this.tickets,
+                    this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
                 );
             }
         }),
@@ -167,8 +153,7 @@ export default function BehaviourTree(definition, board) {
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
                 return new Repeat(
-                    getUid(),
-                    this.guard,
+                    this.decorators,
                     this.iterations,
                     this.maximumIterations,
                     this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
@@ -187,8 +172,7 @@ export default function BehaviourTree(definition, board) {
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
                 return new Flip(
-                    getUid(),
-                    this.guard,
+                    this.decorators,
                     this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
                 );
             }
@@ -200,7 +184,7 @@ export default function BehaviourTree(definition, board) {
             validate: function (depth) {},
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
                 return new Condition(
-                    getUid(),
+                    this.decorators,
                     this.conditionFunction
                 );
             }
@@ -231,8 +215,7 @@ export default function BehaviourTree(definition, board) {
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
                 return new Wait(
-                    getUid(),
-                    this.guard,
+                    this.decorators,
                     this.duration,
                     this.longestDuration
                 );
@@ -245,7 +228,7 @@ export default function BehaviourTree(definition, board) {
             validate: function (depth) {},
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
                 return new Action(
-                    getUid(),
+                    this.decorators,
                     this.actionName
                 );
             }

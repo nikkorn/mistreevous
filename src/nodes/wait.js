@@ -3,13 +3,12 @@ import Leaf from './leaf'
 /**
  * A WAIT node.
  * The state of this node will change to SUCCEEDED after a duration of time.
- * @param uid The unique node id.
  * @param guard The node guard.
  * @param duration The duration that this node will wait to succeed in milliseconds, or the earliest if longestDuration is defined.
  * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
  */
-export default function Wait(uid, guard, duration, longestDuration) {
-    Leaf.call(this, uid, "wait", guard);
+export default function Wait(guard, duration, longestDuration) {
+    Leaf.call(this, "wait", guard);
 
     /** 
      * The time in milliseconds at which this node was first updated.
