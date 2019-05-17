@@ -286,8 +286,8 @@ export default function buildRootASTNodes(tokens) {
                     }
                 }
 
-                // Try to pick a node guard off of the token stack.
-                node.guard = getGuard();
+                // Try to pick any decorators off of the token stack.
+                node.decorators = getDecorators(tokens);
 
                 popAndCheck(tokens, "{");
 
@@ -326,8 +326,8 @@ export default function buildRootASTNodes(tokens) {
                 // Push the SELECTOR node into the current scope.
                 stack[stack.length-1].push(node);
 
-                // Try to pick a node guard off of the token stack.
-                node.guard = getGuard();
+                // Try to pick any decorators off of the token stack.
+                node.decorators = getDecorators(tokens);
 
                 popAndCheck(tokens, "{");
 
@@ -342,8 +342,8 @@ export default function buildRootASTNodes(tokens) {
                 // Push the SEQUENCE node into the current scope.
                 stack[stack.length-1].push(node);
 
-                // Try to pick a node guard off of the token stack.
-                node.guard = getGuard();
+                // Try to pick any decorators off of the token stack.
+                node.decorators = getDecorators(tokens);
 
                 popAndCheck(tokens, "{");
 
@@ -364,8 +364,8 @@ export default function buildRootASTNodes(tokens) {
                     node.tickets = getArguments(tokens, (arg) => (!isNaN(arg)) && parseFloat(arg, 10) === parseInt(arg, 10), "lotto node ticket counts must be integer values");
                 }
 
-                // Try to pick a node guard off of the token stack.
-                node.guard = getGuard();
+                // Try to pick any decorators off of the token stack.
+                node.decorators = getDecorators(tokens);
 
                 popAndCheck(tokens, "{");
 
@@ -394,7 +394,10 @@ export default function buildRootASTNodes(tokens) {
                     node.conditionFunction = conditionArguments[0];
                 } else {
                     throw "expected single condition name argument";
-                } 
+                }
+
+                // Try to pick any decorators off of the token stack.
+                node.decorators = getDecorators(tokens);
                 break;
 
             case "FLIP":
@@ -404,8 +407,8 @@ export default function buildRootASTNodes(tokens) {
                 // Push the Flip node into the current scope.
                 stack[stack.length-1].push(node);
 
-                // Try to pick a node guard off of the token stack.
-                node.guard = getGuard();
+                // Try to pick any decorators off of the token stack.
+                node.decorators = getDecorators(tokens);
 
                 popAndCheck(tokens, "{");
 
@@ -436,8 +439,8 @@ export default function buildRootASTNodes(tokens) {
                     throw "invalid number of wait node duration arguments defined";
                 }
 
-                // Try to pick a node guard off of the token stack.
-                node.guard = getGuard();
+                // Try to pick any decorators off of the token stack.
+                node.decorators = getDecorators(tokens);
                 break;
 
             case "REPEAT":
@@ -466,8 +469,8 @@ export default function buildRootASTNodes(tokens) {
                     }
                 }
 
-                // Try to pick a node guard off of the token stack.
-                node.guard = getGuard();
+                // Try to pick any decorators off of the token stack.
+                node.decorators = getDecorators(tokens);
 
                 popAndCheck(tokens, "{");
 
@@ -496,7 +499,10 @@ export default function buildRootASTNodes(tokens) {
                     node.actionName = actionArguments[0];
                 } else {
                     throw "expected single action name argument";
-                } 
+                }
+
+                // Try to pick any decorators off of the token stack.
+                node.decorators = getDecorators(tokens);
                 break;
 
             case "}": 
