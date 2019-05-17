@@ -12,12 +12,15 @@ export default function GuardPath(guardedNodes) {
     this.evaluate = (board) => {
         // We need to evaluate guard conditions for nodes up the tree, moving outwards from the root.
         for (const details of guardedNodes) {
-            // Check whether the guard condition passes.
-            if (!details.guard.isSatisfied(board)) {
-                return {
-                    hasFailedCondition: true,
-                    node: details.node
-                };
+            // There can be multiple guards per node.
+            for (const guard of details.guards) {
+                // Check whether the guard condition passes.
+                if (!guard.isSatisfied(board)) {
+                    return {
+                        hasFailedCondition: true,
+                        node: details.node
+                    };
+                }
             }
         }
 

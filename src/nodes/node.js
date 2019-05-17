@@ -36,6 +36,11 @@ export default function Node(type, decorators) {
   this.getDecorators = () => decorators || [];
 
   /**
+   * Gets the node decorators.
+   */
+  this.getGuardDecorators = () => this.getDecorators().filter((decorator) => decorator.isGuard());
+
+  /**
    * Gets whether this node is in the specified state.
    * @param value The value to compare to the node state.
    */

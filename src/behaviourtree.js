@@ -118,8 +118,8 @@ export default function BehaviourTree(definition, board) {
             // Create the guard path for the leaf node.
             const guardPath = new GuardPath(
                 path
-                    .map((node) => ({ node, guard: node.getGuard() }))
-                    .filter((details) => details.guard)
+                    .map((node) => ({ node, guards: node.getGuardDecorators() }))
+                    .filter((details) => details.guards.length > 0)
             )
 
             leaf.setGuardPath(guardPath);
