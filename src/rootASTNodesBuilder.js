@@ -254,100 +254,6 @@ export default function buildRootASTNodes(tokens) {
         throw "scope character mismatch";
     }
 
-    /**
-     * Helper function to pop the next raw token off of the stack and throw an error if it wasn't the expected one.
-     * @param expected An optional string that we expect the next popped token to match.
-     * @returns The popped token.
-     */
-    const popAndCheck = (expected) => {
-        // Get and remove the next token.
-        const popped = tokens.shift();
-
-        // We were expecting another token.
-        if (popped === undefined) {
-            throw "unexpected end of definition"; 
-        }
-
-        // If an expected token was defined, was it the expected one?
-        if (expected && popped.toUpperCase() !== expected.toUpperCase()) {
-            throw "unexpected token found on the stack. Expected '" + expected + "' but got '" + popped + "'"; 
-        }
-
-        // Return the popped token.
-        return popped;
-    };
-
-    /**
-     * Helper function to pull an argument list off of the token stack.
-     * @param argumentValidator The argument validator function.
-     * @param validationFailedMessage  The exception message to throw if argument validation fails.
-     * @returns The arguments list.
-     */
-    const getArguments = (argumentValidator, validationFailedMessage) => {
-        // Any lists of arguments will always be wrapped in '[]'. so we are looking for an opening
-        popAndCheck("[");
-
-        const argumentListTokens = [];
-        const argumentList       = [];
-
-        // Grab all tokens between the '[' and ']'.
-        while (tokens.length && tokens[0] !== "]") {
-            // The next token is part of our arguments list.
-            argumentListTokens.push(tokens.shift());
-        }
-
-        // Validate the order of the argument tokens. Each token must either be a ',' or a single argument that satisfies the validator.
-        argumentListTokens.forEach((token, index) => {
-            // Get whether this token should be an actual argument.
-            const shouldBeArgumentToken = !(index & 1);
-
-            // If the current token should be an actual argument then validate it,otherwise it should be a ',' token.
-            if (shouldBeArgumentToken) {
-                // Try to validate the argument.
-                if (argumentValidator && !argumentValidator(token)) {
-                    throw validationFailedMessage;
-                }
-
-                // This is a valid argument!
-                argumentList.push(token);
-            } else {
-                // The current token should be a ',' token.
-                if (token !== ",") {
-                    throw `invalid argument list, expected ',' or ']' but got '${token}'`;
-                }
-            }
-        });
-
-        // The arguments list should terminate with a ']' token.
-        popAndCheck("]");
-
-        // Return the argument list.
-        return argumentList;
-    };
-
-    /**
-     * Helper function to try to pull a guard off of the token stack.
-     * @returns The guard defined by any directly following tokens, or null if not guard is defined.
-     */
-    const getGuard = () => {
-        // Try to get the guard factory for the next token.
-        const guardFactory = GuardFactories[(tokens[0] || "").toUpperCase()];
-
-        // There is nothing to do if the next token is not a guard name token.
-        if (!guardFactory) {
-            return null;
-        }
-
-        // The guard definition should consist of the tokens 'NAME', '(', 'CONDITION' and ')'.
-        popAndCheck(tokens[0].toUpperCase());
-        popAndCheck("(");
-        const condition = popAndCheck();
-        popAndCheck(")");
-
-        // Create and return the guard.
-        return guardFactory(condition);
-    };
-
     // Create a stack of node children arrays, starting with a definition scope.
     const stack = [[]];
 
@@ -369,7 +275,7 @@ export default function buildRootASTNodes(tokens) {
 
                 // We may have a root node name defined as an argument.
                 if (tokens[0] === "[") {
-                    const rootArguments = getArguments();
+                    const rootArguments = getArguments(tokens);
 
                     // We should have only a single argument that is not an empty string for a root node, which is the root name.
                     if (rootArguments.length === 1 && rootArguments[0] !== "") {
@@ -383,7 +289,7 @@ export default function buildRootASTNodes(tokens) {
                 // Try to pick a node guard off of the token stack.
                 node.guard = getGuard();
 
-                popAndCheck("{");
+                popAndCheck("{", tokens);
 
                 // The new scope is that of the new ROOT nodes children.
                 stack.push(node.children);
@@ -402,7 +308,7 @@ export default function buildRootASTNodes(tokens) {
                 } 
 
                 // The branch name will be defined as a node argument.
-                const branchArguments = getArguments();
+                const branchArguments = getArguments(tokens);
 
                 // We should have only a single argument that is not an empty string for a branch node, which is the branch name.
                 if (branchArguments.length === 1 && branchArguments[0] !== "") {
@@ -423,7 +329,7 @@ export default function buildRootASTNodes(tokens) {
                 // Try to pick a node guard off of the token stack.
                 node.guard = getGuard();
 
-                popAndCheck("{");
+                popAndCheck("{", tokens);
 
                 // The new scope is that of the new SELECTOR nodes children.
                 stack.push(node.children);
@@ -439,7 +345,7 @@ export default function buildRootASTNodes(tokens) {
                 // Try to pick a node guard off of the token stack.
                 node.guard = getGuard();
 
-                popAndCheck("{");
+                popAndCheck("{", tokens);
 
                 // The new scope is that of the new SEQUENCE nodes children.
                 stack.push(node.children);
@@ -455,13 +361,13 @@ export default function buildRootASTNodes(tokens) {
                 // If the next token is a '[' character then some ticket counts have been defined as arguments.
                 if (tokens[0] === "[") {
                     // Get the ticket count arguments, each argument must be a number.
-                    node.tickets = getArguments((arg) => (!isNaN(arg)) && parseFloat(arg, 10) === parseInt(arg, 10), "lotto node ticket counts must be integer values");
+                    node.tickets = getArguments(tokens, (arg) => (!isNaN(arg)) && parseFloat(arg, 10) === parseInt(arg, 10), "lotto node ticket counts must be integer values");
                 }
 
                 // Try to pick a node guard off of the token stack.
                 node.guard = getGuard();
 
-                popAndCheck("{");
+                popAndCheck("{", tokens);
 
                 // The new scope is that of the new LOTTO nodes children.
                 stack.push(node.children);
@@ -480,7 +386,7 @@ export default function buildRootASTNodes(tokens) {
                 } 
 
                 // The condition name will be defined as a node argument.
-                const conditionArguments = getArguments();
+                const conditionArguments = getArguments(tokens);
 
                 // We should have only a single argument that is not an empty string for a condition node, which is the condition function name.
                 if (conditionArguments.length === 1 && conditionArguments[0] !== "") {
@@ -501,7 +407,7 @@ export default function buildRootASTNodes(tokens) {
                 // Try to pick a node guard off of the token stack.
                 node.guard = getGuard();
 
-                popAndCheck("{");
+                popAndCheck("{", tokens);
 
                 // The new scope is that of the new FLIP nodes children.
                 stack.push(node.children);
@@ -515,7 +421,7 @@ export default function buildRootASTNodes(tokens) {
                 stack[stack.length-1].push(node);
 
                 // Get the duration and potential longest duration of the wait.
-                const durations = getArguments((arg) => (!isNaN(arg)) && parseFloat(arg, 10) === parseInt(arg, 10), "wait node durations must be integer values");
+                const durations = getArguments(tokens, (arg) => (!isNaN(arg)) && parseFloat(arg, 10) === parseInt(arg, 10), "wait node durations must be integer values");
 
                 // We should have got one or two durations.
                 if (durations.length === 1) {
@@ -544,7 +450,7 @@ export default function buildRootASTNodes(tokens) {
                 // Check for iteration counts ([])
                 if (tokens[0] === "[") {
                     // An iteration count has been defined. Get the iteration and potential maximum iteration of the wait.
-                    const iterationArguments = getArguments((arg) => (!isNaN(arg)) && parseFloat(arg, 10) === parseInt(arg, 10), "repeat node iteration counts must be integer values");
+                    const iterationArguments = getArguments(tokens, (arg) => (!isNaN(arg)) && parseFloat(arg, 10) === parseInt(arg, 10), "repeat node iteration counts must be integer values");
 
                     // We should have got one or two iteration counts.
                     if (iterationArguments.length === 1) {
@@ -563,7 +469,7 @@ export default function buildRootASTNodes(tokens) {
                 // Try to pick a node guard off of the token stack.
                 node.guard = getGuard();
 
-                popAndCheck("{");
+                popAndCheck("{", tokens);
 
                 // The new scope is that of the new REPEAT nodes children.
                 stack.push(node.children);
@@ -582,7 +488,7 @@ export default function buildRootASTNodes(tokens) {
                 } 
 
                 // The action name will be defined as a node argument.
-                const actionArguments = getArguments();
+                const actionArguments = getArguments(tokens);
 
                 // We should have only a single argument that is not an empty string for an action node, which is the action name.
                 if (actionArguments.length === 1 && actionArguments[0] !== "") {
@@ -647,4 +553,101 @@ export default function buildRootASTNodes(tokens) {
 
     // Return the root AST nodes.
     return stack[0];
+};
+
+/**
+ * Pop the next raw token off of the stack and throw an error if it wasn't the expected one.
+ * @param expected An optional string that we expect the next popped token to match.
+ * @param tokens The array of remaining tokens.
+ * @returns The popped token.
+ */
+function popAndCheck(expected, tokens) {
+    // Get and remove the next token.
+    const popped = tokens.shift();
+
+    // We were expecting another token.
+    if (popped === undefined) {
+        throw "unexpected end of definition"; 
+    }
+
+    // If an expected token was defined, was it the expected one?
+    if (expected && popped.toUpperCase() !== expected.toUpperCase()) {
+        throw "unexpected token found on the stack. Expected '" + expected + "' but got '" + popped + "'"; 
+    }
+
+    // Return the popped token.
+    return popped;
+};
+
+/**
+ * Pull an argument list off of the token stack.
+ * @param tokens The array of remaining tokens.
+ * @param argumentValidator The argument validator function.
+ * @param validationFailedMessage  The exception message to throw if argument validation fails.
+ * @returns The arguments list.
+ */
+function getArguments(tokens, argumentValidator, validationFailedMessage) {
+    // Any lists of arguments will always be wrapped in '[]'. so we are looking for an opening
+    popAndCheck("[", tokens);
+
+    const argumentListTokens = [];
+    const argumentList       = [];
+
+    // Grab all tokens between the '[' and ']'.
+    while (tokens.length && tokens[0] !== "]") {
+        // The next token is part of our arguments list.
+        argumentListTokens.push(tokens.shift());
+    }
+
+    // Validate the order of the argument tokens. Each token must either be a ',' or a single argument that satisfies the validator.
+    argumentListTokens.forEach((token, index) => {
+        // Get whether this token should be an actual argument.
+        const shouldBeArgumentToken = !(index & 1);
+
+        // If the current token should be an actual argument then validate it,otherwise it should be a ',' token.
+        if (shouldBeArgumentToken) {
+            // Try to validate the argument.
+            if (argumentValidator && !argumentValidator(token)) {
+                throw validationFailedMessage;
+            }
+
+            // This is a valid argument!
+            argumentList.push(token);
+        } else {
+            // The current token should be a ',' token.
+            if (token !== ",") {
+                throw `invalid argument list, expected ',' or ']' but got '${token}'`;
+            }
+        }
+    });
+
+    // The arguments list should terminate with a ']' token.
+    popAndCheck("]", tokens);
+
+    // Return the argument list.
+    return argumentList;
+};
+
+/**
+ * Pull a guard off of the token stack.
+ * @param tokens The array of remaining tokens.
+ * @returns The guard defined by any directly following tokens, or null if not guard is defined.
+ */
+function getGuard(tokens) {
+    // Try to get the guard factory for the next token.
+    const guardFactory = GuardFactories[(tokens[0] || "").toUpperCase()];
+
+    // There is nothing to do if the next token is not a guard name token.
+    if (!guardFactory) {
+        return null;
+    }
+
+    // The guard definition should consist of the tokens 'NAME', '(', 'CONDITION' and ')'.
+    popAndCheck(tokens[0].toUpperCase(), tokens);
+    popAndCheck("(", tokens);
+    const condition = popAndCheck();
+    popAndCheck(")", tokens);
+
+    // Create and return the guard.
+    return guardFactory(condition);
 };
