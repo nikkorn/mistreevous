@@ -14,16 +14,7 @@ export default function Flip(decorators, child) {
      * @param board The board.
      * @returns The result of the update.
      */
-    this.update = function(board) {
-        // Get the pre-update node state.
-        const initialState = this.getState();
-
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
-            // We have not changed state.
-            return { hasStateChanged: false };
-        }
-
+    this.onUpdate = function(board) {
         // If the child has never been updated or is running then we will need to update it now.
         if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
             // Update the child of this node and get the result.
@@ -39,14 +30,10 @@ export default function Flip(decorators, child) {
                     // The guard condition for this node did not pass, so this node will move into the FAILED state.
                     this.setState(Mistreevous.State.FAILED);
     
-                    // Return whether the state of this node has changed.
-                    return { hasStateChanged: true };
+                    return;
                 } else {
                     // A node guard condition has failed higher up the tree.
-                    return {
-                        hasStateChanged: false,
-                        failedGuardNode: updateResult.failedGuardNode
-                    };
+                    return { failedGuardNode: updateResult.failedGuardNode };
                 }
             }
         }
@@ -68,9 +55,6 @@ export default function Flip(decorators, child) {
             default:
                 this.setState(Mistreevous.State.READY);
         }
-
-        // Return whether the state of this node has changed.
-        return { hasStateChanged: this.getState() !== initialState };
     };
    
     /**

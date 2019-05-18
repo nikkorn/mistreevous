@@ -79,29 +79,31 @@
  * @param children The child nodes. 
  */
 function Composite(type, decorators, children) {
-    __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
+  __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
 
-    /**
-     * Gets whether this node is a leaf node.
-     */
-    this.isLeafNode = () => false;
+  /**
+   * Gets whether this node is a leaf node.
+   */
+  this.isLeafNode = () => false;
 
-    /**
-     * Gets the children of this node.
-     */
-    this.getChildren = () => children;
+  /**
+   * Gets the children of this node.
+   */
+  this.getChildren = () => children;
 
-    /**
-     * Reset the state of the node.
-     * @param isAbort Whether the reset is part of an abort.
-     */
-    this.reset = isAbort => {
-        // Reset the state of this node.
-        this.setState(Mistreevous.State.READY);
+  /**
+   * Reset the state of the node.
+   * @param isAbort Whether the reset is part of an abort.
+   */
+  this.reset = isAbort => {
+    // Reset the state of this node.
+    this.setState(Mistreevous.State.READY);
 
-        // Reset the state of any child nodes.
-        this.getChildren().forEach(child => child.reset(isAbort));
-    };
+    // TODO Call exit decorator functon if it exists.
+
+    // Reset the state of any child nodes.
+    this.getChildren().forEach(child => child.reset(isAbort));
+  };
 };
 
 Composite.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
@@ -214,6 +216,11 @@ function Node(type, decorators) {
   this.getDecorators = () => decorators || [];
 
   /**
+   * Gets the node decorator with the specified type, or null if it does not exist.
+   */
+  this.getDecorator = type => this.getDecorators().filter(decorator => decorator.getType().toUpperCase() === type.toUpperCase())[0] || null;
+
+  /**
    * Gets the node decorators.
    */
   this.getGuardDecorators = () => this.getDecorators().filter(decorator => decorator.isGuard());
@@ -233,6 +240,55 @@ function Node(type, decorators) {
   this.reset = isAbort => {
     // Reset the state of this node.
     this.setState(Mistreevous.State.READY);
+
+    // TODO Call exit decorator functon if it exists.
+  };
+
+  /**
+   * Update the node.
+   * @param board The board.
+   * @returns The result of the update.
+   */
+  this.update = board => {
+    // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
+    if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
+      // We have not changed state.
+      return {};
+    }
+
+    // If this node is in the READY state then call the ENTRY decorator for this node if it exists.
+    if (this.is(Mistreevous.State.READY)) {
+      const entryDecorator = this.getDecorator("entry");
+
+      // Call the entry decorator function if it exists.
+      if (entryDecorator) {
+        entryDecorator.callBlackboardFunction(board);
+      }
+    }
+
+    // Try to get the step decorator for this node.
+    const stepDecorator = this.getDecorator("step");
+
+    // Call the step decorator function if it exists.
+    if (stepDecorator) {
+      stepDecorator.callBlackboardFunction(board);
+    }
+
+    // Do the actual update and grab the result.
+    const updateResult = this.onUpdate(board);
+
+    // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT decorator for this node if it exists.
+    if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
+      const exitDecorator = this.getDecorator("exit");
+
+      // Call the exit decorator function if it exists.
+      if (exitDecorator) {
+        exitDecorator.callBlackboardFunction(board, this.is(Mistreevous.State.SUCCEEDED), false);
+      }
+    }
+
+    // Return the update result, or an empty object if nothing was returned.
+    return updateResult || {};
   };
 };
 
@@ -270,7 +326,7 @@ const Mistreevous = {
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
     module.exports = Mistreevous;
 } else {
-    if (typeof define === 'function' && __webpack_require__(22)) {
+    if (typeof define === 'function' && __webpack_require__(23)) {
         define([], function () {
             return Mistreevous;
         });
@@ -620,6 +676,8 @@ function GuardPath(guardedNodes) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__decorators_guards_until__ = __webpack_require__(19);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__decorators_entry__ = __webpack_require__(20);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__decorators_exit__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__decorators_step__ = __webpack_require__(22);
+
 
 
 
@@ -641,7 +699,8 @@ const DecoratorFactories = {
     "WHILE": condition => new __WEBPACK_IMPORTED_MODULE_9__decorators_guards_while__["a" /* default */](condition),
     "UNTIL": condition => new __WEBPACK_IMPORTED_MODULE_10__decorators_guards_until__["a" /* default */](condition),
     "ENTRY": functionName => new __WEBPACK_IMPORTED_MODULE_11__decorators_entry__["a" /* default */](functionName),
-    "EXIT": functionName => new __WEBPACK_IMPORTED_MODULE_12__decorators_exit__["a" /* default */](functionName)
+    "EXIT": functionName => new __WEBPACK_IMPORTED_MODULE_12__decorators_exit__["a" /* default */](functionName),
+    "STEP": functionName => new __WEBPACK_IMPORTED_MODULE_13__decorators_step__["a" /* default */](functionName)
 };
 
 /**
@@ -1285,87 +1344,38 @@ function Action(decorators, actionName) {
     __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "action", decorators);
 
     /**
-     * The onFinish action function, if one was defined.
-     */
-    let onFinish;
-
-    /**
      * Update the node.
      * @param board The board.
      * @returns The result of the update.
      */
-    this.update = function (board) {
-        // Get the pre-update node state.
-        const initialState = this.getState();
-
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
-            // We have not changed state.
-            return { hasStateChanged: false };
-        }
-
+    this.onUpdate = function (board) {
         // Evaluate all of the guard path conditions for the current tree path and return result if any guard conditions fail.
         const guardPathEvaluationResult = this.getGuardPath().evaluate(board);
         if (guardPathEvaluationResult.hasFailedCondition) {
             // We have not changed state, but a node guard condition has failed.
-            return {
-                hasStateChanged: false,
-                failedGuardNode: guardPathEvaluationResult.node
-            };
+            return { failedGuardNode: guardPathEvaluationResult.node };
         }
 
         // Get the corresponding action object or function.
         const action = board[actionName];
 
-        // Get a reference to the onFinish action function if it exists so that we can call it outside of an update.
-        if (this.is(Mistreevous.State.READY) && typeof action === "object" && typeof action.onFinish === "function") {
-            onFinish = action.onFinish;
-        }
-
         // Validate the action.
         this._validateAction(action);
 
-        // If the state of this node is 'READY' then this is the first time that we are updating this node, so call onStart if it exists.
-        if (this.is(Mistreevous.State.READY) && typeof action === "object" && typeof action.onStart === "function") {
-            action.onStart();
-        }
-
         // Call the action 'onUpdate' function, the result of which will be the new state of this action node, or 'RUNNING' if undefined.
-        const updateResult = typeof action === "function" ? action() : action.onUpdate();
+        const updateResult = action();
 
         // Validate the returned value.
         this._validateUpdateResult(updateResult);
 
         // Set the state of this node, this may be undefined, which just means that the node is still in the 'RUNNING' state.
         this.setState(updateResult || Mistreevous.State.RUNNING);
-
-        // If the new action node state is either 'SUCCEEDED' or 'FAILED' then we are finished, so call onFinish if it exists.
-        if ((this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) && onFinish) {
-            onFinish({ succeeded: this.is(Mistreevous.State.SUCCEEDED), aborted: false });
-        }
-
-        // Return whether the state of this node has changed.
-        return { hasStateChanged: this.getState() !== initialState };
     };
 
     /**
      * Gets the name of the node.
      */
     this.getName = () => actionName;
-
-    /**
-     * Reset the state of the node.
-     * @param isAbort Whether the reset is part of an abort.
-     */
-    this.reset = isAbort => {
-        // If the reset is due to an abort, and this node is running, call onFinish() if it is defined.
-        if (isAbort && this.is(Mistreevous.State.RUNNING) && onFinish) {
-            onFinish({ succeeded: false, aborted: true });
-        }
-
-        // Reset the state of this node.
-        this.setState(Mistreevous.State.READY);
-    };
 
     /**
      * Validate an action.
@@ -1379,13 +1389,7 @@ function Action(decorators, actionName) {
 
         // The action will need to be a function or an object, anything else is not valid.
         if (typeof action !== "function" || typeof action !== "object") {
-            return `action '${actionName}' must be a function or object`;
-        }
-
-        // The action should at the very least have a onUpdate function defined.
-        // Unlike 'onStart' and 'onFinish', this function must be defined as it is critical in determining node state.
-        if (typeof action === "object" && typeof action.onUpdate !== "function") {
-            throw `action '${actionName}' does not have an 'onUpdate()' function defined`;
+            return `action '${actionName}' must be a function`;
         }
     };
 
@@ -1430,24 +1434,12 @@ function Condition(decorators, condition) {
      * @param board The board.
      * @returns The result of the update.
      */
-    this.update = function (board) {
-        // Get the pre-update node state.
-        const initialState = this.getState();
-
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
-            // We have not changed state.
-            return { hasStateChanged: false };
-        }
-
+    this.onUpdate = function (board) {
         // Evaluate all of the guard path conditions for the current tree path and return result if any guard conditions fail.
         const guardPathEvaluationResult = this.getGuardPath().evaluate(board);
         if (guardPathEvaluationResult.hasFailedCondition) {
             // We have not changed state, but a node guard condition has failed.
-            return {
-                hasStateChanged: false,
-                failedGuardNode: guardPathEvaluationResult.node
-            };
+            return { failedGuardNode: guardPathEvaluationResult.node };
         }
 
         // Call the condition function to determine the state of this node, but it must exist in the blackboard.
@@ -1456,9 +1448,6 @@ function Condition(decorators, condition) {
         } else {
             throw `cannot update condition node as function '${condition}' is not defined in the blackboard`;
         }
-
-        // Return whether the state of this node has changed.
-        return { hasStateChanged: this.getState() !== initialState };
     };
 
     /**
@@ -1492,16 +1481,7 @@ function Flip(decorators, child) {
      * @param board The board.
      * @returns The result of the update.
      */
-    this.update = function (board) {
-        // Get the pre-update node state.
-        const initialState = this.getState();
-
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
-            // We have not changed state.
-            return { hasStateChanged: false };
-        }
-
+    this.onUpdate = function (board) {
         // If the child has never been updated or is running then we will need to update it now.
         if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
             // Update the child of this node and get the result.
@@ -1517,14 +1497,10 @@ function Flip(decorators, child) {
                     // The guard condition for this node did not pass, so this node will move into the FAILED state.
                     this.setState(Mistreevous.State.FAILED);
 
-                    // Return whether the state of this node has changed.
-                    return { hasStateChanged: true };
+                    return;
                 } else {
                     // A node guard condition has failed higher up the tree.
-                    return {
-                        hasStateChanged: false,
-                        failedGuardNode: updateResult.failedGuardNode
-                    };
+                    return { failedGuardNode: updateResult.failedGuardNode };
                 }
             }
         }
@@ -1546,9 +1522,6 @@ function Flip(decorators, child) {
             default:
                 this.setState(Mistreevous.State.READY);
         }
-
-        // Return whether the state of this node has changed.
-        return { hasStateChanged: this.getState() !== initialState };
     };
 
     /**
@@ -1645,16 +1618,7 @@ function Lotto(decorators, tickets, children) {
      * @param board The board.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.update = function (board) {
-        // Get the pre-update node state.
-        const initialState = this.getState();
-
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
-            // We have not changed state.
-            return { hasStateChanged: false };
-        }
-
+    this.onUpdate = function (board) {
         // If this node is in the READY state then we need to pick a winning child node.
         if (this.is(Mistreevous.State.READY)) {
             // Create a lotto draw.
@@ -1682,23 +1646,16 @@ function Lotto(decorators, tickets, children) {
                     // The guard condition for this node did not pass, so this node will move into the FAILED state.
                     this.setState(Mistreevous.State.FAILED);
 
-                    // Return whether the state of this node has changed.
-                    return { hasStateChanged: true };
+                    return;
                 } else {
-                    // A node guard condition has failed higher up the tree.
-                    return {
-                        hasStateChanged: false,
-                        failedGuardNode: updateResult.failedGuardNode
-                    };
+                    // A node guard condition has failed higher ups the tree.
+                    return { failedGuardNode: updateResult.failedGuardNode };
                 }
             }
         }
 
         // The state of the lotto node is the state of its winning child.
         this.setState(winningChild.getState());
-
-        // Return whether the state of this node has changed.
-        return { hasStateChanged: this.getState() !== initialState };
     };
 
     /**
@@ -1748,16 +1705,7 @@ function Repeat(decorators, iterations, maximumIterations, child) {
      * @param board The board.
      * @returns The result of the update.
      */
-    this.update = function (board) {
-        // Get the pre-update node state.
-        const initialState = this.getState();
-
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
-            // We have not changed state.
-            return { hasStateChanged: false };
-        }
-
+    this.onUpdate = function (board) {
         // If this node is in the READY state then we need to reset the child and the target iteration count.
         if (this.is(Mistreevous.State.READY)) {
             // Reset the child node.
@@ -1792,14 +1740,10 @@ function Repeat(decorators, iterations, maximumIterations, child) {
                     // The guard condition for this node did not pass, so this node will move into the FAILED state.
                     this.setState(Mistreevous.State.FAILED);
 
-                    // Return whether the state of this node has changed.
-                    return { hasStateChanged: true };
+                    return;
                 } else {
                     // A node guard condition has failed higher up the tree.
-                    return {
-                        hasStateChanged: false,
-                        failedGuardNode: updateResult.failedGuardNode
-                    };
+                    return { failedGuardNode: updateResult.failedGuardNode };
                 }
             }
 
@@ -1809,8 +1753,7 @@ function Repeat(decorators, iterations, maximumIterations, child) {
                 // The child has failed, meaning that this node has failed.
                 this.setState(Mistreevous.State.FAILED);
 
-                // Return whether the state of this node has changed.
-                return { hasStateChanged: state !== initialState };
+                return;
             } else if (child.getState() === Mistreevous.State.SUCCEEDED) {
                 // We have completed an iteration.
                 currentIterationCount += 1;
@@ -1819,9 +1762,6 @@ function Repeat(decorators, iterations, maximumIterations, child) {
             // This node is in the 'SUCCEEDED' state as we cannot iterate any more.
             this.setState(Mistreevous.State.SUCCEEDED);
         }
-
-        // Return whether the state of this node has changed.
-        return { hasStateChanged: this.getState() !== initialState };
     };
 
     /**
@@ -1843,6 +1783,8 @@ function Repeat(decorators, iterations, maximumIterations, child) {
     this.reset = isAbort => {
         // Reset the state of this node.
         this.setState(Mistreevous.State.READY);
+
+        // TODO Call exit decorator functon if it exists.
 
         // Reset the current iteration count.
         currentIterationCount = 0;
@@ -1904,16 +1846,7 @@ function Root(decorators, child) {
      * @param board The board.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.update = function (board) {
-        // Get the pre-update node state.
-        const initialState = this.getState();
-
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
-            // We have not changed state.
-            return { hasStateChanged: false };
-        }
-
+    this.onUpdate = function (board) {
         // If the child has never been updated or is running then we will need to update it now.
         if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
             // Update the child of this node and get the result.
@@ -1929,8 +1862,7 @@ function Root(decorators, child) {
                     // The guard condition for this node did not pass, so this node will move into the FAILED state.
                     this.setState(Mistreevous.State.FAILED);
 
-                    // Return whether the state of this node has changed.
-                    return { hasStateChanged: true };
+                    return;
                 } else {
                     // As this is the tree root node, it should not be possible for the failed guard node not to have handle the failed condition by now.
                     throw "Guard condition failed but no node was found to handle it";
@@ -1940,9 +1872,6 @@ function Root(decorators, child) {
 
         // The state of the root node is the state of its child.
         this.setState(child.getState());
-
-        // Return whether the state of this node has changed.
-        return { hasStateChanged: this.getState() !== initialState };
     };
 
     /**
@@ -1976,16 +1905,7 @@ function Selector(decorators, children) {
      * @param board The board.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.update = function (board) {
-        // Get the pre-update node state.
-        const initialState = this.getState();
-
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
-            // We have not changed state.
-            return { hasStateChanged: false };
-        }
-
+    this.onUpdate = function (board) {
         // Iterate over all of the children of this node.
         for (const child of children) {
             // If the child has never been updated or is running then we will need to update it now.
@@ -2003,14 +1923,10 @@ function Selector(decorators, children) {
                         // The guard condition for this node did not pass, so this node will move into the FAILED state.
                         this.setState(Mistreevous.State.FAILED);
 
-                        // Return whether the state of this node has changed.
-                        return { hasStateChanged: true };
+                        return;
                     } else {
                         // A node guard condition has failed higher up the tree.
-                        return {
-                            hasStateChanged: false,
-                            failedGuardNode: updateResult.failedGuardNode
-                        };
+                        return { failedGuardNode: updateResult.failedGuardNode };
                     }
                 }
             }
@@ -2021,7 +1937,7 @@ function Selector(decorators, children) {
                 this.setState(Mistreevous.State.SUCCEEDED);
 
                 // There is no need to check the rest of the selector nodes.
-                return { hasStateChanged: this.getState() !== initialState };
+                return;
             }
 
             // If the current child has a state of 'FAILED' then we should move on to the next child.
@@ -2033,7 +1949,7 @@ function Selector(decorators, children) {
                     this.setState(Mistreevous.State.FAILED);
 
                     // There is no need to check the rest of the selector as we have completed it.
-                    return { hasStateChanged: this.getState() !== initialState };
+                    return;
                 } else {
                     // The child node failed, try the next one.
                     continue;
@@ -2046,7 +1962,7 @@ function Selector(decorators, children) {
                 this.setState(Mistreevous.State.RUNNING);
 
                 // There is no need to check the rest of the selector as the current child is still running.
-                return { hasStateChanged: this.getState() !== initialState };
+                return;
             }
 
             // The child node was not in an expected state.
@@ -2085,16 +2001,7 @@ function Sequence(decorators, children) {
      * @param board The board.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.update = function (board) {
-        // Get the pre-update node state.
-        const initialState = this.getState();
-
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
-            // We have not changed state.
-            return { hasStateChanged: false };
-        }
-
+    this.onUpdate = function (board) {
         // Iterate over all of the children of this node.
         for (const child of children) {
             // If the child has never been updated or is running then we will need to update it now.
@@ -2112,14 +2019,10 @@ function Sequence(decorators, children) {
                         // The guard condition for this node did not pass, so this node will move into the FAILED state.
                         this.setState(Mistreevous.State.FAILED);
 
-                        // Return whether the state of this node has changed.
-                        return { hasStateChanged: true };
+                        return;
                     } else {
                         // A node guard condition has failed higher up the tree.
-                        return {
-                            hasStateChanged: false,
-                            failedGuardNode: updateResult.failedGuardNode
-                        };
+                        return { failedGuardNode: updateResult.failedGuardNode };
                     }
                 }
             }
@@ -2133,7 +2036,7 @@ function Sequence(decorators, children) {
                     this.setState(Mistreevous.State.SUCCEEDED);
 
                     // There is no need to check the rest of the sequence as we have completed it.
-                    return { hasStateChanged: this.getState() !== initialState };
+                    return;
                 } else {
                     // The child node succeeded, but we have not finished the sequence yet.
                     continue;
@@ -2146,7 +2049,7 @@ function Sequence(decorators, children) {
                 this.setState(Mistreevous.State.FAILED);
 
                 // There is no need to check the rest of the sequence.
-                return { hasStateChanged: this.getState() !== initialState };
+                return;
             }
 
             // The node should be in the 'RUNNING' state.
@@ -2155,7 +2058,7 @@ function Sequence(decorators, children) {
                 this.setState(Mistreevous.State.RUNNING);
 
                 // There is no need to check the rest of the sequence as the current child is still running.
-                return { hasStateChanged: this.getState() !== initialState };
+                return;
             }
 
             // The child node was not in an expected state.
@@ -2205,16 +2108,7 @@ function Wait(decorators, duration, longestDuration) {
      * @param board The board.
      * @returns The result of the update.
      */
-    this.update = function (board) {
-        // Get the pre-update node state.
-        const initialState = this.getState();
-
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
-            // We have not changed state.
-            return { hasStateChanged: false };
-        }
-
+    this.onUpdate = function (board) {
         // Evaluate guard path and return result if any guard conditions fail.
         const guardPathEvaluationResult = this.getGuardPath().evaluate(board);
         if (guardPathEvaluationResult.hasFailedCondition) {
@@ -2223,14 +2117,10 @@ function Wait(decorators, duration, longestDuration) {
                 // The guard condition for this node did not pass, so this node will move into the FAILED state.
                 this.setState(Mistreevous.State.FAILED);
 
-                // Return whether the state of this node has changed.
-                return { hasStateChanged: true };
+                return;
             } else {
                 // A node guard condition has failed higher up the tree.
-                return {
-                    hasStateChanged: false,
-                    failedGuardNode: guardPathEvaluationResult.node
-                };
+                return { failedGuardNode: guardPathEvaluationResult.node };
             }
         }
 
@@ -2252,9 +2142,6 @@ function Wait(decorators, duration, longestDuration) {
             // We have finished waiting!
             this.setState(Mistreevous.State.SUCCEEDED);
         }
-
-        // Return whether the state of this node has changed.
-        return { hasStateChanged: this.getState() !== initialState };
     };
 
     /**
@@ -2473,6 +2360,54 @@ Exit.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* d
 
 /***/ }),
 /* 22 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = Step;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(1);
+
+
+/**
+ * A STEP decorator which defines a blackboard function to call when the decorated node is updated.
+ * @param functionName The name of the blackboard function to call.
+ */
+function Step(functionName) {
+    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "step");
+
+    /**
+     * Gets the function name.
+     */
+    this.getFunctionName = () => functionName;
+
+    /**
+     * Gets the decorator details.
+     */
+    this.getDetails = () => {
+        return {
+            type: this.getType(),
+            isGuard: this.isGuard(),
+            functionName: this.getFunctionName()
+        };
+    };
+
+    /**
+     * Attempt to call the blackboard function that this decorator refers to.
+     * @param board The board.
+     */
+    this.callBlackboardFunction = board => {
+        // Call the blackboard function if it exists.
+        if (typeof board[functionName] === "function") {
+            board[functionName]();
+        } else {
+            throw `cannot call entry decorator function '${functionName}' is not defined in the blackboard`;
+        }
+    };
+};
+
+Step.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
+
+/***/ }),
+/* 23 */
 /***/ (function(module, exports) {
 
 /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {/* globals __webpack_amd_options__ */

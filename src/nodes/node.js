@@ -36,6 +36,11 @@ export default function Node(type, decorators) {
   this.getDecorators = () => decorators || [];
 
   /**
+   * Gets the node decorator with the specified type, or null if it does not exist.
+   */
+  this.getDecorator = (type) => this.getDecorators().filter((decorator) => decorator.getType().toUpperCase() === type.toUpperCase())[0] || null;
+
+  /**
    * Gets the node decorators.
    */
   this.getGuardDecorators = () => this.getDecorators().filter((decorator) => decorator.isGuard());
@@ -55,6 +60,55 @@ export default function Node(type, decorators) {
   this.reset = (isAbort) => {
     // Reset the state of this node.
     this.setState(Mistreevous.State.READY);
+
+    // TODO Call exit decorator functon if it exists.
+  };
+
+  /**
+   * Update the node.
+   * @param board The board.
+   * @returns The result of the update.
+   */
+  this.update = (board) => {
+    // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
+    if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
+        // We have not changed state.
+        return {};
+    }
+
+    // If this node is in the READY state then call the ENTRY decorator for this node if it exists.
+    if (this.is(Mistreevous.State.READY)) {
+      const entryDecorator = this.getDecorator("entry");
+
+      // Call the entry decorator function if it exists.
+      if (entryDecorator) {
+        entryDecorator.callBlackboardFunction(board);
+      }
+    }
+
+    // Try to get the step decorator for this node.
+    const stepDecorator = this.getDecorator("step");
+
+    // Call the step decorator function if it exists.
+    if (stepDecorator) {
+      stepDecorator.callBlackboardFunction(board);
+    }
+
+    // Do the actual update and grab the result.
+    const updateResult = this.onUpdate(board);
+
+    // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT decorator for this node if it exists.
+    if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
+      const exitDecorator = this.getDecorator("exit");
+
+      // Call the exit decorator function if it exists.
+      if (exitDecorator) {
+        exitDecorator.callBlackboardFunction(board, this.is(Mistreevous.State.SUCCEEDED), false);
+      }
+    }
+
+    // Return the update result, or an empty object if nothing was returned.
+    return updateResult || {};
   };
 };
 

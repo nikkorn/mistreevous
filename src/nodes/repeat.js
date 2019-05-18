@@ -30,16 +30,7 @@ export default function Repeat(decorators, iterations, maximumIterations, child)
      * @param board The board.
      * @returns The result of the update.
      */
-    this.update = function(board) {
-        // Get the pre-update node state.
-        const initialState = this.getState();
-
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
-            // We have not changed state.
-            return { hasStateChanged: false };
-        }
-
+    this.onUpdate = function(board) {
         // If this node is in the READY state then we need to reset the child and the target iteration count.
         if (this.is(Mistreevous.State.READY)) {
             // Reset the child node.
@@ -74,14 +65,10 @@ export default function Repeat(decorators, iterations, maximumIterations, child)
                     // The guard condition for this node did not pass, so this node will move into the FAILED state.
                     this.setState(Mistreevous.State.FAILED);
 
-                    // Return whether the state of this node has changed.
-                    return { hasStateChanged: true };
+                    return;
                 } else {
                     // A node guard condition has failed higher up the tree.
-                    return {
-                        hasStateChanged: false,
-                        failedGuardNode: updateResult.failedGuardNode
-                    };
+                    return { failedGuardNode: updateResult.failedGuardNode };
                 }
             }
 
@@ -91,8 +78,7 @@ export default function Repeat(decorators, iterations, maximumIterations, child)
                 // The child has failed, meaning that this node has failed.
                 this.setState(Mistreevous.State.FAILED);
 
-                // Return whether the state of this node has changed.
-                return { hasStateChanged: state !== initialState };
+                return;
             } else if (child.getState() === Mistreevous.State.SUCCEEDED) {
                 // We have completed an iteration.
                 currentIterationCount += 1;
@@ -101,9 +87,6 @@ export default function Repeat(decorators, iterations, maximumIterations, child)
             // This node is in the 'SUCCEEDED' state as we cannot iterate any more.
             this.setState(Mistreevous.State.SUCCEEDED);
         }
-
-        // Return whether the state of this node has changed.
-        return { hasStateChanged: this.getState() !== initialState };
     };
 
     /**
@@ -125,6 +108,8 @@ export default function Repeat(decorators, iterations, maximumIterations, child)
     this.reset = (isAbort) => {
         // Reset the state of this node.
         this.setState(Mistreevous.State.READY);
+
+        // TODO Call exit decorator functon if it exists.
 
         // Reset the current iteration count.
         currentIterationCount = 0;

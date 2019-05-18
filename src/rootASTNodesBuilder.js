@@ -11,6 +11,7 @@ import While from './decorators/guards/while'
 import Until from './decorators/guards/until'
 import Entry from './decorators/entry'
 import Exit from './decorators/exit'
+import Step from './decorators/step'
 
  /**
  * The node decorator factories.
@@ -19,7 +20,8 @@ const DecoratorFactories = {
     "WHILE": (condition) => new While(condition),
     "UNTIL": (condition) => new Until(condition),
     "ENTRY": (functionName) => new Entry(functionName),
-    "EXIT": (functionName) => new Exit(functionName)
+    "EXIT": (functionName) => new Exit(functionName),
+    "STEP": (functionName) => new Step(functionName)
 };
 
 /**

@@ -79,53 +79,14 @@ blackboardTextArea.value =
     DoorIsOpen: () => false,
     DoorIsSmashed: () => true,  
 
-    WalkToDoor: {
-        onStart: () => {},
-        onUpdate: () => Mistreevous.State.SUCCEEDED,
-        onFinish: (succeeded) => {}
-    },
-
-    OpenDoor: {
-        onStart: () => {},
-        onUpdate: () => Mistreevous.State.FAILED,
-        onFinish: (succeeded) => {}
-    },
-
-    UnlockDoor: {
-        onStart: () => {},
-        onUpdate: () => Mistreevous.State.FAILED,
-        onFinish: (succeeded) => {}
-    },
-
-    SmashDoor: {
-        onStart: () => {},
-        onUpdate: () => {},
-        onFinish: (succeeded) => {}
-    },
-
-    WalkThroughDoor: {
-        onStart: () => {},
-        onUpdate: () => Mistreevous.State.SUCCEEDED,
-        onFinish: (succeeded) => {}
-    },
-
-    CloseDoor: {
-        onStart: () => {},
-        onUpdate: () => Mistreevous.State.SUCCEEDED,
-        onFinish: (succeeded) => {}
-    },
-
-    ScreamLoudly: {
-        onStart: () => {},
-        onUpdate: () => Mistreevous.State.SUCCEEDED,
-        onFinish: (succeeded) => {}
-    },
-
-    MutterAngrily: {
-        onStart: () => {},
-        onUpdate: () => Mistreevous.State.SUCCEEDED,
-        onFinish: (succeeded) => {}
-    }
+    WalkToDoor: () => Mistreevous.State.SUCCEEDED,
+    OpenDoor: () => Mistreevous.State.FAILED,
+    UnlockDoor: () => Mistreevous.State.FAILED,
+    SmashDoor: () => {},
+    WalkThroughDoor: () => Mistreevous.State.SUCCEEDED,
+    CloseDoor: () => Mistreevous.State.SUCCEEDED,
+    ScreamLoudly: () => Mistreevous.State.SUCCEEDED,
+    MutterAngrily: () => Mistreevous.State.SUCCEEDED
 }`;
 
 /**

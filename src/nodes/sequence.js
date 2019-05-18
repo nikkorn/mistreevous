@@ -14,16 +14,7 @@ export default function Sequence(decorators, children) {
      * @param board The board.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.update = function(board) {
-        // Get the pre-update node state.
-        const initialState = this.getState();
-
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
-            // We have not changed state.
-            return { hasStateChanged: false };
-        }
-
+    this.onUpdate = function(board) {
         // Iterate over all of the children of this node.
         for (const child of children) {
             // If the child has never been updated or is running then we will need to update it now.
@@ -41,14 +32,10 @@ export default function Sequence(decorators, children) {
                         // The guard condition for this node did not pass, so this node will move into the FAILED state.
                         this.setState(Mistreevous.State.FAILED);
 
-                        // Return whether the state of this node has changed.
-                        return { hasStateChanged: true };
+                        return;
                     } else {
                         // A node guard condition has failed higher up the tree.
-                        return {
-                            hasStateChanged: false,
-                            failedGuardNode: updateResult.failedGuardNode
-                        };
+                        return { failedGuardNode: updateResult.failedGuardNode };
                     }
                 }
             }
@@ -62,7 +49,7 @@ export default function Sequence(decorators, children) {
                     this.setState(Mistreevous.State.SUCCEEDED);
 
                     // There is no need to check the rest of the sequence as we have completed it.
-                    return { hasStateChanged: this.getState() !== initialState };
+                    return;
                 } else {
                     // The child node succeeded, but we have not finished the sequence yet.
                     continue;
@@ -75,7 +62,7 @@ export default function Sequence(decorators, children) {
                 this.setState(Mistreevous.State.FAILED);
 
                 // There is no need to check the rest of the sequence.
-                return { hasStateChanged: this.getState() !== initialState };
+                return;
             }
 
             // The node should be in the 'RUNNING' state.
@@ -84,7 +71,7 @@ export default function Sequence(decorators, children) {
                 this.setState(Mistreevous.State.RUNNING);
 
                 // There is no need to check the rest of the sequence as the current child is still running.
-                return { hasStateChanged: this.getState() !== initialState };
+                return;
             }
 
             // The child node was not in an expected state.

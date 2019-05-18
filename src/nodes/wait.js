@@ -25,16 +25,7 @@ export default function Wait(decorators, duration, longestDuration) {
      * @param board The board.
      * @returns The result of the update.
      */
-    this.update = function(board) {
-        // Get the pre-update node state.
-        const initialState = this.getState();
-
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
-            // We have not changed state.
-            return { hasStateChanged: false };
-        }
-
+    this.onUpdate = function(board) {
         // Evaluate guard path and return result if any guard conditions fail.
         const guardPathEvaluationResult = this.getGuardPath().evaluate(board);
         if (guardPathEvaluationResult.hasFailedCondition) {
@@ -43,14 +34,10 @@ export default function Wait(decorators, duration, longestDuration) {
                 // The guard condition for this node did not pass, so this node will move into the FAILED state.
                 this.setState(Mistreevous.State.FAILED);
 
-                // Return whether the state of this node has changed.
-                return { hasStateChanged: true };
+                return;
             } else {
                 // A node guard condition has failed higher up the tree.
-                return {
-                    hasStateChanged: false,
-                    failedGuardNode: guardPathEvaluationResult.node
-                };
+                return { failedGuardNode: guardPathEvaluationResult.node };
             }
         }
 
@@ -72,9 +59,6 @@ export default function Wait(decorators, duration, longestDuration) {
             // We have finished waiting!
             this.setState(Mistreevous.State.SUCCEEDED);
         }
-
-        // Return whether the state of this node has changed.
-        return { hasStateChanged: this.getState() !== initialState };
     };
 
     /**

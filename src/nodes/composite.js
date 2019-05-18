@@ -27,6 +27,8 @@ export default function Composite(type, decorators, children) {
         // Reset the state of this node.
         this.setState(Mistreevous.State.READY);
 
+        // TODO Call exit decorator functon if it exists.
+
         // Reset the state of any child nodes.
         this.getChildren().forEach(child => child.reset(isAbort));
     };

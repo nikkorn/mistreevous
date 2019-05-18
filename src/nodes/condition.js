@@ -14,24 +14,12 @@ export default function Condition(decorators, condition) {
      * @param board The board.
      * @returns The result of the update.
      */
-    this.update = function(board) {
-        // Get the pre-update node state.
-        const initialState = this.getState();
-
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
-            // We have not changed state.
-            return { hasStateChanged: false };
-        }
-
+    this.onUpdate = function(board) {
         // Evaluate all of the guard path conditions for the current tree path and return result if any guard conditions fail.
         const guardPathEvaluationResult = this.getGuardPath().evaluate(board);
         if (guardPathEvaluationResult.hasFailedCondition) {
             // We have not changed state, but a node guard condition has failed.
-            return {
-                hasStateChanged: false,
-                failedGuardNode: guardPathEvaluationResult.node
-            };
+            return { failedGuardNode: guardPathEvaluationResult.node };
         }
 
         // Call the condition function to determine the state of this node, but it must exist in the blackboard.
@@ -40,9 +28,6 @@ export default function Condition(decorators, condition) {
         } else {
             throw `cannot update condition node as function '${condition}' is not defined in the blackboard`;
         }
-
-        // Return whether the state of this node has changed.
-        return { hasStateChanged: this.getState() !== initialState };
     };
 
     /**
