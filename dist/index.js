@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 4);
+/******/ 	return __webpack_require__(__webpack_require__.s = 5);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -69,7 +69,7 @@
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Composite;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(4);
 
 
 /**
@@ -164,7 +164,7 @@ function Decorator(type) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Leaf;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(4);
 
 
 /**
@@ -207,7 +207,37 @@ Leaf.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* defaul
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = GuardUnsatisifedException;
+/**
+ * An exception thrown when evaluating node guard path conditions and a conditions fails.
+ * @param source The node at which a guard condition failed. 
+ */
+function GuardUnsatisifedException(source) {
+
+  /**
+   * The exception message.
+   */
+  this.message = "A guard path condition has failed";
+
+  /**
+   * Gets whether the specified node is the node at which a guard condition failed.
+   * @param node The node to check against the source node.
+   * @returns Whether the specified node is the node at which a guard condition failed.
+   */
+  this.isSourceNode = node => node === source;
+}
+
+GuardUnsatisifedException.prototype = new Error();
+
+/***/ }),
+/* 4 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Node;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorators_guards_guardUnsatisifedException__ = __webpack_require__(3);
+
+
 /**
  * A base node.
  * @param type The node type.
@@ -311,42 +341,52 @@ function Node(type, decorators) {
       return {};
     }
 
-    // Do any pre-update logic.
-    this.onBeforeUpdate(board);
+    try {
+      // Do any pre-update logic.
+      this.onBeforeUpdate(board);
 
-    // If this node is in the READY state then call the ENTRY decorator for this node if it exists.
-    if (this.is(Mistreevous.State.READY)) {
-      const entryDecorator = this.getDecorator("entry");
+      // If this node is in the READY state then call the ENTRY decorator for this node if it exists.
+      if (this.is(Mistreevous.State.READY)) {
+        const entryDecorator = this.getDecorator("entry");
 
-      // Call the entry decorator function if it exists.
-      if (entryDecorator) {
-        entryDecorator.callBlackboardFunction(board);
+        // Call the entry decorator function if it exists.
+        if (entryDecorator) {
+          entryDecorator.callBlackboardFunction(board);
+        }
+      }
+
+      // Try to get the step decorator for this node.
+      const stepDecorator = this.getDecorator("step");
+
+      // Call the step decorator function if it exists.
+      if (stepDecorator) {
+        stepDecorator.callBlackboardFunction(board);
+      }
+
+      // Do the actual update.
+      this.onUpdate(board);
+
+      // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT decorator for this node if it exists.
+      if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
+        const exitDecorator = this.getDecorator("exit");
+
+        // Call the exit decorator function if it exists.
+        if (exitDecorator) {
+          exitDecorator.callBlackboardFunction(board, this.is(Mistreevous.State.SUCCEEDED), false);
+        }
+      }
+    } catch (error) {
+      // If the error is a GuardUnsatisfiedException then we need to determine if this node is the source.
+      if (error instanceof __WEBPACK_IMPORTED_MODULE_0__decorators_guards_guardUnsatisifedException__["a" /* default */] && error.isSourceNode(this)) {
+        // Abort the current node.
+        this.abort(board);
+
+        // Any node that is the source of an abort will be a failed node.
+        this.setState(Mistreevous.State.FAILED);
+      } else {
+        throw error;
       }
     }
-
-    // Try to get the step decorator for this node.
-    const stepDecorator = this.getDecorator("step");
-
-    // Call the step decorator function if it exists.
-    if (stepDecorator) {
-      stepDecorator.callBlackboardFunction(board);
-    }
-
-    // Do the actual update and grab the result.
-    const updateResult = this.onUpdate(board);
-
-    // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT decorator for this node if it exists.
-    if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
-      const exitDecorator = this.getDecorator("exit");
-
-      // Call the exit decorator function if it exists.
-      if (exitDecorator) {
-        exitDecorator.callBlackboardFunction(board, this.is(Mistreevous.State.SUCCEEDED), false);
-      }
-    }
-
-    // Return the update result, or an empty object if nothing was returned.
-    return updateResult || {};
   };
 };
 
@@ -362,12 +402,12 @@ function createNodeUid() {
 }
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* WEBPACK VAR INJECTION */(function(module) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__behaviourtree__ = __webpack_require__(6);
+/* WEBPACK VAR INJECTION */(function(module) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__behaviourtree__ = __webpack_require__(7);
 
 
 const Mistreevous = {
@@ -392,10 +432,10 @@ if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
         window.Mistreevous = Mistreevous;
     }
 }
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(5)(module)))
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(6)(module)))
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports) {
 
 module.exports = function(originalModule) {
@@ -425,12 +465,12 @@ module.exports = function(originalModule) {
 
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = BehaviourTree;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorators_guards_guardPath__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorators_guards_guardPath__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__rootASTNodesBuilder__ = __webpack_require__(9);
 
 
@@ -679,12 +719,12 @@ BehaviourTree.prototype.reset = function () {
 };
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = GuardPath;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__guardUnsatisifedException__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__guardUnsatisifedException__ = __webpack_require__(3);
 
 
 /**
@@ -711,33 +751,6 @@ function GuardPath(guardedNodes) {
         }
     };
 };
-
-/***/ }),
-/* 8 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = GuardUnsatisifedException;
-/**
- * An exception thrown when evaluating node guard path conditions and a conditions fails.
- * @param source The node at which a guard condition failed. 
- */
-function GuardUnsatisifedException(source) {
-
-  /**
-   * The exception message.
-   */
-  this.message = "A guard path condition has failed";
-
-  /**
-   * Gets whether the specified node is the node at which a guard condition failed.
-   * @param node The node to check against the source node.
-   * @returns Whether the specified node is the node at which a guard condition failed.
-   */
-  this.isSourceNode = node => node === source;
-}
-
-GuardUnsatisifedException.prototype = new Error();
 
 /***/ }),
 /* 9 */

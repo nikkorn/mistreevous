@@ -1,3 +1,5 @@
+import GuardUnsatisifedException from '../decorators/guards/guardUnsatisifedException';
+
 /**
  * A base node.
  * @param type The node type.
@@ -101,42 +103,52 @@ export default function Node(type, decorators) {
         return {};
     }
 
-    // Do any pre-update logic.
-    this.onBeforeUpdate(board);
+    try {
+      // Do any pre-update logic.
+      this.onBeforeUpdate(board);
 
-    // If this node is in the READY state then call the ENTRY decorator for this node if it exists.
-    if (this.is(Mistreevous.State.READY)) {
-      const entryDecorator = this.getDecorator("entry");
+      // If this node is in the READY state then call the ENTRY decorator for this node if it exists.
+      if (this.is(Mistreevous.State.READY)) {
+        const entryDecorator = this.getDecorator("entry");
 
-      // Call the entry decorator function if it exists.
-      if (entryDecorator) {
-        entryDecorator.callBlackboardFunction(board);
+        // Call the entry decorator function if it exists.
+        if (entryDecorator) {
+          entryDecorator.callBlackboardFunction(board);
+        }
+      }
+
+      // Try to get the step decorator for this node.
+      const stepDecorator = this.getDecorator("step");
+
+      // Call the step decorator function if it exists.
+      if (stepDecorator) {
+        stepDecorator.callBlackboardFunction(board);
+      }
+
+      // Do the actual update.
+      this.onUpdate(board);
+
+      // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT decorator for this node if it exists.
+      if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
+        const exitDecorator = this.getDecorator("exit");
+
+        // Call the exit decorator function if it exists.
+        if (exitDecorator) {
+          exitDecorator.callBlackboardFunction(board, this.is(Mistreevous.State.SUCCEEDED), false);
+        }
+      }
+    } catch (error) {
+      // If the error is a GuardUnsatisfiedException then we need to determine if this node is the source.
+      if (error instanceof GuardUnsatisifedException && error.isSourceNode(this)) {
+        // Abort the current node.
+        this.abort(board);
+
+        // Any node that is the source of an abort will be a failed node.
+        this.setState(Mistreevous.State.FAILED);
+      } else {
+        throw error;
       }
     }
-
-    // Try to get the step decorator for this node.
-    const stepDecorator = this.getDecorator("step");
-
-    // Call the step decorator function if it exists.
-    if (stepDecorator) {
-      stepDecorator.callBlackboardFunction(board);
-    }
-
-    // Do the actual update and grab the result.
-    const updateResult = this.onUpdate(board);
-
-    // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT decorator for this node if it exists.
-    if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
-      const exitDecorator = this.getDecorator("exit");
-
-      // Call the exit decorator function if it exists.
-      if (exitDecorator) {
-        exitDecorator.callBlackboardFunction(board, this.is(Mistreevous.State.SUCCEEDED), false);
-      }
-    }
-
-    // Return the update result, or an empty object if nothing was returned.
-    return updateResult || {};
   };
 };
 
