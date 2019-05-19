@@ -93,16 +93,38 @@ function Composite(type, decorators, children) {
 
   /**
    * Reset the state of the node.
-   * @param isAbort Whether the reset is part of an abort.
    */
-  this.reset = isAbort => {
+  this.reset = () => {
     // Reset the state of this node.
     this.setState(Mistreevous.State.READY);
 
-    // TODO Call exit decorator functon if it exists.
-
     // Reset the state of any child nodes.
-    this.getChildren().forEach(child => child.reset(isAbort));
+    this.getChildren().forEach(child => child.reset());
+  };
+
+  /**
+   * Abort the running of this node.
+   * @param board The board.
+   */
+  this.abort = board => {
+    // There is nothing to do if this node is not in the running state.
+    if (!this.is(Mistreevous.State.RUNNING)) {
+      return;
+    }
+
+    // Abort any child nodes.
+    this.getChildren().forEach(child => child.abort(board));
+
+    // Reset the state of this node.
+    this.reset();
+
+    // Try to get the exit decorator for this node.
+    const exitDecorator = this.getDecorator("exit");
+
+    // Call the exit decorator function if it exists.
+    if (exitDecorator) {
+      exitDecorator.callBlackboardFunction(board, false, true);
+    }
   };
 };
 
@@ -235,13 +257,32 @@ function Node(type, decorators) {
 
   /**
    * Reset the state of the node.
-   * @param isAbort Whether the reset is part of an abort.
    */
-  this.reset = isAbort => {
+  this.reset = () => {
     // Reset the state of this node.
     this.setState(Mistreevous.State.READY);
+  };
 
-    // TODO Call exit decorator functon if it exists.
+  /**
+   * Abort the running of this node.
+   * @param board The board.
+   */
+  this.abort = board => {
+    // There is nothing to do if this node is not in the running state.
+    if (!this.is(Mistreevous.State.RUNNING)) {
+      return;
+    }
+
+    // Reset the state of this node.
+    this.reset();
+
+    // Try to get the exit decorator for this node.
+    const exitDecorator = this.getDecorator("exit");
+
+    // Call the exit decorator function if it exists.
+    if (exitDecorator) {
+      exitDecorator.callBlackboardFunction(board, false, true);
+    }
   };
 
   /**
@@ -1491,8 +1532,8 @@ function Flip(decorators, child) {
             if (updateResult.failedGuardNode) {
                 // Is this node the one with the failed guard condition?
                 if (updateResult.failedGuardNode === this) {
-                    // We need to reset this node, passing a flag to say that this is an abort.
-                    this.reset(true);
+                    // We need to abort this node.
+                    this.abort(board);
 
                     // The guard condition for this node did not pass, so this node will move into the FAILED state.
                     this.setState(Mistreevous.State.FAILED);
@@ -1640,8 +1681,8 @@ function Lotto(decorators, tickets, children) {
             if (updateResult.failedGuardNode) {
                 // Is this node the one with the failed guard condition?
                 if (updateResult.failedGuardNode === this) {
-                    // We need to reset this node, passing a flag to say that this is an abort.
-                    this.reset(true);
+                    // We need to abort this node.
+                    this.abort(board);
 
                     // The guard condition for this node did not pass, so this node will move into the FAILED state.
                     this.setState(Mistreevous.State.FAILED);
@@ -1734,8 +1775,8 @@ function Repeat(decorators, iterations, maximumIterations, child) {
             if (updateResult.failedGuardNode) {
                 // Is this node the one with the failed guard condition?
                 if (updateResult.failedGuardNode === this) {
-                    // We need to reset this node, passing a flag to say that this is an abort.
-                    this.reset(true);
+                    // We need to abort this node.
+                    this.abort(board);
 
                     // The guard condition for this node did not pass, so this node will move into the FAILED state.
                     this.setState(Mistreevous.State.FAILED);
@@ -1778,19 +1819,16 @@ function Repeat(decorators, iterations, maximumIterations, child) {
 
     /**
      * Reset the state of the node.
-     * @param isAbort Whether the reset is part of an abort.
      */
-    this.reset = isAbort => {
+    this.reset = () => {
         // Reset the state of this node.
         this.setState(Mistreevous.State.READY);
-
-        // TODO Call exit decorator functon if it exists.
 
         // Reset the current iteration count.
         currentIterationCount = 0;
 
         // Reset the child node.
-        child.reset(isAbort);
+        child.reset();
     };
 
     /**
@@ -1856,8 +1894,8 @@ function Root(decorators, child) {
             if (updateResult.failedGuardNode) {
                 // Is this node the one with the failed guard condition?
                 if (updateResult.failedGuardNode === this) {
-                    // We need to reset this node, passing a flag to say that this is an abort.
-                    this.reset(true);
+                    // We need to abort this node.
+                    this.abort(board);
 
                     // The guard condition for this node did not pass, so this node will move into the FAILED state.
                     this.setState(Mistreevous.State.FAILED);
@@ -1917,8 +1955,8 @@ function Selector(decorators, children) {
                 if (updateResult.failedGuardNode) {
                     // Is this node the one with the failed guard condition?
                     if (updateResult.failedGuardNode === this) {
-                        // We need to reset this node, passing a flag to say that this is an abort.
-                        this.reset(true);
+                        // We need to abort this node.
+                        this.abort(board);
 
                         // The guard condition for this node did not pass, so this node will move into the FAILED state.
                         this.setState(Mistreevous.State.FAILED);
@@ -2013,8 +2051,8 @@ function Sequence(decorators, children) {
                 if (updateResult.failedGuardNode) {
                     // Is this node the one with the failed guard condition?
                     if (updateResult.failedGuardNode === this) {
-                        // We need to reset this node, passing a flag to say that this is an abort.
-                        this.reset(true);
+                        // We need to abort this node.
+                        this.abort(board);
 
                         // The guard condition for this node did not pass, so this node will move into the FAILED state.
                         this.setState(Mistreevous.State.FAILED);

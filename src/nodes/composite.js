@@ -21,16 +21,38 @@ export default function Composite(type, decorators, children) {
 
     /**
      * Reset the state of the node.
-     * @param isAbort Whether the reset is part of an abort.
      */
-    this.reset = (isAbort) => {
+    this.reset = () => {
         // Reset the state of this node.
         this.setState(Mistreevous.State.READY);
 
-        // TODO Call exit decorator functon if it exists.
-
         // Reset the state of any child nodes.
-        this.getChildren().forEach(child => child.reset(isAbort));
+        this.getChildren().forEach(child => child.reset());
+    };
+
+    /**
+     * Abort the running of this node.
+     * @param board The board.
+     */
+    this.abort = (board) => {
+        // There is nothing to do if this node is not in the running state.
+        if (!this.is(Mistreevous.State.RUNNING)) {
+            return;
+        }
+
+        // Abort any child nodes.
+        this.getChildren().forEach(child => child.abort(board));
+
+        // Reset the state of this node.
+        this.reset();
+
+        // Try to get the exit decorator for this node.
+        const exitDecorator = this.getDecorator("exit");
+
+        // Call the exit decorator function if it exists.
+        if (exitDecorator) {
+            exitDecorator.callBlackboardFunction(board, false, true);
+        }
     };
 };
 
