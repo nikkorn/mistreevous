@@ -15,13 +15,6 @@ export default function Condition(decorators, condition) {
      * @returns The result of the update.
      */
     this.onUpdate = function(board) {
-        // Evaluate all of the guard path conditions for the current tree path and return result if any guard conditions fail.
-        const guardPathEvaluationResult = this.getGuardPath().evaluate(board);
-        if (guardPathEvaluationResult.hasFailedCondition) {
-            // We have not changed state, but a node guard condition has failed.
-            return { failedGuardNode: guardPathEvaluationResult.node };
-        }
-
         // Call the condition function to determine the state of this node, but it must exist in the blackboard.
         if (typeof board[condition] === "function") {
             this.setState(!!(board[condition]()) ? Mistreevous.State.SUCCEEDED : Mistreevous.State.FAILED);

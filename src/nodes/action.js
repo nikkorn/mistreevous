@@ -15,13 +15,6 @@ export default function Action(decorators, actionName) {
      * @returns The result of the update.
      */
     this.onUpdate = function(board) {
-        // Evaluate all of the guard path conditions for the current tree path and return result if any guard conditions fail.
-        const guardPathEvaluationResult = this.getGuardPath().evaluate(board);
-        if (guardPathEvaluationResult.hasFailedCondition) {
-            // We have not changed state, but a node guard condition has failed.
-            return { failedGuardNode: guardPathEvaluationResult.node };
-        }
-
         // Get the corresponding action object or function.
         const action = board[actionName];
 

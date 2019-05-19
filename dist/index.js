@@ -181,15 +181,23 @@ function Leaf(type, decorators) {
   let guardPath;
 
   /**
-   * Gets/Sets the guard path to evaluate as part of a node update.
+   * Sets the guard path to evaluate as part of a node update.
    */
-  this.getGuardPath = () => guardPath;
   this.setGuardPath = value => guardPath = value;
 
   /**
    * Gets whether this node is a leaf node.
    */
   this.isLeafNode = () => true;
+
+  /**
+   * Any pre-update logic.
+   * @param board The board.
+   */
+  this.onBeforeUpdate = board => {
+    // Evaluate all of the guard path conditions for the current tree path.
+    guardPath.evaluate(board);
+  };
 };
 
 Leaf.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
@@ -286,6 +294,12 @@ function Node(type, decorators) {
   };
 
   /**
+   * Any pre-update logic.
+   * @param board The board.
+   */
+  this.onBeforeUpdate = board => {};
+
+  /**
    * Update the node.
    * @param board The board.
    * @returns The result of the update.
@@ -296,6 +310,9 @@ function Node(type, decorators) {
       // We have not changed state.
       return {};
     }
+
+    // Do any pre-update logic.
+    this.onBeforeUpdate(board);
 
     // If this node is in the READY state then call the ENTRY decorator for this node if it exists.
     if (this.is(Mistreevous.State.READY)) {
@@ -367,7 +384,7 @@ const Mistreevous = {
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
     module.exports = Mistreevous;
 } else {
-    if (typeof define === 'function' && __webpack_require__(23)) {
+    if (typeof define === 'function' && __webpack_require__(24)) {
         define([], function () {
             return Mistreevous;
         });
@@ -414,7 +431,7 @@ module.exports = function(originalModule) {
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = BehaviourTree;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorators_guards_guardPath__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__rootASTNodesBuilder__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__rootASTNodesBuilder__ = __webpack_require__(9);
 
 
 
@@ -667,6 +684,9 @@ BehaviourTree.prototype.reset = function () {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = GuardPath;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__guardUnsatisifedException__ = __webpack_require__(8);
+
+
 /**
  * Represents a path of node guards along a root-to-leaf tree path.
  * @param guardedNodes An array of objects defining a node instance -> guard link, ordered by node depth.
@@ -683,18 +703,12 @@ function GuardPath(guardedNodes) {
         for (const details of guardedNodes) {
             // There can be multiple guards per node.
             for (const guard of details.guards) {
-                // Check whether the guard condition passes.
+                // Check whether the guard condition passes, and throw an exception if not.
                 if (!guard.isSatisfied(board)) {
-                    return {
-                        hasFailedCondition: true,
-                        node: details.node
-                    };
+                    throw new __WEBPACK_IMPORTED_MODULE_0__guardUnsatisifedException__["a" /* default */](details.node);
                 }
             }
         }
-
-        // We did not come across a failed guard condition on this path.
-        return { hasFailedCondition: false };
     };
 };
 
@@ -703,21 +717,48 @@ function GuardPath(guardedNodes) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = GuardUnsatisifedException;
+/**
+ * An exception thrown when evaluating node guard path conditions and a conditions fails.
+ * @param source The node at which a guard condition failed. 
+ */
+function GuardUnsatisifedException(source) {
+
+  /**
+   * The exception message.
+   */
+  this.message = "A guard path condition has failed";
+
+  /**
+   * Gets whether the specified node is the node at which a guard condition failed.
+   * @param node The node to check against the source node.
+   * @returns Whether the specified node is the node at which a guard condition failed.
+   */
+  this.isSourceNode = node => node === source;
+}
+
+GuardUnsatisifedException.prototype = new Error();
+
+/***/ }),
+/* 9 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = buildRootASTNodes;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__nodes_action__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__nodes_condition__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__nodes_flip__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nodes_lotto__ = __webpack_require__(12);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__nodes_repeat__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__nodes_root__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_selector__ = __webpack_require__(15);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_sequence__ = __webpack_require__(16);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_wait__ = __webpack_require__(17);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__decorators_guards_while__ = __webpack_require__(18);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__decorators_guards_until__ = __webpack_require__(19);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__decorators_entry__ = __webpack_require__(20);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__decorators_exit__ = __webpack_require__(21);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__decorators_step__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__nodes_action__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__nodes_condition__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__nodes_flip__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nodes_lotto__ = __webpack_require__(13);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__nodes_repeat__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__nodes_root__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_selector__ = __webpack_require__(16);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_sequence__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_wait__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__decorators_guards_while__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__decorators_guards_until__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__decorators_entry__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__decorators_exit__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__decorators_step__ = __webpack_require__(23);
 
 
 
@@ -1367,7 +1408,7 @@ function getDecorators(tokens) {
 };
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1390,13 +1431,6 @@ function Action(decorators, actionName) {
      * @returns The result of the update.
      */
     this.onUpdate = function (board) {
-        // Evaluate all of the guard path conditions for the current tree path and return result if any guard conditions fail.
-        const guardPathEvaluationResult = this.getGuardPath().evaluate(board);
-        if (guardPathEvaluationResult.hasFailedCondition) {
-            // We have not changed state, but a node guard condition has failed.
-            return { failedGuardNode: guardPathEvaluationResult.node };
-        }
-
         // Get the corresponding action object or function.
         const action = board[actionName];
 
@@ -1453,7 +1487,7 @@ function Action(decorators, actionName) {
 Action.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1468,39 +1502,32 @@ Action.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* defa
  * @param condition The name of the condition function. 
  */
 function Condition(decorators, condition) {
-    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "condition", decorators);
+  __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "condition", decorators);
 
-    /**
-     * Update the node.
-     * @param board The board.
-     * @returns The result of the update.
-     */
-    this.onUpdate = function (board) {
-        // Evaluate all of the guard path conditions for the current tree path and return result if any guard conditions fail.
-        const guardPathEvaluationResult = this.getGuardPath().evaluate(board);
-        if (guardPathEvaluationResult.hasFailedCondition) {
-            // We have not changed state, but a node guard condition has failed.
-            return { failedGuardNode: guardPathEvaluationResult.node };
-        }
+  /**
+   * Update the node.
+   * @param board The board.
+   * @returns The result of the update.
+   */
+  this.onUpdate = function (board) {
+    // Call the condition function to determine the state of this node, but it must exist in the blackboard.
+    if (typeof board[condition] === "function") {
+      this.setState(!!board[condition]() ? Mistreevous.State.SUCCEEDED : Mistreevous.State.FAILED);
+    } else {
+      throw `cannot update condition node as function '${condition}' is not defined in the blackboard`;
+    }
+  };
 
-        // Call the condition function to determine the state of this node, but it must exist in the blackboard.
-        if (typeof board[condition] === "function") {
-            this.setState(!!board[condition]() ? Mistreevous.State.SUCCEEDED : Mistreevous.State.FAILED);
-        } else {
-            throw `cannot update condition node as function '${condition}' is not defined in the blackboard`;
-        }
-    };
-
-    /**
-     * Gets the name of the node.
-     */
-    this.getName = () => condition;
+  /**
+   * Gets the name of the node.
+   */
+  this.getName = () => condition;
 };
 
 Condition.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1525,25 +1552,7 @@ function Flip(decorators, child) {
     this.onUpdate = function (board) {
         // If the child has never been updated or is running then we will need to update it now.
         if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
-            // Update the child of this node and get the result.
-            const updateResult = child.update(board);
-
-            // Check to see whether a node guard condition failed during the child node update.
-            if (updateResult.failedGuardNode) {
-                // Is this node the one with the failed guard condition?
-                if (updateResult.failedGuardNode === this) {
-                    // We need to abort this node.
-                    this.abort(board);
-
-                    // The guard condition for this node did not pass, so this node will move into the FAILED state.
-                    this.setState(Mistreevous.State.FAILED);
-
-                    return;
-                } else {
-                    // A node guard condition has failed higher up the tree.
-                    return { failedGuardNode: updateResult.failedGuardNode };
-                }
-            }
+            child.update(board);
         }
 
         // The state of this node will depend in the state of its child.
@@ -1574,7 +1583,7 @@ function Flip(decorators, child) {
 Flip.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1674,25 +1683,7 @@ function Lotto(decorators, tickets, children) {
 
         // If the winning child has never been updated or is running then we will need to update it now.
         if (winningChild.getState() === Mistreevous.State.READY || winningChild.getState() === Mistreevous.State.RUNNING) {
-            // Update the winning child of this node and get the result.
-            const updateResult = winningChild.update(board);
-
-            // Check to see whether a node guard condition failed during the child node update.
-            if (updateResult.failedGuardNode) {
-                // Is this node the one with the failed guard condition?
-                if (updateResult.failedGuardNode === this) {
-                    // We need to abort this node.
-                    this.abort(board);
-
-                    // The guard condition for this node did not pass, so this node will move into the FAILED state.
-                    this.setState(Mistreevous.State.FAILED);
-
-                    return;
-                } else {
-                    // A node guard condition has failed higher ups the tree.
-                    return { failedGuardNode: updateResult.failedGuardNode };
-                }
-            }
+            winningChild.update(board);
         }
 
         // The state of the lotto node is the state of its winning child.
@@ -1708,7 +1699,7 @@ function Lotto(decorators, tickets, children) {
 Lotto.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1768,25 +1759,8 @@ function Repeat(decorators, iterations, maximumIterations, child) {
                 child.reset();
             }
 
-            // Update the child of this node and get the result.
-            const updateResult = child.update(board);
-
-            // Check to see whether a node guard condition failed during the child node update.
-            if (updateResult.failedGuardNode) {
-                // Is this node the one with the failed guard condition?
-                if (updateResult.failedGuardNode === this) {
-                    // We need to abort this node.
-                    this.abort(board);
-
-                    // The guard condition for this node did not pass, so this node will move into the FAILED state.
-                    this.setState(Mistreevous.State.FAILED);
-
-                    return;
-                } else {
-                    // A node guard condition has failed higher up the tree.
-                    return { failedGuardNode: updateResult.failedGuardNode };
-                }
-            }
+            // Update the child of this node.
+            child.update(board);
 
             // If the child moved into the FAILED state when we updated it then there is nothing left to do and this node has also failed.
             // If it has moved into the SUCCEEDED state then we have completed the current iteration.
@@ -1862,7 +1836,7 @@ function Repeat(decorators, iterations, maximumIterations, child) {
 Repeat.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1877,51 +1851,34 @@ Repeat.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /*
  * @param child The child node. 
  */
 function Root(decorators, child) {
-    __WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].call(this, "root", decorators, [child]);
+  __WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].call(this, "root", decorators, [child]);
 
-    /**
-     * Update the node and get whether the node state has changed.
-     * @param board The board.
-     * @returns Whether the state of this node has changed as part of the update.
-     */
-    this.onUpdate = function (board) {
-        // If the child has never been updated or is running then we will need to update it now.
-        if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
-            // Update the child of this node and get the result.
-            const updateResult = child.update(board);
+  /**
+   * Update the node and get whether the node state has changed.
+   * @param board The board.
+   * @returns Whether the state of this node has changed as part of the update.
+   */
+  this.onUpdate = function (board) {
+    // If the child has never been updated or is running then we will need to update it now.
+    if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
+      // Update the child of this node.
+      child.update(board);
+    }
 
-            // Check to see whether a node guard condition failed during the child node update.
-            if (updateResult.failedGuardNode) {
-                // Is this node the one with the failed guard condition?
-                if (updateResult.failedGuardNode === this) {
-                    // We need to abort this node.
-                    this.abort(board);
+    // The state of the root node is the state of its child.
+    this.setState(child.getState());
+  };
 
-                    // The guard condition for this node did not pass, so this node will move into the FAILED state.
-                    this.setState(Mistreevous.State.FAILED);
-
-                    return;
-                } else {
-                    // As this is the tree root node, it should not be possible for the failed guard node not to have handle the failed condition by now.
-                    throw "Guard condition failed but no node was found to handle it";
-                }
-            }
-        }
-
-        // The state of the root node is the state of its child.
-        this.setState(child.getState());
-    };
-
-    /**
-     * Gets the name of the node.
-     */
-    this.getName = () => "ROOT";
+  /**
+   * Gets the name of the node.
+   */
+  this.getName = () => "ROOT";
 };
 
 Root.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1948,25 +1905,8 @@ function Selector(decorators, children) {
         for (const child of children) {
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
-                // Update the child of this node and get the result.
-                const updateResult = child.update(board);
-
-                // Check to see whether a node guard condition failed during the child node update.
-                if (updateResult.failedGuardNode) {
-                    // Is this node the one with the failed guard condition?
-                    if (updateResult.failedGuardNode === this) {
-                        // We need to abort this node.
-                        this.abort(board);
-
-                        // The guard condition for this node did not pass, so this node will move into the FAILED state.
-                        this.setState(Mistreevous.State.FAILED);
-
-                        return;
-                    } else {
-                        // A node guard condition has failed higher up the tree.
-                        return { failedGuardNode: updateResult.failedGuardNode };
-                    }
-                }
+                // Update the child of this node.
+                child.update(board);
             }
 
             // If the current child has a state of 'SUCCEEDED' then this node is also a 'SUCCEEDED' node.
@@ -2017,7 +1957,7 @@ function Selector(decorators, children) {
 Selector.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2044,25 +1984,8 @@ function Sequence(decorators, children) {
         for (const child of children) {
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
-                // Update the child of this node and get the result.
-                const updateResult = child.update(board);
-
-                // Check to see whether a node guard condition failed during the child node update.
-                if (updateResult.failedGuardNode) {
-                    // Is this node the one with the failed guard condition?
-                    if (updateResult.failedGuardNode === this) {
-                        // We need to abort this node.
-                        this.abort(board);
-
-                        // The guard condition for this node did not pass, so this node will move into the FAILED state.
-                        this.setState(Mistreevous.State.FAILED);
-
-                        return;
-                    } else {
-                        // A node guard condition has failed higher up the tree.
-                        return { failedGuardNode: updateResult.failedGuardNode };
-                    }
-                }
+                // Update the child of this node.
+                child.update(board);
             }
 
             // If the current child has a state of 'SUCCEEDED' then we should move on to the next child.
@@ -2113,7 +2036,7 @@ function Sequence(decorators, children) {
 Sequence.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2129,69 +2052,54 @@ Sequence.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" 
  * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
  */
 function Wait(decorators, duration, longestDuration) {
-    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "wait", decorators);
+  __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "wait", decorators);
 
-    /** 
-     * The time in milliseconds at which this node was first updated.
-     */
-    let initialUpdateTime;
+  /** 
+   * The time in milliseconds at which this node was first updated.
+   */
+  let initialUpdateTime;
 
-    /**
-     * The duration in milliseconds that this node will be waiting for. 
-     */
-    let waitDuration;
+  /**
+   * The duration in milliseconds that this node will be waiting for. 
+   */
+  let waitDuration;
 
-    /**
-     * Update the node.
-     * @param board The board.
-     * @returns The result of the update.
-     */
-    this.onUpdate = function (board) {
-        // Evaluate guard path and return result if any guard conditions fail.
-        const guardPathEvaluationResult = this.getGuardPath().evaluate(board);
-        if (guardPathEvaluationResult.hasFailedCondition) {
-            // Is this node the one with the failed guard condition?
-            if (guardPathEvaluationResult.node === this) {
-                // The guard condition for this node did not pass, so this node will move into the FAILED state.
-                this.setState(Mistreevous.State.FAILED);
+  /**
+   * Update the node.
+   * @param board The board.
+   * @returns The result of the update.
+   */
+  this.onUpdate = function (board) {
+    // If this node is in the READY state then we need to set the initial update time.
+    if (this.is(Mistreevous.State.READY)) {
+      // Set the initial update time.
+      initialUpdateTime = new Date().getTime();
 
-                return;
-            } else {
-                // A node guard condition has failed higher up the tree.
-                return { failedGuardNode: guardPathEvaluationResult.node };
-            }
-        }
+      // If a longestDuration value was defined then we will be randomly picking a duration between the
+      // shortest and longest duration. If it was not defined, then we will be just using the duration.
+      waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
 
-        // If this node is in the READY state then we need to set the initial update time.
-        if (this.is(Mistreevous.State.READY)) {
-            // Set the initial update time.
-            initialUpdateTime = new Date().getTime();
+      // The node is now running until we finish waiting.
+      this.setState(Mistreevous.State.RUNNING);
+    }
 
-            // If a longestDuration value was defined then we will be randomly picking a duration between the
-            // shortest and longest duration. If it was not defined, then we will be just using the duration.
-            waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
+    // Have we waited long enough?
+    if (new Date().getTime() >= initialUpdateTime + waitDuration) {
+      // We have finished waiting!
+      this.setState(Mistreevous.State.SUCCEEDED);
+    }
+  };
 
-            // The node is now running until we finish waiting.
-            this.setState(Mistreevous.State.RUNNING);
-        }
-
-        // Have we waited long enough?
-        if (new Date().getTime() >= initialUpdateTime + waitDuration) {
-            // We have finished waiting!
-            this.setState(Mistreevous.State.SUCCEEDED);
-        }
-    };
-
-    /**
-     * Gets the name of the node.
-     */
-    this.getName = () => `WAIT ${longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms"}`;
+  /**
+   * Gets the name of the node.
+   */
+  this.getName = () => `WAIT ${longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms"}`;
 };
 
 Wait.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2245,7 +2153,7 @@ function While(condition) {
 While.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2299,7 +2207,7 @@ function Until(condition) {
 Until.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2347,7 +2255,7 @@ function Entry(functionName) {
 Entry.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2397,7 +2305,7 @@ function Exit(functionName) {
 Exit.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2445,7 +2353,7 @@ function Step(functionName) {
 Step.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports) {
 
 /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {/* globals __webpack_amd_options__ */

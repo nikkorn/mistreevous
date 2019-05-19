@@ -1,3 +1,5 @@
+import GuardUnsatisifedException from './guardUnsatisifedException'
+
 /**
  * Represents a path of node guards along a root-to-leaf tree path.
  * @param guardedNodes An array of objects defining a node instance -> guard link, ordered by node depth.
@@ -14,17 +16,11 @@ export default function GuardPath(guardedNodes) {
         for (const details of guardedNodes) {
             // There can be multiple guards per node.
             for (const guard of details.guards) {
-                // Check whether the guard condition passes.
+                // Check whether the guard condition passes, and throw an exception if not.
                 if (!guard.isSatisfied(board)) {
-                    return {
-                        hasFailedCondition: true,
-                        node: details.node
-                    };
+                    throw new GuardUnsatisifedException(details.node);
                 }
             }
         }
-
-        // We did not come across a failed guard condition on this path.
-        return { hasFailedCondition: false };
     };
 };

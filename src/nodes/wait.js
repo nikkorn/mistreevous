@@ -26,21 +26,6 @@ export default function Wait(decorators, duration, longestDuration) {
      * @returns The result of the update.
      */
     this.onUpdate = function(board) {
-        // Evaluate guard path and return result if any guard conditions fail.
-        const guardPathEvaluationResult = this.getGuardPath().evaluate(board);
-        if (guardPathEvaluationResult.hasFailedCondition) {
-            // Is this node the one with the failed guard condition?
-            if (guardPathEvaluationResult.node === this) {
-                // The guard condition for this node did not pass, so this node will move into the FAILED state.
-                this.setState(Mistreevous.State.FAILED);
-
-                return;
-            } else {
-                // A node guard condition has failed higher up the tree.
-                return { failedGuardNode: guardPathEvaluationResult.node };
-            }
-        }
-
         // If this node is in the READY state then we need to set the initial update time.
         if (this.is(Mistreevous.State.READY)) {
             // Set the initial update time.

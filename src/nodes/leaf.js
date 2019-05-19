@@ -14,15 +14,23 @@ export default function Leaf(type, decorators) {
     let guardPath;
 
     /**
-     * Gets/Sets the guard path to evaluate as part of a node update.
+     * Sets the guard path to evaluate as part of a node update.
      */
-    this.getGuardPath = () => guardPath;
     this.setGuardPath = (value) => guardPath = value;
 
     /**
      * Gets whether this node is a leaf node.
      */
     this.isLeafNode = () => true;
+
+    /**
+     * Any pre-update logic.
+     * @param board The board.
+     */
+    this.onBeforeUpdate = (board) => {
+        // Evaluate all of the guard path conditions for the current tree path.
+        guardPath.evaluate(board);
+    };
 };
 
 Leaf.prototype = Object.create(Node.prototype);

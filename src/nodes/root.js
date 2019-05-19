@@ -17,25 +17,8 @@ export default function Root(decorators, child) {
     this.onUpdate = function(board) {
         // If the child has never been updated or is running then we will need to update it now.
         if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
-            // Update the child of this node and get the result.
-            const updateResult = child.update(board);
-
-            // Check to see whether a node guard condition failed during the child node update.
-            if (updateResult.failedGuardNode) {
-                // Is this node the one with the failed guard condition?
-                if (updateResult.failedGuardNode === this) {
-                    // We need to abort this node.
-                    this.abort(board);
-                    
-                    // The guard condition for this node did not pass, so this node will move into the FAILED state.
-                    this.setState(Mistreevous.State.FAILED);
-    
-                    return;
-                } else {
-                    // As this is the tree root node, it should not be possible for the failed guard node not to have handle the failed condition by now.
-                    throw "Guard condition failed but no node was found to handle it";
-                }
-            }
+            // Update the child of this node.
+            child.update(board);
         }
 
         // The state of the root node is the state of its child.

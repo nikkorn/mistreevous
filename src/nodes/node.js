@@ -84,6 +84,12 @@ export default function Node(type, decorators) {
   };
 
   /**
+   * Any pre-update logic.
+   * @param board The board.
+   */
+  this.onBeforeUpdate = (board) => {};
+
+  /**
    * Update the node.
    * @param board The board.
    * @returns The result of the update.
@@ -94,6 +100,9 @@ export default function Node(type, decorators) {
         // We have not changed state.
         return {};
     }
+
+    // Do any pre-update logic.
+    this.onBeforeUpdate(board);
 
     // If this node is in the READY state then call the ENTRY decorator for this node if it exists.
     if (this.is(Mistreevous.State.READY)) {
