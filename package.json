@@ -3,9 +3,13 @@
   "version": "0.0.1",
   "description": "A tool to build behaviour trees in JavaScript",
   "main": "dist/index.js",
+  "types": "dist/mistreevous.d.ts",
   "directories": {
     "lib": "lib"
   },
+  "files": [
+    "dist/*"
+  ],
   "devDependencies": {
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.2",
