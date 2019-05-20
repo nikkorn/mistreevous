@@ -189,13 +189,21 @@ const example_snippets = {
 
 
     "entry-exit-step-decorators": {
-        "definition": `root {
-    wait[3000] entry(OnWaitStart) exit(OnWaitFinish) step(OnWaiting)
+        "definition": `root entry(OnRootStart) exit(OnRootFinish) {
+    sequence entry(OnSequenceStart) exit(OnSequenceFinish) {
+        wait[3000] entry(OnWaitStart) exit(OnWaitFinish) step(OnWaiting)
+    }
 }`,
         "blackboard": `{
     OnWaitStart: () => console.log("starting to wait!"),
     OnWaiting: () => console.log("waiting!"),
-    OnWaitFinish: () => console.log("finished waiting!")
+    OnWaitFinish: () => console.log("finished waiting!"),
+
+    OnRootStart: () => console.log("starting root!"),
+    OnRootFinish: () => console.log("finished root!"),
+
+    OnSequenceStart: () => console.log("starting sequence!"),
+    OnSequenceFinish: () => console.log("finished sequence!")
 }`
     }
 };
