@@ -21,14 +21,9 @@ const board = {
         console.log("walking!");
         return Mistreevous.State.SUCCEEDED;
     },
-    Fall: {
-        onStart: () => {
-            console.log("starting to fall!");
-        },
-        onUpdate: () => Mistreevous.State.SUCCEEDED,
-        onFinish: (succeeded) => {
-            console.log("finished falling!");
-        }
+    Fall: () => {
+        console.log("falling!");
+        return Mistreevous.State.SUCCEEDED;
     },
     Laugh: () => {
         console.log("laughing!");
@@ -43,8 +38,7 @@ const behaviourTree = new Mistreevous.BehaviourTree(definition, board);
 behaviourTree.step();
 
 // 'walking!'
-// 'starting to fall!
-// 'finished falling!'
+// 'falling!
 // 'laughing!'
 ```
 
@@ -180,7 +174,7 @@ root {
 ### Action
 An action node represents an action that can be completed immediately as part of a single tree step, or ongoing behaviour that can take a prolonged amount of time and may take multiple tree steps to complete. Each action node will correspond to functionality defined within the blackboard.
 
-Actions can be defined in one of two different ways within the blackboard, the first is as a function that can optionally return a finished action state of **succeeded** or **failed**. If the **succeeded** or **failed** state is returned, then the action will move into that state.
+An action is defined within the blackboard as a function that can optionally return a finished action state of **succeeded** or **failed**. If the **succeeded** or **failed** state is returned, then the action will move into that state.
 
 ```js
 const board = {
@@ -221,10 +215,26 @@ const board = {
 
 Further steps of the tree will resume processing from leaf nodes that were left in the **running** state until they succeed, fail, or processing of the running branch is aborted via a guard.
 
-TODO The other way that an action can be defined in the blackboard is ...
-
 ### Condition
-TODO
+A Condition node will immediately move into either a **succeeded** or **failed** based of the boolean result of calling a function in the blackboard.
+
+```
+root {
+    sequence {
+        condition [HasWeapon]
+        action [Attack]
+    }
+}
+```
+```js
+const board = {
+    //...
+    HasWeapon: () => this.isHoldingWeapon(),
+    //...
+    Attack: () => this.attackPlayer(),
+    // ...
+};
+```
 
 ### Wait
 A wait node will remain in a running state for a specified duration, after which it will move into the succeeded state. The duration in milliseconds can be defined as a single integer node argument.
@@ -253,10 +263,71 @@ root {
 ```
 
 ### Branch
-TODO
+Named root nodes can be referenced using the **branch** node. This node acts as a placeholder that will be replaced by the child node of the referenced root node. The two definitions below are synonymous.
 
-## Guards
-Any composite node, as well as the **wait** node, can be decorated with a guard. A guard defines a condition that must be met in order for the node to remain active. Any running nodes will have their guard condition evaluated for each leaf node update, and will move to a failed state if the guard condition is not met.
+```
+root {
+    branch [SomeOtherTree]
+}
+
+root [SomeOtherTree] {
+    action [Dance]
+}
+```
+
+```
+root {
+    action [Dance]
+}
+```
+
+## Decorators
+Decorators allow additional behaviour to be defined for a tree node. Any number of decorators can be attached to a node as long as there are not multiple decorators of the same type.
+
+### Entry
+An entry decorator defines a blackboard function to call whenever the decorated node moves out of the **ready** state when it is first visited.
+
+```
+root {
+    sequence entry(StartWalkingAnimation)  {
+        action [WalkNorthOneSpace]
+        action [WalkEastOneSpace]
+        action [WalkSouthOneSpace]
+        action [WalkWestOneSpace]
+    }
+}
+```
+
+### Exit
+An exit decorator defines a blackboard function to call whenever the decorated node moves to a finished state or is aborted. A results object is passed to the referenced blackboard function containing the **succeeded** and **aborted** boolean properties.
+
+```
+root {
+    sequence entry(StartWalkingAnimation) exit(StopWalkingAnimation) {
+        action [WalkNorthOneSpace]
+        action [WalkEastOneSpace]
+        action [WalkSouthOneSpace]
+        action [WalkWestOneSpace]
+    }
+}
+```
+
+### Step
+A step decorator defines a blackboard function to call whenever the decorated node is updated as part of a tree step.
+
+```
+root {
+    sequence step(OnMoving){
+        action [WalkNorthOneSpace]
+        action [WalkEastOneSpace]
+        action [WalkSouthOneSpace]
+        action [WalkWestOneSpace]
+    }
+}
+```
+
+### Guards
+A guard decorator defines a condition that must be met in order for the node to remain active. Any running nodes will have their guard condition evaluated for each leaf node update, and will move to a failed state if the guard condition is not met.
 
 This functionality is useful as a means of aborting long running actions or branches that span across multiple steps of the tree.
 
@@ -268,8 +339,8 @@ root {
 
 In the above example, we have a **wait** node that waits for 10 seconds before moving to a succeeded state. We are using a **while** guard to give up on waiting this long if the condition **CanWait** evaluates to false during a tree step.
 
-### While
-A while guard will be satisfied as long as its condition evaluates to true.
+#### While
+A while guard decorator will be satisfied as long as its condition evaluates to true.
 
 ```
 root {
@@ -282,8 +353,8 @@ root {
 }
 ```
 
-### Until
-An until guard will be satisfied as long as its condition evaluates to false.
+#### Until
+An until guard decorator will be satisfied as long as its condition evaluates to false.
 
 ```
 root {
