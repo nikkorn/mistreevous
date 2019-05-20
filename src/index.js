@@ -1,29 +1,11 @@
-import BehaviourTree from './behaviourtree'
+import * as BT from './behaviourtree';
 
-const Mistreevous = {
-    BehaviourTree,
-    State: {
-        READY: Symbol("mistreevous.ready"),
-        RUNNING: Symbol("mistreevous.running"),
-        SUCCEEDED: Symbol("mistreevous.succeeded"),
-        FAILED: Symbol("mistreevous.failed")
-    }
+export const State = {
+    READY: Symbol("mistreevous.ready"),
+    RUNNING: Symbol("mistreevous.running"),
+    SUCCEEDED: Symbol("mistreevous.succeeded"),
+    FAILED: Symbol("mistreevous.failed")
 };
 
-export default Mistreevous;
-
-// Export Mistreevous.
-if (typeof module === 'undefined' || typeof module.exports === 'undefined') 
-{
-    if (typeof define === 'function' && define.amd) 
-    {
-        define([], function() 
-        {
-            return Mistreevous;
-        });
-    }
-    else 
-    {
-        window.Mistreevous = Mistreevous;
-    }
-}
+// TODO Find a fix for not being able to directly export BehaviourTree correctly.
+export const BehaviourTree = BT.BehaviourTree;

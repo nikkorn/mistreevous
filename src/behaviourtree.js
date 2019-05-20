@@ -6,7 +6,7 @@ import buildRootASTNodes from './rootASTNodesBuilder'
  * @param definition The tree definition.
  * @param board The board.
  */
-export default function BehaviourTree(definition, board) {
+export function BehaviourTree(definition, board) {
     /**
      * The tree definition.
      */

@@ -1,4 +1,14 @@
-/******/ (function(modules) { // webpackBootstrap
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define([], factory);
+	else if(typeof exports === 'object')
+		exports["Mistreevous"] = factory();
+	else
+		root["Mistreevous"] = factory();
+})(typeof self !== 'undefined' ? self : this, function() {
+return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
@@ -79,53 +89,53 @@
  * @param children The child nodes. 
  */
 function Composite(type, decorators, children) {
-    __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
+  __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
 
-    /**
-     * Gets whether this node is a leaf node.
-     */
-    this.isLeafNode = () => false;
+  /**
+   * Gets whether this node is a leaf node.
+   */
+  this.isLeafNode = () => false;
 
-    /**
-     * Gets the children of this node.
-     */
-    this.getChildren = () => children;
+  /**
+   * Gets the children of this node.
+   */
+  this.getChildren = () => children;
 
-    /**
-     * Reset the state of the node.
-     */
-    this.reset = () => {
-        // Reset the state of this node.
-        this.setState(Mistreevous.State.READY);
+  /**
+   * Reset the state of the node.
+   */
+  this.reset = () => {
+    // Reset the state of this node.
+    this.setState(Mistreevous.State.READY);
 
-        // Reset the state of any child nodes.
-        this.getChildren().forEach(child => child.reset());
-    };
+    // Reset the state of any child nodes.
+    this.getChildren().forEach(child => child.reset());
+  };
 
-    /**
-     * Abort the running of this node.
-     * @param board The board.
-     */
-    this.abort = board => {
-        // There is nothing to do if this node is not in the running state.
-        if (!this.is(Mistreevous.State.RUNNING)) {
-            return;
-        }
+  /**
+   * Abort the running of this node.
+   * @param board The board.
+   */
+  this.abort = board => {
+    // There is nothing to do if this node is not in the running state.
+    if (!this.is(Mistreevous.State.RUNNING)) {
+      return;
+    }
 
-        // Abort any child nodes.
-        this.getChildren().forEach(child => child.abort(board));
+    // Abort any child nodes.
+    this.getChildren().forEach(child => child.abort(board));
 
-        // Reset the state of this node.
-        this.reset();
+    // Reset the state of this node.
+    this.reset();
 
-        // Try to get the exit decorator for this node.
-        const exitDecorator = this.getDecorator("exit");
+    // Try to get the exit decorator for this node.
+    const exitDecorator = this.getDecorator("exit");
 
-        // Call the exit decorator function if it exists.
-        if (exitDecorator) {
-            exitDecorator.callBlackboardFunction(board, false, true);
-        }
-    };
+    // Call the exit decorator function if it exists.
+    if (exitDecorator) {
+      exitDecorator.callBlackboardFunction(board, false, true);
+    }
+  };
 };
 
 Composite.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
@@ -173,31 +183,31 @@ function Decorator(type) {
  * @param decorators The node decorators.
  */
 function Leaf(type, decorators) {
-    __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
+  __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
 
-    /**
-     * The guard path to evaluate as part of a node update.
-     */
-    let guardPath;
+  /**
+   * The guard path to evaluate as part of a node update.
+   */
+  let guardPath;
 
-    /**
-     * Sets the guard path to evaluate as part of a node update.
-     */
-    this.setGuardPath = value => guardPath = value;
+  /**
+   * Sets the guard path to evaluate as part of a node update.
+   */
+  this.setGuardPath = value => guardPath = value;
 
-    /**
-     * Gets whether this node is a leaf node.
-     */
-    this.isLeafNode = () => true;
+  /**
+   * Gets whether this node is a leaf node.
+   */
+  this.isLeafNode = () => true;
 
-    /**
-     * Any pre-update logic.
-     * @param board The board.
-     */
-    this.onBeforeUpdate = board => {
-        // Evaluate all of the guard path conditions for the current tree path.
-        guardPath.evaluate(board);
-    };
+  /**
+   * Any pre-update logic.
+   * @param board The board.
+   */
+  this.onBeforeUpdate = board => {
+    // Evaluate all of the guard path conditions for the current tree path.
+    guardPath.evaluate(board);
+  };
 };
 
 Leaf.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
@@ -407,71 +417,31 @@ function createNodeUid() {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* WEBPACK VAR INJECTION */(function(module) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__behaviourtree__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__behaviourtree__ = __webpack_require__(6);
 
 
-const Mistreevous = {
-    BehaviourTree: __WEBPACK_IMPORTED_MODULE_0__behaviourtree__["a" /* default */],
-    State: {
-        READY: Symbol("mistreevous.ready"),
-        RUNNING: Symbol("mistreevous.running"),
-        SUCCEEDED: Symbol("mistreevous.succeeded"),
-        FAILED: Symbol("mistreevous.failed")
-    }
+const State = {
+    READY: Symbol("mistreevous.ready"),
+    RUNNING: Symbol("mistreevous.running"),
+    SUCCEEDED: Symbol("mistreevous.succeeded"),
+    FAILED: Symbol("mistreevous.failed")
 };
+/* harmony export (immutable) */ __webpack_exports__["State"] = State;
 
-/* harmony default export */ __webpack_exports__["default"] = (Mistreevous);
 
-// Export Mistreevous.
-if (typeof module === 'undefined' || typeof module.exports === 'undefined') {
-    if (typeof define === 'function' && __webpack_require__(24)) {
-        define([], function () {
-            return Mistreevous;
-        });
-    } else {
-        window.Mistreevous = Mistreevous;
-    }
-}
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(6)(module)))
+// TODO Find a fix for not being able to directly export BehaviourTree correctly.
+const BehaviourTree = __WEBPACK_IMPORTED_MODULE_0__behaviourtree__["a" /* BehaviourTree */];
+/* harmony export (immutable) */ __webpack_exports__["BehaviourTree"] = BehaviourTree;
+
 
 /***/ }),
 /* 6 */
-/***/ (function(module, exports) {
-
-module.exports = function(originalModule) {
-	if(!originalModule.webpackPolyfill) {
-		var module = Object.create(originalModule);
-		// module.parent = undefined by default
-		if(!module.children) module.children = [];
-		Object.defineProperty(module, "loaded", {
-			enumerable: true,
-			get: function() {
-				return module.l;
-			}
-		});
-		Object.defineProperty(module, "id", {
-			enumerable: true,
-			get: function() {
-				return module.i;
-			}
-		});
-		Object.defineProperty(module, "exports", {
-			enumerable: true,
-		});
-		module.webpackPolyfill = 1;
-	}
-	return module;
-};
-
-
-/***/ }),
-/* 7 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = BehaviourTree;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorators_guards_guardPath__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__rootASTNodesBuilder__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorators_guards_guardPath__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__rootASTNodesBuilder__ = __webpack_require__(8);
 
 
 
@@ -719,7 +689,7 @@ BehaviourTree.prototype.reset = function () {
 };
 
 /***/ }),
-/* 8 */
+/* 7 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -753,25 +723,25 @@ function GuardPath(guardedNodes) {
 };
 
 /***/ }),
-/* 9 */
+/* 8 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = buildRootASTNodes;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__nodes_action__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__nodes_condition__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__nodes_flip__ = __webpack_require__(12);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nodes_lotto__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__nodes_repeat__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__nodes_root__ = __webpack_require__(15);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_selector__ = __webpack_require__(16);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_sequence__ = __webpack_require__(17);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_wait__ = __webpack_require__(18);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__decorators_guards_while__ = __webpack_require__(19);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__decorators_guards_until__ = __webpack_require__(20);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__decorators_entry__ = __webpack_require__(21);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__decorators_exit__ = __webpack_require__(22);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__decorators_step__ = __webpack_require__(23);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__nodes_action__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__nodes_condition__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__nodes_flip__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nodes_lotto__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__nodes_repeat__ = __webpack_require__(13);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__nodes_root__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_selector__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_sequence__ = __webpack_require__(16);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_wait__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__decorators_guards_while__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__decorators_guards_until__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__decorators_entry__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__decorators_exit__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__decorators_step__ = __webpack_require__(22);
 
 
 
@@ -1421,7 +1391,7 @@ function getDecorators(tokens) {
 };
 
 /***/ }),
-/* 10 */
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1500,7 +1470,7 @@ function Action(decorators, actionName) {
 Action.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
 
 /***/ }),
-/* 11 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1515,32 +1485,32 @@ Action.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* defa
  * @param condition The name of the condition function. 
  */
 function Condition(decorators, condition) {
-    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "condition", decorators);
+  __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "condition", decorators);
 
-    /**
-     * Update the node.
-     * @param board The board.
-     * @returns The result of the update.
-     */
-    this.onUpdate = function (board) {
-        // Call the condition function to determine the state of this node, but it must exist in the blackboard.
-        if (typeof board[condition] === "function") {
-            this.setState(!!board[condition]() ? Mistreevous.State.SUCCEEDED : Mistreevous.State.FAILED);
-        } else {
-            throw `cannot update condition node as function '${condition}' is not defined in the blackboard`;
-        }
-    };
+  /**
+   * Update the node.
+   * @param board The board.
+   * @returns The result of the update.
+   */
+  this.onUpdate = function (board) {
+    // Call the condition function to determine the state of this node, but it must exist in the blackboard.
+    if (typeof board[condition] === "function") {
+      this.setState(!!board[condition]() ? Mistreevous.State.SUCCEEDED : Mistreevous.State.FAILED);
+    } else {
+      throw `cannot update condition node as function '${condition}' is not defined in the blackboard`;
+    }
+  };
 
-    /**
-     * Gets the name of the node.
-     */
-    this.getName = () => condition;
+  /**
+   * Gets the name of the node.
+   */
+  this.getName = () => condition;
 };
 
 Condition.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
 
 /***/ }),
-/* 12 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1596,7 +1566,7 @@ function Flip(decorators, child) {
 Flip.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 13 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1712,7 +1682,7 @@ function Lotto(decorators, tickets, children) {
 Lotto.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 14 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1849,7 +1819,7 @@ function Repeat(decorators, iterations, maximumIterations, child) {
 Repeat.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 15 */
+/* 14 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1891,7 +1861,7 @@ function Root(decorators, child) {
 Root.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 16 */
+/* 15 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1970,7 +1940,7 @@ function Selector(decorators, children) {
 Selector.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 17 */
+/* 16 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2049,7 +2019,7 @@ function Sequence(decorators, children) {
 Sequence.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 18 */
+/* 17 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2065,54 +2035,54 @@ Sequence.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" 
  * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
  */
 function Wait(decorators, duration, longestDuration) {
-    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "wait", decorators);
+  __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "wait", decorators);
 
-    /** 
-     * The time in milliseconds at which this node was first updated.
-     */
-    let initialUpdateTime;
+  /** 
+   * The time in milliseconds at which this node was first updated.
+   */
+  let initialUpdateTime;
 
-    /**
-     * The duration in milliseconds that this node will be waiting for. 
-     */
-    let waitDuration;
+  /**
+   * The duration in milliseconds that this node will be waiting for. 
+   */
+  let waitDuration;
 
-    /**
-     * Update the node.
-     * @param board The board.
-     * @returns The result of the update.
-     */
-    this.onUpdate = function (board) {
-        // If this node is in the READY state then we need to set the initial update time.
-        if (this.is(Mistreevous.State.READY)) {
-            // Set the initial update time.
-            initialUpdateTime = new Date().getTime();
+  /**
+   * Update the node.
+   * @param board The board.
+   * @returns The result of the update.
+   */
+  this.onUpdate = function (board) {
+    // If this node is in the READY state then we need to set the initial update time.
+    if (this.is(Mistreevous.State.READY)) {
+      // Set the initial update time.
+      initialUpdateTime = new Date().getTime();
 
-            // If a longestDuration value was defined then we will be randomly picking a duration between the
-            // shortest and longest duration. If it was not defined, then we will be just using the duration.
-            waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
+      // If a longestDuration value was defined then we will be randomly picking a duration between the
+      // shortest and longest duration. If it was not defined, then we will be just using the duration.
+      waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
 
-            // The node is now running until we finish waiting.
-            this.setState(Mistreevous.State.RUNNING);
-        }
+      // The node is now running until we finish waiting.
+      this.setState(Mistreevous.State.RUNNING);
+    }
 
-        // Have we waited long enough?
-        if (new Date().getTime() >= initialUpdateTime + waitDuration) {
-            // We have finished waiting!
-            this.setState(Mistreevous.State.SUCCEEDED);
-        }
-    };
+    // Have we waited long enough?
+    if (new Date().getTime() >= initialUpdateTime + waitDuration) {
+      // We have finished waiting!
+      this.setState(Mistreevous.State.SUCCEEDED);
+    }
+  };
 
-    /**
-     * Gets the name of the node.
-     */
-    this.getName = () => `WAIT ${longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms"}`;
+  /**
+   * Gets the name of the node.
+   */
+  this.getName = () => `WAIT ${longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms"}`;
 };
 
 Wait.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
 
 /***/ }),
-/* 19 */
+/* 18 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2166,7 +2136,7 @@ function While(condition) {
 While.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 20 */
+/* 19 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2220,7 +2190,7 @@ function Until(condition) {
 Until.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 21 */
+/* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2268,7 +2238,7 @@ function Entry(functionName) {
 Entry.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 22 */
+/* 21 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2318,7 +2288,7 @@ function Exit(functionName) {
 Exit.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 23 */
+/* 22 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2365,14 +2335,6 @@ function Step(functionName) {
 
 Step.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
-/***/ }),
-/* 24 */
-/***/ (function(module, exports) {
-
-/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {/* globals __webpack_amd_options__ */
-module.exports = __webpack_amd_options__;
-
-/* WEBPACK VAR INJECTION */}.call(exports, {}))
-
 /***/ })
 /******/ ]);
+});
