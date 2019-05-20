@@ -184,5 +184,18 @@ const example_snippets = {
     IsTrue: () => true,
     IsFalse: () => false
 }`
+    },
+
+
+
+    "entry-exit-step-decorators": {
+        "definition": `root {
+    wait[3000] entry(OnWaitStart) exit(OnWaitFinish) step(OnWaiting)
+}`,
+        "blackboard": `{
+    OnWaitStart: () => console.log("starting to wait!"),
+    OnWaiting: () => console.log("waiting!"),
+    OnWaitFinish: () => console.log("finished waiting!")
+}`
     }
 };
