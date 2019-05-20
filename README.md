@@ -4,6 +4,12 @@ A tool to declaratively define and generate behaviour trees in JavaScript. Behav
 
 Using this tool, trees can be defined with a simple and minimal built-in DSL, avoiding the need to write verbose definitions in JSON.
 
+## Install
+
+```sh
+$ npm install --save mistreevous
+```
+
 # Example
 ```js
 /** Define some behaviour for an entity. */

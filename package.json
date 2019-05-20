@@ -1,7 +1,7 @@
 {
   "name": "mistreevous",
   "version": "0.0.1",
-  "description": "A tool to build \u001b[D\u001b[Cbehaviour trees in JavaScript",
+  "description": "A tool to build behaviour trees in JavaScript",
   "main": "dist/index.js",
   "directories": {
     "lib": "lib"
@@ -20,9 +20,14 @@
     "url": "git+https://github.com/nikkorn/mistreevous.git"
   },
   "keywords": [
+    "behavior",
     "behaviour",
+    "bt",
     "tree",
     "ai",
+    "artificial",
+    "intelligence",
+    "enemy",
     "machine",
     "state"
   ],
