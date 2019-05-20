@@ -12,6 +12,8 @@ $ npm install --save mistreevous
 
 # Example
 ```js
+import { State, BehaviourTree } from "Mistreevous";
+
 /** Define some behaviour for an entity. */
 const definition = `root {
     sequence {
@@ -25,20 +27,20 @@ const definition = `root {
 const board = {
     Walk: () => {
         console.log("walking!");
-        return Mistreevous.State.SUCCEEDED;
+        return State.SUCCEEDED;
     },
     Fall: () => {
         console.log("falling!");
-        return Mistreevous.State.SUCCEEDED;
+        return State.SUCCEEDED;
     },
     Laugh: () => {
         console.log("laughing!");
-        return Mistreevous.State.SUCCEEDED;
+        return State.SUCCEEDED;
     },
 };
 
 /** Create the behaviour tree. */
-const behaviourTree = new Mistreevous.BehaviourTree(definition, board);
+const behaviourTree = new BehaviourTree(definition, board);
 
 /** Step the tree. */
 behaviourTree.step();
