@@ -7,14 +7,13 @@ import Composite from './composite'
  * -- An infinite repeat loop if neither an iteration count or a condition function is defined.
  * The REPEAT node will stop and have a 'FAILED' state if its child is ever in a 'FAILED' state after an update.
  * The REPEAT node will attempt to move on to the next iteration if its child is ever in a 'SUCCEEDED' state.
- * @param uid The unique node id.
- * @param guard The node guard.
+ * @param decorators The node decorators.
  * @param iterations The number of iterations to repeat the child node, or the minimum number of iterations if maximumIterations is defined.
  * @param maximumIterations The maximum number of iterations to repeat the child node.
  * @param child The child node. 
  */
-export default function Repeat(uid, guard, iterations, maximumIterations, child) {
-    Composite.call(this, uid, "repeat", guard, [child]);
+export default function Repeat(decorators, iterations, maximumIterations, child) {
+    Composite.call(this, "repeat", decorators, [child]);
 
     /**
      * The number of target iterations to make.
@@ -31,16 +30,7 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
      * @param board The board.
      * @returns The result of the update.
      */
-    this.update = function(board) {
-        // Get the pre-update node state.
-        const initialState = this.getState();
-
-        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-        if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
-            // We have not changed state.
-            return { hasStateChanged: false };
-        }
-
+    this.onUpdate = function(board) {
         // If this node is in the READY state then we need to reset the child and the target iteration count.
         if (this.is(Mistreevous.State.READY)) {
             // Reset the child node.
@@ -62,29 +52,8 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
                 child.reset();
             }
 
-            // Update the child of this node and get the result.
-            const updateResult = child.update(board);
-
-            // Check to see whether a node guard condition failed during the child node update.
-            if (updateResult.failedGuardNode) {
-                // Is this node the one with the failed guard condition?
-                if (updateResult.failedGuardNode === this) {
-                    // We need to reset this node, passing a flag to say that this is an abort.
-                    this.reset(true);
-                    
-                    // The guard condition for this node did not pass, so this node will move into the FAILED state.
-                    this.setState(Mistreevous.State.FAILED);
-
-                    // Return whether the state of this node has changed.
-                    return { hasStateChanged: true };
-                } else {
-                    // A node guard condition has failed higher up the tree.
-                    return {
-                        hasStateChanged: false,
-                        failedGuardNode: updateResult.failedGuardNode
-                    };
-                }
-            }
+            // Update the child of this node.
+            child.update(board);
 
             // If the child moved into the FAILED state when we updated it then there is nothing left to do and this node has also failed.
             // If it has moved into the SUCCEEDED state then we have completed the current iteration.
@@ -92,8 +61,7 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
                 // The child has failed, meaning that this node has failed.
                 this.setState(Mistreevous.State.FAILED);
 
-                // Return whether the state of this node has changed.
-                return { hasStateChanged: state !== initialState };
+                return;
             } else if (child.getState() === Mistreevous.State.SUCCEEDED) {
                 // We have completed an iteration.
                 currentIterationCount += 1;
@@ -102,9 +70,6 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
             // This node is in the 'SUCCEEDED' state as we cannot iterate any more.
             this.setState(Mistreevous.State.SUCCEEDED);
         }
-
-        // Return whether the state of this node has changed.
-        return { hasStateChanged: this.getState() !== initialState };
     };
 
     /**
@@ -121,9 +86,8 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
 
     /**
      * Reset the state of the node.
-     * @param isAbort Whether the reset is part of an abort.
      */
-    this.reset = (isAbort) => {
+    this.reset = () => {
         // Reset the state of this node.
         this.setState(Mistreevous.State.READY);
 
@@ -131,7 +95,7 @@ export default function Repeat(uid, guard, iterations, maximumIterations, child)
         currentIterationCount = 0;
 
         // Reset the child node.
-        child.reset(isAbort);
+        child.reset();
     };
 
     /**

@@ -2,12 +2,11 @@ import Node from './node'
 
 /**
  * A leaf node.
- * @param uid The unique node id.
  * @param type The node type.
- * @param guard The node guard.
+ * @param decorators The node decorators.
  */
-export default function Leaf(uid, type, guard) {
-    Node.call(this, uid, type, guard);
+export default function Leaf(type, decorators) {
+    Node.call(this, type, decorators);
 
     /**
      * The guard path to evaluate as part of a node update.
@@ -15,15 +14,23 @@ export default function Leaf(uid, type, guard) {
     let guardPath;
 
     /**
-     * Gets/Sets the guard path to evaluate as part of a node update.
+     * Sets the guard path to evaluate as part of a node update.
      */
-    this.getGuardPath = () => guardPath;
     this.setGuardPath = (value) => guardPath = value;
 
     /**
      * Gets whether this node is a leaf node.
      */
     this.isLeafNode = () => true;
+
+    /**
+     * Any pre-update logic.
+     * @param board The board.
+     */
+    this.onBeforeUpdate = (board) => {
+        // Evaluate all of the guard path conditions for the current tree path.
+        guardPath.evaluate(board);
+    };
 };
 
 Leaf.prototype = Object.create(Node.prototype);

@@ -16,11 +16,7 @@ const example_snippets = {
     action [SomeAction]
 }`,
         "blackboard": `{
-    SomeAction: {
-        onStart: () => {},
-        onUpdate: () => Mistreevous.State.SUCCEEDED,
-        onFinish: (succeeded) => {}
-    }
+    SomeAction: () => Mistreevous.State.SUCCEEDED
 }`
     },
 
@@ -60,14 +56,9 @@ const example_snippets = {
         console.log("walking!");
         return Mistreevous.State.SUCCEEDED;
     },
-    Fall: {
-        onStart: () => {
-            console.log("starting to fall!");
-        },
-        onUpdate: () => Mistreevous.State.SUCCEEDED,
-        onFinish: (succeeded) => {
-            console.log("finished falling!");
-        }
+    Fall: () => {
+        console.log("falling!");
+        return Mistreevous.State.SUCCEEDED;
     },
     Laugh: () => {
         console.log("laughing!");
@@ -192,6 +183,19 @@ const example_snippets = {
         "blackboard": `{
     IsTrue: () => true,
     IsFalse: () => false
+}`
+    },
+
+
+
+    "entry-exit-step-decorators": {
+        "definition": `root {
+    wait[3000] entry(OnWaitStart) exit(OnWaitFinish) step(OnWaiting)
+}`,
+        "blackboard": `{
+    OnWaitStart: () => console.log("starting to wait!"),
+    OnWaiting: () => console.log("waiting!"),
+    OnWaitFinish: () => console.log("finished waiting!")
 }`
     }
 };
