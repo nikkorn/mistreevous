@@ -10,12 +10,10 @@ const Mistreevous = {
     }
 };
 
+export default Mistreevous;
+
 // Export Mistreevous.
-if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') 
-{
-    module.exports = Mistreevous;
-}
-else 
+if (typeof module === 'undefined' || typeof module.exports === 'undefined') 
 {
     if (typeof define === 'function' && define.amd) 
     {

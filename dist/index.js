@@ -420,10 +420,10 @@ const Mistreevous = {
     }
 };
 
+/* harmony default export */ __webpack_exports__["default"] = (Mistreevous);
+
 // Export Mistreevous.
-if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
-    module.exports = Mistreevous;
-} else {
+if (typeof module === 'undefined' || typeof module.exports === 'undefined') {
     if (typeof define === 'function' && __webpack_require__(24)) {
         define([], function () {
             return Mistreevous;
