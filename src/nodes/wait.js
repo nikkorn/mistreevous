@@ -1,4 +1,5 @@
 import Leaf from './leaf'
+import State from "../state";
 
 /**
  * A WAIT node.
@@ -27,7 +28,7 @@ export default function Wait(decorators, duration, longestDuration) {
      */
     this.onUpdate = function(board) {
         // If this node is in the READY state then we need to set the initial update time.
-        if (this.is(Mistreevous.State.READY)) {
+        if (this.is(State.READY)) {
             // Set the initial update time.
             initialUpdateTime = new Date().getTime();
 
@@ -36,13 +37,13 @@ export default function Wait(decorators, duration, longestDuration) {
             waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
 
             // The node is now running until we finish waiting.
-            this.setState(Mistreevous.State.RUNNING);
+            this.setState(State.RUNNING);
         }
 
         // Have we waited long enough?
         if (new Date().getTime() >= (initialUpdateTime + waitDuration)) {
             // We have finished waiting!
-            this.setState(Mistreevous.State.SUCCEEDED);
+            this.setState(State.SUCCEEDED);
         }
     };
 

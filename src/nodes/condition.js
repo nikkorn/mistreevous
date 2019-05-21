@@ -1,4 +1,5 @@
 import Leaf from './leaf'
+import State from "../state";
 
 /**
  * A Condition leaf node.
@@ -17,7 +18,7 @@ export default function Condition(decorators, condition) {
     this.onUpdate = function(board) {
         // Call the condition function to determine the state of this node, but it must exist in the blackboard.
         if (typeof board[condition] === "function") {
-            this.setState(!!(board[condition]()) ? Mistreevous.State.SUCCEEDED : Mistreevous.State.FAILED);
+            this.setState(!!(board[condition]()) ? State.SUCCEEDED : State.FAILED);
         } else {
             throw `cannot update condition node as function '${condition}' is not defined in the blackboard`;
         }

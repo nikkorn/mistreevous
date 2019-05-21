@@ -1,4 +1,5 @@
 import GuardUnsatisifedException from '../decorators/guards/guardUnsatisifedException';
+import State from "../state";
 
 /**
  * A base node.
@@ -14,7 +15,7 @@ export default function Node(type, decorators) {
   /**
    * The node state.
    */
-  let state = Mistreevous.State.READY;
+  let state = State.READY;
 
   /**
    * Gets/Sets the state of the node.
@@ -60,7 +61,7 @@ export default function Node(type, decorators) {
    */
   this.reset = () => {
     // Reset the state of this node.
-    this.setState(Mistreevous.State.READY);
+    this.setState(State.READY);
   };
 
   /**
@@ -69,7 +70,7 @@ export default function Node(type, decorators) {
    */
   this.abort = (board) => {
     // There is nothing to do if this node is not in the running state.
-    if (!this.is(Mistreevous.State.RUNNING)) {
+    if (!this.is(State.RUNNING)) {
       return;
     }
 
@@ -98,7 +99,7 @@ export default function Node(type, decorators) {
    */
   this.update = (board) => {
     // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-    if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
+    if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {
         // We have not changed state.
         return {};
     }
@@ -108,7 +109,7 @@ export default function Node(type, decorators) {
       this.onBeforeUpdate(board);
 
       // If this node is in the READY state then call the ENTRY decorator for this node if it exists.
-      if (this.is(Mistreevous.State.READY)) {
+      if (this.is(State.READY)) {
         const entryDecorator = this.getDecorator("entry");
 
         // Call the entry decorator function if it exists.
@@ -129,12 +130,12 @@ export default function Node(type, decorators) {
       this.onUpdate(board);
 
       // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT decorator for this node if it exists.
-      if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
+      if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {
         const exitDecorator = this.getDecorator("exit");
 
         // Call the exit decorator function if it exists.
         if (exitDecorator) {
-          exitDecorator.callBlackboardFunction(board, this.is(Mistreevous.State.SUCCEEDED), false);
+          exitDecorator.callBlackboardFunction(board, this.is(State.SUCCEEDED), false);
         }
       }
     } catch (error) {
@@ -144,7 +145,7 @@ export default function Node(type, decorators) {
         this.abort(board);
 
         // Any node that is the source of an abort will be a failed node.
-        this.setState(Mistreevous.State.FAILED);
+        this.setState(State.FAILED);
       } else {
         throw error;
       }

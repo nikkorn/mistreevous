@@ -1,5 +1,15 @@
 const Mistreevous = require('./index');
 
-const x = new Mistreevous.BehaviourTree("root { }", {});
+const tree = new Mistreevous.BehaviourTree("root { action[Run] }", {
+    Run: () => {
+        console.log("Running!");
 
-console.log(Mistreevous);
+        return Mistreevous.State.SUCCEEDED;
+    }
+});
+
+console.log(tree.getState());
+console.log("Stepping the tree!");
+tree.step();
+console.log(tree.getState());
+console.log("Finished!");

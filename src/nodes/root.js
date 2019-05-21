@@ -1,4 +1,5 @@
 import Composite from './composite'
+import State from "../state";
 
 /**
  * A Root node.
@@ -16,7 +17,7 @@ export default function Root(decorators, child) {
      */
     this.onUpdate = function(board) {
         // If the child has never been updated or is running then we will need to update it now.
-        if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
+        if (child.getState() === State.READY || child.getState() === State.RUNNING) {
             // Update the child of this node.
             child.update(board);
         }

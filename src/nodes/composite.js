@@ -1,4 +1,5 @@
 import Node from './node'
+import State from "../state";
 
 /**
  * A composite node that wraps child nodes.
@@ -24,7 +25,7 @@ export default function Composite(type, decorators, children) {
      */
     this.reset = () => {
         // Reset the state of this node.
-        this.setState(Mistreevous.State.READY);
+        this.setState(State.READY);
 
         // Reset the state of any child nodes.
         this.getChildren().forEach(child => child.reset());
@@ -36,7 +37,7 @@ export default function Composite(type, decorators, children) {
      */
     this.abort = (board) => {
         // There is nothing to do if this node is not in the running state.
-        if (!this.is(Mistreevous.State.RUNNING)) {
+        if (!this.is(State.RUNNING)) {
             return;
         }
 

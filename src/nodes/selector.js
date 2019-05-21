@@ -1,4 +1,5 @@
 import Composite from './composite'
+import State from "../state";
 
 /**
  * A SELECTOR node.
@@ -18,27 +19,27 @@ export default function Selector(decorators, children) {
         // Iterate over all of the children of this node.
         for (const child of children) {
             // If the child has never been updated or is running then we will need to update it now.
-            if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
+            if (child.getState() === State.READY || child.getState() === State.RUNNING) {
                 // Update the child of this node.
                 child.update(board);
             }
 
             // If the current child has a state of 'SUCCEEDED' then this node is also a 'SUCCEEDED' node.
-            if (child.getState() === Mistreevous.State.SUCCEEDED) {
+            if (child.getState() === State.SUCCEEDED) {
                 // This node is a 'SUCCEEDED' node.
-                this.setState(Mistreevous.State.SUCCEEDED);
+                this.setState(State.SUCCEEDED);
 
                 // There is no need to check the rest of the selector nodes.
                 return;
             }
 
             // If the current child has a state of 'FAILED' then we should move on to the next child.
-            if (child.getState() === Mistreevous.State.FAILED) {
+            if (child.getState() === State.FAILED) {
                 // Find out if the current child is the last one in the selector.
                 // If it is then this sequence node has also failed.
                 if (children.indexOf(child) === children.length - 1) {
                     // This node is a 'FAILED' node.
-                    this.setState(Mistreevous.State.FAILED);
+                    this.setState(State.FAILED);
 
                     // There is no need to check the rest of the selector as we have completed it.
                     return;
@@ -49,9 +50,9 @@ export default function Selector(decorators, children) {
             }
 
             // The node should be in the 'RUNNING' state.
-            if (child.getState() === Mistreevous.State.RUNNING) {
+            if (child.getState() === State.RUNNING) {
                 // This node is a 'RUNNING' node.
-                this.setState(Mistreevous.State.RUNNING);
+                this.setState(State.RUNNING);
 
                 // There is no need to check the rest of the selector as the current child is still running.
                 return;

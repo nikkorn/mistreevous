@@ -1,4 +1,5 @@
-import Leaf from './leaf'
+import Leaf from './leaf';
+import State from "../state";
 
 /**
  * An Action leaf node.
@@ -28,7 +29,7 @@ export default function Action(decorators, actionName) {
         this._validateUpdateResult(updateResult);
 
         // Set the state of this node, this may be undefined, which just means that the node is still in the 'RUNNING' state.
-        this.setState(updateResult || Mistreevous.State.RUNNING);
+        this.setState(updateResult || State.RUNNING);
     };
 
     /**
@@ -58,12 +59,12 @@ export default function Action(decorators, actionName) {
      */
     this._validateUpdateResult = (result) => {
         switch (result) {
-            case Mistreevous.State.SUCCEEDED:
-            case Mistreevous.State.FAILED:
+            case State.SUCCEEDED:
+            case State.FAILED:
             case undefined:
                 return;
             default:
-                throw `action '${actionName}' 'onUpdate' returned an invalid response, expected an optional Mistreevous.State.SUCCEEDED or Mistreevous.State.FAILED value to be returned`;
+                throw `action '${actionName}' 'onUpdate' returned an invalid response, expected an optional State.SUCCEEDED or State.FAILED value to be returned`;
         }
     };
 };

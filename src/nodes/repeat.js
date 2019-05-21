@@ -1,4 +1,5 @@
 import Composite from './composite'
+import State from "../state";
 
 /**
  * A REPEAT node.
@@ -32,7 +33,7 @@ export default function Repeat(decorators, iterations, maximumIterations, child)
      */
     this.onUpdate = function(board) {
         // If this node is in the READY state then we need to reset the child and the target iteration count.
-        if (this.is(Mistreevous.State.READY)) {
+        if (this.is(State.READY)) {
             // Reset the child node.
             child.reset();
 
@@ -44,11 +45,11 @@ export default function Repeat(decorators, iterations, maximumIterations, child)
         // If we cannot iterate then we have hit our target iteration count, which means that the node has succeeded.
         if (this._canIterate()) {
             // This node is in the running state and can do its initial iteration.
-            this.setState(Mistreevous.State.RUNNING);
+            this.setState(State.RUNNING);
 
             // We may have already completed an iteration, meaning that the child node will be in the SUCCEEDED state.
             // If this is the case then we will have to reset the child node now.
-            if (child.getState() === Mistreevous.State.SUCCEEDED) {
+            if (child.getState() === State.SUCCEEDED) {
                 child.reset();
             }
 
@@ -57,18 +58,18 @@ export default function Repeat(decorators, iterations, maximumIterations, child)
 
             // If the child moved into the FAILED state when we updated it then there is nothing left to do and this node has also failed.
             // If it has moved into the SUCCEEDED state then we have completed the current iteration.
-            if (child.getState() === Mistreevous.State.FAILED) {
+            if (child.getState() === State.FAILED) {
                 // The child has failed, meaning that this node has failed.
-                this.setState(Mistreevous.State.FAILED);
+                this.setState(State.FAILED);
 
                 return;
-            } else if (child.getState() === Mistreevous.State.SUCCEEDED) {
+            } else if (child.getState() === State.SUCCEEDED) {
                 // We have completed an iteration.
                 currentIterationCount += 1;
             }
         } else {
             // This node is in the 'SUCCEEDED' state as we cannot iterate any more.
-            this.setState(Mistreevous.State.SUCCEEDED);
+            this.setState(State.SUCCEEDED);
         }
     };
 
@@ -89,7 +90,7 @@ export default function Repeat(decorators, iterations, maximumIterations, child)
      */
     this.reset = () => {
         // Reset the state of this node.
-        this.setState(Mistreevous.State.READY);
+        this.setState(State.READY);
 
         // Reset the current iteration count.
         currentIterationCount = 0;

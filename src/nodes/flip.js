@@ -1,4 +1,5 @@
 import Composite from './composite'
+import State from "../state";
 
 /**
  * A Flip node.
@@ -16,26 +17,26 @@ export default function Flip(decorators, child) {
      */
     this.onUpdate = function(board) {
         // If the child has never been updated or is running then we will need to update it now.
-        if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
+        if (child.getState() === State.READY || child.getState() === State.RUNNING) {
             child.update(board);
         }
 
         // The state of this node will depend in the state of its child.
         switch (child.getState()) {
-            case Mistreevous.State.RUNNING:
-                this.setState(Mistreevous.State.RUNNING);
+            case State.RUNNING:
+                this.setState(State.RUNNING);
                 break;
 
-            case Mistreevous.State.SUCCEEDED:
-                this.setState(Mistreevous.State.FAILED);
+            case State.SUCCEEDED:
+                this.setState(State.FAILED);
                 break;
 
-            case Mistreevous.State.FAILED:
-                this.setState(Mistreevous.State.SUCCEEDED);
+            case State.FAILED:
+                this.setState(State.SUCCEEDED);
                 break;
 
             default:
-                this.setState(Mistreevous.State.READY);
+                this.setState(State.READY);
         }
     };
    

@@ -70,7 +70,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 5);
+/******/ 	return __webpack_require__(__webpack_require__.s = 6);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -78,8 +78,28 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return State; });
+/**
+ * Enumeration of node states.
+ */
+const State = {
+    READY: Symbol("mistreevous.ready"),
+    RUNNING: Symbol("mistreevous.running"),
+    SUCCEEDED: Symbol("mistreevous.succeeded"),
+    FAILED: Symbol("mistreevous.failed")
+};
+
+
+
+/***/ }),
+/* 1 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Composite;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+
 
 
 /**
@@ -89,59 +109,59 @@ return /******/ (function(modules) { // webpackBootstrap
  * @param children The child nodes. 
  */
 function Composite(type, decorators, children) {
-  __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
+    __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
 
-  /**
-   * Gets whether this node is a leaf node.
-   */
-  this.isLeafNode = () => false;
+    /**
+     * Gets whether this node is a leaf node.
+     */
+    this.isLeafNode = () => false;
 
-  /**
-   * Gets the children of this node.
-   */
-  this.getChildren = () => children;
+    /**
+     * Gets the children of this node.
+     */
+    this.getChildren = () => children;
 
-  /**
-   * Reset the state of the node.
-   */
-  this.reset = () => {
-    // Reset the state of this node.
-    this.setState(Mistreevous.State.READY);
+    /**
+     * Reset the state of the node.
+     */
+    this.reset = () => {
+        // Reset the state of this node.
+        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
 
-    // Reset the state of any child nodes.
-    this.getChildren().forEach(child => child.reset());
-  };
+        // Reset the state of any child nodes.
+        this.getChildren().forEach(child => child.reset());
+    };
 
-  /**
-   * Abort the running of this node.
-   * @param board The board.
-   */
-  this.abort = board => {
-    // There is nothing to do if this node is not in the running state.
-    if (!this.is(Mistreevous.State.RUNNING)) {
-      return;
-    }
+    /**
+     * Abort the running of this node.
+     * @param board The board.
+     */
+    this.abort = board => {
+        // There is nothing to do if this node is not in the running state.
+        if (!this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING)) {
+            return;
+        }
 
-    // Abort any child nodes.
-    this.getChildren().forEach(child => child.abort(board));
+        // Abort any child nodes.
+        this.getChildren().forEach(child => child.abort(board));
 
-    // Reset the state of this node.
-    this.reset();
+        // Reset the state of this node.
+        this.reset();
 
-    // Try to get the exit decorator for this node.
-    const exitDecorator = this.getDecorator("exit");
+        // Try to get the exit decorator for this node.
+        const exitDecorator = this.getDecorator("exit");
 
-    // Call the exit decorator function if it exists.
-    if (exitDecorator) {
-      exitDecorator.callBlackboardFunction(board, false, true);
-    }
-  };
+        // Call the exit decorator function if it exists.
+        if (exitDecorator) {
+            exitDecorator.callBlackboardFunction(board, false, true);
+        }
+    };
 };
 
 Composite.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
 
 /***/ }),
-/* 1 */
+/* 2 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -169,12 +189,12 @@ function Decorator(type) {
 };
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Leaf;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(5);
 
 
 /**
@@ -183,37 +203,37 @@ function Decorator(type) {
  * @param decorators The node decorators.
  */
 function Leaf(type, decorators) {
-  __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
+    __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
 
-  /**
-   * The guard path to evaluate as part of a node update.
-   */
-  let guardPath;
+    /**
+     * The guard path to evaluate as part of a node update.
+     */
+    let guardPath;
 
-  /**
-   * Sets the guard path to evaluate as part of a node update.
-   */
-  this.setGuardPath = value => guardPath = value;
+    /**
+     * Sets the guard path to evaluate as part of a node update.
+     */
+    this.setGuardPath = value => guardPath = value;
 
-  /**
-   * Gets whether this node is a leaf node.
-   */
-  this.isLeafNode = () => true;
+    /**
+     * Gets whether this node is a leaf node.
+     */
+    this.isLeafNode = () => true;
 
-  /**
-   * Any pre-update logic.
-   * @param board The board.
-   */
-  this.onBeforeUpdate = board => {
-    // Evaluate all of the guard path conditions for the current tree path.
-    guardPath.evaluate(board);
-  };
+    /**
+     * Any pre-update logic.
+     * @param board The board.
+     */
+    this.onBeforeUpdate = board => {
+        // Evaluate all of the guard path conditions for the current tree path.
+        guardPath.evaluate(board);
+    };
 };
 
 Leaf.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -240,12 +260,14 @@ function GuardUnsatisifedException(source) {
 GuardUnsatisifedException.prototype = new Error();
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Node;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorators_guards_guardUnsatisifedException__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorators_guards_guardUnsatisifedException__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+
 
 
 /**
@@ -262,7 +284,7 @@ function Node(type, decorators) {
   /**
    * The node state.
    */
-  let state = Mistreevous.State.READY;
+  let state = __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY;
 
   /**
    * Gets/Sets the state of the node.
@@ -308,7 +330,7 @@ function Node(type, decorators) {
    */
   this.reset = () => {
     // Reset the state of this node.
-    this.setState(Mistreevous.State.READY);
+    this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
   };
 
   /**
@@ -317,7 +339,7 @@ function Node(type, decorators) {
    */
   this.abort = board => {
     // There is nothing to do if this node is not in the running state.
-    if (!this.is(Mistreevous.State.RUNNING)) {
+    if (!this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING)) {
       return;
     }
 
@@ -346,7 +368,7 @@ function Node(type, decorators) {
    */
   this.update = board => {
     // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-    if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
+    if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED) || this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED)) {
       // We have not changed state.
       return {};
     }
@@ -356,7 +378,7 @@ function Node(type, decorators) {
       this.onBeforeUpdate(board);
 
       // If this node is in the READY state then call the ENTRY decorator for this node if it exists.
-      if (this.is(Mistreevous.State.READY)) {
+      if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
         const entryDecorator = this.getDecorator("entry");
 
         // Call the entry decorator function if it exists.
@@ -377,12 +399,12 @@ function Node(type, decorators) {
       this.onUpdate(board);
 
       // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT decorator for this node if it exists.
-      if (this.is(Mistreevous.State.SUCCEEDED) || this.is(Mistreevous.State.FAILED)) {
+      if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED) || this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED)) {
         const exitDecorator = this.getDecorator("exit");
 
         // Call the exit decorator function if it exists.
         if (exitDecorator) {
-          exitDecorator.callBlackboardFunction(board, this.is(Mistreevous.State.SUCCEEDED), false);
+          exitDecorator.callBlackboardFunction(board, this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED), false);
         }
       }
     } catch (error) {
@@ -392,7 +414,7 @@ function Node(type, decorators) {
         this.abort(board);
 
         // Any node that is the source of an abort will be a failed node.
-        this.setState(Mistreevous.State.FAILED);
+        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
       } else {
         throw error;
       }
@@ -412,36 +434,30 @@ function createNodeUid() {
 }
 
 /***/ }),
-/* 5 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__behaviourtree__ = __webpack_require__(6);
-
-
-const State = {
-    READY: Symbol("mistreevous.ready"),
-    RUNNING: Symbol("mistreevous.running"),
-    SUCCEEDED: Symbol("mistreevous.succeeded"),
-    FAILED: Symbol("mistreevous.failed")
-};
-/* harmony export (immutable) */ __webpack_exports__["State"] = State;
-
-
-// TODO Find a fix for not being able to directly export BehaviourTree correctly.
-const BehaviourTree = __WEBPACK_IMPORTED_MODULE_0__behaviourtree__["a" /* BehaviourTree */];
-/* harmony export (immutable) */ __webpack_exports__["BehaviourTree"] = BehaviourTree;
-
-
-/***/ }),
 /* 6 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__behaviourtree__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "BehaviourTree", function() { return __WEBPACK_IMPORTED_MODULE_0__behaviourtree__["a"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "State", function() { return __WEBPACK_IMPORTED_MODULE_1__state__["a"]; });
+
+
+
+
+
+/***/ }),
+/* 7 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = BehaviourTree;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorators_guards_guardPath__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__rootASTNodesBuilder__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorators_guards_guardPath__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__rootASTNodesBuilder__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__state__ = __webpack_require__(0);
+
 
 
 
@@ -654,7 +670,7 @@ BehaviourTree.prototype.getFlattenedNodeDetails = function () {
  * @returns Whether the tree is in the running state.
  */
 BehaviourTree.prototype.isRunning = function () {
-    return this._rootNode.getState() === Mistreevous.State.RUNNING;
+    return this._rootNode.getState() === __WEBPACK_IMPORTED_MODULE_2__state__["a" /* default */].RUNNING;
 };
 
 /**
@@ -670,7 +686,7 @@ BehaviourTree.prototype.getState = function () {
  */
 BehaviourTree.prototype.step = function () {
     // If the root node has already been stepped to completion then we need to reset it.
-    if (this._rootNode.getState() === Mistreevous.State.SUCCEEDED || this._rootNode.getState() === Mistreevous.State.FAILED) {
+    if (this._rootNode.getState() === __WEBPACK_IMPORTED_MODULE_2__state__["a" /* default */].SUCCEEDED || this._rootNode.getState() === __WEBPACK_IMPORTED_MODULE_2__state__["a" /* default */].FAILED) {
         this._rootNode.reset();
     }
 
@@ -689,12 +705,12 @@ BehaviourTree.prototype.reset = function () {
 };
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = GuardPath;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__guardUnsatisifedException__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__guardUnsatisifedException__ = __webpack_require__(4);
 
 
 /**
@@ -723,25 +739,25 @@ function GuardPath(guardedNodes) {
 };
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = buildRootASTNodes;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__nodes_action__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__nodes_condition__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__nodes_flip__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nodes_lotto__ = __webpack_require__(12);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__nodes_repeat__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__nodes_root__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_selector__ = __webpack_require__(15);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_sequence__ = __webpack_require__(16);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_wait__ = __webpack_require__(17);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__decorators_guards_while__ = __webpack_require__(18);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__decorators_guards_until__ = __webpack_require__(19);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__decorators_entry__ = __webpack_require__(20);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__decorators_exit__ = __webpack_require__(21);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__decorators_step__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__nodes_action__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__nodes_condition__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__nodes_flip__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nodes_lotto__ = __webpack_require__(13);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__nodes_repeat__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__nodes_root__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_selector__ = __webpack_require__(16);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_sequence__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_wait__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__decorators_guards_while__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__decorators_guards_until__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__decorators_entry__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__decorators_exit__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__decorators_step__ = __webpack_require__(23);
 
 
 
@@ -1391,12 +1407,14 @@ function getDecorators(tokens) {
 };
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Action;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+
 
 
 /**
@@ -1427,7 +1445,7 @@ function Action(decorators, actionName) {
         this._validateUpdateResult(updateResult);
 
         // Set the state of this node, this may be undefined, which just means that the node is still in the 'RUNNING' state.
-        this.setState(updateResult || Mistreevous.State.RUNNING);
+        this.setState(updateResult || __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
     };
 
     /**
@@ -1457,12 +1475,12 @@ function Action(decorators, actionName) {
      */
     this._validateUpdateResult = result => {
         switch (result) {
-            case Mistreevous.State.SUCCEEDED:
-            case Mistreevous.State.FAILED:
+            case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED:
+            case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED:
             case undefined:
                 return;
             default:
-                throw `action '${actionName}' 'onUpdate' returned an invalid response, expected an optional Mistreevous.State.SUCCEEDED or Mistreevous.State.FAILED value to be returned`;
+                throw `action '${actionName}' 'onUpdate' returned an invalid response, expected an optional State.SUCCEEDED or State.FAILED value to be returned`;
         }
     };
 };
@@ -1470,12 +1488,14 @@ function Action(decorators, actionName) {
 Action.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Condition;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+
 
 
 /**
@@ -1485,37 +1505,39 @@ Action.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* defa
  * @param condition The name of the condition function. 
  */
 function Condition(decorators, condition) {
-  __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "condition", decorators);
+    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "condition", decorators);
 
-  /**
-   * Update the node.
-   * @param board The board.
-   * @returns The result of the update.
-   */
-  this.onUpdate = function (board) {
-    // Call the condition function to determine the state of this node, but it must exist in the blackboard.
-    if (typeof board[condition] === "function") {
-      this.setState(!!board[condition]() ? Mistreevous.State.SUCCEEDED : Mistreevous.State.FAILED);
-    } else {
-      throw `cannot update condition node as function '${condition}' is not defined in the blackboard`;
-    }
-  };
+    /**
+     * Update the node.
+     * @param board The board.
+     * @returns The result of the update.
+     */
+    this.onUpdate = function (board) {
+        // Call the condition function to determine the state of this node, but it must exist in the blackboard.
+        if (typeof board[condition] === "function") {
+            this.setState(!!board[condition]() ? __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED : __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
+        } else {
+            throw `cannot update condition node as function '${condition}' is not defined in the blackboard`;
+        }
+    };
 
-  /**
-   * Gets the name of the node.
-   */
-  this.getName = () => condition;
+    /**
+     * Gets the name of the node.
+     */
+    this.getName = () => condition;
 };
 
 Condition.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Flip;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+
 
 
 /**
@@ -1534,26 +1556,26 @@ function Flip(decorators, child) {
      */
     this.onUpdate = function (board) {
         // If the child has never been updated or is running then we will need to update it now.
-        if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
+        if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
             child.update(board);
         }
 
         // The state of this node will depend in the state of its child.
         switch (child.getState()) {
-            case Mistreevous.State.RUNNING:
-                this.setState(Mistreevous.State.RUNNING);
+            case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING:
+                this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
                 break;
 
-            case Mistreevous.State.SUCCEEDED:
-                this.setState(Mistreevous.State.FAILED);
+            case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED:
+                this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
                 break;
 
-            case Mistreevous.State.FAILED:
-                this.setState(Mistreevous.State.SUCCEEDED);
+            case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED:
+                this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED);
                 break;
 
             default:
-                this.setState(Mistreevous.State.READY);
+                this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
         }
     };
 
@@ -1566,12 +1588,14 @@ function Flip(decorators, child) {
 Flip.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Lotto;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+
 
 
 /**
@@ -1653,7 +1677,7 @@ function Lotto(decorators, tickets, children) {
      */
     this.onUpdate = function (board) {
         // If this node is in the READY state then we need to pick a winning child node.
-        if (this.is(Mistreevous.State.READY)) {
+        if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
             // Create a lotto draw.
             const lottoDraw = new LottoDraw();
 
@@ -1665,7 +1689,7 @@ function Lotto(decorators, tickets, children) {
         }
 
         // If the winning child has never been updated or is running then we will need to update it now.
-        if (winningChild.getState() === Mistreevous.State.READY || winningChild.getState() === Mistreevous.State.RUNNING) {
+        if (winningChild.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || winningChild.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
             winningChild.update(board);
         }
 
@@ -1682,12 +1706,14 @@ function Lotto(decorators, tickets, children) {
 Lotto.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Repeat;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+
 
 
 /**
@@ -1722,7 +1748,7 @@ function Repeat(decorators, iterations, maximumIterations, child) {
      */
     this.onUpdate = function (board) {
         // If this node is in the READY state then we need to reset the child and the target iteration count.
-        if (this.is(Mistreevous.State.READY)) {
+        if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
             // Reset the child node.
             child.reset();
 
@@ -1734,11 +1760,11 @@ function Repeat(decorators, iterations, maximumIterations, child) {
         // If we cannot iterate then we have hit our target iteration count, which means that the node has succeeded.
         if (this._canIterate()) {
             // This node is in the running state and can do its initial iteration.
-            this.setState(Mistreevous.State.RUNNING);
+            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
 
             // We may have already completed an iteration, meaning that the child node will be in the SUCCEEDED state.
             // If this is the case then we will have to reset the child node now.
-            if (child.getState() === Mistreevous.State.SUCCEEDED) {
+            if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED) {
                 child.reset();
             }
 
@@ -1747,18 +1773,18 @@ function Repeat(decorators, iterations, maximumIterations, child) {
 
             // If the child moved into the FAILED state when we updated it then there is nothing left to do and this node has also failed.
             // If it has moved into the SUCCEEDED state then we have completed the current iteration.
-            if (child.getState() === Mistreevous.State.FAILED) {
+            if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED) {
                 // The child has failed, meaning that this node has failed.
-                this.setState(Mistreevous.State.FAILED);
+                this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
 
                 return;
-            } else if (child.getState() === Mistreevous.State.SUCCEEDED) {
+            } else if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED) {
                 // We have completed an iteration.
                 currentIterationCount += 1;
             }
         } else {
             // This node is in the 'SUCCEEDED' state as we cannot iterate any more.
-            this.setState(Mistreevous.State.SUCCEEDED);
+            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED);
         }
     };
 
@@ -1779,7 +1805,7 @@ function Repeat(decorators, iterations, maximumIterations, child) {
      */
     this.reset = () => {
         // Reset the state of this node.
-        this.setState(Mistreevous.State.READY);
+        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
 
         // Reset the current iteration count.
         currentIterationCount = 0;
@@ -1819,12 +1845,14 @@ function Repeat(decorators, iterations, maximumIterations, child) {
 Repeat.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Root;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+
 
 
 /**
@@ -1843,7 +1871,7 @@ function Root(decorators, child) {
    */
   this.onUpdate = function (board) {
     // If the child has never been updated or is running then we will need to update it now.
-    if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
+    if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
       // Update the child of this node.
       child.update(board);
     }
@@ -1861,12 +1889,14 @@ function Root(decorators, child) {
 Root.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Selector;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+
 
 
 /**
@@ -1887,27 +1917,27 @@ function Selector(decorators, children) {
         // Iterate over all of the children of this node.
         for (const child of children) {
             // If the child has never been updated or is running then we will need to update it now.
-            if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
+            if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
                 // Update the child of this node.
                 child.update(board);
             }
 
             // If the current child has a state of 'SUCCEEDED' then this node is also a 'SUCCEEDED' node.
-            if (child.getState() === Mistreevous.State.SUCCEEDED) {
+            if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED) {
                 // This node is a 'SUCCEEDED' node.
-                this.setState(Mistreevous.State.SUCCEEDED);
+                this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED);
 
                 // There is no need to check the rest of the selector nodes.
                 return;
             }
 
             // If the current child has a state of 'FAILED' then we should move on to the next child.
-            if (child.getState() === Mistreevous.State.FAILED) {
+            if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED) {
                 // Find out if the current child is the last one in the selector.
                 // If it is then this sequence node has also failed.
                 if (children.indexOf(child) === children.length - 1) {
                     // This node is a 'FAILED' node.
-                    this.setState(Mistreevous.State.FAILED);
+                    this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
 
                     // There is no need to check the rest of the selector as we have completed it.
                     return;
@@ -1918,9 +1948,9 @@ function Selector(decorators, children) {
             }
 
             // The node should be in the 'RUNNING' state.
-            if (child.getState() === Mistreevous.State.RUNNING) {
+            if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
                 // This node is a 'RUNNING' node.
-                this.setState(Mistreevous.State.RUNNING);
+                this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
 
                 // There is no need to check the rest of the selector as the current child is still running.
                 return;
@@ -1940,12 +1970,14 @@ function Selector(decorators, children) {
 Selector.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Sequence;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+
 
 
 /**
@@ -1966,18 +1998,18 @@ function Sequence(decorators, children) {
         // Iterate over all of the children of this node.
         for (const child of children) {
             // If the child has never been updated or is running then we will need to update it now.
-            if (child.getState() === Mistreevous.State.READY || child.getState() === Mistreevous.State.RUNNING) {
+            if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
                 // Update the child of this node.
                 child.update(board);
             }
 
             // If the current child has a state of 'SUCCEEDED' then we should move on to the next child.
-            if (child.getState() === Mistreevous.State.SUCCEEDED) {
+            if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED) {
                 // Find out if the current child is the last one in the sequence.
                 // If it is then this sequence node has also succeeded.
                 if (children.indexOf(child) === children.length - 1) {
                     // This node is a 'SUCCEEDED' node.
-                    this.setState(Mistreevous.State.SUCCEEDED);
+                    this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED);
 
                     // There is no need to check the rest of the sequence as we have completed it.
                     return;
@@ -1988,18 +2020,18 @@ function Sequence(decorators, children) {
             }
 
             // If the current child has a state of 'FAILED' then this node is also a 'FAILED' node.
-            if (child.getState() === Mistreevous.State.FAILED) {
+            if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED) {
                 // This node is a 'FAILED' node.
-                this.setState(Mistreevous.State.FAILED);
+                this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
 
                 // There is no need to check the rest of the sequence.
                 return;
             }
 
             // The node should be in the 'RUNNING' state.
-            if (child.getState() === Mistreevous.State.RUNNING) {
+            if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
                 // This node is a 'RUNNING' node.
-                this.setState(Mistreevous.State.RUNNING);
+                this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
 
                 // There is no need to check the rest of the sequence as the current child is still running.
                 return;
@@ -2019,12 +2051,14 @@ function Sequence(decorators, children) {
 Sequence.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Wait;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+
 
 
 /**
@@ -2035,59 +2069,59 @@ Sequence.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" 
  * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
  */
 function Wait(decorators, duration, longestDuration) {
-  __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "wait", decorators);
+    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "wait", decorators);
 
-  /** 
-   * The time in milliseconds at which this node was first updated.
-   */
-  let initialUpdateTime;
+    /** 
+     * The time in milliseconds at which this node was first updated.
+     */
+    let initialUpdateTime;
 
-  /**
-   * The duration in milliseconds that this node will be waiting for. 
-   */
-  let waitDuration;
+    /**
+     * The duration in milliseconds that this node will be waiting for. 
+     */
+    let waitDuration;
 
-  /**
-   * Update the node.
-   * @param board The board.
-   * @returns The result of the update.
-   */
-  this.onUpdate = function (board) {
-    // If this node is in the READY state then we need to set the initial update time.
-    if (this.is(Mistreevous.State.READY)) {
-      // Set the initial update time.
-      initialUpdateTime = new Date().getTime();
+    /**
+     * Update the node.
+     * @param board The board.
+     * @returns The result of the update.
+     */
+    this.onUpdate = function (board) {
+        // If this node is in the READY state then we need to set the initial update time.
+        if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
+            // Set the initial update time.
+            initialUpdateTime = new Date().getTime();
 
-      // If a longestDuration value was defined then we will be randomly picking a duration between the
-      // shortest and longest duration. If it was not defined, then we will be just using the duration.
-      waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
+            // If a longestDuration value was defined then we will be randomly picking a duration between the
+            // shortest and longest duration. If it was not defined, then we will be just using the duration.
+            waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
 
-      // The node is now running until we finish waiting.
-      this.setState(Mistreevous.State.RUNNING);
-    }
+            // The node is now running until we finish waiting.
+            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
+        }
 
-    // Have we waited long enough?
-    if (new Date().getTime() >= initialUpdateTime + waitDuration) {
-      // We have finished waiting!
-      this.setState(Mistreevous.State.SUCCEEDED);
-    }
-  };
+        // Have we waited long enough?
+        if (new Date().getTime() >= initialUpdateTime + waitDuration) {
+            // We have finished waiting!
+            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED);
+        }
+    };
 
-  /**
-   * Gets the name of the node.
-   */
-  this.getName = () => `WAIT ${longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms"}`;
+    /**
+     * Gets the name of the node.
+     */
+    this.getName = () => `WAIT ${longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms"}`;
 };
 
 Wait.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = While;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(2);
 
 
 /**
@@ -2136,12 +2170,12 @@ function While(condition) {
 While.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Until;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(2);
 
 
 /**
@@ -2190,12 +2224,12 @@ function Until(condition) {
 Until.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Entry;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(2);
 
 
 /**
@@ -2238,12 +2272,12 @@ function Entry(functionName) {
 Entry.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Exit;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(2);
 
 
 /**
@@ -2288,12 +2322,12 @@ function Exit(functionName) {
 Exit.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Step;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(2);
 
 
 /**

@@ -1,4 +1,5 @@
 import Composite from './composite'
+import State from "../state";
 
 /**
  * A LOTTO node.
@@ -79,7 +80,7 @@ export default function Lotto(decorators, tickets, children) {
      */
     this.onUpdate = function(board) {
         // If this node is in the READY state then we need to pick a winning child node.
-        if (this.is(Mistreevous.State.READY)) {
+        if (this.is(State.READY)) {
             // Create a lotto draw.
             const lottoDraw = new LottoDraw();
 
@@ -91,7 +92,7 @@ export default function Lotto(decorators, tickets, children) {
         }
 
         // If the winning child has never been updated or is running then we will need to update it now.
-        if (winningChild.getState() === Mistreevous.State.READY || winningChild.getState() === Mistreevous.State.RUNNING) {
+        if (winningChild.getState() === State.READY || winningChild.getState() === State.RUNNING) {
             winningChild.update(board);
         }
 

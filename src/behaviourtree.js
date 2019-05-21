@@ -1,12 +1,13 @@
 import GuardPath from './decorators/guards/guardPath';
-import buildRootASTNodes from './rootASTNodesBuilder'
+import buildRootASTNodes from './rootASTNodesBuilder';
+import State from "./state";
 
 /**
  * The behaviour tree.
  * @param definition The tree definition.
  * @param board The board.
  */
-export function BehaviourTree(definition, board) {
+export default function BehaviourTree(definition, board) {
     /**
      * The tree definition.
      */
@@ -213,7 +214,7 @@ BehaviourTree.prototype.getFlattenedNodeDetails = function () {
  * @returns Whether the tree is in the running state.
  */
 BehaviourTree.prototype.isRunning = function () {
-    return this._rootNode.getState() === Mistreevous.State.RUNNING;
+    return this._rootNode.getState() === State.RUNNING;
 };
 
 /**
@@ -229,7 +230,7 @@ BehaviourTree.prototype.getState = function () {
  */
 BehaviourTree.prototype.step = function () {
     // If the root node has already been stepped to completion then we need to reset it.
-    if (this._rootNode.getState() === Mistreevous.State.SUCCEEDED || this._rootNode.getState() === Mistreevous.State.FAILED) {
+    if (this._rootNode.getState() === State.SUCCEEDED || this._rootNode.getState() === State.FAILED) {
         this._rootNode.reset();
     }
 
