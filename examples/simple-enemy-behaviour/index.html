@@ -2,12 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <link rel="stylesheet" href="dungeony.css">
+  <link rel="stylesheet" href="example.css">
   <!-- Import the Mistreevous .js file -->
   <script src="../../dist/index.js"></script>
 </head>
 <body>
-  <div id="dungeony-container"></div>
+  <h1>Enemy Follows Player</h1>
+  <p>The enemy (red) will follow the player (purple) when they get too close.</p>
+  <div id="main-container">
+      <div id="canvas-container"></div>
+      <textarea id="output-text-area" spellcheck="false"></textarea>
+  </div>
+  (W,A,S,D) Move player
 </body>
 <script src="js/constants.js"></script>
 <script src="js/wall.js"></script>

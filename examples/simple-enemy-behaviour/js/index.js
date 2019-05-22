@@ -12,7 +12,7 @@ function getCanvasContext()
     canvas.style.background = colours.grey;
 
     // Append the canvas to the page.
-    document.getElementById("dungeony-container").appendChild(canvas);
+    document.getElementById("canvas-container").appendChild(canvas);
 
     // Return the canvas context.
     return canvas.getContext("2d");
@@ -27,9 +27,21 @@ const level = {
             x: 190, 
             y: 200,
             behaviourTreeDefinition: `root {
-                sequence {
-                    condition [IsPlayerNearby]
-                    action [MoveTowardsPlayer]
+                selector {
+                    sequence {
+                        condition [IsPlayerNearby]
+                        action [OnPlayerSpotted]
+                        flip {
+                            action [MoveTowardsPlayer] while(IsPlayerNearby)
+                        }
+                        action [OnPlayerLost]
+                    }
+                    repeat until(IsPlayerNearby) {
+                        sequence {
+                            wait [2500]
+                            action [DoIdleChat]
+                        }
+                    }
                 }
             }`
         }
@@ -153,6 +165,14 @@ function draw()
     for (const wall of walls) {
         context.fillRect(wall.getX(), wall.getY(), wall.getSize(), wall.getSize());
     }
+};
+
+/**
+ * Write dialog to the output text area.
+ */
+function speak(speaker, value) {
+    const valueToAppend = `${speaker.toUpperCase()}: ${value} \n`;
+    document.getElementById("output-text-area").value += valueToAppend;
 };
 
 /**

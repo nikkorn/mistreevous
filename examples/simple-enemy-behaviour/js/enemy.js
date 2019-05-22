@@ -68,6 +68,33 @@ function Enemy({ x, y, behaviourTreeDefinition }, player) {
     };
 
     /**
+     * Called when the enemy spots the player.
+     */
+    this.OnPlayerSpotted = function() {
+        const speechOptions = ["There you are!", "I've spotted you!", "Get over here!", "I've got you now!"];
+        speak("enemy", speechOptions[Math.floor(Math.random() * speechOptions.length)]);
+        return Mistreevous.State.SUCCEEDED;
+    };
+
+    /**
+     * Called when the enemy loses the player.
+     */
+    this.OnPlayerLost = function() {
+        const speechOptions = ["Darn it!", "I will get you next time!", "You are too fast for me!", "You wont be so lucky next time!"];
+        speak("enemy", speechOptions[Math.floor(Math.random() * speechOptions.length)]);
+        return Mistreevous.State.SUCCEEDED;
+    };
+
+    /**
+     * Chat about nothing.
+     */
+    this.DoIdleChat = function() {
+        const speechOptions = ["I'm so bored!", "When is lunch?", "*whistles*", "I'm hungry!"];
+        speak("enemy", speechOptions[Math.floor(Math.random() * speechOptions.length)]);
+        return Mistreevous.State.SUCCEEDED;
+    };
+
+    /**
      * Get whether the player is near this enemy.
      */
     this.IsPlayerNearby = function() {
@@ -97,8 +124,5 @@ function Enemy({ x, y, behaviourTreeDefinition }, player) {
         const enemyOffsetX = player.getX() > self.getX() ? CHARACTER_MOVEMENT * 0.5 : CHARACTER_MOVEMENT * -0.5;
         const enemyOffsetY = player.getY() > self.getY() ? CHARACTER_MOVEMENT * 0.5 : CHARACTER_MOVEMENT * -0.5;
         self.movement = { x: enemyOffsetX, y: enemyOffsetY };
-
-        // We have moved towards the player!
-        return Mistreevous.State.SUCCEEDED;
     };
 };
