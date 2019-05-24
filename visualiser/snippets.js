@@ -23,6 +23,24 @@ const example_snippets = {
 
 
 
+    "async-action": {
+        "definition": `root {
+    action [SomeAsyncAction]
+}`,
+        "blackboard": `{
+  SomeAsyncAction: () => {
+    return new Promise(function(resolve, reject) {
+      setTimeout(function() {
+        resolve(Mistreevous.State.SUCCEEDED);
+      }, 3000);
+    });
+  }
+}`
+    },
+
+
+
+
 
     "wait-one-second": {
         "definition": `root {
