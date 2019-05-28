@@ -1427,6 +1427,16 @@ function Action(decorators, actionName) {
     __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "action", decorators);
 
     /**
+     * Whether there is a pending update promise. 
+     */
+    let isUsingUpdatePromise = false;
+
+    /**
+     * The finished state result of an update promise.
+     */
+    let updatePromiseStateResult = null;
+
+    /**
      * Update the node.
      * @param board The board.
      * @returns The result of the update.
@@ -1435,23 +1445,81 @@ function Action(decorators, actionName) {
         // Get the corresponding action object or function.
         const action = board[actionName];
 
+        // If the result of this action depends on an update promise then there is nothing to do until
+        // it resolves, unless there has been a value set as a result of the update promise resolving.
+        if (isUsingUpdatePromise) {
+            // Check whether the update promise has resolved with a state value.
+            if (updatePromiseStateResult) {
+                // Set the state of this node to match the state returned by the promise.
+                this.setState(updatePromiseStateResult);
+            }
+
+            return;
+        }
+
         // Validate the action.
         this._validateAction(action);
 
-        // Call the action 'onUpdate' function, the result of which will be the new state of this action node, or 'RUNNING' if undefined.
+        // Call the action 'onUpdate' function, the result of which may be:
+        // - The finished state of this action node.
+        // - A promise to return a finished node state.
+        // - Undefined if the node should remain in the running state.
         const updateResult = action();
 
-        // Validate the returned value.
-        this._validateUpdateResult(updateResult);
+        if (updateResult instanceof Promise) {
+            updateResult.then(result => {
+                // If 'isUpdatePromisePending' is null then the promise was cleared as it was resolving, probably via an abort of reset.
+                if (!isUsingUpdatePromise) {
+                    return;
+                }
 
-        // Set the state of this node, this may be undefined, which just means that the node is still in the 'RUNNING' state.
-        this.setState(updateResult || __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
+                // Check to make sure the result is a valid finished state.
+                if (result !== __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED && result !== __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED) {
+                    throw "action node promise resolved with an invalid value, expected a State.SUCCEEDED or State.FAILED value to be returned";
+                }
+
+                // Set pending update promise state result to be processed on next update.
+                updatePromiseStateResult = result;
+            }, reason => {
+                // If 'isUpdatePromisePending' is null then the promise was cleared as it was resolving, probably via an abort of reset.
+                if (!isUsingUpdatePromise) {
+                    return;
+                }
+
+                // Just throw whatever was returned as the rejection argument.
+                throw reason;
+            });
+
+            // This node will be in the 'RUNNING' state until the update promise resolves.
+            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
+
+            // We are now waiting for the promise returned by the use to resolve before we know what state this node is in.
+            isUsingUpdatePromise = true;
+        } else {
+            // Validate the returned value.
+            this._validateUpdateResult(updateResult);
+
+            // Set the state of this node, this may be undefined, which just means that the node is still in the 'RUNNING' state.
+            this.setState(updateResult || __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
+        }
     };
 
     /**
      * Gets the name of the node.
      */
     this.getName = () => actionName;
+
+    /**
+     * Reset the state of the node.
+     */
+    this.reset = () => {
+        // Reset the state of this node.
+        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
+
+        // There is no longer an update promise that we care about.
+        isUsingUpdatePromise = false;
+        updatePromiseStateResult = null;
+    };
 
     /**
      * Validate an action.

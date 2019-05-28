@@ -1,4 +1,4 @@
-// Type definitions for Mistreevous 0.0.5
+// Type definitions for Mistreevous 0.0.6
 // Project: Mistreevous
 // Definitions by: nikolas howard <https://github.com/nikkorn>
 declare module "Mistreevous" {
