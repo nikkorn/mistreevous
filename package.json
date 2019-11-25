@@ -1,6 +1,6 @@
 {
   "name": "mistreevous",
-  "version": "0.0.6",
+  "version": "1.0.0",
   "description": "A tool to build behaviour trees in JavaScript",
   "main": "dist/index.js",
   "types": "dist/mistreevous.d.ts",

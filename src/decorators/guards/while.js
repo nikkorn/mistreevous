@@ -36,7 +36,7 @@ export default function While(condition) {
     this.isSatisfied = (board) => {
         // Call the condition function to determine whether this guard is satisfied.
         if (typeof board[condition] === "function") {
-            return !!(board[condition]());
+            return !!(board[condition].call(board));
         } else {
             throw `cannot evaluate node guard as function '${condition}' is not defined in the blackboard`;
         }

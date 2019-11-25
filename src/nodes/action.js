@@ -48,7 +48,7 @@ export default function Action(decorators, actionName) {
         // - The finished state of this action node.
         // - A promise to return a finished node state.
         // - Undefined if the node should remain in the running state.
-        const updateResult = action();
+        const updateResult = action.call(board);
 
         if (updateResult instanceof Promise) {
             updateResult.then(
