@@ -30,7 +30,7 @@ export default function Step(functionName) {
     this.callBlackboardFunction = (board) => {
         // Call the blackboard function if it exists.
         if (typeof board[functionName] === "function") {
-            board[functionName]();
+            board[functionName].call(board);
         } else {
             throw `cannot call entry decorator function '${functionName}' is not defined in the blackboard`;
         }

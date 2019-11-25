@@ -1464,7 +1464,7 @@ function Action(decorators, actionName) {
         // - The finished state of this action node.
         // - A promise to return a finished node state.
         // - Undefined if the node should remain in the running state.
-        const updateResult = action();
+        const updateResult = action.call(board);
 
         if (updateResult instanceof Promise) {
             updateResult.then(result => {
@@ -1583,7 +1583,7 @@ function Condition(decorators, condition) {
     this.onUpdate = function (board) {
         // Call the condition function to determine the state of this node, but it must exist in the blackboard.
         if (typeof board[condition] === "function") {
-            this.setState(!!board[condition]() ? __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED : __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
+            this.setState(!!board[condition].call(board) ? __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED : __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
         } else {
             throw `cannot update condition node as function '${condition}' is not defined in the blackboard`;
         }
@@ -2228,7 +2228,7 @@ function While(condition) {
     this.isSatisfied = board => {
         // Call the condition function to determine whether this guard is satisfied.
         if (typeof board[condition] === "function") {
-            return !!board[condition]();
+            return !!board[condition].call(board);
         } else {
             throw `cannot evaluate node guard as function '${condition}' is not defined in the blackboard`;
         }
@@ -2282,7 +2282,7 @@ function Until(condition) {
     this.isSatisfied = board => {
         // Call the condition function to determine whether this guard is satisfied.
         if (typeof board[condition] === "function") {
-            return !!!board[condition]();
+            return !!!board[condition].call(board);
         } else {
             throw `cannot evaluate node guard as function '${condition}' is not defined in the blackboard`;
         }
@@ -2330,7 +2330,7 @@ function Entry(functionName) {
     this.callBlackboardFunction = board => {
         // Call the blackboard function if it exists.
         if (typeof board[functionName] === "function") {
-            board[functionName]();
+            board[functionName].call(board);
         } else {
             throw `cannot call entry decorator function '${functionName}' is not defined in the blackboard`;
         }
@@ -2380,7 +2380,7 @@ function Exit(functionName) {
     this.callBlackboardFunction = (board, isSuccess, isAborted) => {
         // Call the blackboard function if it exists.
         if (typeof board[functionName] === "function") {
-            board[functionName]({ succeeded: isSuccess, aborted: isAborted });
+            board[functionName].call(board, { succeeded: isSuccess, aborted: isAborted });
         } else {
             throw `cannot call exit decorator function '${functionName}' is not defined in the blackboard`;
         }
@@ -2428,7 +2428,7 @@ function Step(functionName) {
     this.callBlackboardFunction = board => {
         // Call the blackboard function if it exists.
         if (typeof board[functionName] === "function") {
-            board[functionName]();
+            board[functionName].call(board);
         } else {
             throw `cannot call entry decorator function '${functionName}' is not defined in the blackboard`;
         }

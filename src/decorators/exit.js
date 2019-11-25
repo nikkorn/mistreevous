@@ -32,7 +32,7 @@ export default function Exit(functionName) {
     this.callBlackboardFunction = (board, isSuccess, isAborted) => {
         // Call the blackboard function if it exists.
         if (typeof board[functionName] === "function") {
-            board[functionName]({ succeeded: isSuccess, aborted: isAborted });
+            board[functionName].call(board, { succeeded: isSuccess, aborted: isAborted });
         } else {
             throw `cannot call exit decorator function '${functionName}' is not defined in the blackboard`;
         }
