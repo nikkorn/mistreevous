@@ -1,0 +1,40 @@
+body {
+    font-family: 'Source Code Pro', monospace;
+}
+
+h1 {
+    margin-block-end: 0.2em;
+    margin-block-start: 0.2em;
+}
+
+#wrapper {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 5% 10% 5% 10%;
+
+}
+
+@media only screen and (max-width: 600px) {
+    #wrapper {
+        padding: 5% 5% 5% 5%;
+    }
+  }
+
+#header {
+    display: flex;
+    flex-direction: row;
+    flex: 0 0 auto;
+}
+
+.logo {
+    width: 4rem;
+    height: 4rem;
+}
