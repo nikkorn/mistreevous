@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mistreevous - Playground</title>
+<meta name="description" content="Mistreevous - Playground">
+<link rel="stylesheet" type="text/css" href="styles.css">
+<script src="../lib/workflo/node.js"></script>
+<script src="../lib/workflo/nodecontainer.js"></script>
+<script src="../lib/workflo/connector.js"></script>
+<script src="../lib/workflo/workflo.js"></script>
+<script src="../lib/mistreevous/index.js"></script>
+<link href="https://fonts.googleapis.com/css?family=Source+Code+Pro&display=swap" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="../lib/workflo/workflo.css">
+<head>
+	<meta charset="utf-8">
+</head>
+<body>
+	<div class="page-container">
+		<div class="main-container">
+			<div id="header-bar">
+				<div id="title-bar">
+					<img id="header-icon" src="icons/mistreevous_icon_white.png" title="mistreevous">
+					<h3>Mistreevous</h3>
+				</div>
+
+				<div id="menu">
+						<div class="menu-item">
+							<a href="../index.html"><h3>Info</h3></a>
+						</div>
+						<div class="menu-item">
+							<h3>Docs</h3>
+						</div>
+						<div class="menu-item">
+							<h3>Examples</h3>
+						</div>
+						<div class="menu-item menu-item-active">
+							<h3>Playground</h3>
+						</div>
+					  </div>
+				
+				<div id="details-bar">
+					<h3>Snippet</h3>
+					<select id="template-select-list" onchange="onSnippetSelect()">
+						<option value="none"></option>
+
+						<optgroup label="Leaves">
+							<option value="basic-action">basic action</option>
+							<option value="async-action">asynchronous action</option>
+							<option value="wait-one-second">wait</option>
+							<option value="wait-for-one-to-five-seconds">wait for one-five seconds</option>
+						</optgroup>
+
+						<optgroup label="Composites">
+							<option value="basic-sequence">sequence</option>
+							<option value="flip-node">flip</option>
+							<option value="basic-lotto">lotto</option>
+							<option value="weighted-lotto">weighted lotto</option>
+						</optgroup>
+
+						<optgroup label="Decorators">
+							<option value="node-guards">guards</option>
+							<option value="nested-until-node-guard">nested guards</option>
+							<option value="entry-exit-step-decorators">enter exit and step</option>
+						</optgroup>
+					</select>
+					<a href="https://github.com/nikkorn/mistreevous" style="height:36px;">
+						<img id="header-icon" src="icons/github-circle.png" title="github">
+					</a>
+				</div>
+			</div>
+			<div class="editor-panel">
+				<div id="sidebar-panel">
+					<div id="definition-panel" class="page-tile">
+						<p>Definition</p>
+						<textarea id="definition-text-area" class="sidebar-input-text-area" oninput="reloadVisualiser()" spellcheck="false" style="width: 100%;"></textarea>
+						<br>
+						<div class="result-view-container page-tile">
+							<textarea id="result-text-area" spellcheck="false" style="width: 100%;" rows=3 readonly></textarea>
+						</div>
+					</div>
+					<div id="blackboard-panel" class="page-tile">
+						<p>Board</p>
+						<textarea id="blackboard-text-area" class="sidebar-input-text-area" oninput="reloadVisualiser()" spellcheck="false" style="width: 100%;"></textarea>
+					</div>
+				</div>
+				<div class="tree-view-container page-tile">
+					<div id="sidebar-controls" class="tree-view-controls">
+						<img src="icons/code.png" id="definition-view-button" title="definition panel" onclick="changeSidebarView(1)">
+						<img src="icons/board.png" id="board-view-button" title="board panel" onclick="changeSidebarView(2)">
+						<img src="icons/close.png" id="clear-view-button" title="close panel" onclick="changeSidebarView(0)">
+					</div>
+					<div id="runtime-controls" class="tree-view-controls">
+						<img src="icons/play.png" id="control-play-button" title="play" onclick="onPlayButtonPressed()">
+						<img src="icons/reload.png" id="control-reload-button" title="reload" onclick="reloadVisualiser()">
+					</div>
+					<div id="tree-view-wrapper" style="width: 100%;"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+<script src="snippets.js"></script>
+<script src="index.js"></script>
+</html>
