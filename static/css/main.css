@@ -64,6 +64,10 @@ h1, h2, h3, h4 {
     #wrapper {
         padding: 5%;
     }
+
+    #menu {
+        flex-direction: column;
+    }
 }
 
 @media screen and (min-width: 769px) {
