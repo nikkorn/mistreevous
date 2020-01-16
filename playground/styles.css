@@ -4,6 +4,15 @@ html, body {
     font-family: 'Source Code Pro', monospace;
 }
 
+h3 {
+    margin: 0.2em;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+} 
+
 .page-container {
     display: flex;
     flex-direction: column;
@@ -27,6 +36,7 @@ html, body {
     justify-content: space-between;
     background-color: #444444;
     color: #FFFFFF;
+    padding: 2px;
 }
 
 #header-icon {
@@ -50,13 +60,14 @@ html, body {
     display: flex;
     flex-direction: row;
     box-sizing: border-box;  
+    margin-right: 5px;
+    color: #FFFFFF;
 }
 
 .menu-item {
     border-radius: 25px;
     padding: 0.2em 0.6em;
     margin: 6px;
-    line-height: 0;
 }
 
 .menu-item-active {
@@ -95,11 +106,27 @@ html, body {
     overflow: hidden;
     display: none;
     width: 30%;
+    margin: 0.6em;
+    padding: 0.25em;
 }
 
 #sidebar-panel > div {
-    padding: 5px;
-    padding-bottom: 20px;
+    padding: 0.25em;
+}
+
+#footer-bar {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    background-color: #444444;
+    color: #FFFFFF;
+    padding: 2px;
+}
+
+#footer-bar > div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
 
 .tree-view-controls {
@@ -130,6 +157,10 @@ html, body {
 #tree-view-wrapper {
     background-color: #FFFFFF;
     font-size: 0.8em;
+}
+
+#tree-view-wrapper.workflo-container {
+    border: none;
 }
 
 .page-tile {
@@ -167,6 +198,7 @@ html, body {
 
 .result-view-container {
     flex-grow: 0;
+    margin-top: 0.5em;
 }
 
 /* Worklo Nodes */
