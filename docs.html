@@ -1,0 +1,432 @@
+<!doctype html>
+
+<html lang="en">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+  <meta charset="utf-8">
+  <title>Mistreevous</title>
+  <meta name="description" content="Mistreevous">
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/css/main.css">
+  <script src="static/js/main.js"></script>
+</head>
+<body>
+  <!--The GitHub corner.-->
+  <a href="https://github.com/nikkorn/mistreevous" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="z-index: 1000; fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+  <!--The main page wrapper.-->
+  <div id="wrapper">
+    <div id="header">
+      <img src="https://github.com/nikkorn/mistreevous/raw/master/icons/icon-large.png" class="logo" alt="logo">
+      <h1 class="header-title">Mistreevous</h1>
+    </div>
+    <div id="menu">
+      <div class="menu-item">
+        <a href="./index.html"><h3>Info</h3></a>
+      </div>
+      <div class="menu-item menu-item-active">
+          <h3>Docs</h3>
+      </div>
+      <div class="menu-item">
+          <h3>Examples</h3>
+      </div>
+      <div class="menu-item">
+          <a href="./playground/index.html"><h3>Playground</h3></a>
+      </div>
+    </div>
+    <div id="content">
+        <br>
+        <h1 id="install">Install</h2>
+
+        <pre><code class="sh language-sh">$ npm install --save mistreevous
+        </code></pre>
+
+        <h1 id="example">Example</h1>
+
+        <pre><code class="js language-js">import { State, BehaviourTree } from "Mistreevous";
+
+        /** Define some behaviour for an entity. */
+        const definition = `root {
+            sequence {
+                action [Walk]
+                action [Fall]
+                action [Laugh]
+            }
+        }`;
+
+        /** Create the blackboard, the object to hold tasks and state for a tree instance. */
+        const board = {
+            Walk: () =&gt; {
+                console.log("walking!");
+                return State.SUCCEEDED;
+            },
+            Fall: () =&gt; {
+                console.log("falling!");
+                return State.SUCCEEDED;
+            },
+            Laugh: () =&gt; {
+                console.log("laughing!");
+                return State.SUCCEEDED;
+            },
+        };
+
+        /** Create the behaviour tree. */
+        const behaviourTree = new BehaviourTree(definition, board);
+
+        /** Step the tree. */
+        behaviourTree.step();
+
+        // 'walking!'
+        // 'falling!
+        // 'laughing!'
+        </code></pre>
+
+        <h1 id="nodes">Nodes</h1>
+
+        <h2 id="states">States</h2>
+
+        <p>Behaviour tree nodes can be in one of the following states:</p>
+
+        <ul>
+        <li><strong>READY</strong> A node is in a ready state when it has not been visited yet in the execution of the tree.</li>
+
+        <li><strong>RUNNING</strong> A node is in a running state when it is is still being processed, these nodes will usually represent or encompass a long running action.</li>
+
+        <li><strong>SUCCEEDED</strong> A node is in a succeeded state when it is no longer being processed and has succeeded.</li>
+
+        <li><strong>FAILED</strong> A node is in a failed state when it is no longer being processed but has failed.</li>
+        </ul>
+
+        <h2 id="compositenodes">Composite Nodes</h2>
+
+        <h3 id="root">Root</h3>
+
+        <p>This node represents the root of a behaviour tree and cannot be the child of another composite node.</p>
+
+        <p>A root node can only have a single child node. The state of a root node will reflect the state of this single child.</p>
+
+        <pre><code>root {
+            action [Dance]
+        }
+        </code></pre>
+
+        <p>Additional named root nodes can be defined and reused throughout a definition. Other root nodes can be referenced via the <strong>branch</strong> node. Exactly one root node must be left unnamed, this root node will be used as the main root node for the entire tree.</p>
+
+        <pre><code>root {
+            branch [SomeOtherTree]
+        }
+
+        root [SomeOtherTree] {
+            action [Dance]
+        }
+        </code></pre>
+
+        <h3 id="sequence">Sequence</h3>
+
+        <p>This node will update each child node in sequence. It will succeed if all of its children have succeeded and will fail if any of its children fail. This node will remain in the running state if one of its children is running.</p>
+
+        <pre><code>root {
+            sequence {
+                action [Walk]
+                action [Fall]
+                action [Laugh]
+            }
+        }
+        </code></pre>
+
+        <h3 id="selector">Selector</h3>
+
+        <p>This node will update each child node in sequence. It will fail if all of its children have failed and will succeed if any of its children succeed. This node will remain in the running state if one of its children is running.</p>
+
+        <pre><code>root {
+            selector {
+                action [TryThis]
+                action [ThenTryThis]
+                action [TryThisLast]
+            }
+        }
+        </code></pre>
+
+        <h3 id="lotto">Lotto</h3>
+
+        <p>This node will select a single child at random to run as the active running node. The state of this node will reflect the state of the active child.</p>
+
+        <pre><code>root {
+            lotto {
+                action [MoveLeft]
+                action [MoveRight]
+            }
+        }
+        </code></pre>
+
+        <p>A probability weight can be defined for each child node as an optional integer node argument, influencing the likelihood that a particular child will be picked.</p>
+
+        <pre><code>root {
+            lotto [10,5,3,1] {
+                action [CommonAction]
+                action [UncommonAction]
+                action [RareAction]
+                action [VeryRareAction]
+            }
+        }
+        </code></pre>
+
+        <h3 id="repeat">Repeat</h3>
+
+        <p>A repeat node can only have a single child node which it will run repeatedly. It will do this until either the child fails, at which point the repeat node will fail, or the maximum number of iterations is reached, which moves the repeat node to a succeeded state. This node will be in a running state if its child is also in a running state, or if further iterations need to be made.</p>
+
+        <p>The maximum number of iterations can be defined as a single integer node argument. In the example below, we would be repeating the action <strong>SomeAction</strong> 5 times.</p>
+
+        <pre><code>root {
+            repeat [5] {
+                action [SomeAction]
+            }
+        }
+        </code></pre>
+
+        <p>The number of iterations to make can be selected at random within a lower and upper bound if these are defined as two integer node arguments. In the example below, we would be repeating the action <strong>SomeAction</strong> between 1 and 5 times.</p>
+
+        <pre><code>root {
+            repeat [1,5] {
+                action [SomeAction]
+            }
+        }
+        </code></pre>
+
+        <p>The maximum number of iterations to make can be omitted as a node argument. This would result in the child node being run infinitely, as can be seen in the example below.</p>
+
+        <pre><code>root {
+            repeat {
+                action [SomeAction]
+            }
+        }
+        </code></pre>
+
+        <h3 id="flip">Flip</h3>
+
+        <p>A flip node can only have a single child node. This node will succeed when its child moves to the failed state, and it will fail if its child moves to the succeeded state. This node will remain in the running state if its children is running.</p>
+
+        <pre><code>root {
+            flip {
+                action [SomeAction]
+            }
+        }
+        </code></pre>
+
+        <h2 id="leafnodes">Leaf Nodes</h2>
+
+        <h3 id="action">Action</h3>
+
+        <p>An action node represents an action that can be completed immediately as part of a single tree step, or ongoing behaviour that can take a prolonged amount of time and may take multiple tree steps to complete. Each action node will correspond to functionality defined within the blackboard.</p>
+
+        <p>An action is defined within the blackboard as a function that can optionally return a finished action state of <strong>succeeded</strong> or <strong>failed</strong>. If the <strong>succeeded</strong> or <strong>failed</strong> state is returned, then the action will move into that state.</p>
+
+        <pre><code class="js language-js">const board = {
+            //...
+            Attack: () =&gt; {
+                // If we do not have a weapon then we cannot attack.
+                if (!this.isHoldingWeapon()) {
+                    // We have failed to carry out an attack!
+                    return Mistreevous.State.FAILED;
+                }
+
+                // ... Attack with swiftness and precision ...
+
+                // We have carried out our attack.
+                return Mistreevous.State.SUCCEEDED;
+            }
+            // ...
+        };
+        </code></pre>
+
+        <p>If no value is returned from the action function the action node will move into the <strong>running</strong> state and no following nodes will be processed as part of the current tree step. In the example below, any action node that references <strong>WalkToPosition</strong> will remain in the <strong>running</strong> state until the target position is reached.</p>
+
+        <pre><code class="js language-js">const board = {
+            //...
+            WalkToPosition: () =&gt; {
+                // ... Walk towards the position we are trying to reach ...
+
+                // Check whether we have finally reached the target position.
+                if (this.isAtTargetPosition()) {
+                    // We have finally reached the target position!
+                    return Mistreevous.State.SUCCEEDED;
+                }
+            }
+            // ...
+        };
+        </code></pre>
+
+        <p>Further steps of the tree will resume processing from leaf nodes that were left in the <strong>running</strong> state until they succeed, fail, or processing of the running branch is aborted via a guard.</p>
+
+        <h4 id="promisebasedactions">Promise-based Actions</h4>
+
+        <p>As well as returning a finished action state from an action function, you can also return a promise that should eventually resolve with a finished state as its value. The action will remain in the running state until the promise is fulfilled, and any following tree steps will not call the action function again.</p>
+
+        <pre><code class="js language-js">const board = {
+            //...
+            SomeAsyncAction: () =&gt; {
+                return new Promise(function(resolve, reject) {
+                    setTimeout(function() {
+                        resolve(Mistreevous.State.SUCCEEDED);
+                    }, 5000);
+                });
+            }
+            // ...
+        };
+        </code></pre>
+
+        <h3 id="condition">Condition</h3>
+
+        <p>A Condition node will immediately move into either a <strong>succeeded</strong> or <strong>failed</strong> based of the boolean result of calling a function in the blackboard.</p>
+
+        <pre><code>root {
+            sequence {
+                condition [HasWeapon]
+                action [Attack]
+            }
+        }
+        </code></pre>
+
+        <pre><code class="js language-js">const board = {
+            //...
+            HasWeapon: () =&gt; this.isHoldingWeapon(),
+            //...
+            Attack: () =&gt; this.attackPlayer(),
+            // ...
+        };
+        </code></pre>
+
+        <h3 id="wait">Wait</h3>
+
+        <p>A wait node will remain in a running state for a specified duration, after which it will move into the succeeded state. The duration in milliseconds can be defined as a single integer node argument.</p>
+
+        <pre><code>root {
+            repeat {
+                sequence {
+                    action [FireWeapon]
+                    wait [2000]
+                }
+            }
+        }
+        </code></pre>
+
+        <p>In the above example, we are using a wait node to wait 2 seconds between each run of the <strong>FireWeapon</strong> action.</p>
+
+        <p>The duration to wait in milliseconds can also be selected at random within a lower and upper bound if these are defined as two integer node arguments. In the example below, we would run the <strong>PickUpProjectile</strong> action and then wait for 2 to 8 seconds before running the <strong>ThrowProjectile</strong> action.</p>
+
+        <pre><code>root {
+            sequence {
+                action [PickUpProjectile]
+                wait [2000,8000]
+                action [ThrowProjectile]
+            }
+        }
+        </code></pre>
+
+        <h3 id="branch">Branch</h3>
+
+        <p>Named root nodes can be referenced using the <strong>branch</strong> node. This node acts as a placeholder that will be replaced by the child node of the referenced root node. The two definitions below are synonymous.</p>
+
+        <pre><code>root {
+            branch [SomeOtherTree]
+        }
+
+        root [SomeOtherTree] {
+            action [Dance]
+        }
+        </code></pre>
+
+        <pre><code>root {
+            action [Dance]
+        }
+        </code></pre>
+
+        <h2 id="decorators">Decorators</h2>
+
+        <p>Decorators allow additional behaviour to be defined for a tree node. Any number of decorators can be attached to a node as long as there are not multiple decorators of the same type.</p>
+
+        <h3 id="entry">Entry</h3>
+
+        <p>An entry decorator defines a blackboard function to call whenever the decorated node moves out of the <strong>ready</strong> state when it is first visited.</p>
+
+        <pre><code>root {
+            sequence entry(StartWalkingAnimation)  {
+                action [WalkNorthOneSpace]
+                action [WalkEastOneSpace]
+                action [WalkSouthOneSpace]
+                action [WalkWestOneSpace]
+            }
+        }
+        </code></pre>
+
+        <h3 id="exit">Exit</h3>
+
+        <p>An exit decorator defines a blackboard function to call whenever the decorated node moves to a finished state or is aborted. A results object is passed to the referenced blackboard function containing the <strong>succeeded</strong> and <strong>aborted</strong> boolean properties.</p>
+
+        <pre><code>root {
+            sequence entry(StartWalkingAnimation) exit(StopWalkingAnimation) {
+                action [WalkNorthOneSpace]
+                action [WalkEastOneSpace]
+                action [WalkSouthOneSpace]
+                action [WalkWestOneSpace]
+            }
+        }
+        </code></pre>
+
+        <h3 id="step">Step</h3>
+
+        <p>A step decorator defines a blackboard function to call whenever the decorated node is updated as part of a tree step.</p>
+
+        <pre><code>root {
+            sequence step(OnMoving){
+                action [WalkNorthOneSpace]
+                action [WalkEastOneSpace]
+                action [WalkSouthOneSpace]
+                action [WalkWestOneSpace]
+            }
+        }
+        </code></pre>
+
+        <h3 id="guards">Guards</h3>
+
+        <p>A guard decorator defines a condition that must be met in order for the node to remain active. Any running nodes will have their guard condition evaluated for each leaf node update, and will move to a failed state if the guard condition is not met.</p>
+
+        <p>This functionality is useful as a means of aborting long running actions or branches that span across multiple steps of the tree.</p>
+
+        <pre><code>root {
+            wait [10000] while(CanWait)
+        }
+        </code></pre>
+
+        <p>In the above example, we have a <strong>wait</strong> node that waits for 10 seconds before moving to a succeeded state. We are using a <strong>while</strong> guard to give up on waiting this long if the condition <strong>CanWait</strong> evaluates to false during a tree step.</p>
+
+        <h4 id="while">While</h4>
+
+        <p>A while guard decorator will be satisfied as long as its condition evaluates to true.</p>
+
+        <pre><code>root {
+            sequence while(IsWandering) {
+                action [Whistle]
+                wait [5000]
+                action [Yawn]
+                wait [5000]
+            }
+        }
+        </code></pre>
+
+        <h4 id="until">Until</h4>
+
+        <p>An until guard decorator will be satisfied as long as its condition evaluates to false.</p>
+
+        <pre><code>root {
+            sequence until(CanSeePlayer) {
+                action [LookLeft]
+                wait [5000]
+                action [LookRight]
+                wait [5000]
+            }
+        }
+        </code></pre>
+    </div>
+  </div>
+</body>
+</html>
