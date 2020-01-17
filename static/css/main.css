@@ -14,7 +14,28 @@ h1, h2, h3, h4 {
 a {
     color: inherit;
     text-decoration: none;
-} 
+}
+
+pre {
+    white-space: pre-wrap;
+}
+
+code {
+    background: #f4f4f4;
+    border: 1px solid #ddd;
+    border-left: 3px solid #00a308;
+    color: #666;
+    page-break-inside: avoid;
+    font-family: monospace;
+    font-size: 1rem;
+    line-height: 1.2;
+    max-width: 100%;
+    overflow: auto;
+    padding: 1em 1.5em;
+    display: block;
+    word-wrap: break-word;
+    padding-bottom: 0;
+}
 
 #wrapper {
     position: absolute;
