@@ -1,6 +1,6 @@
 {
   "name": "mistreevous",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A tool to build behaviour trees in JavaScript",
   "main": "dist/index.js",
   "types": "dist/mistreevous.d.ts",
@@ -40,5 +40,5 @@
   "bugs": {
     "url": "https://github.com/nikkorn/mistreevous/issues"
   },
-  "homepage": "https://github.com/nikkorn/mistreevous#readme"
+  "homepage": "https://nikkorn.github.io/mistreevous"
 }
