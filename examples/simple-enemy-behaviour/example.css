@@ -1,0 +1,13 @@
+#main-container{
+    display: flex;
+    flex-direction: row;
+    justify-content: stretch;
+}
+
+#output-text-area {
+    flex-grow: 1;
+    resize: none;
+    padding: 2px;
+    border: none;
+    height: 396px;
+}

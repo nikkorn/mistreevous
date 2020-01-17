@@ -31,11 +31,35 @@
       </div>
     </div>
     <div id="content">
-      <p>
-        A tool to declaratively define and generate behaviour trees in JavaScript. Behaviour trees are used to create complex AI via the modular heirarchical composition of individual tasks.
+      <p>A tool to declaratively define and generate behaviour trees in JavaScript. Behaviour trees are used to create complex AI via the modular heirarchical composition of individual tasks.</p>
+      <p>Using this tool, trees can be defined with a simple and minimal built-in DSL, avoiding the need to write verbose definitions in JSON.</p>
+      <p>In the example below we can see how a relatively small definition can be used to implement some basic AI for an enemy (red box) in order to chase a player when they move too close. Click on the grid and use WASD to control the player (purple box).</p>
 
-        Using this tool, trees can be defined with a simple and minimal built-in DSL, avoiding the need to write verbose definitions in JSON.
-      </p>
+      <iframe height="420px" width="100%" frameBorder="0" src="./examples/simple-enemy-behaviour/index.html"></iframe>
+
+      <p>The tree definition for the above behaviour is shown below.</p>
+
+      <pre><code>root {
+    selector {
+        sequence {
+            condition [IsPlayerNearby]
+            action [OnPlayerSpotted]
+            flip {
+                action [MoveTowardsPlayer] while(IsPlayerNearby)
+            }
+            action [OnPlayerLost]
+        }
+        repeat until(IsPlayerNearby) {
+            sequence {
+                wait [2500]
+                action [DoIdleChat]
+            }
+        }
+    }
+}
+
+</code></pre>
+
     </div>
   </div>
 </body>

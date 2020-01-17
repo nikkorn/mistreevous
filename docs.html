@@ -389,8 +389,8 @@ root [SomeOtherTree] {
         <p>This functionality is useful as a means of aborting long running actions or branches that span across multiple steps of the tree.</p>
 
         <pre><code>root {
-            wait [10000] while(CanWait)
-        }
+    wait [10000] while(CanWait)
+}
         </code></pre>
 
         <p>In the above example, we have a <strong>wait</strong> node that waits for 10 seconds before moving to a succeeded state. We are using a <strong>while</strong> guard to give up on waiting this long if the condition <strong>CanWait</strong> evaluates to false during a tree step.</p>
