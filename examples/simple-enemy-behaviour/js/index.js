@@ -32,6 +32,12 @@ const level = {
                         sequence {
                             wait [2500]
                             action [DoIdleChat]
+                            lotto {
+                                action [WalkUp]
+                                action [WalkDown]
+                                action [WalkLeft]
+                                action [WalkRight]
+                            }
                         }
                     }
                     sequence {

@@ -15,6 +15,10 @@ function Enemy({ x, y, behaviourTreeDefinition }, player) {
      * The enemy behaviour tree.
      */
     this.behaviourTree = new Mistreevous.BehaviourTree(behaviourTreeDefinition, this);
+    /**
+     * The target destination.
+     */
+    this.target = null;
 
     // TODO Figure out why 'this' is WINDOW in every function() here called by mistreevous.
     // 'this' is actually the enemy instance when using the arrow function syntax.
@@ -68,9 +72,76 @@ function Enemy({ x, y, behaviourTreeDefinition }, player) {
     };
 
     /**
+     * Move the enemy up.
+     */
+    this.WalkUp = function() {
+        if (!this.target) {
+            this.target = this.y + (CHARACTER_MOVEMENT * 15);
+        }
+
+        if (this.y < this.target) {
+            self.movement = { x: 0, y: CHARACTER_MOVEMENT * 0.5 };
+        } else {
+            this.target = null;
+            return Mistreevous.State.SUCCEEDED;
+        }
+    };
+
+    /**
+     * Move the enemy down.
+     */
+    this.WalkDown = function() {
+        if (!this.target) {
+            this.target = this.y - (CHARACTER_MOVEMENT * 15);
+        }
+
+        if (this.y > this.target) {
+            self.movement = { x: 0, y: CHARACTER_MOVEMENT * -0.5 };
+        } else {
+            this.target = null;
+            return Mistreevous.State.SUCCEEDED;
+        }
+    };
+
+    /**
+     * Move the enemy left.
+     */
+    this.WalkLeft = function() {
+        if (!this.target) {
+            this.target = this.x - (CHARACTER_MOVEMENT * 15);
+        }
+
+        if (this.x > this.target) {
+            self.movement = { x: CHARACTER_MOVEMENT * -0.5, y: 0 };
+        } else {
+            this.target = null;
+            return Mistreevous.State.SUCCEEDED;
+        }
+    };
+
+    /**
+     * Move the enemy right.
+     */
+    this.WalkRight = function() {
+        if (!this.target) {
+            this.target = this.x + (CHARACTER_MOVEMENT * 15);
+        }
+
+        if (this.x < this.target) {
+            self.movement = { x: CHARACTER_MOVEMENT * 0.5, y: 0 };
+        } else {
+            this.target = null;
+            return Mistreevous.State.SUCCEEDED;
+        }
+    };
+
+
+    /**
      * Called when the enemy spots the player.
      */
     this.OnPlayerSpotted = function() {
+        // We don't care about walking to a target now that we have a player to follow.
+        this.target = null;
         const speechOptions = ["There you are!", "I've spotted you!", "Get over here!", "I've got you now!"];
         speak("enemy", speechOptions[Math.floor(Math.random() * speechOptions.length)]);
         return Mistreevous.State.SUCCEEDED;
