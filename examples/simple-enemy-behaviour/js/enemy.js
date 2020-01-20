@@ -120,6 +120,11 @@ function Enemy({ x, y, behaviourTreeDefinition }, player) {
      * Move towards the player. 
      */
     this.MoveTowardsPlayer = () => {
+        // If the player is no longer near us then we have finished following them. 
+        if (!this.IsPlayerNearby()) {
+            return Mistreevous.State.SUCCEEDED;
+        }
+
         // Follow the player at only half the player speed.
         const enemyOffsetX = player.getX() > self.getX() ? CHARACTER_MOVEMENT * 0.5 : CHARACTER_MOVEMENT * -0.5;
         const enemyOffsetY = player.getY() > self.getY() ? CHARACTER_MOVEMENT * 0.5 : CHARACTER_MOVEMENT * -0.5;

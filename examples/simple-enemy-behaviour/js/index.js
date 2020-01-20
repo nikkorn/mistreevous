@@ -28,19 +28,16 @@ const level = {
             y: 200,
             behaviourTreeDefinition: `root {
                 selector {
-                    sequence {
-                        condition [IsPlayerNearby]
-                        action [OnPlayerSpotted]
-                        flip {
-                            action [MoveTowardsPlayer] while(IsPlayerNearby)
-                        }
-                        action [OnPlayerLost]
-                    }
                     repeat until(IsPlayerNearby) {
                         sequence {
                             wait [2500]
                             action [DoIdleChat]
                         }
+                    }
+                    sequence {
+                        action [OnPlayerSpotted]
+                        action [MoveTowardsPlayer]
+                        action [OnPlayerLost]
                     }
                 }
             }`
