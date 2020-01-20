@@ -43,13 +43,15 @@
     selector {
         repeat until(IsPlayerNearby) {
             sequence {
-                wait [2500]
-                action [DoIdleChat]
-                lotto {
-                    action [WalkUp]
-                    action [WalkDown]
-                    action [WalkLeft]
-                    action [WalkRight]
+               wait [2500]
+               lotto {
+                   action [DoIdleChat]
+                   lotto {
+                        action [WalkUp]
+                        action [WalkDown]
+                        action [WalkLeft]
+                        action [WalkRight]
+                    }
                 }
             }
         }

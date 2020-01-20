@@ -29,16 +29,18 @@ const level = {
             behaviourTreeDefinition: `root {
                 selector {
                     repeat until(IsPlayerNearby) {
-                        sequence {
-                            wait [2500]
-                            action [DoIdleChat]
-                            lotto {
+                       sequence {
+                          wait [2500]
+                          lotto {
+                             action [DoIdleChat]
+                             lotto {
                                 action [WalkUp]
                                 action [WalkDown]
                                 action [WalkLeft]
                                 action [WalkRight]
-                            }
-                        }
+                             }
+                          }
+                       }
                     }
                     sequence {
                         action [OnPlayerSpotted]

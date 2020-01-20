@@ -160,7 +160,7 @@ function Enemy({ x, y, behaviourTreeDefinition }, player) {
      * Chat about nothing.
      */
     this.DoIdleChat = function() {
-        const speechOptions = ["I'm so bored!", "When is lunch?", "*whistles*", "I'm hungry!"];
+        const speechOptions = ["I'm so bored!", "When is lunch?", "*whistles*", "I'm hungry!", "Patrolling is hard!", "I wonder if i will get a promotion", "I should have become a doctor"];
         speak("enemy", speechOptions[Math.floor(Math.random() * speechOptions.length)]);
         return Mistreevous.State.SUCCEEDED;
     };
