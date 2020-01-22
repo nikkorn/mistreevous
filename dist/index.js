@@ -2179,6 +2179,8 @@ function Parallel(decorators, children) {
         // Keep a count of the number of succeeded child nodes.
         let succeededCount = 0;
 
+        let hasChildFailed = false;
+
         // Iterate over all of the children of this node.
         for (const child of children) {
             // If the child has never been updated or is running then we will need to update it now.
@@ -2198,11 +2200,10 @@ function Parallel(decorators, children) {
 
             // If the current child has a state of 'FAILED' then this node is also a 'FAILED' node.
             if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED) {
-                // This node is a 'FAILED' node.
-                this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
+                hasChildFailed = true;
 
                 // There is no need to check the rest of the children.
-                return;
+                break;
             }
 
             // The node should be in the 'RUNNING' state.
@@ -2212,8 +2213,20 @@ function Parallel(decorators, children) {
             }
         }
 
-        // If all children have succeeded then this node has also succeeded, otherwise it is still running.
-        this.setState(succeededCount === children.length ? __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED : __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
+        if (hasChildFailed) {
+            // This node is a 'FAILED' node.
+            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
+
+            // Abort every running child.
+            for (const child of children) {
+                if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
+                    child.abort(board);
+                }
+            }
+        } else {
+            // If all children have succeeded then this node has also succeeded, otherwise it is still running.
+            this.setState(succeededCount === children.length ? __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED : __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
+        }
     };
 
     /**
