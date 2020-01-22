@@ -226,6 +226,10 @@ html, body {
     background-color: rgb(158, 36, 107);
 }
 
+.tree-view-icon-parallel {
+    background-color: rgb(66, 165, 211);
+}
+
 .tree-view-icon-repeat {
     background-color: rgb(224, 85, 115);
 }
