@@ -30,7 +30,7 @@ const level = {
                 selector {
                     repeat until(IsPlayerNearby) {
                        sequence {
-                          wait [2500]
+                          wait [1000, 2500]
                           lotto {
                              action [DoIdleChat]
                              lotto {
