@@ -232,15 +232,19 @@ const example_snippets = {
         "definition": `root {
     parallel {
         sequence {
-            wait[1000, 5000]
+            wait[500, 2500]
+            wait[500, 2500]
+            wait[500, 2500]
+            wait[500, 2500]
+            wait[500, 2500]
             action [Succeed]
         }
         sequence {
-            wait[1000, 5000]
-            action [Succeed]
-        }
-        sequence {
-            wait[1000, 5000]
+            wait[500, 2500]
+            wait[500, 2500]
+            wait[500, 2500]
+            wait[500, 2500]
+            wait[500, 2500]
             action [Fail]
         }
     }
