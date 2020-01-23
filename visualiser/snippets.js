@@ -223,5 +223,38 @@ const example_snippets = {
     OnSequenceStart: () => console.log("starting sequence!"),
     OnSequenceFinish: () => console.log("finished sequence!")
 }`
+    },
+
+
+
+
+    "parallel-node": {
+        "definition": `root {
+    parallel {
+        sequence {
+            wait[500, 2500]
+            wait[500, 2500]
+            wait[500, 2500]
+            wait[500, 2500]
+            wait[500, 2500]
+            action [Succeed]
+        }
+        sequence {
+            wait[500, 2500]
+            wait[500, 2500]
+            wait[500, 2500]
+            wait[500, 2500]
+            wait[500, 2500]
+            action [Fail]
+        }
+    }
+}`,
+        "blackboard": `{
+    // An action that will immediately succeed.
+    Succeed: () => Mistreevous.State.SUCCEEDED,
+
+    // An action that will immediately fail.
+    Fail: () => Mistreevous.State.FAILED
+}`
     }
 };

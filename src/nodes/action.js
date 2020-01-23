@@ -108,7 +108,6 @@ export default function Action(decorators, actionName) {
         updatePromiseStateResult = null;
     };
 
-
     /**
      * Validate an action.
      * @param action The action to validate.

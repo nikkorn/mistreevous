@@ -178,6 +178,18 @@ root {
 }
 ```
 
+### Parallel
+This node will update each child node concurrently. It will succeed if all of its children have succeeded and will fail if any of its children fail. This node will remain in the running state if any of its children are running.
+
+```
+root {
+    parallel {
+        action [RubBelly]
+        action [PatHead]
+    }
+}
+```
+
 ## Leaf Nodes
 
 ### Action

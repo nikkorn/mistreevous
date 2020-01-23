@@ -6,6 +6,7 @@ import Repeat from './nodes/repeat'
 import Root from './nodes/root'
 import Selector from './nodes/selector'
 import Sequence from './nodes/sequence'
+import Parallel from './nodes/parallel'
 import Wait from './nodes/wait'
 import While from './decorators/guards/while'
 import Until from './decorators/guards/until'
@@ -13,7 +14,7 @@ import Entry from './decorators/entry'
 import Exit from './decorators/exit'
 import Step from './decorators/step'
 
- /**
+/**
  * The node decorator factories.
  */
 const DecoratorFactories = {
@@ -101,6 +102,23 @@ const ASTNodeFactories = {
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
             return new Sequence(
+                this.decorators,
+                this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
+            );
+        }
+    }),
+    "PARALLEL": () => ({
+        type: "parallel",
+        decorators: [],
+        children: [], 
+        validate: function (depth) {
+            // A parallel node must have at least a single node.
+            if (this.children.length < 1) {
+                throw "a parallel node must have at least a single child";
+            }
+        },
+        createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+            return new Parallel(
                 this.decorators,
                 this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
             );
@@ -350,6 +368,22 @@ export default function buildRootASTNodes(tokens) {
                 popAndCheck(tokens, "{");
 
                 // The new scope is that of the new SEQUENCE nodes children.
+                stack.push(node.children);
+                break;
+
+            case "PARALLEL":
+                // Create a PARALLEL AST node.
+                node = ASTNodeFactories.PARALLEL();
+
+                // Push the PARALLEL node into the current scope.
+                stack[stack.length-1].push(node);
+
+                // Try to pick any decorators off of the token stack.
+                node.decorators = getDecorators(tokens);
+
+                popAndCheck(tokens, "{");
+
+                // The new scope is that of the new PARALLEL nodes children.
                 stack.push(node.children);
                 break;
 

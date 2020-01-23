@@ -468,24 +468,13 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
  */
 function BehaviourTree(definition, board) {
     /**
-     * The tree definition.
-     */
-    this._definition = definition;
-
-    /**
      * The blackboard.
      */
     this._blackboard = board;
-
     /**
      * The main root tree node.
      */
     this._rootNode;
-
-    /**
-     * The flattened array of tree nodes.
-     */
-    this._flattenedTreeNodes;
 
     /**
      * Mistreevous init logic.
@@ -501,8 +490,8 @@ function BehaviourTree(definition, board) {
             throw "TypeError: the blackboard must be defined";
         }
 
-        // Convert the definition into some tokens.
-        const tokens = this._parseDefinition();
+        // Convert the definition into an array of raw tokens.
+        const tokens = this._parseTokensFromDefinition();
 
         try {
             // Try to create the behaviour tree AST from tokens, this could fail if the definition is invalid.
@@ -526,33 +515,18 @@ function BehaviourTree(definition, board) {
             this._rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(namedRootNodeProvider, []);
 
             // Set a guard path on every leaf of the tree to evaluate as part of its update.
-            this._setLeafNodeGuardPaths();
+            this._applyLeafNodeGuardPaths();
         } catch (exception) {
             // There was an issue in trying to parse and build the tree definition.
             throw `TreeParseError: ${exception}`;
         }
-
-        // Get a flattened array of tree nodes.
-        this._flattenedTreeNodes = [];
-        let currentNodeScopeId = 0;
-        const findNestedNodes = (node, depth, nodeScopeId) => {
-            this._flattenedTreeNodes.push({ node, depth, nodeScopeId });
-
-            nodeScopeId = ++currentNodeScopeId;
-
-            // Find each child of the node if it is not a leaf node..
-            if (!node.isLeafNode()) {
-                node.getChildren().forEach(child => findNestedNodes(child, depth + 1, nodeScopeId));
-            }
-        };
-        findNestedNodes(this._rootNode, 0, currentNodeScopeId);
     };
 
     /**
      * Parse the BT tree definition into an array of raw tokens.
      * @returns An array of tokens parsed from the definition.
      */
-    this._parseDefinition = function () {
+    this._parseTokensFromDefinition = function () {
         // Firstly, create a copy of the raw definition.
         let cleansedDefinition = definition;
 
@@ -570,9 +544,9 @@ function BehaviourTree(definition, board) {
     };
 
     /**
-     * Sets guard paths for every leaf node in the behaviour tree.
+     * Apply guard paths for every leaf node in the behaviour tree.
      */
-    this._setLeafNodeGuardPaths = function () {
+    this._applyLeafNodeGuardPaths = function () {
         this._getAllNodePaths().forEach(path => {
             // Get the leaf node, which will be the last in the path.
             const leaf = path[path.length - 1];
@@ -614,7 +588,7 @@ function BehaviourTree(definition, board) {
 }
 
 /**
- * Get the root node.
+ * Gets the root node.
  * @returns The root node.
  */
 BehaviourTree.prototype.getRootNode = function () {
@@ -622,7 +596,7 @@ BehaviourTree.prototype.getRootNode = function () {
 };
 
 /**
- * Get flattened details of every node in the tree.
+ * Gets the flattened details of every node in the tree.
  * @returns The flattened details of every node in the tree.
  */
 BehaviourTree.prototype.getFlattenedNodeDetails = function () {
@@ -635,7 +609,6 @@ BehaviourTree.prototype.getFlattenedNodeDetails = function () {
      * @param parentUid The UID of the node parent, or null if the node is the main root node.
      */
     const processNode = (node, parentUid) => {
-
         /**
          * Helper function to get details for all node decorators.
          * @param decorators The node decorators.
@@ -666,7 +639,7 @@ BehaviourTree.prototype.getFlattenedNodeDetails = function () {
 };
 
 /**
- * Get whether the tree is in the running state.
+ * Gets whether the tree is in the running state.
  * @returns Whether the tree is in the running state.
  */
 BehaviourTree.prototype.isRunning = function () {
@@ -674,7 +647,7 @@ BehaviourTree.prototype.isRunning = function () {
 };
 
 /**
- * Get the current tree state.
+ * Gets the current tree state.
  * @returns The current tree state.
  */
 BehaviourTree.prototype.getState = function () {
@@ -752,12 +725,14 @@ function GuardPath(guardedNodes) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__nodes_root__ = __webpack_require__(15);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_selector__ = __webpack_require__(16);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_sequence__ = __webpack_require__(17);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_wait__ = __webpack_require__(18);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__decorators_guards_while__ = __webpack_require__(19);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__decorators_guards_until__ = __webpack_require__(20);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__decorators_entry__ = __webpack_require__(21);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__decorators_exit__ = __webpack_require__(22);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__decorators_step__ = __webpack_require__(23);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_parallel__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__nodes_wait__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__decorators_guards_while__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__decorators_guards_until__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__decorators_entry__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__decorators_exit__ = __webpack_require__(23);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__decorators_step__ = __webpack_require__(24);
+
 
 
 
@@ -774,14 +749,14 @@ function GuardPath(guardedNodes) {
 
 
 /**
-* The node decorator factories.
-*/
+ * The node decorator factories.
+ */
 const DecoratorFactories = {
-    "WHILE": condition => new __WEBPACK_IMPORTED_MODULE_9__decorators_guards_while__["a" /* default */](condition),
-    "UNTIL": condition => new __WEBPACK_IMPORTED_MODULE_10__decorators_guards_until__["a" /* default */](condition),
-    "ENTRY": functionName => new __WEBPACK_IMPORTED_MODULE_11__decorators_entry__["a" /* default */](functionName),
-    "EXIT": functionName => new __WEBPACK_IMPORTED_MODULE_12__decorators_exit__["a" /* default */](functionName),
-    "STEP": functionName => new __WEBPACK_IMPORTED_MODULE_13__decorators_step__["a" /* default */](functionName)
+    "WHILE": condition => new __WEBPACK_IMPORTED_MODULE_10__decorators_guards_while__["a" /* default */](condition),
+    "UNTIL": condition => new __WEBPACK_IMPORTED_MODULE_11__decorators_guards_until__["a" /* default */](condition),
+    "ENTRY": functionName => new __WEBPACK_IMPORTED_MODULE_12__decorators_entry__["a" /* default */](functionName),
+    "EXIT": functionName => new __WEBPACK_IMPORTED_MODULE_13__decorators_exit__["a" /* default */](functionName),
+    "STEP": functionName => new __WEBPACK_IMPORTED_MODULE_14__decorators_step__["a" /* default */](functionName)
 };
 
 /**
@@ -855,6 +830,20 @@ const ASTNodeFactories = {
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new __WEBPACK_IMPORTED_MODULE_7__nodes_sequence__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+        }
+    }),
+    "PARALLEL": () => ({
+        type: "parallel",
+        decorators: [],
+        children: [],
+        validate: function (depth) {
+            // A parallel node must have at least a single node.
+            if (this.children.length < 1) {
+                throw "a parallel node must have at least a single child";
+            }
+        },
+        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
+            return new __WEBPACK_IMPORTED_MODULE_8__nodes_parallel__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
         }
     }),
     "LOTTO": () => ({
@@ -954,7 +943,7 @@ const ASTNodeFactories = {
             }
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_8__nodes_wait__["a" /* default */](this.decorators, this.duration, this.longestDuration);
+            return new __WEBPACK_IMPORTED_MODULE_9__nodes_wait__["a" /* default */](this.decorators, this.duration, this.longestDuration);
         }
     }),
     "ACTION": () => ({
@@ -1078,6 +1067,22 @@ function buildRootASTNodes(tokens) {
                 popAndCheck(tokens, "{");
 
                 // The new scope is that of the new SEQUENCE nodes children.
+                stack.push(node.children);
+                break;
+
+            case "PARALLEL":
+                // Create a PARALLEL AST node.
+                node = ASTNodeFactories.PARALLEL();
+
+                // Push the PARALLEL node into the current scope.
+                stack[stack.length - 1].push(node);
+
+                // Try to pick any decorators off of the token stack.
+                node.decorators = getDecorators(tokens);
+
+                popAndCheck(tokens, "{");
+
+                // The new scope is that of the new PARALLEL nodes children.
                 stack.push(node.children);
                 break;
 
@@ -2123,6 +2128,93 @@ Sequence.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" 
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = Parallel;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+
+
+
+/**
+ * A PARALLEL node.
+ * The child nodes are executed concurrently until one fails or all succeed.
+ * @param decorators The node decorators.
+ * @param children The child nodes. 
+ */
+function Parallel(decorators, children) {
+    __WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].call(this, "parallel", decorators, children);
+
+    /**
+     * Update the node and get whether the node state has changed.
+     * @param board The board.
+     * @returns Whether the state of this node has changed as part of the update.
+     */
+    this.onUpdate = function (board) {
+        // Keep a count of the number of succeeded child nodes.
+        let succeededCount = 0;
+
+        let hasChildFailed = false;
+
+        // Iterate over all of the children of this node.
+        for (const child of children) {
+            // If the child has never been updated or is running then we will need to update it now.
+            if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
+                // Update the child of this node.
+                child.update(board);
+            }
+
+            // If the current child has a state of 'SUCCEEDED' then we should move on to the next child.
+            if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED) {
+                // The child node has succeeded, keep track of this to determine if all children have.
+                succeededCount++;
+
+                // The child node succeeded, but we have not finished checking every child node yet.
+                continue;
+            }
+
+            // If the current child has a state of 'FAILED' then this node is also a 'FAILED' node.
+            if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED) {
+                hasChildFailed = true;
+
+                // There is no need to check the rest of the children.
+                break;
+            }
+
+            // The node should be in the 'RUNNING' state.
+            if (child.getState() !== __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
+                // The child node was not in an expected state.
+                throw "Error: child node was not in an expected state.";
+            }
+        }
+
+        if (hasChildFailed) {
+            // This node is a 'FAILED' node.
+            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
+
+            // Abort every running child.
+            for (const child of children) {
+                if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
+                    child.abort(board);
+                }
+            }
+        } else {
+            // If all children have succeeded then this node has also succeeded, otherwise it is still running.
+            this.setState(succeededCount === children.length ? __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED : __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
+        }
+    };
+
+    /**
+     * Gets the name of the node.
+     */
+    this.getName = () => "PARALLEL";
+};
+
+Parallel.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
+
+/***/ }),
+/* 19 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Wait;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
@@ -2184,7 +2276,7 @@ function Wait(decorators, duration, longestDuration) {
 Wait.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2238,7 +2330,7 @@ function While(condition) {
 While.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2292,7 +2384,7 @@ function Until(condition) {
 Until.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2340,7 +2432,7 @@ function Entry(functionName) {
 Entry.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2390,7 +2482,7 @@ function Exit(functionName) {
 Exit.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
