@@ -14,7 +14,7 @@ import Entry from './decorators/entry'
 import Exit from './decorators/exit'
 import Step from './decorators/step'
 
- /**
+/**
  * The node decorator factories.
  */
 const DecoratorFactories = {

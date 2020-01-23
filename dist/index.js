@@ -468,24 +468,13 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
  */
 function BehaviourTree(definition, board) {
     /**
-     * The tree definition.
-     */
-    this._definition = definition;
-
-    /**
      * The blackboard.
      */
     this._blackboard = board;
-
     /**
      * The main root tree node.
      */
     this._rootNode;
-
-    /**
-     * The flattened array of tree nodes.
-     */
-    this._flattenedTreeNodes;
 
     /**
      * Mistreevous init logic.
@@ -501,8 +490,8 @@ function BehaviourTree(definition, board) {
             throw "TypeError: the blackboard must be defined";
         }
 
-        // Convert the definition into some tokens.
-        const tokens = this._parseDefinition();
+        // Convert the definition into an array of raw tokens.
+        const tokens = this._parseTokensFromDefinition();
 
         try {
             // Try to create the behaviour tree AST from tokens, this could fail if the definition is invalid.
@@ -526,33 +515,18 @@ function BehaviourTree(definition, board) {
             this._rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(namedRootNodeProvider, []);
 
             // Set a guard path on every leaf of the tree to evaluate as part of its update.
-            this._setLeafNodeGuardPaths();
+            this._applyLeafNodeGuardPaths();
         } catch (exception) {
             // There was an issue in trying to parse and build the tree definition.
             throw `TreeParseError: ${exception}`;
         }
-
-        // Get a flattened array of tree nodes.
-        this._flattenedTreeNodes = [];
-        let currentNodeScopeId = 0;
-        const findNestedNodes = (node, depth, nodeScopeId) => {
-            this._flattenedTreeNodes.push({ node, depth, nodeScopeId });
-
-            nodeScopeId = ++currentNodeScopeId;
-
-            // Find each child of the node if it is not a leaf node..
-            if (!node.isLeafNode()) {
-                node.getChildren().forEach(child => findNestedNodes(child, depth + 1, nodeScopeId));
-            }
-        };
-        findNestedNodes(this._rootNode, 0, currentNodeScopeId);
     };
 
     /**
      * Parse the BT tree definition into an array of raw tokens.
      * @returns An array of tokens parsed from the definition.
      */
-    this._parseDefinition = function () {
+    this._parseTokensFromDefinition = function () {
         // Firstly, create a copy of the raw definition.
         let cleansedDefinition = definition;
 
@@ -570,9 +544,9 @@ function BehaviourTree(definition, board) {
     };
 
     /**
-     * Sets guard paths for every leaf node in the behaviour tree.
+     * Apply guard paths for every leaf node in the behaviour tree.
      */
-    this._setLeafNodeGuardPaths = function () {
+    this._applyLeafNodeGuardPaths = function () {
         this._getAllNodePaths().forEach(path => {
             // Get the leaf node, which will be the last in the path.
             const leaf = path[path.length - 1];
@@ -614,7 +588,7 @@ function BehaviourTree(definition, board) {
 }
 
 /**
- * Get the root node.
+ * Gets the root node.
  * @returns The root node.
  */
 BehaviourTree.prototype.getRootNode = function () {
@@ -622,7 +596,7 @@ BehaviourTree.prototype.getRootNode = function () {
 };
 
 /**
- * Get flattened details of every node in the tree.
+ * Gets the flattened details of every node in the tree.
  * @returns The flattened details of every node in the tree.
  */
 BehaviourTree.prototype.getFlattenedNodeDetails = function () {
@@ -635,7 +609,6 @@ BehaviourTree.prototype.getFlattenedNodeDetails = function () {
      * @param parentUid The UID of the node parent, or null if the node is the main root node.
      */
     const processNode = (node, parentUid) => {
-
         /**
          * Helper function to get details for all node decorators.
          * @param decorators The node decorators.
@@ -666,7 +639,7 @@ BehaviourTree.prototype.getFlattenedNodeDetails = function () {
 };
 
 /**
- * Get whether the tree is in the running state.
+ * Gets whether the tree is in the running state.
  * @returns Whether the tree is in the running state.
  */
 BehaviourTree.prototype.isRunning = function () {
@@ -674,7 +647,7 @@ BehaviourTree.prototype.isRunning = function () {
 };
 
 /**
- * Get the current tree state.
+ * Gets the current tree state.
  * @returns The current tree state.
  */
 BehaviourTree.prototype.getState = function () {
@@ -776,8 +749,8 @@ function GuardPath(guardedNodes) {
 
 
 /**
-* The node decorator factories.
-*/
+ * The node decorator factories.
+ */
 const DecoratorFactories = {
     "WHILE": condition => new __WEBPACK_IMPORTED_MODULE_10__decorators_guards_while__["a" /* default */](condition),
     "UNTIL": condition => new __WEBPACK_IMPORTED_MODULE_11__decorators_guards_until__["a" /* default */](condition),
