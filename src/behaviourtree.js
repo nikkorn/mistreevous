@@ -87,17 +87,27 @@ export default function BehaviourTree(definition, board) {
      */
     this._applyLeafNodeGuardPaths = function() {
         this._getAllNodePaths().forEach((path) => {
-            // Get the leaf node, which will be the last in the path.
-            const leaf = path[path.length - 1];
+            // Each node in the current path will have to be assigned a guard path, working from the root outwards.
+            for (let depth = 0; depth < path.length; depth++) {
+                // Get the node in the path at the current depth.
+                const currentNode = path[depth];
 
-            // Create the guard path for the leaf node.
-            const guardPath = new GuardPath(
-                path
-                    .map((node) => ({ node, guards: node.getGuardDecorators() }))
-                    .filter((details) => details.guards.length > 0)
-            )
+                // The node may already have been assigned a guard path, if so just skip it.
+                if (currentNode.hasGuardPath()) {
+                    continue;
+                }
 
-            leaf.setGuardPath(guardPath);
+                // Create the guard path for the current node.
+                const guardPath = new GuardPath(
+                    path
+                        .slice(0, depth + 1)
+                        .map((node) => ({ node, guards: node.getGuardDecorators() }))
+                        .filter((details) => details.guards.length > 0)
+                )
+
+                // Assign the guard path to the current node.
+                currentNode.setGuardPath(guardPath);
+            }
         });
     };
 
