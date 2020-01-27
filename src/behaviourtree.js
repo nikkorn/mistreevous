@@ -18,17 +18,17 @@ export default function BehaviourTree(definition, board) {
     this._rootNode;
 
     /**
-     * Mistreevous init logic.
+     * Initialise the BehaviourTree instance.
      */
     this._init = function() {
-        // The tree definition must be defined.
+        // The tree definition must be defined and a valid string.
         if (typeof definition !== "string") {
-            throw "TypeError: the tree definition must be defined";
+            throw new Error("the tree definition must be a string");
         }
 
         // The blackboard must be defined.
         if (typeof board !== 'object' || board === null) {
-            throw "TypeError: the blackboard must be defined";
+            throw new Error("the blackboard must be defined");
         }
 
         // Convert the definition into an array of raw tokens.
@@ -57,7 +57,7 @@ export default function BehaviourTree(definition, board) {
             this._applyLeafNodeGuardPaths();
         } catch (exception) {
             // There was an issue in trying to parse and build the tree definition.
-            throw `TreeParseError: ${exception}`;
+            throw new Error(`error parsing tree: ${exception}`);
         }
     };
 
@@ -220,7 +220,7 @@ BehaviourTree.prototype.step = function () {
     try {
         this._rootNode.update(this._blackboard);
     } catch (exception) {
-        throw `TreeStepError: ${exception}`;
+        throw new Error(`error stepping tree: ${exception}`);
     }
 };
 
