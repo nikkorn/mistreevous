@@ -14,11 +14,12 @@
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.2",
     "babel-preset-env": "^1.7.0",
+    "mocha": "^7.0.1",
     "webpack": "^3.10.0"
   },
   "scripts": {
     "build": "webpack",
-    "test": "node src/test.js"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
