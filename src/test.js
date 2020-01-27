@@ -1,4 +1,4 @@
-const Mistreevous = require('./index');
+const Mistreevous = require('../dist/index');
 
 const tree = new Mistreevous.BehaviourTree("root { action[Run] }", {
     Run: () => {

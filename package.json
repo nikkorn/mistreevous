@@ -17,7 +17,8 @@
     "webpack": "^3.10.0"
   },
   "scripts": {
-    "build": "webpack"
+    "build": "webpack",
+    "test": "node src/test.js"
   },
   "repository": {
     "type": "git",
