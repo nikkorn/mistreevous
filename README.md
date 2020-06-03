@@ -5,6 +5,8 @@ A tool to declaratively define and generate behaviour trees in JavaScript. Behav
 
 Using this tool, trees can be defined with a simple and minimal built-in DSL, avoiding the need to write verbose definitions in JSON.
 
+There is an in-browser editor and tree visualiser that you can try [HERE](https://nikkorn.github.io/mistreevous/playground/index.html)
+
 ## Install
 
 ```sh
@@ -404,9 +406,3 @@ root {
     }
 }
 ```
-
-# Visualiser
-A visualiser/editor can be found as part of this repo within the *visualiser* directory, and includes most of the the examples included in this README.
-
-![visualiser](https://github.com/nikkorn/mistreevous/raw/master/resources/mistreevous-visualiser-screenshot.png "Visualiser")
-

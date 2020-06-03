@@ -11,11 +11,14 @@ export default function Node(type, decorators) {
    * The node uid.
    */
   const uid = createNodeUid();
-
   /**
    * The node state.
    */
   let state = State.READY;
+  /**
+   * The guard path to evaluate as part of a node update.
+   */
+  let guardPath;
 
   /**
    * Gets/Sets the state of the node.
@@ -47,6 +50,16 @@ export default function Node(type, decorators) {
    * Gets the node decorators.
    */
   this.getGuardDecorators = () => this.getDecorators().filter((decorator) => decorator.isGuard());
+
+  /**
+   * Sets the guard path to evaluate as part of a node update.
+   */
+  this.setGuardPath = (value) => guardPath = value;
+
+  /**
+   * Gets whether a guard path is assigned to this node.
+   */
+  this.hasGuardPath = () => !!guardPath;
 
   /**
    * Gets whether this node is in the specified state.
@@ -87,12 +100,6 @@ export default function Node(type, decorators) {
   };
 
   /**
-   * Any pre-update logic.
-   * @param board The board.
-   */
-  this.onBeforeUpdate = (board) => {};
-
-  /**
    * Update the node.
    * @param board The board.
    * @returns The result of the update.
@@ -105,8 +112,8 @@ export default function Node(type, decorators) {
     }
 
     try {
-      // Do any pre-update logic.
-      this.onBeforeUpdate(board);
+      // Evaluate all of the guard path conditions for the current tree path.
+      guardPath.evaluate(board);
 
       // If this node is in the READY state then call the ENTRY decorator for this node if it exists.
       if (this.is(State.READY)) {

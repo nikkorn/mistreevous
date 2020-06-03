@@ -203,31 +203,12 @@ function Decorator(type) {
  * @param decorators The node decorators.
  */
 function Leaf(type, decorators) {
-    __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
+  __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
 
-    /**
-     * The guard path to evaluate as part of a node update.
-     */
-    let guardPath;
-
-    /**
-     * Sets the guard path to evaluate as part of a node update.
-     */
-    this.setGuardPath = value => guardPath = value;
-
-    /**
-     * Gets whether this node is a leaf node.
-     */
-    this.isLeafNode = () => true;
-
-    /**
-     * Any pre-update logic.
-     * @param board The board.
-     */
-    this.onBeforeUpdate = board => {
-        // Evaluate all of the guard path conditions for the current tree path.
-        guardPath.evaluate(board);
-    };
+  /**
+   * Gets whether this node is a leaf node.
+   */
+  this.isLeafNode = () => true;
 };
 
 Leaf.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
@@ -280,11 +261,14 @@ function Node(type, decorators) {
    * The node uid.
    */
   const uid = createNodeUid();
-
   /**
    * The node state.
    */
   let state = __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY;
+  /**
+   * The guard path to evaluate as part of a node update.
+   */
+  let guardPath;
 
   /**
    * Gets/Sets the state of the node.
@@ -316,6 +300,16 @@ function Node(type, decorators) {
    * Gets the node decorators.
    */
   this.getGuardDecorators = () => this.getDecorators().filter(decorator => decorator.isGuard());
+
+  /**
+   * Sets the guard path to evaluate as part of a node update.
+   */
+  this.setGuardPath = value => guardPath = value;
+
+  /**
+   * Gets whether a guard path is assigned to this node.
+   */
+  this.hasGuardPath = () => !!guardPath;
 
   /**
    * Gets whether this node is in the specified state.
@@ -356,12 +350,6 @@ function Node(type, decorators) {
   };
 
   /**
-   * Any pre-update logic.
-   * @param board The board.
-   */
-  this.onBeforeUpdate = board => {};
-
-  /**
    * Update the node.
    * @param board The board.
    * @returns The result of the update.
@@ -374,8 +362,8 @@ function Node(type, decorators) {
     }
 
     try {
-      // Do any pre-update logic.
-      this.onBeforeUpdate(board);
+      // Evaluate all of the guard path conditions for the current tree path.
+      guardPath.evaluate(board);
 
       // If this node is in the READY state then call the ENTRY decorator for this node if it exists.
       if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
@@ -477,17 +465,17 @@ function BehaviourTree(definition, board) {
     this._rootNode;
 
     /**
-     * Mistreevous init logic.
+     * Initialise the BehaviourTree instance.
      */
     this._init = function () {
-        // The tree definition must be defined.
+        // The tree definition must be defined and a valid string.
         if (typeof definition !== "string") {
-            throw "TypeError: the tree definition must be defined";
+            throw new Error("the tree definition must be a string");
         }
 
         // The blackboard must be defined.
         if (typeof board !== 'object' || board === null) {
-            throw "TypeError: the blackboard must be defined";
+            throw new Error("the blackboard must be defined");
         }
 
         // Convert the definition into an array of raw tokens.
@@ -518,7 +506,7 @@ function BehaviourTree(definition, board) {
             this._applyLeafNodeGuardPaths();
         } catch (exception) {
             // There was an issue in trying to parse and build the tree definition.
-            throw `TreeParseError: ${exception}`;
+            throw new Error(`error parsing tree: ${exception}`);
         }
     };
 
@@ -548,13 +536,22 @@ function BehaviourTree(definition, board) {
      */
     this._applyLeafNodeGuardPaths = function () {
         this._getAllNodePaths().forEach(path => {
-            // Get the leaf node, which will be the last in the path.
-            const leaf = path[path.length - 1];
+            // Each node in the current path will have to be assigned a guard path, working from the root outwards.
+            for (let depth = 0; depth < path.length; depth++) {
+                // Get the node in the path at the current depth.
+                const currentNode = path[depth];
 
-            // Create the guard path for the leaf node.
-            const guardPath = new __WEBPACK_IMPORTED_MODULE_0__decorators_guards_guardPath__["a" /* default */](path.map(node => ({ node, guards: node.getGuardDecorators() })).filter(details => details.guards.length > 0));
+                // The node may already have been assigned a guard path, if so just skip it.
+                if (currentNode.hasGuardPath()) {
+                    continue;
+                }
 
-            leaf.setGuardPath(guardPath);
+                // Create the guard path for the current node.
+                const guardPath = new __WEBPACK_IMPORTED_MODULE_0__decorators_guards_guardPath__["a" /* default */](path.slice(0, depth + 1).map(node => ({ node, guards: node.getGuardDecorators() })).filter(details => details.guards.length > 0));
+
+                // Assign the guard path to the current node.
+                currentNode.setGuardPath(guardPath);
+            }
         });
     };
 
@@ -666,7 +663,7 @@ BehaviourTree.prototype.step = function () {
     try {
         this._rootNode.update(this._blackboard);
     } catch (exception) {
-        throw `TreeStepError: ${exception}`;
+        throw new Error(`error stepping tree: ${exception}`);
     }
 };
 
@@ -688,10 +685,9 @@ BehaviourTree.prototype.reset = function () {
 
 /**
  * Represents a path of node guards along a root-to-leaf tree path.
- * @param guardedNodes An array of objects defining a node instance -> guard link, ordered by node depth.
+ * @param nodes An array of objects defining a node instance -> guard link, ordered by node depth.
  */
-function GuardPath(guardedNodes) {
-
+function GuardPath(nodes) {
     /**
      * Evaluate guard conditions for all guards in the tree path, moving outwards from the root.
      * @param board The blackboard, required for guard evaluation.
@@ -699,7 +695,7 @@ function GuardPath(guardedNodes) {
      */
     this.evaluate = board => {
         // We need to evaluate guard conditions for nodes up the tree, moving outwards from the root.
-        for (const details of guardedNodes) {
+        for (const details of nodes) {
             // There can be multiple guards per node.
             for (const guard of details.guards) {
                 // Check whether the guard condition passes, and throw an exception if not.

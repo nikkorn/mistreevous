@@ -18,17 +18,17 @@ export default function BehaviourTree(definition, board) {
     this._rootNode;
 
     /**
-     * Mistreevous init logic.
+     * Initialise the BehaviourTree instance.
      */
     this._init = function() {
-        // The tree definition must be defined.
+        // The tree definition must be defined and a valid string.
         if (typeof definition !== "string") {
-            throw "TypeError: the tree definition must be defined";
+            throw new Error("the tree definition must be a string");
         }
 
         // The blackboard must be defined.
         if (typeof board !== 'object' || board === null) {
-            throw "TypeError: the blackboard must be defined";
+            throw new Error("the blackboard must be defined");
         }
 
         // Convert the definition into an array of raw tokens.
@@ -57,7 +57,7 @@ export default function BehaviourTree(definition, board) {
             this._applyLeafNodeGuardPaths();
         } catch (exception) {
             // There was an issue in trying to parse and build the tree definition.
-            throw `TreeParseError: ${exception}`;
+            throw new Error(`error parsing tree: ${exception}`);
         }
     };
 
@@ -87,17 +87,27 @@ export default function BehaviourTree(definition, board) {
      */
     this._applyLeafNodeGuardPaths = function() {
         this._getAllNodePaths().forEach((path) => {
-            // Get the leaf node, which will be the last in the path.
-            const leaf = path[path.length - 1];
+            // Each node in the current path will have to be assigned a guard path, working from the root outwards.
+            for (let depth = 0; depth < path.length; depth++) {
+                // Get the node in the path at the current depth.
+                const currentNode = path[depth];
 
-            // Create the guard path for the leaf node.
-            const guardPath = new GuardPath(
-                path
-                    .map((node) => ({ node, guards: node.getGuardDecorators() }))
-                    .filter((details) => details.guards.length > 0)
-            )
+                // The node may already have been assigned a guard path, if so just skip it.
+                if (currentNode.hasGuardPath()) {
+                    continue;
+                }
 
-            leaf.setGuardPath(guardPath);
+                // Create the guard path for the current node.
+                const guardPath = new GuardPath(
+                    path
+                        .slice(0, depth + 1)
+                        .map((node) => ({ node, guards: node.getGuardDecorators() }))
+                        .filter((details) => details.guards.length > 0)
+                )
+
+                // Assign the guard path to the current node.
+                currentNode.setGuardPath(guardPath);
+            }
         });
     };
 
@@ -210,7 +220,7 @@ BehaviourTree.prototype.step = function () {
     try {
         this._rootNode.update(this._blackboard);
     } catch (exception) {
-        throw `TreeStepError: ${exception}`;
+        throw new Error(`error stepping tree: ${exception}`);
     }
 };
 
