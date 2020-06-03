@@ -1,7 +1,7 @@
-// Type definitions for Mistreevous 1.1.0
+// Type definitions for Mistreevous 2.0.0
 // Project: Mistreevous
 // Definitions by: nikolas howard <https://github.com/nikkorn>
-declare module "Mistreevous" {
+declare module "mistreevous" {
 	enum State {
 		READY,
 		RUNNING,
@@ -9,7 +9,7 @@ declare module "Mistreevous" {
 		FAILED
 	}
 
-	declare class BehaviourTree {
+	class BehaviourTree {
 		constructor(definition: string, board: any);
 		step(): void;
 		reset(): void;
