@@ -13,7 +13,7 @@ $ npm install --save mistreevous
 
 # Example
 ```js
-import { State, BehaviourTree } from "Mistreevous";
+import { State, BehaviourTree } from "mistreevous";
 
 /** Define some behaviour for an entity. */
 const definition = `root {
