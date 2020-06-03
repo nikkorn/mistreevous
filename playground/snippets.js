@@ -125,24 +125,16 @@ const example_snippets = {
 
     "node-guards": {
         "definition": `root {
-  selector {
-    repeat until(IsSpaceKeyPressed) {
-      action [Succeed]
-    }
-    repeat while(IsSpaceKeyPressed) {
-      action [Succeed]
-    }
-    repeat until(IsSpaceKeyPressed) {
-      action [Succeed]
-    }
-    repeat while(IsSpaceKeyPressed) {
-      action [Succeed]
-    }
-  }
+selector {
+    action [DoSomethingIndefinitely] until(IsSpaceKeyPressed)
+    action [DoSomethingIndefinitely] while(IsSpaceKeyPressed)
+    action [DoSomethingIndefinitely] until(IsSpaceKeyPressed)
+    action [DoSomethingIndefinitely] while(IsSpaceKeyPressed)
+    action [DoSomethingIndefinitely] until(IsSpaceKeyPressed)
+}
 }`,
         "blackboard": `{
-    // An action that will immediately succeed.
-    Succeed: () => Mistreevous.State.SUCCEEDED,
+    DoSomethingIndefinitely: () => {},
 
     // A condition that returns whether the space key is currently pressed.
     IsSpaceKeyPressed: function () {
