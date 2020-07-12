@@ -20,7 +20,7 @@ export default function Exit(functionName, ...args) {
             type: this.getType(),
             isGuard: this.isGuard(),
             functionName: this.getFunctionName(),
-            arguments: args
+            arguments: args || []
         };
     };
 
@@ -33,10 +33,10 @@ export default function Exit(functionName, ...args) {
     this.callBlackboardFunction = (board, isSuccess, isAborted) => {
         // Call the blackboard function if it exists.
         if (typeof board[functionName] === "function") {
-            board[functionName].apply(board, [
-                { succeeded: isSuccess, aborted: isAborted },
-                ...(args || [])
-            ]);
+            board[functionName].call(board, 
+                                     { succeeded: isSuccess, aborted: isAborted },
+                                     ...(args || [])
+                                    );
         } else {
             throw `cannot call exit decorator function '${functionName}' is not defined in the blackboard`;
         }
