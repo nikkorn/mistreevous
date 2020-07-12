@@ -4,7 +4,7 @@ import Decorator from './decorator'
  * An EXIT decorator which defines a blackboard function to call when the decorated node is updated and moves to a finished state or is aborted.
  * @param functionName The name of the blackboard function to call.
  */
-export default function Exit(functionName) {
+export default function Exit(functionName, ...args) {
     Decorator.call(this, "exit");
 
     /**
@@ -19,7 +19,8 @@ export default function Exit(functionName) {
         return {
             type: this.getType(),
             isGuard: this.isGuard(),
-            functionName: this.getFunctionName()
+            functionName: this.getFunctionName(),
+            arguments: args
         };
     };
 
@@ -32,7 +33,10 @@ export default function Exit(functionName) {
     this.callBlackboardFunction = (board, isSuccess, isAborted) => {
         // Call the blackboard function if it exists.
         if (typeof board[functionName] === "function") {
-            board[functionName].call(board, { succeeded: isSuccess, aborted: isAborted });
+            board[functionName].apply(board, [
+                { succeeded: isSuccess, aborted: isAborted },
+                ...(args || [])
+            ]);
         } else {
             throw `cannot call exit decorator function '${functionName}' is not defined in the blackboard`;
         }
