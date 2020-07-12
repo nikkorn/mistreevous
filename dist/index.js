@@ -78,15 +78,23 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* unused harmony export StateNameEnum */
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return State; });
 /**
  * Enumeration of node states.
  */
+const StateNameEnum = {
+    READY: "mistreevous.ready",
+    RUNNING: "mistreevous.running",
+    SUCCEEDED: "mistreevous.succeeded",
+    FAILED: "mistreevous.failed"
+};
+
 const State = {
-    READY: Symbol("mistreevous.ready"),
-    RUNNING: Symbol("mistreevous.running"),
-    SUCCEEDED: Symbol("mistreevous.succeeded"),
-    FAILED: Symbol("mistreevous.failed")
+    READY: Symbol(StateNameEnum.READY),
+    RUNNING: Symbol(StateNameEnum.RUNNING),
+    SUCCEEDED: Symbol(StateNameEnum.SUCCEEDED),
+    FAILED: Symbol(StateNameEnum.FAILED)
 };
 
 
@@ -109,53 +117,53 @@ const State = {
  * @param children The child nodes. 
  */
 function Composite(type, decorators, children) {
-    __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
+  __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
 
-    /**
-     * Gets whether this node is a leaf node.
-     */
-    this.isLeafNode = () => false;
+  /**
+   * Gets whether this node is a leaf node.
+   */
+  this.isLeafNode = () => false;
 
-    /**
-     * Gets the children of this node.
-     */
-    this.getChildren = () => children;
+  /**
+   * Gets the children of this node.
+   */
+  this.getChildren = () => children;
 
-    /**
-     * Reset the state of the node.
-     */
-    this.reset = () => {
-        // Reset the state of this node.
-        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
+  /**
+   * Reset the state of the node.
+   */
+  this.reset = () => {
+    // Reset the state of this node.
+    this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
 
-        // Reset the state of any child nodes.
-        this.getChildren().forEach(child => child.reset());
-    };
+    // Reset the state of any child nodes.
+    this.getChildren().forEach(child => child.reset());
+  };
 
-    /**
-     * Abort the running of this node.
-     * @param board The board.
-     */
-    this.abort = board => {
-        // There is nothing to do if this node is not in the running state.
-        if (!this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING)) {
-            return;
-        }
+  /**
+   * Abort the running of this node.
+   * @param board The board.
+   */
+  this.abort = board => {
+    // There is nothing to do if this node is not in the running state.
+    if (!this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING)) {
+      return;
+    }
 
-        // Abort any child nodes.
-        this.getChildren().forEach(child => child.abort(board));
+    // Abort any child nodes.
+    this.getChildren().forEach(child => child.abort(board));
 
-        // Reset the state of this node.
-        this.reset();
+    // Reset the state of this node.
+    this.reset();
 
-        // Try to get the exit decorator for this node.
-        const exitDecorator = this.getDecorator("exit");
+    // Try to get the exit decorator for this node.
+    const exitDecorator = this.getDecorator("exit");
 
-        // Call the exit decorator function if it exists.
-        if (exitDecorator) {
-            exitDecorator.callBlackboardFunction(board, false, true);
-        }
-    };
+    // Call the exit decorator function if it exists.
+    if (exitDecorator) {
+      exitDecorator.callBlackboardFunction(board, false, true);
+    }
+  };
 };
 
 Composite.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
@@ -170,7 +178,11 @@ Composite.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* d
  * A base node decorator.
  * @param type The node decorator type.
  */
-function Decorator(type) {
+function Decorator(type, args) {
+  /**
+   * Gets the arguments
+  */
+  this.getArguments = () => args || [];
 
   /**
    * Gets the type of the node.
@@ -470,12 +482,12 @@ function BehaviourTree(definition, board) {
     this._init = function () {
         // The tree definition must be defined and a valid string.
         if (typeof definition !== "string") {
-            throw new Error("the tree definition must be a string");
+            throw new Error(BehaviourTree.ERROR_DEFINITION_IS_NOT_A_STRING);
         }
 
         // The blackboard must be defined.
         if (typeof board !== 'object' || board === null) {
-            throw new Error("the blackboard must be defined");
+            throw new Error(BehaviourTree.ERROR_BLACKBOARD_UNDEFINED);
         }
 
         // Convert the definition into an array of raw tokens.
@@ -486,7 +498,7 @@ function BehaviourTree(definition, board) {
             const rootASTNodes = Object(__WEBPACK_IMPORTED_MODULE_1__rootASTNodesBuilder__["a" /* default */])(tokens);
 
             // Create a symbol to use as the main root key in our root node mapping.
-            const mainRootNodeKey = Symbol("__root__");
+            const mainRootNodeKey = Symbol(BehaviourTree.SYMBOL_ROOT_MONIKER);
 
             // Create a mapping of root node names to root AST tokens. The main root node will have a key of Symbol("__root__").
             const rootNodeMap = {};
@@ -506,7 +518,7 @@ function BehaviourTree(definition, board) {
             this._applyLeafNodeGuardPaths();
         } catch (exception) {
             // There was an issue in trying to parse and build the tree definition.
-            throw new Error(`error parsing tree: ${exception}`);
+            throw new Error(BehaviourTree.ERROR_TREE_PARSE.replace('{error}', exception));
         }
     };
 
@@ -566,7 +578,7 @@ function BehaviourTree(definition, board) {
             // Add the current node to the path.
             path = path.concat(node);
 
-            // Check whether the current node is a leaf node. 
+            // Check whether the current node is a leaf node.
             if (node.isLeafNode()) {
                 nodePaths.push(path);
             } else {
@@ -583,6 +595,12 @@ function BehaviourTree(definition, board) {
     // Call init logic.
     this._init();
 }
+
+BehaviourTree.ERROR_DEFINITION_IS_NOT_A_STRING = "the tree definition must be a string";
+BehaviourTree.ERROR_BLACKBOARD_UNDEFINED = "the blackboard must be defined";
+BehaviourTree.ERROR_TREE_PARSE = "error parsing tree: {error}";
+BehaviourTree.ERROR_TREE_STEP = "error stepping tree: {error}";
+BehaviourTree.SYMBOL_ROOT_MONIKER = "__root__";
 
 /**
  * Gets the root node.
@@ -663,7 +681,7 @@ BehaviourTree.prototype.step = function () {
     try {
         this._rootNode.update(this._blackboard);
     } catch (exception) {
-        throw new Error(`error stepping tree: ${exception}`);
+        throw new Error(BehaviourTree.ERROR_TREE_STEP.replace('{error}', exception));
     }
 };
 
@@ -748,11 +766,11 @@ function GuardPath(nodes) {
  * The node decorator factories.
  */
 const DecoratorFactories = {
-    "WHILE": condition => new __WEBPACK_IMPORTED_MODULE_10__decorators_guards_while__["a" /* default */](condition),
-    "UNTIL": condition => new __WEBPACK_IMPORTED_MODULE_11__decorators_guards_until__["a" /* default */](condition),
-    "ENTRY": functionName => new __WEBPACK_IMPORTED_MODULE_12__decorators_entry__["a" /* default */](functionName),
-    "EXIT": functionName => new __WEBPACK_IMPORTED_MODULE_13__decorators_exit__["a" /* default */](functionName),
-    "STEP": functionName => new __WEBPACK_IMPORTED_MODULE_14__decorators_step__["a" /* default */](functionName)
+    "WHILE": (condition, args) => new __WEBPACK_IMPORTED_MODULE_10__decorators_guards_while__["a" /* default */](condition, args),
+    "UNTIL": (condition, args) => new __WEBPACK_IMPORTED_MODULE_11__decorators_guards_until__["a" /* default */](condition, args),
+    "ENTRY": (functionName, args) => new __WEBPACK_IMPORTED_MODULE_12__decorators_entry__["a" /* default */](functionName, args),
+    "EXIT": (functionName, args) => new __WEBPACK_IMPORTED_MODULE_13__decorators_exit__["a" /* default */](functionName, args),
+    "STEP": (functionName, args) => new __WEBPACK_IMPORTED_MODULE_14__decorators_step__["a" /* default */](functionName, args)
 };
 
 /**
@@ -869,14 +887,14 @@ const ASTNodeFactories = {
                 throw "a repeat node must have a single child";
             }
 
-            // A repeat node must have a positive number of iterations if defined. 
+            // A repeat node must have a positive number of iterations if defined.
             if (this.iterations !== null && this.iterations < 0) {
                 throw "a repeat node must have a positive number of iterations if defined";
             }
 
             // There is validation to carry out if a longest duration was defined.
             if (this.maximumIterations !== null) {
-                // A repeat node must have a positive maximum iterations count if defined. 
+                // A repeat node must have a positive maximum iterations count if defined.
                 if (this.maximumIterations < 0) {
                     throw "a repeat node must have a positive maximum iterations count if defined";
                 }
@@ -909,9 +927,10 @@ const ASTNodeFactories = {
         type: "condition",
         decorators: [],
         conditionFunction: "",
+        conditionArguments: [],
         validate: function (depth) {},
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_1__nodes_condition__["a" /* default */](this.decorators, this.conditionFunction);
+            return new __WEBPACK_IMPORTED_MODULE_1__nodes_condition__["a" /* default */](this.decorators, this.conditionFunction, this.conditionArguments);
         }
     }),
     "WAIT": () => ({
@@ -920,14 +939,14 @@ const ASTNodeFactories = {
         duration: null,
         longestDuration: null,
         validate: function (depth) {
-            // A wait node must have a positive duration. 
+            // A wait node must have a positive duration.
             if (this.duration < 0) {
                 throw "a wait node must have a positive duration";
             }
 
             // There is validation to carry out if a longest duration was defined.
             if (this.longestDuration) {
-                // A wait node must have a positive longest duration. 
+                // A wait node must have a positive longest duration.
                 if (this.longestDuration < 0) {
                     throw "a wait node must have a positive longest duration if one is defined";
                 }
@@ -946,9 +965,10 @@ const ASTNodeFactories = {
         type: "action",
         decorators: [],
         actionName: "",
+        actionsArguments: [],
         validate: function (depth) {},
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_0__nodes_action__["a" /* default */](this.decorators, this.actionName);
+            return new __WEBPACK_IMPORTED_MODULE_0__nodes_action__["a" /* default */](this.decorators, this.actionName, this.actionsArguments);
         }
     })
 };
@@ -1118,14 +1138,8 @@ function buildRootASTNodes(tokens) {
 
                 // The condition name will be defined as a node argument.
                 const conditionArguments = getArguments(tokens);
-
-                // We should have only a single argument that is not an empty string for a condition node, which is the condition function name.
-                if (conditionArguments.length === 1 && conditionArguments[0] !== "") {
-                    // The condition function name will be the first and only node argument.
-                    node.conditionFunction = conditionArguments[0];
-                } else {
-                    throw "expected single condition name argument";
-                }
+                node.conditionFunction = conditionArguments.pop();
+                node.conditionArguments = conditionArguments;
 
                 // Try to pick any decorators off of the token stack.
                 node.decorators = getDecorators(tokens);
@@ -1223,14 +1237,8 @@ function buildRootASTNodes(tokens) {
 
                 // The action name will be defined as a node argument.
                 const actionArguments = getArguments(tokens);
-
-                // We should have only a single argument that is not an empty string for an action node, which is the action name.
-                if (actionArguments.length === 1 && actionArguments[0] !== "") {
-                    // The action name will be the first and only node argument.
-                    node.actionName = actionArguments[0];
-                } else {
-                    throw "expected single action name argument";
-                }
+                node.actionName = actionArguments.pop();
+                node.actionArguments = actionArguments;
 
                 // Try to pick any decorators off of the token stack.
                 node.decorators = getDecorators(tokens);
@@ -1373,7 +1381,7 @@ function getArguments(tokens, argumentValidator, validationFailedMessage) {
  * @returns An array od decorators defined by any directly following tokens.
  */
 function getDecorators(tokens) {
-    // Create an array to hold any decorators found. 
+    // Create an array to hold any decorators found.
     const decorators = [];
 
     // Keep track of names of decorators that we have found on the token stack, as we cannot have duplicates.
@@ -1394,11 +1402,18 @@ function getDecorators(tokens) {
         // The decorator definition should consist of the tokens 'NAME', '(', 'ARGUMENT' and ')'.
         popAndCheck(tokens, tokens[0].toUpperCase());
         popAndCheck(tokens, "(");
-        const decoratorArgument = popAndCheck(tokens);
-        popAndCheck(tokens, ")");
+
+        // store decorator name, condition, and condition arguments
+        const decoratorArguments = [];
+        const decoratorName = popAndCheck(tokens);
+        let arg = popAndCheck(tokens);
+        while (arg !== ")") {
+            decoratorArguments.push(arg);
+            arg = popAndCheck(tokens);
+        }
 
         // Create the decorator and add it to the array of decorators found.
-        decorators.push(decoratorFactory(decoratorArgument));
+        decorators.push(decoratorFactory(decoratorName, decoratorArguments));
 
         // Try to get the next decorator name token, as there could be multiple.
         decoratorFactory = DecoratorFactories[(tokens[0] || "").toUpperCase()];
@@ -1424,11 +1439,11 @@ function getDecorators(tokens) {
  * @param decorators The node decorators.
  * @param actionName The action name.
  */
-function Action(decorators, actionName) {
+function Action(decorators, actionName, actionArguments) {
     __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "action", decorators);
 
     /**
-     * Whether there is a pending update promise. 
+     * Whether there is a pending update promise.
      */
     let isUsingUpdatePromise = false;
 
@@ -1465,7 +1480,7 @@ function Action(decorators, actionName) {
         // - The finished state of this action node.
         // - A promise to return a finished node state.
         // - Undefined if the node should remain in the running state.
-        const updateResult = action.call(board);
+        const updateResult = action.apply(board, actionArguments || []);
 
         if (updateResult instanceof Promise) {
             updateResult.then(result => {
@@ -1571,9 +1586,9 @@ Action.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* defa
  * A Condition leaf node.
  * This will succeed or fail immediately based on a board predicate, without moving to the 'RUNNING' state.
  * @param decorators The node decorators.
- * @param condition The name of the condition function. 
+ * @param condition The name of the condition function.
  */
-function Condition(decorators, condition) {
+function Condition(decorators, condition, conditionArguments) {
     __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "condition", decorators);
 
     /**
@@ -1584,7 +1599,7 @@ function Condition(decorators, condition) {
     this.onUpdate = function (board) {
         // Call the condition function to determine the state of this node, but it must exist in the blackboard.
         if (typeof board[condition] === "function") {
-            this.setState(!!board[condition].call(board) ? __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED : __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
+            this.setState(!!board[condition].apply(board, conditionArguments || []) ? __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED : __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
         } else {
             throw `cannot update condition node as function '${condition}' is not defined in the blackboard`;
         }
@@ -2225,48 +2240,48 @@ Parallel.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" 
  * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
  */
 function Wait(decorators, duration, longestDuration) {
-    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "wait", decorators);
+  __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "wait", decorators);
 
-    /** 
-     * The time in milliseconds at which this node was first updated.
-     */
-    let initialUpdateTime;
+  /** 
+   * The time in milliseconds at which this node was first updated.
+   */
+  let initialUpdateTime;
 
-    /**
-     * The duration in milliseconds that this node will be waiting for. 
-     */
-    let waitDuration;
+  /**
+   * The duration in milliseconds that this node will be waiting for. 
+   */
+  let waitDuration;
 
-    /**
-     * Update the node.
-     * @param board The board.
-     * @returns The result of the update.
-     */
-    this.onUpdate = function (board) {
-        // If this node is in the READY state then we need to set the initial update time.
-        if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
-            // Set the initial update time.
-            initialUpdateTime = new Date().getTime();
+  /**
+   * Update the node.
+   * @param board The board.
+   * @returns The result of the update.
+   */
+  this.onUpdate = function (board) {
+    // If this node is in the READY state then we need to set the initial update time.
+    if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
+      // Set the initial update time.
+      initialUpdateTime = new Date().getTime();
 
-            // If a longestDuration value was defined then we will be randomly picking a duration between the
-            // shortest and longest duration. If it was not defined, then we will be just using the duration.
-            waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
+      // If a longestDuration value was defined then we will be randomly picking a duration between the
+      // shortest and longest duration. If it was not defined, then we will be just using the duration.
+      waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
 
-            // The node is now running until we finish waiting.
-            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
-        }
+      // The node is now running until we finish waiting.
+      this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
+    }
 
-        // Have we waited long enough?
-        if (new Date().getTime() >= initialUpdateTime + waitDuration) {
-            // We have finished waiting!
-            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED);
-        }
-    };
+    // Have we waited long enough?
+    if (new Date().getTime() >= initialUpdateTime + waitDuration) {
+      // We have finished waiting!
+      this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED);
+    }
+  };
 
-    /**
-     * Gets the name of the node.
-     */
-    this.getName = () => `WAIT ${longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms"}`;
+  /**
+   * Gets the name of the node.
+   */
+  this.getName = () => `WAIT ${longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms"}`;
 };
 
 Wait.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
@@ -2284,8 +2299,8 @@ Wait.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* defaul
  * A WHILE guard which is satisfied as long as the given condition remains true.
  * @param condition The name of the condition function that determines whether the guard is satisfied.
  */
-function While(condition) {
-    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "while");
+function While(condition, ...args) {
+    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "while", args);
 
     /**
      * Gets whether the decorator is a guard.
@@ -2304,7 +2319,8 @@ function While(condition) {
         return {
             type: this.getType(),
             isGuard: this.isGuard(),
-            condition: this.getCondition()
+            condition: this.getCondition(),
+            arguments: this.getArguments()
         };
     };
 
@@ -2316,7 +2332,7 @@ function While(condition) {
     this.isSatisfied = board => {
         // Call the condition function to determine whether this guard is satisfied.
         if (typeof board[condition] === "function") {
-            return !!board[condition].call(board);
+            return !!board[condition].apply(board, this.getArguments());
         } else {
             throw `cannot evaluate node guard as function '${condition}' is not defined in the blackboard`;
         }
@@ -2338,8 +2354,8 @@ While.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* 
  * An UNTIL guard which is satisfied as long as the given condition remains false.
  * @param condition The name of the condition function that determines whether the guard is satisfied.
  */
-function Until(condition) {
-    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "until");
+function Until(condition, args) {
+    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "until", args);
 
     /**
      * Gets whether the decorator is a guard.
@@ -2358,7 +2374,8 @@ function Until(condition) {
         return {
             type: this.getType(),
             isGuard: this.isGuard(),
-            condition: this.getCondition()
+            condition: this.getCondition(),
+            arguments: this.getArguments()
         };
     };
 
@@ -2370,7 +2387,7 @@ function Until(condition) {
     this.isSatisfied = board => {
         // Call the condition function to determine whether this guard is satisfied.
         if (typeof board[condition] === "function") {
-            return !!!board[condition].call(board);
+            return !!!board[condition].apply(board, this.getArguments());
         } else {
             throw `cannot evaluate node guard as function '${condition}' is not defined in the blackboard`;
         }
@@ -2392,8 +2409,8 @@ Until.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* 
  * An ENTRY decorator which defines a blackboard function to call when the decorated node is updated and moves out of running state.
  * @param functionName The name of the blackboard function to call.
  */
-function Entry(functionName) {
-    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "entry");
+function Entry(functionName, args) {
+    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "entry", args);
 
     /**
      * Gets the function name.
@@ -2407,7 +2424,8 @@ function Entry(functionName) {
         return {
             type: this.getType(),
             isGuard: this.isGuard(),
-            functionName: this.getFunctionName()
+            functionName: this.getFunctionName(),
+            arguments: this.getArguments()
         };
     };
 
@@ -2418,7 +2436,7 @@ function Entry(functionName) {
     this.callBlackboardFunction = board => {
         // Call the blackboard function if it exists.
         if (typeof board[functionName] === "function") {
-            board[functionName].call(board);
+            board[functionName].apply(board, this.getArguments());
         } else {
             throw `cannot call entry decorator function '${functionName}' is not defined in the blackboard`;
         }
@@ -2440,8 +2458,8 @@ Entry.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* 
  * An EXIT decorator which defines a blackboard function to call when the decorated node is updated and moves to a finished state or is aborted.
  * @param functionName The name of the blackboard function to call.
  */
-function Exit(functionName) {
-    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "exit");
+function Exit(functionName, args) {
+    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "exit", args);
 
     /**
      * Gets the function name.
@@ -2455,7 +2473,8 @@ function Exit(functionName) {
         return {
             type: this.getType(),
             isGuard: this.isGuard(),
-            functionName: this.getFunctionName()
+            functionName: this.getFunctionName(),
+            arguments: this.getArguments()
         };
     };
 
@@ -2468,7 +2487,7 @@ function Exit(functionName) {
     this.callBlackboardFunction = (board, isSuccess, isAborted) => {
         // Call the blackboard function if it exists.
         if (typeof board[functionName] === "function") {
-            board[functionName].call(board, { succeeded: isSuccess, aborted: isAborted });
+            board[functionName].apply(board, [{ succeeded: isSuccess, aborted: isAborted }].concat(this.getArguments()));
         } else {
             throw `cannot call exit decorator function '${functionName}' is not defined in the blackboard`;
         }
@@ -2490,8 +2509,8 @@ Exit.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* d
  * A STEP decorator which defines a blackboard function to call when the decorated node is updated.
  * @param functionName The name of the blackboard function to call.
  */
-function Step(functionName) {
-    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "step");
+function Step(functionName, args) {
+    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "step", args);
 
     /**
      * Gets the function name.
@@ -2505,7 +2524,8 @@ function Step(functionName) {
         return {
             type: this.getType(),
             isGuard: this.isGuard(),
-            functionName: this.getFunctionName()
+            functionName: this.getFunctionName(),
+            arguments: this.getArguments()
         };
     };
 
@@ -2516,7 +2536,7 @@ function Step(functionName) {
     this.callBlackboardFunction = board => {
         // Call the blackboard function if it exists.
         if (typeof board[functionName] === "function") {
-            board[functionName].call(board);
+            board[functionName].apply(board, this.getArguments());
         } else {
             throw `cannot call entry decorator function '${functionName}' is not defined in the blackboard`;
         }

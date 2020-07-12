@@ -23,12 +23,12 @@ export default function BehaviourTree(definition, board) {
     this._init = function() {
         // The tree definition must be defined and a valid string.
         if (typeof definition !== "string") {
-            throw new Error("the tree definition must be a string");
+            throw new Error(BehaviourTree.ERROR_DEFINITION_IS_NOT_A_STRING);
         }
 
         // The blackboard must be defined.
         if (typeof board !== 'object' || board === null) {
-            throw new Error("the blackboard must be defined");
+            throw new Error(BehaviourTree.ERROR_BLACKBOARD_UNDEFINED);
         }
 
         // Convert the definition into an array of raw tokens.
@@ -39,7 +39,7 @@ export default function BehaviourTree(definition, board) {
             const rootASTNodes = buildRootASTNodes(tokens);
 
             // Create a symbol to use as the main root key in our root node mapping.
-            const mainRootNodeKey = Symbol("__root__");
+            const mainRootNodeKey = Symbol(BehaviourTree.SYMBOL_ROOT_MONIKER);
 
             // Create a mapping of root node names to root AST tokens. The main root node will have a key of Symbol("__root__").
             const rootNodeMap = {};
@@ -57,7 +57,7 @@ export default function BehaviourTree(definition, board) {
             this._applyLeafNodeGuardPaths();
         } catch (exception) {
             // There was an issue in trying to parse and build the tree definition.
-            throw new Error(`error parsing tree: ${exception}`);
+            throw new Error(BehaviourTree.ERROR_TREE_PARSE.replace('{error}', exception));
         }
     };
 
@@ -122,7 +122,7 @@ export default function BehaviourTree(definition, board) {
             // Add the current node to the path.
             path = path.concat(node);
 
-            // Check whether the current node is a leaf node. 
+            // Check whether the current node is a leaf node.
             if (node.isLeafNode()) {
                 nodePaths.push(path);
             } else {
@@ -139,6 +139,12 @@ export default function BehaviourTree(definition, board) {
     // Call init logic.
     this._init();
 }
+
+BehaviourTree.ERROR_DEFINITION_IS_NOT_A_STRING = "the tree definition must be a string"
+BehaviourTree.ERROR_BLACKBOARD_UNDEFINED = "the blackboard must be defined"
+BehaviourTree.ERROR_TREE_PARSE = "error parsing tree: {error}"
+BehaviourTree.ERROR_TREE_STEP = "error stepping tree: {error}"
+BehaviourTree.SYMBOL_ROOT_MONIKER = "__root__"
 
 /**
  * Gets the root node.
@@ -171,9 +177,9 @@ BehaviourTree.prototype.getFlattenedNodeDetails = function () {
             decorators.length > 0 ? decorators.map((decorator) => decorator.getDetails()) : null;
 
         // Push the current node into the flattened nodes array.
-        flattenedTreeNodes.push({ 
+        flattenedTreeNodes.push({
             id: node.getUid(),
-            type: node.getType(), 
+            type: node.getType(),
             caption: node.getName(),
             state: node.getState(),
             decorators: getDecoratorDetails(node.getDecorators()),
@@ -220,7 +226,7 @@ BehaviourTree.prototype.step = function () {
     try {
         this._rootNode.update(this._blackboard);
     } catch (exception) {
-        throw new Error(`error stepping tree: ${exception}`);
+        throw new Error(BehaviourTree.ERROR_TREE_STEP.replace('{error}', exception));
     }
 };
 

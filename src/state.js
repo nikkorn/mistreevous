@@ -1,11 +1,21 @@
 /**
  * Enumeration of node states.
  */
+const StateNameEnum = {
+    READY: "mistreevous.ready",
+    RUNNING: "mistreevous.running",
+    SUCCEEDED: "mistreevous.succeeded",
+    FAILED: "mistreevous.failed"
+}
+
 const State = {
-    READY: Symbol("mistreevous.ready"),
-    RUNNING: Symbol("mistreevous.running"),
-    SUCCEEDED: Symbol("mistreevous.succeeded"),
-    FAILED: Symbol("mistreevous.failed")
+    READY: Symbol(StateNameEnum.READY),
+    RUNNING: Symbol(StateNameEnum.RUNNING),
+    SUCCEEDED: Symbol(StateNameEnum.SUCCEEDED),
+    FAILED: Symbol(StateNameEnum.FAILED)
 };
 
-export { State as default };
+export {
+    StateNameEnum,
+    State as default
+};
