@@ -203,11 +203,13 @@ const ASTNodeFactories = {
         type: "condition",
         decorators: [],
         conditionFunction: "",
+        conditionArguments: [],
         validate: function (depth) {},
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
             return new Condition(
                 this.decorators,
-                this.conditionFunction
+                this.conditionFunction,
+		this.conditionArguments
             );
         }
     }),
@@ -247,11 +249,13 @@ const ASTNodeFactories = {
         type: "action",
         decorators: [],
         actionName: "",
+        actionsArguments: [],
         validate: function (depth) {},
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new Action(
                 this.decorators,
-                this.actionName
+                this.actionName,
+		this.actionsArguments,
             );
         }
     })
@@ -422,15 +426,9 @@ export default function buildRootASTNodes(tokens) {
                 } 
 
                 // The condition name will be defined as a node argument.
-                const conditionArguments = getArguments(tokens);
-
-                // We should have only a single argument that is not an empty string for a condition node, which is the condition function name.
-                if (conditionArguments.length === 1 && conditionArguments[0] !== "") {
-                    // The condition function name will be the first and only node argument.
-                    node.conditionFunction = conditionArguments[0];
-                } else {
-                    throw "expected single condition name argument";
-                }
+                const [conditionFunction, ...conditionArguments] = getArguments(tokens);
+                node.conditionFunction = conditionFunction;
+                node.conditionArguments = conditionArguments || [];
 
                 // Try to pick any decorators off of the token stack.
                 node.decorators = getDecorators(tokens);
@@ -527,15 +525,9 @@ export default function buildRootASTNodes(tokens) {
                 } 
 
                 // The action name will be defined as a node argument.
-                const actionArguments = getArguments(tokens);
-
-                // We should have only a single argument that is not an empty string for an action node, which is the action name.
-                if (actionArguments.length === 1 && actionArguments[0] !== "") {
-                    // The action name will be the first and only node argument.
-                    node.actionName = actionArguments[0];
-                } else {
-                    throw "expected single action name argument";
-                }
+                const [actionName, ...actionArguments] = getArguments(tokens);
+                node.actionName = actionName;
+                node.actionArguments = actionArguments || [];
 
                 // Try to pick any decorators off of the token stack.
                 node.decorators = getDecorators(tokens);
@@ -697,8 +689,13 @@ function getDecorators(tokens) {
         // The decorator definition should consist of the tokens 'NAME', '(', 'ARGUMENT' and ')'.
         popAndCheck(tokens, tokens[0].toUpperCase());
         popAndCheck(tokens, "(");
-        const decoratorArgument = popAndCheck(tokens);
-        popAndCheck(tokens, ")");
+	// store decorator name, condition, and condition arguments
+        const decoratorArgument = [];
+        let arg = popAndCheck(tokens);
+        while (arg !== ")") {
+            decoratorArgument.push(arg);
+            arg = popAndCheck(tokens)
+        }
 
         // Create the decorator and add it to the array of decorators found.
         decorators.push(decoratorFactory(decoratorArgument));
