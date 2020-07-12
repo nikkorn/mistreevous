@@ -7,7 +7,7 @@ import State from "../state";
  * @param decorators The node decorators.
  * @param actionName The action name.
  */
-export default function Action(decorators, actionName) {
+export default function Action(decorators, actionName, actionArguments) {
     Leaf.call(this, "action", decorators);
 
     /**
@@ -48,7 +48,7 @@ export default function Action(decorators, actionName) {
         // - The finished state of this action node.
         // - A promise to return a finished node state.
         // - Undefined if the node should remain in the running state.
-        const updateResult = action.call(board);
+        const updateResult = action.call(board, actionArguments || []);
 
         if (updateResult instanceof Promise) {
             updateResult.then(
