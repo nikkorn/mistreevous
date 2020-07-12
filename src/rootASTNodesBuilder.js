@@ -209,7 +209,7 @@ const ASTNodeFactories = {
             return new Condition(
                 this.decorators,
                 this.conditionFunction,
-		this.conditionArguments
+                this.conditionArguments
             );
         }
     }),
@@ -426,9 +426,9 @@ export default function buildRootASTNodes(tokens) {
                 }
 
                 // The condition name will be defined as a node argument.
-                const tokenArguments = getArguments(tokens);
-                node.conditionFunction = tokenArguments.pop();
-                node.conditionArguments = tokenArguments || [];
+                const conditionArguments = getArguments(tokens);
+                node.conditionFunction = conditionArguments.pop();
+                node.conditionArguments = conditionArguments;
 
                 // Try to pick any decorators off of the token stack.
                 node.decorators = getDecorators(tokens);
@@ -525,9 +525,9 @@ export default function buildRootASTNodes(tokens) {
                 }
 
                 // The action name will be defined as a node argument.
-                const tokenArguments = getArguments(tokens);
-                node.actionName = tokenArguments.pop();
-                node.actionArguments = tokenArguments || [];
+                const actionArguments = getArguments(tokens);
+                node.actionName = actionArguments.pop();
+                node.actionArguments = actionArguments;
 
                 // Try to pick any decorators off of the token stack.
                 node.decorators = getDecorators(tokens);
