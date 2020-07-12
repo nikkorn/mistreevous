@@ -5,7 +5,7 @@ import Decorator from '../decorator'
  * @param condition The name of the condition function that determines whether the guard is satisfied.
  */
 export default function While(condition, ...args) {
-    Decorator.call(this, "while");
+    Decorator.call(this, "while", args);
 
     /**
      * Gets whether the decorator is a guard.
@@ -25,7 +25,7 @@ export default function While(condition, ...args) {
             type: this.getType(),
             isGuard: this.isGuard(),
             condition: this.getCondition(),
-            arguments: args
+            arguments: this.getArguments()
         };
     };
 
@@ -37,7 +37,7 @@ export default function While(condition, ...args) {
     this.isSatisfied = (board) => {
         // Call the condition function to determine whether this guard is satisfied.
         if (typeof board[condition] === "function") {
-            return !!(board[condition].apply(board, args || []));
+            return !!(board[condition].apply(board, this.getArguments()));
         } else {
             throw `cannot evaluate node guard as function '${condition}' is not defined in the blackboard`;
         }

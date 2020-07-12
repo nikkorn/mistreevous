@@ -18,18 +18,18 @@ import Step from './decorators/step'
  * The node decorator factories.
  */
 const DecoratorFactories = {
-    "WHILE": (condition, ...args) => new While(condition, ...args),
-    "UNTIL": (condition, ...args) => new Until(condition, ...args),
-    "ENTRY": (functionName, ...args) => new Entry(functionName, ...args),
-    "EXIT": (functionName, ...args) => new Exit(functionName, ...args),
-    "STEP": (functionName, ...args) => new Step(functionName, ...args)
+    "WHILE": (condition, args) => new While(condition, args),
+    "UNTIL": (condition, args) => new Until(condition, args),
+    "ENTRY": (functionName, args) => new Entry(functionName, args),
+    "EXIT": (functionName, args) => new Exit(functionName, args),
+    "STEP": (functionName, args) => new Step(functionName, args)
 };
 
 /**
  * The AST node factories.
  */
 const ASTNodeFactories = {
-    "ROOT": () => ({ 
+    "ROOT": () => ({
         type: "root",
         decorators: [],
         name: null,
@@ -45,14 +45,14 @@ const ASTNodeFactories = {
                 throw "a root node must have a single child";
             }
         },
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new Root(
                 this.decorators,
                 this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
             );
         }
     }),
-    "BRANCH": () => ({ 
+    "BRANCH": () => ({
         type: "branch",
         branchName: "",
         validate: function (depth) {},
@@ -83,7 +83,7 @@ const ASTNodeFactories = {
                 throw "a selector node must have at least a single child";
             }
         },
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new Selector(
                 this.decorators,
                 this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
@@ -93,14 +93,14 @@ const ASTNodeFactories = {
     "SEQUENCE": () => ({
         type: "sequence",
         decorators: [],
-        children: [], 
+        children: [],
         validate: function (depth) {
             // A sequence node must have at least a single node.
             if (this.children.length < 1) {
                 throw "a sequence node must have at least a single child";
             }
         },
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new Sequence(
                 this.decorators,
                 this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
@@ -110,14 +110,14 @@ const ASTNodeFactories = {
     "PARALLEL": () => ({
         type: "parallel",
         decorators: [],
-        children: [], 
+        children: [],
         validate: function (depth) {
             // A parallel node must have at least a single node.
             if (this.children.length < 1) {
                 throw "a parallel node must have at least a single child";
             }
         },
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new Parallel(
                 this.decorators,
                 this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
@@ -128,14 +128,14 @@ const ASTNodeFactories = {
         type: "lotto",
         decorators: [],
         children: [],
-        tickets: [], 
+        tickets: [],
         validate: function (depth) {
             // A lotto node must have at least a single node.
             if (this.children.length < 1) {
                 throw "a lotto node must have at least a single child";
             }
         },
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new Lotto(
                 this.decorators,
                 this.tickets,
@@ -155,14 +155,14 @@ const ASTNodeFactories = {
                 throw "a repeat node must have a single child";
             }
 
-            // A repeat node must have a positive number of iterations if defined. 
+            // A repeat node must have a positive number of iterations if defined.
             if (this.iterations !== null && this.iterations < 0) {
                 throw "a repeat node must have a positive number of iterations if defined";
             }
 
             // There is validation to carry out if a longest duration was defined.
             if (this.maximumIterations !== null) {
-                // A repeat node must have a positive maximum iterations count if defined. 
+                // A repeat node must have a positive maximum iterations count if defined.
                 if (this.maximumIterations < 0) {
                     throw "a repeat node must have a positive maximum iterations count if defined";
                 }
@@ -173,7 +173,7 @@ const ASTNodeFactories = {
                 }
             }
         },
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new Repeat(
                 this.decorators,
                 this.iterations,
@@ -192,7 +192,7 @@ const ASTNodeFactories = {
                 throw "a flip node must have a single child";
             }
         },
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new Flip(
                 this.decorators,
                 this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
@@ -205,7 +205,7 @@ const ASTNodeFactories = {
         conditionFunction: "",
         conditionArguments: [],
         validate: function (depth) {},
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new Condition(
                 this.decorators,
                 this.conditionFunction,
@@ -219,14 +219,14 @@ const ASTNodeFactories = {
         duration: null,
         longestDuration: null,
         validate: function (depth) {
-            // A wait node must have a positive duration. 
+            // A wait node must have a positive duration.
             if (this.duration < 0) {
                 throw "a wait node must have a positive duration";
             }
 
             // There is validation to carry out if a longest duration was defined.
             if (this.longestDuration) {
-                // A wait node must have a positive longest duration. 
+                // A wait node must have a positive longest duration.
                 if (this.longestDuration < 0) {
                     throw "a wait node must have a positive longest duration if one is defined";
                 }
@@ -237,7 +237,7 @@ const ASTNodeFactories = {
                 }
             }
         },
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new Wait(
                 this.decorators,
                 this.duration,
@@ -255,7 +255,7 @@ const ASTNodeFactories = {
             return new Action(
                 this.decorators,
                 this.actionName,
-		this.actionsArguments,
+                this.actionsArguments,
             );
         }
     })
@@ -319,7 +319,7 @@ export default function buildRootASTNodes(tokens) {
                 stack.push(node.children);
                 break;
 
-            case "BRANCH": 
+            case "BRANCH":
                 // Create a BRANCH AST node.
                 node = ASTNodeFactories.BRANCH();
 
@@ -329,7 +329,7 @@ export default function buildRootASTNodes(tokens) {
                 // We must have arguments defined, as we require a branch name argument.
                 if (tokens[0] !== "[") {
                     throw "expected single branch name argument";
-                } 
+                }
 
                 // The branch name will be defined as a node argument.
                 const branchArguments = getArguments(tokens);
@@ -340,10 +340,10 @@ export default function buildRootASTNodes(tokens) {
                     node.branchName = branchArguments[0];
                 } else {
                     throw "expected single branch name argument";
-                } 
+                }
                 break;
 
-            case "SELECTOR": 
+            case "SELECTOR":
                 // Create a SELECTOR AST node.
                 node = ASTNodeFactories.SELECTOR();
 
@@ -413,7 +413,7 @@ export default function buildRootASTNodes(tokens) {
                 stack.push(node.children);
                 break;
 
-            case "CONDITION": 
+            case "CONDITION":
                 // Create a CONDITION AST node.
                 node = ASTNodeFactories.CONDITION();
 
@@ -423,12 +423,12 @@ export default function buildRootASTNodes(tokens) {
                 // We must have arguments defined, as we require a condition function name argument.
                 if (tokens[0] !== "[") {
                     throw "expected single condition name argument";
-                } 
+                }
 
                 // The condition name will be defined as a node argument.
-                const [conditionFunction, ...conditionArguments] = getArguments(tokens);
-                node.conditionFunction = conditionFunction;
-                node.conditionArguments = conditionArguments || [];
+                const tokenArguments = getArguments(tokens);
+                node.conditionFunction = tokenArguments.pop();
+                node.conditionArguments = tokenArguments || [];
 
                 // Try to pick any decorators off of the token stack.
                 node.decorators = getDecorators(tokens);
@@ -522,18 +522,18 @@ export default function buildRootASTNodes(tokens) {
                 // We must have arguments defined, as we require an action name argument.
                 if (tokens[0] !== "[") {
                     throw "expected single action name argument";
-                } 
+                }
 
                 // The action name will be defined as a node argument.
-                const [actionName, ...actionArguments] = getArguments(tokens);
-                node.actionName = actionName;
-                node.actionArguments = actionArguments || [];
+                const tokenArguments = getArguments(tokens);
+                node.actionName = tokenArguments.pop();
+                node.actionArguments = tokenArguments || [];
 
                 // Try to pick any decorators off of the token stack.
                 node.decorators = getDecorators(tokens);
                 break;
 
-            case "}": 
+            case "}":
                 // The '}' character closes the current scope.
                 stack.pop();
                 break;
@@ -553,7 +553,7 @@ export default function buildRootASTNodes(tokens) {
     };
 
     // Start node validation from the definition root.
-    validateASTNode({ 
+    validateASTNode({
         children: stack[0],
         validate: function (depth) {
             // We must have at least one node defined as the definition scope, which should be a root node.
@@ -601,12 +601,12 @@ function popAndCheck(tokens, expected) {
 
     // We were expecting another token.
     if (popped === undefined) {
-        throw "unexpected end of definition"; 
+        throw "unexpected end of definition";
     }
 
     // If an expected token was defined, was it the expected one?
     if (expected && popped.toUpperCase() !== expected.toUpperCase()) {
-        throw "unexpected token found on the stack. Expected '" + expected + "' but got '" + popped + "'"; 
+        throw "unexpected token found on the stack. Expected '" + expected + "' but got '" + popped + "'";
     }
 
     // Return the popped token.
@@ -668,12 +668,12 @@ function getArguments(tokens, argumentValidator, validationFailedMessage) {
  * @returns An array od decorators defined by any directly following tokens.
  */
 function getDecorators(tokens) {
-	// Create an array to hold any decorators found. 
+	// Create an array to hold any decorators found.
 	const decorators = [];
-  
+
     // Keep track of names of decorators that we have found on the token stack, as we cannot have duplicates.
     const decoratorsFound = [];
-  
+
     // Try to get the decorator factory for the next token.
     let decoratorFactory = DecoratorFactories[(tokens[0] || "").toUpperCase()];
 
@@ -689,20 +689,22 @@ function getDecorators(tokens) {
         // The decorator definition should consist of the tokens 'NAME', '(', 'ARGUMENT' and ')'.
         popAndCheck(tokens, tokens[0].toUpperCase());
         popAndCheck(tokens, "(");
-	// store decorator name, condition, and condition arguments
-        const decoratorArgument = [];
-        let arg = popAndCheck(tokens);
+
+        // store decorator name, condition, and condition arguments
+        const decoratorArguments = [];
+        const decoratorName = popAndCheck(tokens);
+        let arg = popAndCheck(tokens)
         while (arg !== ")") {
-            decoratorArgument.push(arg);
+            decoratorArguments.push(arg);
             arg = popAndCheck(tokens)
         }
 
         // Create the decorator and add it to the array of decorators found.
-        decorators.push(decoratorFactory(decoratorArgument));
+        decorators.push(decoratorFactory(decoratorName, decoratorArguments));
 
         // Try to get the next decorator name token, as there could be multiple.
         decoratorFactory = DecoratorFactories[(tokens[0] || "").toUpperCase()];
     }
-  
+
 	return decorators;
 };
