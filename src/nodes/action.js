@@ -11,7 +11,7 @@ export default function Action(decorators, actionName, actionArguments) {
     Leaf.call(this, "action", decorators);
 
     /**
-     * Whether there is a pending update promise. 
+     * Whether there is a pending update promise.
      */
     let isUsingUpdatePromise = false;
 
@@ -19,7 +19,7 @@ export default function Action(decorators, actionName, actionArguments) {
      * The finished state result of an update promise.
      */
     let updatePromiseStateResult = null;
-   
+
     /**
      * Update the node.
      * @param board The board.
@@ -37,7 +37,7 @@ export default function Action(decorators, actionName, actionArguments) {
                 // Set the state of this node to match the state returned by the promise.
                 this.setState(updatePromiseStateResult);
             }
-            
+
             return;
         }
 
@@ -48,7 +48,7 @@ export default function Action(decorators, actionName, actionArguments) {
         // - The finished state of this action node.
         // - A promise to return a finished node state.
         // - Undefined if the node should remain in the running state.
-        const updateResult = action.call(board, actionArguments || []);
+        const updateResult = action.apply(board, actionArguments || []);
 
         if (updateResult instanceof Promise) {
             updateResult.then(
@@ -65,7 +65,7 @@ export default function Action(decorators, actionName, actionArguments) {
 
                     // Set pending update promise state result to be processed on next update.
                     updatePromiseStateResult = result;
-                }, 
+                },
                 (reason) => {
                     // If 'isUpdatePromisePending' is null then the promise was cleared as it was resolving, probably via an abort of reset.
                     if (!isUsingUpdatePromise) {
