@@ -4,7 +4,7 @@ import Decorator from './decorator'
  * A STEP decorator which defines a blackboard function to call when the decorated node is updated.
  * @param functionName The name of the blackboard function to call.
  */
-export default function Step(functionName) {
+export default function Step(functionName, ...args) {
     Decorator.call(this, "step");
 
     /**
@@ -19,7 +19,8 @@ export default function Step(functionName) {
         return {
             type: this.getType(),
             isGuard: this.isGuard(),
-            functionName: this.getFunctionName()
+            functionName: this.getFunctionName(),
+            arguments: args
         };
     };
 
@@ -30,7 +31,7 @@ export default function Step(functionName) {
     this.callBlackboardFunction = (board) => {
         // Call the blackboard function if it exists.
         if (typeof board[functionName] === "function") {
-            board[functionName].call(board);
+            board[functionName].apply(board, args || []);
         } else {
             throw `cannot call entry decorator function '${functionName}' is not defined in the blackboard`;
         }
