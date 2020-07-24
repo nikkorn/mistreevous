@@ -31,12 +31,15 @@ export default function BehaviourTree(definition, board) {
             throw new Error("the blackboard must be defined");
         }
 
+        // Swap out any node/decorator argument string literals with a placeholder and get a mapping of placeholders to original values.
+        const stringArgumentPlaceholders = this._substituteStringLiterals();
+
         // Convert the definition into an array of raw tokens.
         const tokens = this._parseTokensFromDefinition();
 
         try {
             // Try to create the behaviour tree AST from tokens, this could fail if the definition is invalid.
-            const rootASTNodes = buildRootASTNodes(tokens);
+            const rootASTNodes = buildRootASTNodes(tokens, stringArgumentPlaceholders);
 
             // Create a symbol to use as the main root key in our root node mapping.
             const mainRootNodeKey = Symbol("__root__");
@@ -62,21 +65,46 @@ export default function BehaviourTree(definition, board) {
     };
 
     /**
+     * Swaps out any node/decorator argument string literals with placeholders.
+     * @returns A mapping of placeholders to original string values.
+     */
+    this._substituteStringLiterals = function() {
+        // Create an object to hold the mapping of placeholders to original string values.
+        const matches = {};
+
+        // Replace any string literals wrapped with double quotes in our definition with placeholders to be processed later.
+        definition = definition.replace(
+            /\"(\\.|[^"\\])*\"/g,
+            (match) => {
+                var strippedMatch = match.substring(1, match.length - 1);
+                var placeholder   = Object.keys(matches).find(key => matches[key] === strippedMatch);
+                
+                // If we have no existing string literal match then create a new placeholder.
+                if (!placeholder) {
+                    placeholder          = `@@${Object.keys(matches).length}@@`;
+                    matches[placeholder] = strippedMatch;
+                } 
+                
+                return placeholder;
+            }
+        );
+
+        return matches;
+    };
+
+    /**
      * Parse the BT tree definition into an array of raw tokens.
      * @returns An array of tokens parsed from the definition.
      */
     this._parseTokensFromDefinition = function() {
-        // Firstly, create a copy of the raw definition.
-        let cleansedDefinition = definition;
-
         // Add some space around various important characters so that they can be plucked out easier as individual tokens.
-        cleansedDefinition = cleansedDefinition.replace(/\(/g, " ( ");
-        cleansedDefinition = cleansedDefinition.replace(/\)/g, " ) ");
-        cleansedDefinition = cleansedDefinition.replace(/\{/g, " { ");
-        cleansedDefinition = cleansedDefinition.replace(/\}/g, " } ");
-        cleansedDefinition = cleansedDefinition.replace(/\]/g, " ] ");
-        cleansedDefinition = cleansedDefinition.replace(/\[/g, " [ ");
-        cleansedDefinition = cleansedDefinition.replace(/\,/g, " , ");
+        definition = definition.replace(/\(/g, " ( ");
+        definition = definition.replace(/\)/g, " ) ");
+        definition = definition.replace(/\{/g, " { ");
+        definition = definition.replace(/\}/g, " } ");
+        definition = definition.replace(/\]/g, " ] ");
+        definition = definition.replace(/\[/g, " [ ");
+        definition = definition.replace(/\,/g, " , ");
 
         // Split the definition into raw token form and return it.
         return cleansedDefinition.replace(/\s+/g, " ").trim().split(" ");

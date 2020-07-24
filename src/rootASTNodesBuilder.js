@@ -257,13 +257,18 @@ const ASTNodeFactories = {
     })
 };
 
+/**
+ * Enumeration of node argument types.
+ */
+const ArgumentType = { IDENTIFIER: 0, STRING: 1, NUMBER: 2, BOOLEAN: 3, NULL: 4 };
 
  /**
  * Create an array of root AST nodes based on the remaining tokens.
  * @param tokens The remaining tokens.
+ * @param stringArgumentPlaceholders The mapping of string literal node argument placeholders to original values.
  * @returns The base definition AST nodes.
  */
-export default function buildRootASTNodes(tokens) {
+export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
     // There must be at least 3 tokens for the tree definition to be valid. 'ROOT', '{' and '}'.
     if (tokens.length < 3) {
         throw "invalid token count";
@@ -295,12 +300,12 @@ export default function buildRootASTNodes(tokens) {
 
                 // We may have a root node name defined as an argument.
                 if (tokens[0] === "[") {
-                    const rootArguments = getArguments(tokens);
+                    const rootArguments = getArguments(tokens, stringArgumentPlaceholders);
 
-                    // We should have only a single argument that is not an empty string for a root node, which is the root name.
-                    if (rootArguments.length === 1 && rootArguments[0] !== "") {
-                        // The root  name will be the first and only node argument.
-                        node.name = rootArguments[0];
+                    // We should have only a single argument that is not an empty string for a root node, which is the root name identifier.
+                    if (rootArguments.length === 1 && rootArguments[0].type === ArgumentType.IDENTIFIER) {
+                        // The root name will be the first and only node argument.
+                        node.name = rootArguments[0].value;
                     } else {
                         throw "expected single root name argument";
                     }
@@ -328,12 +333,12 @@ export default function buildRootASTNodes(tokens) {
                 } 
 
                 // The branch name will be defined as a node argument.
-                const branchArguments = getArguments(tokens);
+                const branchArguments = getArguments(tokens, stringArgumentPlaceholders);
 
-                // We should have only a single argument that is not an empty string for a branch node, which is the branch name.
-                if (branchArguments.length === 1 && branchArguments[0] !== "") {
+                // We should have only a single identifer argument for a branch node, which is the branch name.
+                if (branchArguments.length === 1 && branchArguments[0].type === ArgumentType.IDENTIFIER) {
                     // The branch name will be the first and only node argument.
-                    node.branchName = branchArguments[0];
+                    node.branchName = branchArguments[0].value;
                 } else {
                     throw "expected single branch name argument";
                 } 
@@ -397,7 +402,12 @@ export default function buildRootASTNodes(tokens) {
                 // If the next token is a '[' character then some ticket counts have been defined as arguments.
                 if (tokens[0] === "[") {
                     // Get the ticket count arguments, each argument must be a number.
-                    node.tickets = getArguments(tokens, (arg) => (!isNaN(arg)) && parseFloat(arg, 10) === parseInt(arg, 10), "lotto node ticket counts must be integer values");
+                    node.tickets = getArguments(
+                        tokens,
+                        stringArgumentPlaceholders,
+                        (arg) => arg.type === ArgumentType.NUMBER && arg.isInteger, 
+                        "lotto node ticket counts must be integer values"
+                    ).map(argument => argument.value);
                 }
 
                 // Try to pick any decorators off of the token stack.
@@ -422,12 +432,12 @@ export default function buildRootASTNodes(tokens) {
                 } 
 
                 // The condition name will be defined as a node argument.
-                const conditionArguments = getArguments(tokens);
+                const conditionArguments = getArguments(tokens, stringArgumentPlaceholders);
 
-                // We should have only a single argument that is not an empty string for a condition node, which is the condition function name.
-                if (conditionArguments.length === 1 && conditionArguments[0] !== "") {
+                // We should have only a single identifier argument for a condition node, which is the condition function name.
+                if (conditionArguments.length === 1 && conditionArguments[0].type === ArgumentType.IDENTIFIER) {
                     // The condition function name will be the first and only node argument.
-                    node.conditionFunction = conditionArguments[0];
+                    node.conditionFunction = conditionArguments[0].value;
                 } else {
                     throw "expected single condition name argument";
                 }
@@ -460,16 +470,21 @@ export default function buildRootASTNodes(tokens) {
                 stack[stack.length-1].push(node);
 
                 // Get the duration and potential longest duration of the wait.
-                const durations = getArguments(tokens, (arg) => (!isNaN(arg)) && parseFloat(arg, 10) === parseInt(arg, 10), "wait node durations must be integer values");
+                const durations = getArguments(
+                    tokens,
+                    stringArgumentPlaceholders,
+                    (arg) => arg.type === ArgumentType.NUMBER && arg.isInteger,
+                    "wait node durations must be integer values"
+                ).map(argument => argument.value);
 
                 // We should have got one or two durations.
                 if (durations.length === 1) {
                     // A static duration was defined.
-                    node.duration = parseInt(durations[0], 10);
+                    node.duration = durations[0];
                 } else if (durations.length === 2) {
                     // A shortest and longest duration was defined.
-                    node.duration        = parseInt(durations[0], 10);
-                    node.longestDuration = parseInt(durations[1], 10);
+                    node.duration        = durations[0];
+                    node.longestDuration = durations[1];
                 } else {
                     // An incorrect number of durations was defined.
                     throw "invalid number of wait node duration arguments defined";
@@ -489,16 +504,21 @@ export default function buildRootASTNodes(tokens) {
                 // Check for iteration counts ([])
                 if (tokens[0] === "[") {
                     // An iteration count has been defined. Get the iteration and potential maximum iteration of the wait.
-                    const iterationArguments = getArguments(tokens, (arg) => (!isNaN(arg)) && parseFloat(arg, 10) === parseInt(arg, 10), "repeat node iteration counts must be integer values");
+                    const iterationArguments = getArguments(
+                        tokens,
+                        stringArgumentPlaceholders,
+                        (arg) => arg.type === ArgumentType.NUMBER && arg.isInteger,
+                        "repeat node iteration counts must be integer values"
+                    ).map(argument => argument.value);
 
                     // We should have got one or two iteration counts.
                     if (iterationArguments.length === 1) {
                         // A static iteration count was defined.
-                        node.iterations = parseInt(iterationArguments[0], 10);
+                        node.iterations = iterationArguments[0];
                     } else if (iterationArguments.length === 2) {
                         // A minimum and maximum iteration count was defined.
-                        node.iterations        = parseInt(iterationArguments[0], 10);
-                        node.maximumIterations = parseInt(iterationArguments[1], 10);
+                        node.iterations        = iterationArguments[0];
+                        node.maximumIterations = iterationArguments[1];
                     } else {
                         // An incorrect number of iteration counts was defined.
                         throw "invalid number of repeat node iteration count arguments defined";
@@ -527,12 +547,12 @@ export default function buildRootASTNodes(tokens) {
                 } 
 
                 // The action name will be defined as a node argument.
-                const actionArguments = getArguments(tokens);
+                const actionArguments = getArguments(tokens, stringArgumentPlaceholders);
 
-                // We should have only a single argument that is not an empty string for an action node, which is the action name.
-                if (actionArguments.length === 1 && actionArguments[0] !== "") {
+                // We should have only a single identifer argument for an action node, which is the action name.
+                if (actionArguments.length === 1 && actionArguments[0].type === ArgumentType.IDENTIFIER) {
                     // The action name will be the first and only node argument.
-                    node.actionName = actionArguments[0];
+                    node.actionName = actionArguments[0].value;
                 } else {
                     throw "expected single action name argument";
                 }
@@ -622,13 +642,14 @@ function popAndCheck(tokens, expected) {
 };
 
 /**
- * Pull an argument list off of the token stack.
+ * Pull an argument definition list off of the token stack.
  * @param tokens The array of remaining tokens.
+ * @param stringArgumentPlaceholders The mapping of string literal node argument placeholders to original values.
  * @param argumentValidator The argument validator function.
  * @param validationFailedMessage  The exception message to throw if argument validation fails.
- * @returns The arguments list.
+ * @returns The argument definition list.
  */
-function getArguments(tokens, argumentValidator, validationFailedMessage) {
+function getArguments(tokens, stringArgumentPlaceholders, argumentValidator, validationFailedMessage) {
     // Any lists of arguments will always be wrapped in '[]'. so we are looking for an opening
     popAndCheck(tokens, "[");
 
@@ -648,13 +669,16 @@ function getArguments(tokens, argumentValidator, validationFailedMessage) {
 
         // If the current token should be an actual argument then validate it,otherwise it should be a ',' token.
         if (shouldBeArgumentToken) {
+            // Get the argument definition.
+            const argumentDefinition = getArgumentDefinition(token, stringArgumentPlaceholders);
+
             // Try to validate the argument.
-            if (argumentValidator && !argumentValidator(token)) {
+            if (argumentValidator && !argumentValidator(argumentDefinition)) {
                 throw validationFailedMessage;
             }
 
             // This is a valid argument!
-            argumentList.push(token);
+            argumentList.push(argumentDefinition);
         } else {
             // The current token should be a ',' token.
             if (token !== ",") {
@@ -668,6 +692,53 @@ function getArguments(tokens, argumentValidator, validationFailedMessage) {
 
     // Return the argument list.
     return argumentList;
+};
+
+/**
+ * Gets an argument value definition.
+ * @param token The argument token.
+ * @param stringArgumentPlaceholders The mapping of string literal node argument placeholders to original values.
+ * @returns An argument value definition.
+ */
+function getArgumentDefinition(token, stringArgumentPlaceholders) {
+    // Check whether the token represents a null value.
+    if (token === "null") {
+        return { 
+            value: null, 
+            type: ArgumentType.NULL
+        };
+    }
+
+    // Check whether the token represents a boolean value.
+    if (token === "true" || token === "false") {
+        return { 
+            value: token === "true", 
+            type: ArgumentType.BOOLEAN
+        };
+    }
+
+    // Check whether the token represents a number value.
+    if (!isNaN(token)) {
+        return { 
+            value: parseFloat(token, 10), 
+            isInteger: parseFloat(token, 10) === parseInt(token, 10),
+            type: ArgumentType.NUMBER
+        };
+    }
+
+    // Check whether the token is a placeholder (e.g. @@0@@) representing a string literal.
+    if (token.match(/^@@\d+@@$/g)) {
+        return { 
+            value: stringArgumentPlaceholders[token], 
+            type: ArgumentType.STRING
+        };
+    }
+    
+    // The only remaining option is that the argument value is an identifier.
+    return {
+        value: token,
+        type: ArgumentType.IDENTIFIER
+    };
 };
 
 /**
