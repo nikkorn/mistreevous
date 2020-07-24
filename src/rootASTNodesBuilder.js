@@ -18,11 +18,11 @@ import Step from './decorators/step'
  * The node decorator factories.
  */
 const DecoratorFactories = {
-    "WHILE": (condition) => new While(condition),
-    "UNTIL": (condition) => new Until(condition),
-    "ENTRY": (functionName) => new Entry(functionName),
-    "EXIT": (functionName) => new Exit(functionName),
-    "STEP": (functionName) => new Step(functionName)
+    "WHILE": (condition, decoratorArguments) => new While(condition, decoratorArguments),
+    "UNTIL": (condition, decoratorArguments) => new Until(condition, decoratorArguments),
+    "ENTRY": (functionName, decoratorArguments) => new Entry(functionName, decoratorArguments),
+    "EXIT": (functionName, decoratorArguments) => new Exit(functionName, decoratorArguments),
+    "STEP": (functionName, decoratorArguments) => new Step(functionName, decoratorArguments)
 };
 
 /**
@@ -199,18 +199,6 @@ const ASTNodeFactories = {
             );
         }
     }),
-    "CONDITION": () => ({
-        type: "condition",
-        decorators: [],
-        conditionFunction: "",
-        validate: function (depth) {},
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
-            return new Condition(
-                this.decorators,
-                this.conditionFunction
-            );
-        }
-    }),
     "WAIT": () => ({
         type: "wait",
         decorators: [],
@@ -247,11 +235,27 @@ const ASTNodeFactories = {
         type: "action",
         decorators: [],
         actionName: "",
+        actionArguments: [],
         validate: function (depth) {},
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new Action(
                 this.decorators,
-                this.actionName
+                this.actionName,
+                this.actionArguments
+            );
+        }
+    }),
+    "CONDITION": () => ({
+        type: "condition",
+        decorators: [],
+        conditionName: "",
+        conditionArguments: [],
+        validate: function (depth) {},
+        createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+            return new Condition(
+                this.decorators,
+                this.conditionName,
+                this.conditionArguments
             );
         }
     })
@@ -437,7 +441,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 // We should have only a single identifier argument for a condition node, which is the condition function name.
                 if (conditionArguments.length === 1 && conditionArguments[0].type === ArgumentType.IDENTIFIER) {
                     // The condition function name will be the first and only node argument.
-                    node.conditionFunction = conditionArguments[0].value;
+                    node.conditionName = conditionArguments[0].value;
                 } else {
                     throw "expected single condition name argument";
                 }
@@ -620,7 +624,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
 /**
  * Pop the next raw token off of the stack and throw an error if it wasn't the expected one.
  * @param tokens The array of remaining tokens.
- * @param expected An optional string that we expect the next popped token to match.
+ * @param expected An optional string or array or items, one of which must match the next popped token.
  * @returns The popped token.
  */
 function popAndCheck(tokens, expected) {
@@ -632,9 +636,16 @@ function popAndCheck(tokens, expected) {
         throw "unexpected end of definition"; 
     }
 
-    // If an expected token was defined, was it the expected one?
-    if (expected && popped.toUpperCase() !== expected.toUpperCase()) {
-        throw "unexpected token found on the stack. Expected '" + expected + "' but got '" + popped + "'"; 
+    // Do we have an expected token/tokens array?
+    if (expected !== undefined) {
+        // Check whether the popped token matches at least one of our expected items.
+        var tokenMatchesExpectation = [].concat(expected).some(item => popped.toUpperCase() === expected.toUpperCase());
+
+        // Throw an error if the popped token didn't match any of our expected items.
+        if (!tokenMatchesExpectation) {
+            const expectationString = [].concat(expected).map(item => "'" + item + "'").join(" or ");
+            throw "unexpected token found on the stack. Expected " + expected + " but got '" + popped + "'"; 
+        }
     }
 
     // Return the popped token.
@@ -650,14 +661,15 @@ function popAndCheck(tokens, expected) {
  * @returns The argument definition list.
  */
 function getArguments(tokens, stringArgumentPlaceholders, argumentValidator, validationFailedMessage) {
-    // Any lists of arguments will always be wrapped in '[]'. so we are looking for an opening
-    popAndCheck(tokens, "[");
+    // Any lists of arguments will always be wrapped in '[]' for node arguments or '()' for decorator arguments.
+    // We are looking for a '[' or '(' opener that wraps the argument tokens and the relevant closer.
+    const closer = popAndCheck(tokens, ["[", "("]) === "[" ? "]" : ")";
 
     const argumentListTokens = [];
     const argumentList       = [];
 
-    // Grab all tokens between the '[' and ']'.
-    while (tokens.length && tokens[0] !== "]") {
+    // Grab all tokens between the '[' and ']' or '(' and ')'.
+    while (tokens.length && tokens[0] !== closer) {
         // The next token is part of our arguments list.
         argumentListTokens.push(tokens.shift());
     }
@@ -687,8 +699,8 @@ function getArguments(tokens, stringArgumentPlaceholders, argumentValidator, val
         }
     });
 
-    // The arguments list should terminate with a ']' token.
-    popAndCheck(tokens, "]");
+    // The arguments list should terminate with a ']' or ')' token, depending on the opener.
+    popAndCheck(tokens, closer);
 
     // Return the argument list.
     return argumentList;

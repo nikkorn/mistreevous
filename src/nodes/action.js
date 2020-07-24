@@ -6,8 +6,9 @@ import State from "../state";
  * This represents an immediate or ongoing state of behaviour.
  * @param decorators The node decorators.
  * @param actionName The action name.
+ * @param actionArguments The array of action argument definitions.
  */
-export default function Action(decorators, actionName) {
+export default function Action(decorators, actionName, actionArguments) {
     Leaf.call(this, "action", decorators);
 
     /**
