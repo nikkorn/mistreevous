@@ -6,7 +6,7 @@ import State from "../state";
  * This represents an immediate or ongoing state of behaviour.
  * @param decorators The node decorators.
  * @param actionName The action name.
- * @param actionArguments The array of action argument definitions.
+ * @param actionArguments The array of action arguments.
  */
 export default function Action(decorators, actionName, actionArguments) {
     Leaf.call(this, "action", decorators);
@@ -49,7 +49,7 @@ export default function Action(decorators, actionName, actionArguments) {
         // - The finished state of this action node.
         // - A promise to return a finished node state.
         // - Undefined if the node should remain in the running state.
-        const updateResult = action.call(board);
+        const updateResult = action.apply(board, actionArguments);
 
         if (updateResult instanceof Promise) {
             updateResult.then(
@@ -61,7 +61,7 @@ export default function Action(decorators, actionName, actionArguments) {
 
                     // Check to make sure the result is a valid finished state.
                     if (result !== State.SUCCEEDED && result !== State.FAILED) {
-                        throw "action node promise resolved with an invalid value, expected a State.SUCCEEDED or State.FAILED value to be returned";
+                        throw new Error("action node promise resolved with an invalid value, expected a State.SUCCEEDED or State.FAILED value to be returned");
                     }
 
                     // Set pending update promise state result to be processed on next update.

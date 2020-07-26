@@ -432,19 +432,22 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
 
                 // We must have arguments defined, as we require a condition function name argument.
                 if (tokens[0] !== "[") {
-                    throw "expected single condition name argument";
+                    throw new Error("expected condition name identifier argument");
                 } 
 
-                // The condition name will be defined as a node argument.
+                // Grab the condition node arguments.
                 const conditionArguments = getArguments(tokens, stringArgumentPlaceholders);
 
-                // We should have only a single identifier argument for a condition node, which is the condition function name.
-                if (conditionArguments.length === 1 && conditionArguments[0].type === ArgumentType.IDENTIFIER) {
-                    // The condition function name will be the first and only node argument.
-                    node.conditionName = conditionArguments[0].value;
+                // We should have at least a single identifier argument for a condition node, which is the condition function name.
+                if (conditionArguments.length && conditionArguments[0].type === ArgumentType.IDENTIFIER) {
+                    // The condition function name will be the first node argument.
+                    node.conditionName = conditionArguments.shift().value;
                 } else {
-                    throw "expected single condition name argument";
+                    throw new Error("expected condition name identifier argument");
                 }
+
+                // Any node arguments that follow the condition name identifier will be treated as condition function arguments.
+                node.conditionArguments = conditionArguments.map(arg => arg.value);
 
                 // Try to pick any decorators off of the token stack.
                 node.decorators = getDecorators(tokens);
@@ -491,7 +494,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                     node.longestDuration = durations[1];
                 } else {
                     // An incorrect number of durations was defined.
-                    throw "invalid number of wait node duration arguments defined";
+                    throw new Error("invalid number of wait node duration arguments defined");
                 }
 
                 // Try to pick any decorators off of the token stack.
@@ -525,7 +528,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                         node.maximumIterations = iterationArguments[1];
                     } else {
                         // An incorrect number of iteration counts was defined.
-                        throw "invalid number of repeat node iteration count arguments defined";
+                        throw new Error("invalid number of repeat node iteration count arguments defined");
                     }
                 }
 
@@ -547,19 +550,22 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
 
                 // We must have arguments defined, as we require an action name argument.
                 if (tokens[0] !== "[") {
-                    throw "expected single action name argument";
+                    throw new Error("expected action name identifier argument");
                 } 
 
                 // The action name will be defined as a node argument.
                 const actionArguments = getArguments(tokens, stringArgumentPlaceholders);
 
-                // We should have only a single identifer argument for an action node, which is the action name.
-                if (actionArguments.length === 1 && actionArguments[0].type === ArgumentType.IDENTIFIER) {
+                // We should have at least one identifer argument for an action node, which is the action name.
+                if (actionArguments.length && actionArguments[0].type === ArgumentType.IDENTIFIER) {
                     // The action name will be the first and only node argument.
-                    node.actionName = actionArguments[0].value;
+                    node.actionName = actionArguments.shift().value;
                 } else {
-                    throw "expected single action name argument";
+                    throw new Error("expected action name identifier argument");
                 }
+
+                // Any node arguments that follow the action name identifier will be treated as action function arguments.
+                node.actionArguments = actionArguments.map(arg => arg.value);
 
                 // Try to pick any decorators off of the token stack.
                 node.decorators = getDecorators(tokens);
@@ -571,7 +577,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 break;
 
             default:
-                throw "unexpected token: " + token
+                throw new Error("unexpected token: " + token);
         }
     }
 
