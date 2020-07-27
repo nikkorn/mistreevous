@@ -176,6 +176,22 @@ html, body {
     margin: 0px 2px;
 }
 
+.tree-view-arg.string {
+    color: #f8eb79;
+}
+
+.tree-view-arg.number {
+    color: #60ff90;
+}
+
+.tree-view-arg.boolean {
+    color: #6294ff;
+}
+
+.tree-view-arg.null {
+    color: #f68fff;
+}
+
 .tree-view-node > * {
     display: inline-block;
     padding: 2px 6px;

@@ -21,6 +21,23 @@ const example_snippets = {
     },
 
 
+    "action-with-args": {
+        "definition": `root {
+    action [Say, "hello world", 5, true]
+}`,
+        "blackboard": `{
+    Say: (dialog, times = 1, sayLoudly = false) => 
+    {
+        for (var index = 0; index < times; index++) {
+            console.log(sayLoudly ? dialog.toUpperCase() + "!!!" : dialog);
+        }
+
+        return Mistreevous.State.SUCCEEDED;
+    }
+}`
+    },
+
+
 
 
     "async-action": {

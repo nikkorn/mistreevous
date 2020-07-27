@@ -5,8 +5,9 @@ import State from "../state";
  * A base node.
  * @param type The node type.
  * @param decorators The node decorators.
+ * @param args The node argument definitions.
  */
-export default function Node(type, decorators) {
+export default function Node(type, decorators, args) {
   /**
    * The node uid.
    */
@@ -40,6 +41,11 @@ export default function Node(type, decorators) {
    * Gets the node decorators.
    */
   this.getDecorators = () => decorators || [];
+
+  /**
+   * Gets the node arguments.
+   */
+  this.getArguments = () => args || [];
 
   /**
    * Gets the node decorator with the specified type, or null if it does not exist.

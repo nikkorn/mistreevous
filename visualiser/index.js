@@ -334,6 +334,10 @@ function buildTreeView() {
             default: {
                 tooltip: function (node) { return node.item.caption },
                 template: (node) => {
+                    const getArgumentHTMl = () => node.item.arguments.length ? 
+                        `[${node.item.arguments.map((arg) => `<i class='tree-view-arg ${arg.type}'>${arg}</i>`).join(",")}]`
+                        : "";
+
                     if (node.item.decorators) {
                         const getDecoratorHTMl = () => 
                             node.item.decorators.map((decorator) => {
@@ -346,7 +350,7 @@ function buildTreeView() {
                             <img src="icons/${node.item.type}.png">
                             </div>
                             <div>
-                            <p class='tree-view-caption'>${node.item.caption}</p>
+                            <p class='tree-view-caption'>${node.item.caption + " " + getArgumentHTMl()}</p>
                             ${getDecoratorHTMl()}
                             </div>
                             </div>`;
@@ -355,7 +359,7 @@ function buildTreeView() {
                             <div class='tree-view-icon tree-view-icon-${node.item.type}'>
                             <img src="icons/${node.item.type}.png">
                             </div>
-                            <div><p class='tree-view-caption'>${node.item.caption}</p></div>
+                            <div><p class='tree-view-caption'>${node.item.caption + " " + getArgumentHTMl()}</p></div>
                             </div>`;
                     }
                 }

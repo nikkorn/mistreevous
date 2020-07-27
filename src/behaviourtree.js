@@ -107,7 +107,7 @@ export default function BehaviourTree(definition, board) {
         definition = definition.replace(/\,/g, " , ");
 
         // Split the definition into raw token form and return it.
-        return cleansedDefinition.replace(/\s+/g, " ").trim().split(" ");
+        return definition.replace(/\s+/g, " ").trim().split(" ");
     };
 
     /**
@@ -205,6 +205,7 @@ BehaviourTree.prototype.getFlattenedNodeDetails = function () {
             caption: node.getName(),
             state: node.getState(),
             decorators: getDecoratorDetails(node.getDecorators()),
+            arguments: node.getArguments(),
             parentId: parentUid
         });
 

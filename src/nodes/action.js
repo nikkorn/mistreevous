@@ -6,10 +6,10 @@ import State from "../state";
  * This represents an immediate or ongoing state of behaviour.
  * @param decorators The node decorators.
  * @param actionName The action name.
- * @param actionArguments The array of action arguments.
+ * @param actionArguments The array of action argument definitions.
  */
 export default function Action(decorators, actionName, actionArguments) {
-    Leaf.call(this, "action", decorators);
+    Leaf.call(this, "action", decorators, actionArguments);
 
     /**
      * Whether there is a pending update promise. 
@@ -49,7 +49,7 @@ export default function Action(decorators, actionName, actionArguments) {
         // - The finished state of this action node.
         // - A promise to return a finished node state.
         // - Undefined if the node should remain in the running state.
-        const updateResult = action.apply(board, actionArguments);
+        const updateResult = action.apply(board, actionArguments.map(arg => arg.value));
 
         if (updateResult instanceof Promise) {
             updateResult.then(

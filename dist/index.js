@@ -201,9 +201,10 @@ function Decorator(type) {
  * A leaf node.
  * @param type The node type.
  * @param decorators The node decorators.
+ * @param args The node argument definitions.
  */
-function Leaf(type, decorators) {
-  __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
+function Leaf(type, decorators, args) {
+  __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators, args);
 
   /**
    * Gets whether this node is a leaf node.
@@ -255,8 +256,9 @@ GuardUnsatisifedException.prototype = new Error();
  * A base node.
  * @param type The node type.
  * @param decorators The node decorators.
+ * @param args The node argument definitions.
  */
-function Node(type, decorators) {
+function Node(type, decorators, args) {
   /**
    * The node uid.
    */
@@ -290,6 +292,11 @@ function Node(type, decorators) {
    * Gets the node decorators.
    */
   this.getDecorators = () => decorators || [];
+
+  /**
+   * Gets the node arguments.
+   */
+  this.getArguments = () => args || [];
 
   /**
    * Gets the node decorator with the specified type, or null if it does not exist.
@@ -553,7 +560,7 @@ function BehaviourTree(definition, board) {
         definition = definition.replace(/\,/g, " , ");
 
         // Split the definition into raw token form and return it.
-        return cleansedDefinition.replace(/\s+/g, " ").trim().split(" ");
+        return definition.replace(/\s+/g, " ").trim().split(" ");
     };
 
     /**
@@ -645,6 +652,7 @@ BehaviourTree.prototype.getFlattenedNodeDetails = function () {
             caption: node.getName(),
             state: node.getState(),
             decorators: getDecoratorDetails(node.getDecorators()),
+            arguments: node.getArguments(),
             parentId: parentUid
         });
 
@@ -981,11 +989,6 @@ const ASTNodeFactories = {
 };
 
 /**
- * Enumeration of node argument types.
- */
-const ArgumentType = { IDENTIFIER: 0, STRING: 1, NUMBER: 2, BOOLEAN: 3, NULL: 4 };
-
-/**
 * Create an array of root AST nodes based on the remaining tokens.
 * @param tokens The remaining tokens.
 * @param stringArgumentPlaceholders The mapping of string literal node argument placeholders to original values.
@@ -1026,7 +1029,7 @@ function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                     const rootArguments = getArguments(tokens, stringArgumentPlaceholders);
 
                     // We should have only a single argument that is not an empty string for a root node, which is the root name identifier.
-                    if (rootArguments.length === 1 && rootArguments[0].type === ArgumentType.IDENTIFIER) {
+                    if (rootArguments.length === 1 && rootArguments[0].type === "identifier") {
                         // The root name will be the first and only node argument.
                         node.name = rootArguments[0].value;
                     } else {
@@ -1059,7 +1062,7 @@ function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 const branchArguments = getArguments(tokens, stringArgumentPlaceholders);
 
                 // We should have only a single identifer argument for a branch node, which is the branch name.
-                if (branchArguments.length === 1 && branchArguments[0].type === ArgumentType.IDENTIFIER) {
+                if (branchArguments.length === 1 && branchArguments[0].type === "identifier") {
                     // The branch name will be the first and only node argument.
                     node.branchName = branchArguments[0].value;
                 } else {
@@ -1125,7 +1128,7 @@ function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 // If the next token is a '[' character then some ticket counts have been defined as arguments.
                 if (tokens[0] === "[") {
                     // Get the ticket count arguments, each argument must be a number.
-                    node.tickets = getArguments(tokens, stringArgumentPlaceholders, arg => arg.type === ArgumentType.NUMBER && arg.isInteger, "lotto node ticket counts must be integer values").map(argument => argument.value);
+                    node.tickets = getArguments(tokens, stringArgumentPlaceholders, arg => arg.type === "number" && arg.isInteger, "lotto node ticket counts must be integer values").map(argument => argument.value);
                 }
 
                 // Try to pick any decorators off of the token stack.
@@ -1153,15 +1156,20 @@ function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 const conditionArguments = getArguments(tokens, stringArgumentPlaceholders);
 
                 // We should have at least a single identifier argument for a condition node, which is the condition function name.
-                if (conditionArguments.length && conditionArguments[0].type === ArgumentType.IDENTIFIER) {
+                if (conditionArguments.length && conditionArguments[0].type === "identifier") {
                     // The condition function name will be the first node argument.
                     node.conditionName = conditionArguments.shift().value;
                 } else {
                     throw new Error("expected condition name identifier argument");
                 }
 
+                // Only the first argument should have been an identifier, all following arguments must be string, number, boolean or null.
+                conditionArguments.filter(arg => arg.type === "identifier").forEach(arg => {
+                    throw new Error("invalid condition node argument value '" + arg.value + "', must be string, number, boolean or null");
+                });
+
                 // Any node arguments that follow the condition name identifier will be treated as condition function arguments.
-                node.conditionArguments = conditionArguments.map(arg => arg.value);
+                node.conditionArguments = conditionArguments;
 
                 // Try to pick any decorators off of the token stack.
                 node.decorators = getDecorators(tokens);
@@ -1191,7 +1199,7 @@ function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 stack[stack.length - 1].push(node);
 
                 // Get the duration and potential longest duration of the wait.
-                const durations = getArguments(tokens, stringArgumentPlaceholders, arg => arg.type === ArgumentType.NUMBER && arg.isInteger, "wait node durations must be integer values").map(argument => argument.value);
+                const durations = getArguments(tokens, stringArgumentPlaceholders, arg => arg.type === "number" && arg.isInteger, "wait node durations must be integer values").map(argument => argument.value);
 
                 // We should have got one or two durations.
                 if (durations.length === 1) {
@@ -1220,7 +1228,7 @@ function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 // Check for iteration counts ([])
                 if (tokens[0] === "[") {
                     // An iteration count has been defined. Get the iteration and potential maximum iteration of the wait.
-                    const iterationArguments = getArguments(tokens, stringArgumentPlaceholders, arg => arg.type === ArgumentType.NUMBER && arg.isInteger, "repeat node iteration counts must be integer values").map(argument => argument.value);
+                    const iterationArguments = getArguments(tokens, stringArgumentPlaceholders, arg => arg.type === "number" && arg.isInteger, "repeat node iteration counts must be integer values").map(argument => argument.value);
 
                     // We should have got one or two iteration counts.
                     if (iterationArguments.length === 1) {
@@ -1261,15 +1269,20 @@ function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 const actionArguments = getArguments(tokens, stringArgumentPlaceholders);
 
                 // We should have at least one identifer argument for an action node, which is the action name.
-                if (actionArguments.length && actionArguments[0].type === ArgumentType.IDENTIFIER) {
+                if (actionArguments.length && actionArguments[0].type === "identifier") {
                     // The action name will be the first and only node argument.
                     node.actionName = actionArguments.shift().value;
                 } else {
                     throw new Error("expected action name identifier argument");
                 }
 
+                // Only the first argument should have been an identifier, all following arguments must be string, number, boolean or null.
+                actionArguments.filter(arg => arg.type === "identifier").forEach(arg => {
+                    throw new Error("invalid action node argument value '" + arg.value + "', must be string, number, boolean or null");
+                });
+
                 // Any node arguments that follow the action name identifier will be treated as action function arguments.
-                node.actionArguments = actionArguments.map(arg => arg.value);
+                node.actionArguments = actionArguments;
 
                 // Try to pick any decorators off of the token stack.
                 node.decorators = getDecorators(tokens);
@@ -1351,7 +1364,7 @@ function popAndCheck(tokens, expected) {
     // Do we have an expected token/tokens array?
     if (expected !== undefined) {
         // Check whether the popped token matches at least one of our expected items.
-        var tokenMatchesExpectation = [].concat(expected).some(item => popped.toUpperCase() === expected.toUpperCase());
+        var tokenMatchesExpectation = [].concat(expected).some(item => popped.toUpperCase() === item.toUpperCase());
 
         // Throw an error if the popped token didn't match any of our expected items.
         if (!tokenMatchesExpectation) {
@@ -1429,7 +1442,10 @@ function getArgumentDefinition(token, stringArgumentPlaceholders) {
     if (token === "null") {
         return {
             value: null,
-            type: ArgumentType.NULL
+            type: "null",
+            toString: function () {
+                return this.value;
+            }
         };
     }
 
@@ -1437,7 +1453,10 @@ function getArgumentDefinition(token, stringArgumentPlaceholders) {
     if (token === "true" || token === "false") {
         return {
             value: token === "true",
-            type: ArgumentType.BOOLEAN
+            type: "boolean",
+            toString: function () {
+                return this.value;
+            }
         };
     }
 
@@ -1446,7 +1465,10 @@ function getArgumentDefinition(token, stringArgumentPlaceholders) {
         return {
             value: parseFloat(token, 10),
             isInteger: parseFloat(token, 10) === parseInt(token, 10),
-            type: ArgumentType.NUMBER
+            type: "number",
+            toString: function () {
+                return this.value;
+            }
         };
     }
 
@@ -1454,14 +1476,20 @@ function getArgumentDefinition(token, stringArgumentPlaceholders) {
     if (token.match(/^@@\d+@@$/g)) {
         return {
             value: stringArgumentPlaceholders[token],
-            type: ArgumentType.STRING
+            type: "string",
+            toString: function () {
+                return "\"" + this.value + "\"";
+            }
         };
     }
 
     // The only remaining option is that the argument value is an identifier.
     return {
         value: token,
-        type: ArgumentType.IDENTIFIER
+        type: "identifier",
+        toString: function () {
+            return this.value;
+        }
     };
 };
 
@@ -1521,10 +1549,10 @@ function getDecorators(tokens) {
  * This represents an immediate or ongoing state of behaviour.
  * @param decorators The node decorators.
  * @param actionName The action name.
- * @param actionArguments The array of action arguments.
+ * @param actionArguments The array of action argument definitions.
  */
 function Action(decorators, actionName, actionArguments) {
-    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "action", decorators);
+    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "action", decorators, actionArguments);
 
     /**
      * Whether there is a pending update promise. 
@@ -1564,7 +1592,7 @@ function Action(decorators, actionName, actionArguments) {
         // - The finished state of this action node.
         // - A promise to return a finished node state.
         // - Undefined if the node should remain in the running state.
-        const updateResult = action.apply(board, actionArguments);
+        const updateResult = action.apply(board, actionArguments.map(arg => arg.value));
 
         if (updateResult instanceof Promise) {
             updateResult.then(result => {
@@ -1671,10 +1699,10 @@ Action.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* defa
  * This will succeed or fail immediately based on a board predicate, without moving to the 'RUNNING' state.
  * @param decorators The node decorators.
  * @param conditionName The name of the condition function.
- * @param conditionArguments The array of condition arguments.
+ * @param conditionArguments The array of condition argument definitions.
  */
 function Condition(decorators, conditionName, conditionArguments) {
-    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "condition", decorators);
+    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "condition", decorators, conditionArguments);
 
     /**
      * Update the node.
@@ -1684,7 +1712,7 @@ function Condition(decorators, conditionName, conditionArguments) {
     this.onUpdate = function (board) {
         // Call the condition function to determine the state of this node, but it must exist in the blackboard.
         if (typeof board[conditionName] === "function") {
-            this.setState(!!board[conditionName].apply(board, conditionArguments) ? __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED : __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
+            this.setState(!!board[conditionName].apply(board, conditionArguments.map(arg => arg.value)) ? __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED : __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
         } else {
             throw new Error(`cannot update condition node as function '${conditionName}' is not defined in the blackboard`);
         }
