@@ -334,15 +334,13 @@ function buildTreeView() {
             default: {
                 tooltip: function (node) { return node.item.caption },
                 template: (node) => {
-                    const getArgumentHTMl = () => node.item.arguments.length ? 
-                        `[${node.item.arguments.map((arg) => `<i class='tree-view-arg ${arg.type}'>${arg}</i>`).join(",")}]`
-                        : "";
+                    const getArgumentHTMl = (args) => args.length ? `[${args.map((arg) => `<i class='tree-view-arg ${arg.type}'>${arg}</i>`).join(",")}]` : "";
 
                     if (node.item.decorators) {
                         const getDecoratorHTMl = () => 
                             node.item.decorators.map((decorator) => {
                                 return `<hr style="margin-top: 1px; margin-bottom: 1px;">
-                                <i class='tree-view-caption'>${decorator.type.toUpperCase()} ${decorator.condition || decorator.functionName}</i>`;
+                                <i class='tree-view-caption'>${decorator.type.toUpperCase()} ${decorator.condition || decorator.functionName} ${getArgumentHTMl(decorator.arguments)}</i>`;
                             }).join("");
 
                         return `<div class='tree-view-node ${convertNodeStateToString(node.item.state)}'>
@@ -350,7 +348,7 @@ function buildTreeView() {
                             <img src="icons/${node.item.type}.png">
                             </div>
                             <div>
-                            <p class='tree-view-caption'>${node.item.caption + " " + getArgumentHTMl()}</p>
+                            <p class='tree-view-caption'>${node.item.caption + " " + getArgumentHTMl(node.item.arguments)}</p>
                             ${getDecoratorHTMl()}
                             </div>
                             </div>`;
@@ -359,7 +357,7 @@ function buildTreeView() {
                             <div class='tree-view-icon tree-view-icon-${node.item.type}'>
                             <img src="icons/${node.item.type}.png">
                             </div>
-                            <div><p class='tree-view-caption'>${node.item.caption + " " + getArgumentHTMl()}</p></div>
+                            <div><p class='tree-view-caption'>${node.item.caption + " " + getArgumentHTMl(node.item.arguments)}</p></div>
                             </div>`;
                     }
                 }

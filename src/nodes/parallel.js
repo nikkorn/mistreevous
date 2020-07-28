@@ -49,7 +49,7 @@ export default function Parallel(decorators, children) {
             // The node should be in the 'RUNNING' state.
             if (child.getState() !== State.RUNNING) {
                 // The child node was not in an expected state.
-                throw "Error: child node was not in an expected state.";
+                throw new Error("child node was not in an expected state.");
             }
         }
 

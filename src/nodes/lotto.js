@@ -43,7 +43,7 @@ export default function Lotto(decorators, tickets, children) {
         this.draw = function() {
             // We cannot do anything if there are no participants.
             if (!this.participants.length) {
-                throw "cannot draw a lotto winner when there are no participants";
+                throw new Error("cannot draw a lotto winner when there are no participants");
             }
 
             const pickable = [];

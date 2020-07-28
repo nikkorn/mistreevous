@@ -60,7 +60,7 @@ export default function BehaviourTree(definition, board) {
             this._applyLeafNodeGuardPaths();
         } catch (exception) {
             // There was an issue in trying to parse and build the tree definition.
-            throw new Error(`error parsing tree: ${exception}`);
+            throw new Error(`error parsing tree: ${exception.message}`);
         }
     };
 
@@ -249,7 +249,7 @@ BehaviourTree.prototype.step = function () {
     try {
         this._rootNode.update(this._blackboard);
     } catch (exception) {
-        throw new Error(`error stepping tree: ${exception}`);
+        throw new Error(`error stepping tree: ${exception.message}`);
     }
 };
 

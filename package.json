@@ -22,7 +22,7 @@
   },
   "scripts": {
     "build": "webpack",
-    "test": "webpack && mocha"
+    "test": "webpack && mocha \"test/**/*.js\""
   },
   "repository": {
     "type": "git",
