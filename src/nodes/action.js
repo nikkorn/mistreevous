@@ -116,7 +116,7 @@ export default function Action(decorators, actionName, actionArguments) {
     this._validateAction = (action) => {
         // The action should be defined.
         if (!action) {
-            throw `cannot update action node as action '${actionName}' is not defined in the blackboard`;
+            throw new Error(`cannot update action node as action '${actionName}' is not defined in the blackboard`);
         }
 
         // The action will need to be a function or an object, anything else is not valid.
@@ -136,7 +136,7 @@ export default function Action(decorators, actionName, actionArguments) {
             case undefined:
                 return;
             default:
-                throw `action '${actionName}' 'onUpdate' returned an invalid response, expected an optional State.SUCCEEDED or State.FAILED value to be returned`;
+                throw new Error(`action '${actionName}' 'onUpdate' returned an invalid response, expected an optional State.SUCCEEDED or State.FAILED value to be returned`);
         }
     };
 };

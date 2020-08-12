@@ -1483,7 +1483,7 @@ function getArgumentDefinition(token, stringArgumentPlaceholders) {
     // Check whether the token is a placeholder (e.g. @@0@@) representing a string literal.
     if (token.match(/^@@\d+@@$/g)) {
         return {
-            value: stringArgumentPlaceholders[token],
+            value: stringArgumentPlaceholders[token].replace('\\"', '"'),
             type: "string",
             toString: function () {
                 return "\"" + this.value + "\"";
@@ -1676,7 +1676,7 @@ function Action(decorators, actionName, actionArguments) {
     this._validateAction = action => {
         // The action should be defined.
         if (!action) {
-            throw `cannot update action node as action '${actionName}' is not defined in the blackboard`;
+            throw new Error(`cannot update action node as action '${actionName}' is not defined in the blackboard`);
         }
 
         // The action will need to be a function or an object, anything else is not valid.
@@ -1696,7 +1696,7 @@ function Action(decorators, actionName, actionArguments) {
             case undefined:
                 return;
             default:
-                throw `action '${actionName}' 'onUpdate' returned an invalid response, expected an optional State.SUCCEEDED or State.FAILED value to be returned`;
+                throw new Error(`action '${actionName}' 'onUpdate' returned an invalid response, expected an optional State.SUCCEEDED or State.FAILED value to be returned`);
         }
     };
 };

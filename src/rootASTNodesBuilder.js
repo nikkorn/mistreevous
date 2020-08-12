@@ -755,7 +755,7 @@ function getArgumentDefinition(token, stringArgumentPlaceholders) {
     // Check whether the token is a placeholder (e.g. @@0@@) representing a string literal.
     if (token.match(/^@@\d+@@$/g)) {
         return { 
-            value: stringArgumentPlaceholders[token], 
+            value: stringArgumentPlaceholders[token].replace('\\"', '"'), 
             type: "string",
             toString: function() { return "\"" + this.value + "\""; } 
         };
