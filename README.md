@@ -422,3 +422,13 @@ root {
     }
 }
 ```
+
+## Version History
+| Version        | Notes           |
+| -------------- |:-------------|
+| 2.1.0          | Added optional arguments for actions, conditions and decorators  | 
+| 2.0.1          | Fixed isses with inconsistent guard condition evaluation for composite nodes | 
+| 2.0.0          | Fixed broken typings | 
+| 1.1.0          | Added parallel composite node |
+| 1.0.0          | Calls to action, condition and guard blackboard functions are now bound to the blackboard  |
+| 0.0.6          | Added promisey actions     |
