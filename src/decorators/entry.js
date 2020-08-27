@@ -34,7 +34,7 @@ export default function Entry(functionName, args) {
         if (typeof board[functionName] === "function") {
             board[functionName].apply(board, args.map(arg => arg.value));
         } else {
-            throw `cannot call entry decorator function '${functionName}' is not defined in the blackboard`;
+            throw new Error(`cannot call entry decorator function '${functionName}' is not defined in the blackboard`);
         }
     };
 };

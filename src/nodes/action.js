@@ -74,7 +74,7 @@ export default function Action(decorators, actionName, actionArguments) {
                     }
 
                     // Just throw whatever was returned as the rejection argument.
-                    throw reason;
+                    throw new Error(reason);
                 }
             );
 

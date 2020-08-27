@@ -830,14 +830,14 @@ const ASTNodeFactories = {
 
             // If we have already visited this branch then we have a circular dependency.
             if (visitedBranches.indexOf(this.branchName) !== -1) {
-                throw `circular dependency found in branch node references for branch '${this.branchName}'`;
+                throw new Error(`circular dependency found in branch node references for branch '${this.branchName}'`);
             }
 
             // If we have a target root node, then the node instance we want will be the first and only child of the referenced root node.
             if (targetRootNode) {
                 return targetRootNode.createNodeInstance(namedRootNodeProvider, visitedBranches.concat(this.branchName)).getChildren()[0];
             } else {
-                throw `branch references root node '${this.branchName}' which has not been defined`;
+                throw new Error(`branch references root node '${this.branchName}' which has not been defined`);
             }
         }
     }),
@@ -1419,7 +1419,7 @@ function getArguments(tokens, stringArgumentPlaceholders, argumentValidator, val
 
             // Try to validate the argument.
             if (argumentValidator && !argumentValidator(argumentDefinition)) {
-                throw validationFailedMessage;
+                throw new Error(validationFailedMessage);
             }
 
             // This is a valid argument!
@@ -1427,7 +1427,7 @@ function getArguments(tokens, stringArgumentPlaceholders, argumentValidator, val
         } else {
             // The current token should be a ',' token.
             if (token !== ",") {
-                throw `invalid argument list, expected ',' or ']' but got '${token}'`;
+                throw new Error(`invalid argument list, expected ',' or ']' but got '${token}'`);
             }
         }
     });
@@ -1521,7 +1521,7 @@ function getDecorators(tokens, stringArgumentPlaceholders) {
     while (decoratorFactory) {
         // Check to make sure that we have not already created a decorator of this type for this node.
         if (decoratorsFound.indexOf(tokens[0].toUpperCase()) !== -1) {
-            throw `duplicate decorator '${tokens[0].toUpperCase()}' found for node`;
+            throw new Error(`duplicate decorator '${tokens[0].toUpperCase()}' found for node`);
         }
 
         // Add the current decorator type to our array of found decorators.
@@ -1635,7 +1635,7 @@ function Action(decorators, actionName, actionArguments) {
                 }
 
                 // Just throw whatever was returned as the rejection argument.
-                throw reason;
+                throw new Error(reason);
             });
 
             // This node will be in the 'RUNNING' state until the update promise resolves.
@@ -2468,7 +2468,7 @@ function While(condition, args) {
         if (typeof board[condition] === "function") {
             return !!board[condition].apply(board, args.map(arg => arg.value));
         } else {
-            throw `cannot evaluate node guard as function '${condition}' is not defined in the blackboard`;
+            throw new Error(`cannot evaluate node guard as function '${condition}' is not defined in the blackboard`);
         }
     };
 };
@@ -2524,7 +2524,7 @@ function Until(condition, args) {
         if (typeof board[condition] === "function") {
             return !!!board[condition].apply(board, args.map(arg => arg.value));
         } else {
-            throw `cannot evaluate node guard as function '${condition}' is not defined in the blackboard`;
+            throw new Error(`cannot evaluate node guard as function '${condition}' is not defined in the blackboard`);
         }
     };
 };
@@ -2574,7 +2574,7 @@ function Entry(functionName, args) {
         if (typeof board[functionName] === "function") {
             board[functionName].apply(board, args.map(arg => arg.value));
         } else {
-            throw `cannot call entry decorator function '${functionName}' is not defined in the blackboard`;
+            throw new Error(`cannot call entry decorator function '${functionName}' is not defined in the blackboard`);
         }
     };
 };
@@ -2626,7 +2626,7 @@ function Exit(functionName, args) {
         if (typeof board[functionName] === "function") {
             board[functionName].apply(board, [{ succeeded: isSuccess, aborted: isAborted }].concat(args.map(arg => arg.value)));
         } else {
-            throw `cannot call exit decorator function '${functionName}' is not defined in the blackboard`;
+            throw new Error(`cannot call exit decorator function '${functionName}' is not defined in the blackboard`);
         }
     };
 };
@@ -2676,7 +2676,7 @@ function Step(functionName, args) {
         if (typeof board[functionName] === "function") {
             board[functionName].apply(board, args.map(arg => arg.value));
         } else {
-            throw `cannot call entry decorator function '${functionName}' is not defined in the blackboard`;
+            throw new Error(`cannot call entry decorator function '${functionName}' is not defined in the blackboard`);
         }
     };
 };

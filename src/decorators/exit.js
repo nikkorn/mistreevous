@@ -36,7 +36,7 @@ export default function Exit(functionName, args) {
         if (typeof board[functionName] === "function") {
             board[functionName].apply(board, [{ succeeded: isSuccess, aborted: isAborted }].concat(args.map(arg => arg.value)));
         } else {
-            throw `cannot call exit decorator function '${functionName}' is not defined in the blackboard`;
+            throw new Error(`cannot call exit decorator function '${functionName}' is not defined in the blackboard`);
         }
     };
 };

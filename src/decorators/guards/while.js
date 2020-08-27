@@ -40,7 +40,7 @@ export default function While(condition, args) {
         if (typeof board[condition] === "function") {
             return !!(board[condition].apply(board, args.map(arg => arg.value)));
         } else {
-            throw `cannot evaluate node guard as function '${condition}' is not defined in the blackboard`;
+            throw new Error(`cannot evaluate node guard as function '${condition}' is not defined in the blackboard`);
         }
     };
 };
