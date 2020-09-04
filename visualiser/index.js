@@ -33,62 +33,6 @@ let blackboard;
  */
 let playIntervalId = null;
 
-// Set a test definition.
-definitionTextArea.value =
-`root {
-    sequence {
-        action [WalkToDoor]
-        repeat [1,3] {
-            sequence {
-                wait [1000]
-                wait [1000]
-            }
-        }
-        wait [1000,2500]
-        selector {
-            condition [DoorIsOpen]
-            action [OpenDoor]
-            branch [AttemptDoorOpen]
-            branch [AttemptDoorOpen]
-            sequence {
-                lotto [1,2] {
-                    action [ScreamLoudly]
-                    action [MutterAngrily]
-                }
-                action [SmashDoor]
-            }
-        }
-        action [WalkThroughDoor]
-        selector {
-            condition [DoorIsSmashed]
-            action [CloseDoor]
-        }
-    }
-}
-
-root [AttemptDoorOpen] {
-    sequence {
-        action [UnlockDoor]
-        action [OpenDoor]
-    }
-}`;
-
-// Set a test blackboard in the blackboard text area.
-blackboardTextArea.value =
-`{
-    DoorIsOpen: () => false,
-    DoorIsSmashed: () => true,  
-
-    WalkToDoor: () => Mistreevous.State.SUCCEEDED,
-    OpenDoor: () => Mistreevous.State.FAILED,
-    UnlockDoor: () => Mistreevous.State.FAILED,
-    SmashDoor: () => {},
-    WalkThroughDoor: () => Mistreevous.State.SUCCEEDED,
-    CloseDoor: () => Mistreevous.State.SUCCEEDED,
-    ScreamLoudly: () => Mistreevous.State.SUCCEEDED,
-    MutterAngrily: () => Mistreevous.State.SUCCEEDED
-}`;
-
 /**
  * Reload the visualiser.
  */
@@ -401,3 +345,6 @@ reloadVisualiser();
 
 // Set the initial sidebar state so that it is not shown.
 changeSidebarView(SidebarViewState.NONE);
+
+// Simulate selection of the fist snippet list item.
+onSnippetSelect();
