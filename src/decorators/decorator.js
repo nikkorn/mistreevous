@@ -1,13 +1,18 @@
 /**
  * A base node decorator.
  * @param type The node decorator type.
+ * @param args The array of decorator argument definitions.
  */
-export default function Decorator(type) {
-  
+export default function Decorator(type, args) {
     /**
      * Gets the type of the node.
      */
     this.getType = () => type;
+
+    /**
+     * Gets the array of decorator argument definitions.
+     */
+    this.getArguments = () => args;
   
     /**
      * Gets whether the decorator is a guard.
@@ -17,5 +22,8 @@ export default function Decorator(type) {
     /**
      * Gets the decorator details.
      */
-    this.getDetails = () => ({ type: this.getType() });
+    this.getDetails = () => ({ 
+        type: this.getType(),
+        arguments: this.getArguments()
+    });
 };

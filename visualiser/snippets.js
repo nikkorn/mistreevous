@@ -21,6 +21,23 @@ const example_snippets = {
     },
 
 
+    "action-with-args": {
+        "definition": `root {
+    action [Say, "hello world", 5, true]
+}`,
+        "blackboard": `{
+    Say: (dialog, times = 1, sayLoudly = false) => 
+    {
+        for (var index = 0; index < times; index++) {
+            console.log(sayLoudly ? dialog.toUpperCase() + "!!!" : dialog);
+        }
+
+        return Mistreevous.State.SUCCEEDED;
+    }
+}`
+    },
+
+
 
 
     "async-action": {
@@ -35,6 +52,33 @@ const example_snippets = {
       }, 3000);
     });
   }
+}`
+    },
+
+
+
+
+
+    "basic-condition": {
+        "definition": `root {
+    condition [SomeCondition]
+}`,
+        "blackboard": `{
+    SomeCondition: () => true
+}`
+    },
+
+
+    "condition-with-args": {
+        "definition": `root {
+    condition [HasItem, "gold", 500]
+}`,
+        "blackboard": `{
+    HasItem: (item, quantity = 1) => 
+    {
+        console.log("check whether we have " + quantity + " " + item);
+        return Mistreevous.State.SUCCEEDED;
+    }
 }`
     },
 
@@ -255,6 +299,47 @@ const example_snippets = {
 
     // An action that will immediately fail.
     Fail: () => Mistreevous.State.FAILED
+}`
+    },
+
+
+
+
+    "basic-enemy": {
+        "definition": `root {
+    selector {
+        selector while(CanSeePlayer) {
+            sequence {
+                condition [PlayerIsClose]
+                wait [500]
+                action [AttackPlayer]
+            }
+            action [MoveTowardsPlayer]
+        }
+        sequence {
+            condition [IsHungry]
+            condition [CanSeeFood]
+            action [EatFood]
+        }
+        lotto {
+            action [Complain]
+            action [Wander]
+            action [Sleep]
+        }
+    }
+}`,
+        "blackboard": `{
+    CanSeePlayer: () => true,
+    PlayerIsClose: () => false,
+    IsHungry: () => false,
+    CanSeeFood: () => false,  
+
+    AttackPlayer: () => Mistreevous.State.SUCCEEDED,
+    MoveTowardsPlayer: () => Mistreevous.State.SUCCEEDED,
+    EatFood: () => Mistreevous.State.SUCCEEDED,
+    Complain: () => Mistreevous.State.SUCCEEDED,
+    Wander: () => Mistreevous.State.SUCCEEDED,
+    Sleep: () => Mistreevous.State.SUCCEEDED
 }`
     }
 };

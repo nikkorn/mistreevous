@@ -52,6 +52,22 @@ behaviourTree.step();
 // 'falling!
 // 'laughing!'
 ```
+# Behaviour Tree Methods
+
+#### .isRunning()
+Returns `true` if the tree is in the `RUNNING` state, otherwise `false`.
+
+#### .getState()
+Gets the current tree state of `SUCCEEDED`, `FAILED` or `RUNNING`.
+
+#### .step()
+Carries out a node update that traverses the tree from the root node outwards to any child nodes, skipping those that are already in a resolved state of `SUCCEEDED` or `FAILED`. After being updated, leaf nodes will have a state of `SUCCEEDED`, `FAILED` or `RUNNING`. Leaf nodes that are left in the `RUNNING` state as part of a tree step will be revisited each subsequent step until they move into a resolved state of either `SUCCEEDED` or `FAILED`, after which execution will move through the tree to the next node with a state of `READY`.
+
+Calling this method when the tree is already in a resolved state of `SUCCEEDED` or `FAILED` will cause it to be reset before tree traversal begins.
+
+#### .reset()
+Resets the tree from the root node outwards to each nested node, giving each a state of `READY`.
+
 
 # Behaviour Tree Methods
 
@@ -212,9 +228,15 @@ root {
 ## Leaf Nodes
 
 ### Action
-An action node represents an action that can be completed immediately as part of a single tree step, or ongoing behaviour that can take a prolonged amount of time and may take multiple tree steps to complete. Each action node will correspond to functionality defined within the blackboard.
+An action node represents an action that can be completed immediately as part of a single tree step, or ongoing behaviour that can take a prolonged amount of time and may take multiple tree steps to complete. Each action node will correspond to functionality defined within the blackboard, where the first action node argument will be an identifier matching the name of the corresponding blackboard action function.
 
-An action is defined within the blackboard as a function that can optionally return a finished action state of **succeeded** or **failed**. If the **succeeded** or **failed** state is returned, then the action will move into that state.
+A blackboard action function can optionally return a finished action state of **succeeded** or **failed**. If the **succeeded** or **failed** state is returned, then the action will move into that state.
+
+```
+root {
+    action [Attack]
+}
+```
 
 ```js
 const board = {
@@ -272,8 +294,32 @@ const board = {
 };
 ```
 
+#### Optional Arguments
+Arguments can optionally be passed to blackboard action functions. This is done by including them in the action node argument list in the definition. These optional arguments must be defined after the action name identifier argument, and can be  a `number`, `string`, `boolean` or `null`.
+
+```
+root {
+    action [Say, "hello world", 5, true]
+}
+```
+
+```js
+const board = {
+    //...
+    Say: (dialog, times = 1, sayLoudly = false) => 
+    {
+        for (var index = 0; index < times; index++) {
+            showDialog(sayLoudly ? dialog.toUpperCase() + "!!!" : dialog);
+        }
+
+        return Mistreevous.State.SUCCEEDED;
+    }
+    // ...
+};
+```
+
 ### Condition
-A Condition node will immediately move into either a **succeeded** or **failed** based of the boolean result of calling a function in the blackboard.
+A Condition node will immediately move into either a **succeeded** or **failed** based of the boolean result of calling a function in the blackboard. Each condition node will correspond to functionality defined within the blackboard, where the first condition node argument will be an identifier matching the name of the corresponding blackboard condition function.
 
 ```
 root {
@@ -289,6 +335,24 @@ const board = {
     HasWeapon: () => this.isHoldingWeapon(),
     //...
     Attack: () => this.attackPlayer(),
+    // ...
+};
+```
+
+#### Optional Arguments
+Arguments can optionally be passed to blackboard condition functions in the same was as action nodes. This is done by including them in the condition node argument list in the definition. These optional arguments must be defined after the condition name identifier argument, and can be a `number`, `string`, `boolean` or `null`.
+
+```
+root {
+    sequence {
+        condition [HasItem, "potion"]
+    }
+}
+```
+```js
+const board = {
+    //...
+    HasItem: (itemName) => this.inventory.includes(itemName),
     // ...
 };
 ```
@@ -313,7 +377,7 @@ The duration to wait in milliseconds can also be selected at random within a low
 root {
     sequence {
         action [PickUpProjectile]
-        wait [2000,8000]
+        wait [2000, 8000]
         action [ThrowProjectile]
     }
 }
@@ -340,6 +404,8 @@ root {
 
 ## Decorators
 Decorators allow additional behaviour to be defined for a tree node. Any number of decorators can be attached to a node as long as there are not multiple decorators of the same type.
+
+Optional arguments can be defined for decorator blackboard functions in the same way as action and condition blackboard functions.
 
 ### Entry
 An entry decorator defines a blackboard function to call whenever the decorated node moves out of the **ready** state when it is first visited.
@@ -423,3 +489,13 @@ root {
     }
 }
 ```
+
+## Version History
+| Version        | Notes           |
+| -------------- |:-------------|
+| 2.1.0          | Added optional arguments for actions, conditions and decorators  | 
+| 2.0.1          | Fixed isses with inconsistent guard condition evaluation for composite nodes | 
+| 2.0.0          | Fixed broken typings | 
+| 1.1.0          | Added parallel composite node |
+| 1.0.0          | Calls to action, condition and guard blackboard functions are now bound to the blackboard  |
+| 0.0.6          | Added promisey actions     |

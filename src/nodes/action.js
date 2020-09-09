@@ -6,9 +6,10 @@ import State from "../state";
  * This represents an immediate or ongoing state of behaviour.
  * @param decorators The node decorators.
  * @param actionName The action name.
+ * @param actionArguments The array of action argument definitions.
  */
-export default function Action(decorators, actionName) {
-    Leaf.call(this, "action", decorators);
+export default function Action(decorators, actionName, actionArguments) {
+    Leaf.call(this, "action", decorators, actionArguments);
 
     /**
      * Whether there is a pending update promise. 
@@ -48,7 +49,7 @@ export default function Action(decorators, actionName) {
         // - The finished state of this action node.
         // - A promise to return a finished node state.
         // - Undefined if the node should remain in the running state.
-        const updateResult = action.call(board);
+        const updateResult = action.apply(board, actionArguments.map(arg => arg.value));
 
         if (updateResult instanceof Promise) {
             updateResult.then(
@@ -60,7 +61,7 @@ export default function Action(decorators, actionName) {
 
                     // Check to make sure the result is a valid finished state.
                     if (result !== State.SUCCEEDED && result !== State.FAILED) {
-                        throw "action node promise resolved with an invalid value, expected a State.SUCCEEDED or State.FAILED value to be returned";
+                        throw new Error("action node promise resolved with an invalid value, expected a State.SUCCEEDED or State.FAILED value to be returned");
                     }
 
                     // Set pending update promise state result to be processed on next update.
@@ -73,7 +74,7 @@ export default function Action(decorators, actionName) {
                     }
 
                     // Just throw whatever was returned as the rejection argument.
-                    throw reason;
+                    throw new Error(reason);
                 }
             );
 
@@ -115,7 +116,7 @@ export default function Action(decorators, actionName) {
     this._validateAction = (action) => {
         // The action should be defined.
         if (!action) {
-            throw `cannot update action node as action '${actionName}' is not defined in the blackboard`;
+            throw new Error(`cannot update action node as action '${actionName}' is not defined in the blackboard`);
         }
 
         // The action will need to be a function or an object, anything else is not valid.
@@ -135,7 +136,7 @@ export default function Action(decorators, actionName) {
             case undefined:
                 return;
             default:
-                throw `action '${actionName}' 'onUpdate' returned an invalid response, expected an optional State.SUCCEEDED or State.FAILED value to be returned`;
+                throw new Error(`action '${actionName}' 'onUpdate' returned an invalid response, expected an optional State.SUCCEEDED or State.FAILED value to be returned`);
         }
     };
 };

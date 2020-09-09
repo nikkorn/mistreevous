@@ -1,8 +1,17 @@
 html, body {
     height: 100%;
     margin: 0;
-    font-family: "Courier New", Courier, monospace;
+    font-family: 'Source Code Pro', monospace;
 }
+
+h3 {
+    margin: 0.2em;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+} 
 
 .page-container {
     display: flex;
@@ -27,6 +36,7 @@ html, body {
     justify-content: space-between;
     background-color: #444444;
     color: #FFFFFF;
+    padding: 2px;
 }
 
 #header-icon {
@@ -44,6 +54,25 @@ html, body {
 #title-bar {
     margin-left: 10px;
     font-weight: 900;
+}
+
+#menu {
+    display: flex;
+    flex-direction: row;
+    box-sizing: border-box;  
+    margin-right: 5px;
+    color: #FFFFFF;
+}
+
+.menu-item {
+    border-radius: 25px;
+    padding: 0.2em 0.6em;
+    margin: 6px;
+}
+
+.menu-item-active {
+    margin: 0px;
+    border-style: dotted;
 }
 
 #details-bar {
@@ -77,11 +106,27 @@ html, body {
     overflow: hidden;
     display: none;
     width: 30%;
+    margin: 0.6em;
+    padding: 0.25em;
 }
 
 #sidebar-panel > div {
-    padding: 5px;
-    padding-bottom: 20px;
+    padding: 0.25em;
+}
+
+#footer-bar {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    background-color: #444444;
+    color: #FFFFFF;
+    padding: 2px;
+}
+
+#footer-bar > div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
 
 .tree-view-controls {
@@ -101,10 +146,6 @@ html, body {
     cursor: pointer;
 }
 
-#sidebar-controls {
-    
-}
-
 #runtime-controls {
     right: 0px;
 }
@@ -118,6 +159,10 @@ html, body {
     font-size: 0.8em;
 }
 
+#tree-view-wrapper.workflo-container {
+    border: none;
+}
+
 .page-tile {
     display: flex;
     flex-direction: column;
@@ -129,7 +174,7 @@ html, body {
 }
 
 .page-tile > textarea, #tree-view-wrapper {
-    font-family: "Courier New", Courier, monospace;
+    font-family: 'Source Code Pro', monospace;
     flex-grow: 1;
     -webkit-box-sizing:border-box;
     -moz-box-sizing:border-box;
@@ -153,6 +198,7 @@ html, body {
 
 .result-view-container {
     flex-grow: 0;
+    margin-top: 0.5em;
 }
 
 /* Worklo Nodes */
@@ -173,7 +219,23 @@ html, body {
 
 .tree-view-caption {
     line-height: 20px;
-    margin: 0px 2px;
+    margin: 2px;
+}
+
+.tree-view-arg.string {
+    color: #f8eb79;
+}
+
+.tree-view-arg.number {
+    color: #60ff90;
+}
+
+.tree-view-arg.boolean {
+    color: #6294ff;
+}
+
+.tree-view-arg.null {
+    color: #f68fff;
 }
 
 .tree-view-node > * {
@@ -204,10 +266,9 @@ html, body {
 
 .tree-view-icon img {
     vertical-align: middle;
-    height: 16px;
-    width: 16px;
-    margin-top: 2px;
-    margin-left: 2px;
+    height: 20px;
+    width: 20px;
+    margin: 2px;
 }
 
 .tree-view-icon-action {
