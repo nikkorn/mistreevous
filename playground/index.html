@@ -58,11 +58,16 @@
 				<div id="details-bar">
 					Snippet
 					<select id="template-select-list" onchange="onSnippetSelect()">
-						<option value="none"></option>
+						<optgroup label="Examples">
+							<option value="basic-enemy">basic enemy</option>
+						</optgroup>
 
 						<optgroup label="Leaves">
 							<option value="basic-action">basic action</option>
+							<option value="action-with-args">action with arguments</option>
 							<option value="async-action">asynchronous action</option>
+							<option value="basic-condition">basic condition</option>
+							<option value="condition-with-args">condition with arguments</option>
 							<option value="wait-one-second">wait</option>
 							<option value="wait-for-one-to-five-seconds">wait for one-five seconds</option>
 						</optgroup>

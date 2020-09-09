@@ -201,6 +201,22 @@ a {
     margin-top: 0.5em;
 }
 
+.tree-view-arg.string {
+    color: #f8eb79;
+}
+
+.tree-view-arg.number {
+    color: #60ff90;
+}
+
+.tree-view-arg.boolean {
+    color: #6294ff;
+}
+
+.tree-view-arg.null {
+    color: #f68fff;
+}
+
 /* Worklo Nodes */
 
 #tree-view-wrapper {
