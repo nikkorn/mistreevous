@@ -1,4 +1,4 @@
-import Decorator from '../decorator'
+import Guard from './guard'
 
 /**
  * A WHILE guard which is satisfied as long as the given condition remains true.
@@ -6,7 +6,7 @@ import Decorator from '../decorator'
  * @param args The array of decorator argument definitions.
  */
 export default function While(condition, args) {
-    Decorator.call(this, "while", args);
+    Guard.call(this, "while", args);
 
     /**
      * Gets whether the decorator is a guard.
@@ -45,4 +45,4 @@ export default function While(condition, args) {
     };
 };
 
-While.prototype = Object.create(Decorator.prototype);
+While.prototype = Object.create(Guard.prototype);

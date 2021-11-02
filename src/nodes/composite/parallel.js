@@ -1,5 +1,5 @@
 import Composite from './composite'
-import State from "../state";
+import State from '../../state'
 
 /**
  * A PARALLEL node.

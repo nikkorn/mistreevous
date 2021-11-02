@@ -3,7 +3,6 @@
  * @param source The node at which a guard condition failed. 
  */
 export default function GuardUnsatisifedException(source) {
-
     /**
      * The exception message.
      */

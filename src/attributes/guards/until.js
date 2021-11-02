@@ -1,4 +1,4 @@
-import Decorator from '../decorator'
+import Guard from './guard'
 
 /**
  * An UNTIL guard which is satisfied as long as the given condition remains false.
@@ -6,7 +6,7 @@ import Decorator from '../decorator'
  * @param args The array of decorator argument definitions.
  */
 export default function Until(condition, args) {
-    Decorator.call(this, "until", args);
+    Guard.call(this, "until", args);
 
     /**
      * Gets whether the decorator is a guard.
@@ -45,4 +45,4 @@ export default function Until(condition, args) {
     };
 };
 
-Until.prototype = Object.create(Decorator.prototype);
+Until.prototype = Object.create(Guard.prototype);

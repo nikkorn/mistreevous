@@ -1,12 +1,12 @@
-import Decorator from './decorator'
+import Callback from './callback'
 
 /**
- * A STEP decorator which defines a blackboard function to call when the decorated node is updated.
+ * An ENTRY callback which defines a blackboard function to call when the associated node is updated and moves out of running state.
  * @param functionName The name of the blackboard function to call.
- * @param args The array of decorator argument definitions.
+ * @param args The array of callback argument definitions.
  */
-export default function Step(functionName, args) {
-    Decorator.call(this, "step", args);
+export default function Entry(functionName, args) {
+    Callback.call(this, "entry", args);
 
     /**
      * Gets the function name.
@@ -14,7 +14,7 @@ export default function Step(functionName, args) {
     this.getFunctionName = () => functionName;
 
     /**
-     * Gets the decorator details.
+     * Gets the callback details.
      */
     this.getDetails = () => {
         return {
@@ -26,7 +26,7 @@ export default function Step(functionName, args) {
     };
 
     /**
-     * Attempt to call the blackboard function that this decorator refers to.
+     * Attempt to call the blackboard function that this callback refers to.
      * @param board The board.
      */
     this.callBlackboardFunction = (board) => {
@@ -34,9 +34,9 @@ export default function Step(functionName, args) {
         if (typeof board[functionName] === "function") {
             board[functionName].apply(board, args.map(arg => arg.value));
         } else {
-            throw new Error(`cannot call entry decorator function '${functionName}' is not defined in the blackboard`);
+            throw new Error(`cannot call entry callback function '${functionName}' is not defined in the blackboard`);
         }
     };
 };
 
-Step.prototype = Object.create(Decorator.prototype);
+Entry.prototype = Object.create(Callback.prototype);
