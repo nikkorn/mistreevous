@@ -1,12 +1,12 @@
-import Decorator from './decorator'
+import Callback from './callback'
 
 /**
- * An EXIT decorator which defines a blackboard function to call when the decorated node is updated and moves to a finished state or is aborted.
+ * An EXIT callback which defines a blackboard function to call when the associated node is updated and moves to a finished state or is aborted.
  * @param functionName The name of the blackboard function to call.
- * @param args The array of decorator argument definitions.
+ * @param args The array of callback argument definitions.
  */
 export default function Exit(functionName, args) {
-    Decorator.call(this, "exit", args);
+    Callback.call(this, "exit", args);
 
     /**
      * Gets the function name.
@@ -14,7 +14,7 @@ export default function Exit(functionName, args) {
     this.getFunctionName = () => functionName;
 
     /**
-     * Gets the decorator details.
+     * Gets the callback details.
      */
     this.getDetails = () => {
         return {
@@ -26,7 +26,7 @@ export default function Exit(functionName, args) {
     };
 
     /**
-     * Attempt to call the blackboard function that this decorator refers to.
+     * Attempt to call the blackboard function that this callback refers to.
      * @param board The board.
      * @param isSuccess Whether the decorated node was left with a success state.
      * @param isAborted Whether the decorated node was aborted.
@@ -36,9 +36,9 @@ export default function Exit(functionName, args) {
         if (typeof board[functionName] === "function") {
             board[functionName].apply(board, [{ succeeded: isSuccess, aborted: isAborted }].concat(args.map(arg => arg.value)));
         } else {
-            throw new Error(`cannot call exit decorator function '${functionName}' is not defined in the blackboard`);
+            throw new Error(`cannot call exit callback function '${functionName}' is not defined in the blackboard`);
         }
     };
 };
 
-Exit.prototype = Object.create(Decorator.prototype);
+Exit.prototype = Object.create(Callback.prototype);

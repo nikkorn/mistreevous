@@ -1,5 +1,5 @@
-import Composite from './composite'
-import State from "../state";
+import Decorator from './decorator';
+import State from '../../state'
 
 /**
  * A Flip node.
@@ -8,7 +8,7 @@ import State from "../state";
  * @param child The child node. 
  */
 export default function Flip(decorators, child) {
-    Composite.call(this, "flip", decorators, [child]);
+    Decorator.call(this, "flip", decorators, child);
    
     /**
      * Update the node.
@@ -46,4 +46,4 @@ export default function Flip(decorators, child) {
     this.getName = () => "FLIP";
 };
 
-Flip.prototype = Object.create(Composite.prototype);
+Flip.prototype = Object.create(Decorator.prototype);

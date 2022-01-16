@@ -70,7 +70,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 6);
+/******/ 	return __webpack_require__(__webpack_require__.s = 9);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -97,7 +97,7 @@ const State = {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Composite;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -165,44 +165,8 @@ Composite.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* d
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = Decorator;
-/**
- * A base node decorator.
- * @param type The node decorator type.
- * @param args The array of decorator argument definitions.
- */
-function Decorator(type, args) {
-  /**
-   * Gets the type of the node.
-   */
-  this.getType = () => type;
-
-  /**
-   * Gets the array of decorator argument definitions.
-   */
-  this.getArguments = () => args;
-
-  /**
-   * Gets whether the decorator is a guard.
-   */
-  this.isGuard = () => false;
-
-  /**
-   * Gets the decorator details.
-   */
-  this.getDetails = () => ({
-    type: this.getType(),
-    arguments: this.getArguments()
-  });
-};
-
-/***/ }),
-/* 3 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Leaf;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(3);
 
 
 /**
@@ -223,39 +187,12 @@ function Leaf(type, decorators, args) {
 Leaf.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
 
 /***/ }),
-/* 4 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = GuardUnsatisifedException;
-/**
- * An exception thrown when evaluating node guard path conditions and a conditions fails.
- * @param source The node at which a guard condition failed. 
- */
-function GuardUnsatisifedException(source) {
-
-  /**
-   * The exception message.
-   */
-  this.message = "A guard path condition has failed";
-
-  /**
-   * Gets whether the specified node is the node at which a guard condition failed.
-   * @param node The node to check against the source node.
-   * @returns Whether the specified node is the node at which a guard condition failed.
-   */
-  this.isSourceNode = node => node === source;
-}
-
-GuardUnsatisifedException.prototype = new Error();
-
-/***/ }),
-/* 5 */
+/* 3 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Node;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorators_guards_guardUnsatisifedException__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__attributes_guards_guardUnsatisifedException__ = __webpack_require__(6);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -412,7 +349,7 @@ function Node(type, decorators, args) {
       }
     } catch (error) {
       // If the error is a GuardUnsatisfiedException then we need to determine if this node is the source.
-      if (error instanceof __WEBPACK_IMPORTED_MODULE_0__decorators_guards_guardUnsatisifedException__["a" /* default */] && error.isSourceNode(this)) {
+      if (error instanceof __WEBPACK_IMPORTED_MODULE_0__attributes_guards_guardUnsatisifedException__["a" /* default */] && error.isSourceNode(this)) {
         // Abort the current node.
         this.abort(board);
 
@@ -437,12 +374,188 @@ function createNodeUid() {
 }
 
 /***/ }),
+/* 4 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = Decorator;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+
+
+
+/**
+ * A decorator node that wraps a single child node.
+ * @param type The node type.
+ * @param decorators The node decorators.
+ * @param child The child node. 
+ */
+function Decorator(type, decorators, child) {
+    __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
+
+    /**
+     * Gets whether this node is a leaf node.
+     */
+    this.isLeafNode = () => false;
+
+    /**
+     * Gets the children of this node.
+     */
+    this.getChildren = () => [child];
+
+    /**
+     * Reset the state of the node.
+     */
+    this.reset = () => {
+        // Reset the state of this node.
+        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
+
+        // Reset the state of the child node.
+        child.reset();
+    };
+
+    /**
+     * Abort the running of this node.
+     * @param board The board.
+     */
+    this.abort = board => {
+        // There is nothing to do if this node is not in the running state.
+        if (!this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING)) {
+            return;
+        }
+
+        // Abort the child node.
+        child.abort(board);
+
+        // Reset the state of this node.
+        this.reset();
+
+        // Try to get the exit decorator for this node.
+        const exitDecorator = this.getDecorator("exit");
+
+        // Call the exit decorator function if it exists.
+        if (exitDecorator) {
+            exitDecorator.callBlackboardFunction(board, false, true);
+        }
+    };
+};
+
+Decorator.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
+
+/***/ }),
+/* 5 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = Callback;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__attribute__ = __webpack_require__(8);
+
+
+/**
+ * A base node callback attribute.
+ * @param type The node callback attribute type.
+ * @param args The array of attribute argument definitions.
+ */
+function Callback(type, args) {
+  __WEBPACK_IMPORTED_MODULE_0__attribute__["a" /* default */].call(this, type, args);
+
+  /**
+   * Gets whether this attribute is a guard.
+   */
+  this.isGuard = () => false;
+};
+
+Callback.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__attribute__["a" /* default */].prototype);
+
+/***/ }),
 /* 6 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = GuardUnsatisifedException;
+/**
+ * An exception thrown when evaluating node guard path conditions and a conditions fails.
+ * @param source The node at which a guard condition failed. 
+ */
+function GuardUnsatisifedException(source) {
+  /**
+   * The exception message.
+   */
+  this.message = "A guard path condition has failed";
+
+  /**
+   * Gets whether the specified node is the node at which a guard condition failed.
+   * @param node The node to check against the source node.
+   * @returns Whether the specified node is the node at which a guard condition failed.
+   */
+  this.isSourceNode = node => node === source;
+}
+
+GuardUnsatisifedException.prototype = new Error();
+
+/***/ }),
+/* 7 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = Guard;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__attribute__ = __webpack_require__(8);
+
+
+/**
+ * A base node guard attribute.
+ * @param type The node guard attribute type.
+ * @param args The array of attribute argument definitions.
+ */
+function Guard(type, args) {
+  __WEBPACK_IMPORTED_MODULE_0__attribute__["a" /* default */].call(this, type, args);
+
+  /**
+   * Gets whether this attribute is a guard.
+   */
+  this.isGuard = () => true;
+};
+
+Guard.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__attribute__["a" /* default */].prototype);
+
+/***/ }),
+/* 8 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = Attribute;
+/**
+ * A base node attribute.
+ * @param type The node attribute type.
+ * @param args The array of attribute argument definitions.
+ */
+function Attribute(type, args) {
+  /**
+   * Gets the type of the attribute.
+   */
+  this.getType = () => type;
+
+  /**
+   * Gets the array of attribute argument definitions.
+   */
+  this.getArguments = () => args;
+
+  /**
+   * Gets the attribute details.
+   */
+  this.getDetails = () => ({
+    type: this.getType(),
+    arguments: this.getArguments()
+  });
+};
+
+/***/ }),
+/* 9 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__behaviourtree__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__behaviourtree__ = __webpack_require__(10);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "BehaviourTree", function() { return __WEBPACK_IMPORTED_MODULE_0__behaviourtree__["a"]; });
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "State", function() { return __WEBPACK_IMPORTED_MODULE_1__state__["a"]; });
@@ -452,13 +565,13 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 /***/ }),
-/* 7 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = BehaviourTree;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorators_guards_guardPath__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__rootASTNodesBuilder__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__attributes_guards_guardPath__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__rootASTNodesBuilder__ = __webpack_require__(12);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__state__ = __webpack_require__(0);
 
 
@@ -587,7 +700,7 @@ function BehaviourTree(definition, board) {
                 }
 
                 // Create the guard path for the current node.
-                const guardPath = new __WEBPACK_IMPORTED_MODULE_0__decorators_guards_guardPath__["a" /* default */](path.slice(0, depth + 1).map(node => ({ node, guards: node.getGuardDecorators() })).filter(details => details.guards.length > 0));
+                const guardPath = new __WEBPACK_IMPORTED_MODULE_0__attributes_guards_guardPath__["a" /* default */](path.slice(0, depth + 1).map(node => ({ node, guards: node.getGuardDecorators() })).filter(details => details.guards.length > 0));
 
                 // Assign the guard path to the current node.
                 currentNode.setGuardPath(guardPath);
@@ -716,12 +829,12 @@ BehaviourTree.prototype.reset = function () {
 };
 
 /***/ }),
-/* 8 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = GuardPath;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__guardUnsatisifedException__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__guardUnsatisifedException__ = __webpack_require__(6);
 
 
 /**
@@ -749,26 +862,26 @@ function GuardPath(nodes) {
 };
 
 /***/ }),
-/* 9 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = buildRootASTNodes;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__nodes_action__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__nodes_condition__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__nodes_flip__ = __webpack_require__(12);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nodes_lotto__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__nodes_repeat__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__nodes_root__ = __webpack_require__(15);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_selector__ = __webpack_require__(16);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_sequence__ = __webpack_require__(17);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_parallel__ = __webpack_require__(18);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__nodes_wait__ = __webpack_require__(19);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__decorators_guards_while__ = __webpack_require__(20);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__decorators_guards_until__ = __webpack_require__(21);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__decorators_entry__ = __webpack_require__(22);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__decorators_exit__ = __webpack_require__(23);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__decorators_step__ = __webpack_require__(24);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__nodes_leaf_action__ = __webpack_require__(13);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__nodes_leaf_condition__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__nodes_leaf_wait__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nodes_decorator_root__ = __webpack_require__(16);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__nodes_decorator_repeat__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__nodes_decorator_flip__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_composite_lotto__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_composite_selector__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_composite_sequence__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__nodes_composite_parallel__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__attributes_guards_while__ = __webpack_require__(23);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__attributes_guards_until__ = __webpack_require__(24);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__attributes_callbacks_entry__ = __webpack_require__(25);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__attributes_callbacks_exit__ = __webpack_require__(26);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__attributes_callbacks_step__ = __webpack_require__(27);
 
 
 
@@ -789,11 +902,11 @@ function GuardPath(nodes) {
  * The node decorator factories.
  */
 const DecoratorFactories = {
-    "WHILE": (condition, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_10__decorators_guards_while__["a" /* default */](condition, decoratorArguments),
-    "UNTIL": (condition, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_11__decorators_guards_until__["a" /* default */](condition, decoratorArguments),
-    "ENTRY": (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_12__decorators_entry__["a" /* default */](functionName, decoratorArguments),
-    "EXIT": (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_13__decorators_exit__["a" /* default */](functionName, decoratorArguments),
-    "STEP": (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_14__decorators_step__["a" /* default */](functionName, decoratorArguments)
+    "WHILE": (condition, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_10__attributes_guards_while__["a" /* default */](condition, decoratorArguments),
+    "UNTIL": (condition, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_11__attributes_guards_until__["a" /* default */](condition, decoratorArguments),
+    "ENTRY": (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_12__attributes_callbacks_entry__["a" /* default */](functionName, decoratorArguments),
+    "EXIT": (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_13__attributes_callbacks_exit__["a" /* default */](functionName, decoratorArguments),
+    "STEP": (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_14__attributes_callbacks_step__["a" /* default */](functionName, decoratorArguments)
 };
 
 /**
@@ -817,7 +930,7 @@ const ASTNodeFactories = {
             }
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_5__nodes_root__["a" /* default */](this.decorators, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
+            return new __WEBPACK_IMPORTED_MODULE_3__nodes_decorator_root__["a" /* default */](this.decorators, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
         }
     }),
     "BRANCH": () => ({
@@ -852,7 +965,7 @@ const ASTNodeFactories = {
             }
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_6__nodes_selector__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+            return new __WEBPACK_IMPORTED_MODULE_7__nodes_composite_selector__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
         }
     }),
     "SEQUENCE": () => ({
@@ -866,7 +979,7 @@ const ASTNodeFactories = {
             }
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_7__nodes_sequence__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+            return new __WEBPACK_IMPORTED_MODULE_8__nodes_composite_sequence__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
         }
     }),
     "PARALLEL": () => ({
@@ -880,7 +993,7 @@ const ASTNodeFactories = {
             }
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_8__nodes_parallel__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+            return new __WEBPACK_IMPORTED_MODULE_9__nodes_composite_parallel__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
         }
     }),
     "LOTTO": () => ({
@@ -895,7 +1008,7 @@ const ASTNodeFactories = {
             }
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_3__nodes_lotto__["a" /* default */](this.decorators, this.tickets, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+            return new __WEBPACK_IMPORTED_MODULE_6__nodes_composite_lotto__["a" /* default */](this.decorators, this.tickets, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
         }
     }),
     "REPEAT": () => ({
@@ -929,7 +1042,7 @@ const ASTNodeFactories = {
             }
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_4__nodes_repeat__["a" /* default */](this.decorators, this.iterations, this.maximumIterations, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
+            return new __WEBPACK_IMPORTED_MODULE_4__nodes_decorator_repeat__["a" /* default */](this.decorators, this.iterations, this.maximumIterations, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
         }
     }),
     "FLIP": () => ({
@@ -943,7 +1056,7 @@ const ASTNodeFactories = {
             }
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_2__nodes_flip__["a" /* default */](this.decorators, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
+            return new __WEBPACK_IMPORTED_MODULE_5__nodes_decorator_flip__["a" /* default */](this.decorators, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
         }
     }),
     "WAIT": () => ({
@@ -971,7 +1084,7 @@ const ASTNodeFactories = {
             }
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_9__nodes_wait__["a" /* default */](this.decorators, this.duration, this.longestDuration);
+            return new __WEBPACK_IMPORTED_MODULE_2__nodes_leaf_wait__["a" /* default */](this.decorators, this.duration, this.longestDuration);
         }
     }),
     "ACTION": () => ({
@@ -981,7 +1094,7 @@ const ASTNodeFactories = {
         actionArguments: [],
         validate: function (depth) {},
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_0__nodes_action__["a" /* default */](this.decorators, this.actionName, this.actionArguments);
+            return new __WEBPACK_IMPORTED_MODULE_0__nodes_leaf_action__["a" /* default */](this.decorators, this.actionName, this.actionArguments);
         }
     }),
     "CONDITION": () => ({
@@ -991,7 +1104,7 @@ const ASTNodeFactories = {
         conditionArguments: [],
         validate: function (depth) {},
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_1__nodes_condition__["a" /* default */](this.decorators, this.conditionName, this.conditionArguments);
+            return new __WEBPACK_IMPORTED_MODULE_1__nodes_leaf_condition__["a" /* default */](this.decorators, this.conditionName, this.conditionArguments);
         }
     })
 };
@@ -1554,12 +1667,12 @@ function getDecorators(tokens, stringArgumentPlaceholders) {
 };
 
 /***/ }),
-/* 10 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Action;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -1704,12 +1817,12 @@ function Action(decorators, actionName, actionArguments) {
 Action.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
 
 /***/ }),
-/* 11 */
+/* 14 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Condition;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -1747,12 +1860,260 @@ function Condition(decorators, conditionName, conditionArguments) {
 Condition.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
 
 /***/ }),
-/* 12 */
+/* 15 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = Wait;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+
+
+
+/**
+ * A WAIT node.
+ * The state of this node will change to SUCCEEDED after a duration of time.
+ * @param decorators The node decorators.
+ * @param duration The duration that this node will wait to succeed in milliseconds, or the earliest if longestDuration is defined.
+ * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
+ */
+function Wait(decorators, duration, longestDuration) {
+    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "wait", decorators);
+
+    /** 
+     * The time in milliseconds at which this node was first updated.
+     */
+    let initialUpdateTime;
+
+    /**
+     * The duration in milliseconds that this node will be waiting for. 
+     */
+    let waitDuration;
+
+    /**
+     * Update the node.
+     * @param board The board.
+     * @returns The result of the update.
+     */
+    this.onUpdate = function (board) {
+        // If this node is in the READY state then we need to set the initial update time.
+        if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
+            // Set the initial update time.
+            initialUpdateTime = new Date().getTime();
+
+            // If a longestDuration value was defined then we will be randomly picking a duration between the
+            // shortest and longest duration. If it was not defined, then we will be just using the duration.
+            waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
+
+            // The node is now running until we finish waiting.
+            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
+        }
+
+        // Have we waited long enough?
+        if (new Date().getTime() >= initialUpdateTime + waitDuration) {
+            // We have finished waiting!
+            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED);
+        }
+    };
+
+    /**
+     * Gets the name of the node.
+     */
+    this.getName = () => `WAIT ${longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms"}`;
+};
+
+Wait.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
+
+/***/ }),
+/* 16 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = Root;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+
+
+
+/**
+ * A Root node.
+ * The root node will have a single child.
+ * @param decorators The node decorators.
+ * @param child The child node. 
+ */
+function Root(decorators, child) {
+  __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "root", decorators, child);
+
+  /**
+   * Update the node and get whether the node state has changed.
+   * @param board The board.
+   * @returns Whether the state of this node has changed as part of the update.
+   */
+  this.onUpdate = function (board) {
+    // If the child has never been updated or is running then we will need to update it now.
+    if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
+      // Update the child of this node.
+      child.update(board);
+    }
+
+    // The state of the root node is the state of its child.
+    this.setState(child.getState());
+  };
+
+  /**
+   * Gets the name of the node.
+   */
+  this.getName = () => "ROOT";
+};
+
+Root.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
+
+/***/ }),
+/* 17 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = Repeat;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+
+
+
+/**
+ * A REPEAT node.
+ * The node has a single child which can have:
+ * -- A number of iterations for which to repeat the child node.
+ * -- An infinite repeat loop if neither an iteration count or a condition function is defined.
+ * The REPEAT node will stop and have a 'FAILED' state if its child is ever in a 'FAILED' state after an update.
+ * The REPEAT node will attempt to move on to the next iteration if its child is ever in a 'SUCCEEDED' state.
+ * @param decorators The node decorators.
+ * @param iterations The number of iterations to repeat the child node, or the minimum number of iterations if maximumIterations is defined.
+ * @param maximumIterations The maximum number of iterations to repeat the child node.
+ * @param child The child node. 
+ */
+function Repeat(decorators, iterations, maximumIterations, child) {
+    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "repeat", decorators, child);
+
+    /**
+     * The number of target iterations to make.
+     */
+    let targetIterationCount = null;
+
+    /**
+     * The current iteration count.
+     */
+    let currentIterationCount = 0;
+
+    /**
+     * Update the node.
+     * @param board The board.
+     * @returns The result of the update.
+     */
+    this.onUpdate = function (board) {
+        // If this node is in the READY state then we need to reset the child and the target iteration count.
+        if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
+            // Reset the child node.
+            child.reset();
+
+            // Set the target iteration count.
+            this._setTargetIterationCount();
+        }
+
+        // Do a check to see if we can iterate. If we can then this node will move into the 'RUNNING' state.
+        // If we cannot iterate then we have hit our target iteration count, which means that the node has succeeded.
+        if (this._canIterate()) {
+            // This node is in the running state and can do its initial iteration.
+            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
+
+            // We may have already completed an iteration, meaning that the child node will be in the SUCCEEDED state.
+            // If this is the case then we will have to reset the child node now.
+            if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED) {
+                child.reset();
+            }
+
+            // Update the child of this node.
+            child.update(board);
+
+            // If the child moved into the FAILED state when we updated it then there is nothing left to do and this node has also failed.
+            // If it has moved into the SUCCEEDED state then we have completed the current iteration.
+            if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED) {
+                // The child has failed, meaning that this node has failed.
+                this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
+
+                return;
+            } else if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED) {
+                // We have completed an iteration.
+                currentIterationCount += 1;
+            }
+        } else {
+            // This node is in the 'SUCCEEDED' state as we cannot iterate any more.
+            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED);
+        }
+    };
+
+    /**
+     * Gets the name of the node.
+     */
+    this.getName = () => {
+        if (iterations !== null) {
+            return `REPEAT ${maximumIterations ? iterations + "x-" + maximumIterations + "x" : iterations + "x"}`;
+        }
+
+        // Return the default repeat node name.
+        return "REPEAT";
+    };
+
+    /**
+     * Reset the state of the node.
+     */
+    this.reset = () => {
+        // Reset the state of this node.
+        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
+
+        // Reset the current iteration count.
+        currentIterationCount = 0;
+
+        // Reset the child node.
+        child.reset();
+    };
+
+    /**
+     * Gets whether an iteration can be made.
+     * @returns Whether an iteration can be made.
+     */
+    this._canIterate = () => {
+        if (targetIterationCount !== null) {
+            // We can iterate as long as we have not reached our target iteration count.
+            return currentIterationCount < targetIterationCount;
+        }
+
+        // If neither an iteration count or a condition function were defined then we can iterate indefinitely.
+        return true;
+    };
+
+    /**
+     * Sets the target iteration count.
+     */
+    this._setTargetIterationCount = () => {
+        // Are we dealing with a finite number of iterations?
+        if (typeof iterations === "number") {
+            // If we have maximumIterations defined then we will want a random iteration count bounded by iterations and maximumIterations.
+            targetIterationCount = typeof maximumIterations === "number" ? Math.floor(Math.random() * (maximumIterations - iterations + 1) + iterations) : iterations;
+        } else {
+            targetIterationCount = null;
+        }
+    };
+};
+
+Repeat.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
+
+/***/ }),
+/* 18 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Flip;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -1764,7 +2125,7 @@ Condition.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* d
  * @param child The child node. 
  */
 function Flip(decorators, child) {
-    __WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].call(this, "flip", decorators, [child]);
+    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "flip", decorators, child);
 
     /**
      * Update the node.
@@ -1802,10 +2163,10 @@ function Flip(decorators, child) {
     this.getName = () => "FLIP";
 };
 
-Flip.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
+Flip.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 13 */
+/* 19 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1923,190 +2284,7 @@ function Lotto(decorators, tickets, children) {
 Lotto.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 14 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = Repeat;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
-
-
-
-/**
- * A REPEAT node.
- * The node has a single child which can have:
- * -- A number of iterations for which to repeat the child node.
- * -- An infinite repeat loop if neither an iteration count or a condition function is defined.
- * The REPEAT node will stop and have a 'FAILED' state if its child is ever in a 'FAILED' state after an update.
- * The REPEAT node will attempt to move on to the next iteration if its child is ever in a 'SUCCEEDED' state.
- * @param decorators The node decorators.
- * @param iterations The number of iterations to repeat the child node, or the minimum number of iterations if maximumIterations is defined.
- * @param maximumIterations The maximum number of iterations to repeat the child node.
- * @param child The child node. 
- */
-function Repeat(decorators, iterations, maximumIterations, child) {
-    __WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].call(this, "repeat", decorators, [child]);
-
-    /**
-     * The number of target iterations to make.
-     */
-    let targetIterationCount = null;
-
-    /**
-     * The current iteration count.
-     */
-    let currentIterationCount = 0;
-
-    /**
-     * Update the node.
-     * @param board The board.
-     * @returns The result of the update.
-     */
-    this.onUpdate = function (board) {
-        // If this node is in the READY state then we need to reset the child and the target iteration count.
-        if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
-            // Reset the child node.
-            child.reset();
-
-            // Set the target iteration count.
-            this._setTargetIterationCount();
-        }
-
-        // Do a check to see if we can iterate. If we can then this node will move into the 'RUNNING' state.
-        // If we cannot iterate then we have hit our target iteration count, which means that the node has succeeded.
-        if (this._canIterate()) {
-            // This node is in the running state and can do its initial iteration.
-            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
-
-            // We may have already completed an iteration, meaning that the child node will be in the SUCCEEDED state.
-            // If this is the case then we will have to reset the child node now.
-            if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED) {
-                child.reset();
-            }
-
-            // Update the child of this node.
-            child.update(board);
-
-            // If the child moved into the FAILED state when we updated it then there is nothing left to do and this node has also failed.
-            // If it has moved into the SUCCEEDED state then we have completed the current iteration.
-            if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED) {
-                // The child has failed, meaning that this node has failed.
-                this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
-
-                return;
-            } else if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED) {
-                // We have completed an iteration.
-                currentIterationCount += 1;
-            }
-        } else {
-            // This node is in the 'SUCCEEDED' state as we cannot iterate any more.
-            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED);
-        }
-    };
-
-    /**
-     * Gets the name of the node.
-     */
-    this.getName = () => {
-        if (iterations !== null) {
-            return `REPEAT ${maximumIterations ? iterations + "x-" + maximumIterations + "x" : iterations + "x"}`;
-        }
-
-        // Return the default repeat node name.
-        return "REPEAT";
-    };
-
-    /**
-     * Reset the state of the node.
-     */
-    this.reset = () => {
-        // Reset the state of this node.
-        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
-
-        // Reset the current iteration count.
-        currentIterationCount = 0;
-
-        // Reset the child node.
-        child.reset();
-    };
-
-    /**
-     * Gets whether an iteration can be made.
-     * @returns Whether an iteration can be made.
-     */
-    this._canIterate = () => {
-        if (targetIterationCount !== null) {
-            // We can iterate as long as we have not reached our target iteration count.
-            return currentIterationCount < targetIterationCount;
-        }
-
-        // If neither an iteration count or a condition function were defined then we can iterate indefinitely.
-        return true;
-    };
-
-    /**
-     * Sets the target iteration count.
-     */
-    this._setTargetIterationCount = () => {
-        // Are we dealing with a finite number of iterations?
-        if (typeof iterations === "number") {
-            // If we have maximumIterations defined then we will want a random iteration count bounded by iterations and maximumIterations.
-            targetIterationCount = typeof maximumIterations === "number" ? Math.floor(Math.random() * (maximumIterations - iterations + 1) + iterations) : iterations;
-        } else {
-            targetIterationCount = null;
-        }
-    };
-};
-
-Repeat.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
-
-/***/ }),
-/* 15 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = Root;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
-
-
-
-/**
- * A Root node.
- * The root node will have a single child.
- * @param decorators The node decorators.
- * @param child The child node. 
- */
-function Root(decorators, child) {
-  __WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].call(this, "root", decorators, [child]);
-
-  /**
-   * Update the node and get whether the node state has changed.
-   * @param board The board.
-   * @returns Whether the state of this node has changed as part of the update.
-   */
-  this.onUpdate = function (board) {
-    // If the child has never been updated or is running then we will need to update it now.
-    if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
-      // Update the child of this node.
-      child.update(board);
-    }
-
-    // The state of the root node is the state of its child.
-    this.setState(child.getState());
-  };
-
-  /**
-   * Gets the name of the node.
-   */
-  this.getName = () => "ROOT";
-};
-
-Root.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
-
-/***/ }),
-/* 16 */
+/* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2187,7 +2365,7 @@ function Selector(decorators, children) {
 Selector.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 17 */
+/* 21 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2268,7 +2446,7 @@ function Sequence(decorators, children) {
 Sequence.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 18 */
+/* 22 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2355,77 +2533,12 @@ function Parallel(decorators, children) {
 Parallel.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 19 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = Wait;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
-
-
-
-/**
- * A WAIT node.
- * The state of this node will change to SUCCEEDED after a duration of time.
- * @param decorators The node decorators.
- * @param duration The duration that this node will wait to succeed in milliseconds, or the earliest if longestDuration is defined.
- * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
- */
-function Wait(decorators, duration, longestDuration) {
-    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "wait", decorators);
-
-    /** 
-     * The time in milliseconds at which this node was first updated.
-     */
-    let initialUpdateTime;
-
-    /**
-     * The duration in milliseconds that this node will be waiting for. 
-     */
-    let waitDuration;
-
-    /**
-     * Update the node.
-     * @param board The board.
-     * @returns The result of the update.
-     */
-    this.onUpdate = function (board) {
-        // If this node is in the READY state then we need to set the initial update time.
-        if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
-            // Set the initial update time.
-            initialUpdateTime = new Date().getTime();
-
-            // If a longestDuration value was defined then we will be randomly picking a duration between the
-            // shortest and longest duration. If it was not defined, then we will be just using the duration.
-            waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
-
-            // The node is now running until we finish waiting.
-            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
-        }
-
-        // Have we waited long enough?
-        if (new Date().getTime() >= initialUpdateTime + waitDuration) {
-            // We have finished waiting!
-            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED);
-        }
-    };
-
-    /**
-     * Gets the name of the node.
-     */
-    this.getName = () => `WAIT ${longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms"}`;
-};
-
-Wait.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
-
-/***/ }),
-/* 20 */
+/* 23 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = While;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__guard__ = __webpack_require__(7);
 
 
 /**
@@ -2434,7 +2547,7 @@ Wait.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* defaul
  * @param args The array of decorator argument definitions.
  */
 function While(condition, args) {
-    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "while", args);
+    __WEBPACK_IMPORTED_MODULE_0__guard__["a" /* default */].call(this, "while", args);
 
     /**
      * Gets whether the decorator is a guard.
@@ -2473,15 +2586,15 @@ function While(condition, args) {
     };
 };
 
-While.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
+While.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__guard__["a" /* default */].prototype);
 
 /***/ }),
-/* 21 */
+/* 24 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Until;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__guard__ = __webpack_require__(7);
 
 
 /**
@@ -2490,7 +2603,7 @@ While.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* 
  * @param args The array of decorator argument definitions.
  */
 function Until(condition, args) {
-    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "until", args);
+    __WEBPACK_IMPORTED_MODULE_0__guard__["a" /* default */].call(this, "until", args);
 
     /**
      * Gets whether the decorator is a guard.
@@ -2529,24 +2642,24 @@ function Until(condition, args) {
     };
 };
 
-Until.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
+Until.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__guard__["a" /* default */].prototype);
 
 /***/ }),
-/* 22 */
+/* 25 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Entry;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__callback__ = __webpack_require__(5);
 
 
 /**
- * An ENTRY decorator which defines a blackboard function to call when the decorated node is updated and moves out of running state.
+ * An ENTRY callback which defines a blackboard function to call when the associated node is updated and moves out of running state.
  * @param functionName The name of the blackboard function to call.
- * @param args The array of decorator argument definitions.
+ * @param args The array of callback argument definitions.
  */
 function Entry(functionName, args) {
-    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "entry", args);
+    __WEBPACK_IMPORTED_MODULE_0__callback__["a" /* default */].call(this, "entry", args);
 
     /**
      * Gets the function name.
@@ -2554,7 +2667,7 @@ function Entry(functionName, args) {
     this.getFunctionName = () => functionName;
 
     /**
-     * Gets the decorator details.
+     * Gets the callback details.
      */
     this.getDetails = () => {
         return {
@@ -2566,7 +2679,7 @@ function Entry(functionName, args) {
     };
 
     /**
-     * Attempt to call the blackboard function that this decorator refers to.
+     * Attempt to call the blackboard function that this callback refers to.
      * @param board The board.
      */
     this.callBlackboardFunction = board => {
@@ -2574,29 +2687,29 @@ function Entry(functionName, args) {
         if (typeof board[functionName] === "function") {
             board[functionName].apply(board, args.map(arg => arg.value));
         } else {
-            throw new Error(`cannot call entry decorator function '${functionName}' is not defined in the blackboard`);
+            throw new Error(`cannot call entry callback function '${functionName}' is not defined in the blackboard`);
         }
     };
 };
 
-Entry.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
+Entry.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__callback__["a" /* default */].prototype);
 
 /***/ }),
-/* 23 */
+/* 26 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Exit;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__callback__ = __webpack_require__(5);
 
 
 /**
- * An EXIT decorator which defines a blackboard function to call when the decorated node is updated and moves to a finished state or is aborted.
+ * An EXIT callback which defines a blackboard function to call when the associated node is updated and moves to a finished state or is aborted.
  * @param functionName The name of the blackboard function to call.
- * @param args The array of decorator argument definitions.
+ * @param args The array of callback argument definitions.
  */
 function Exit(functionName, args) {
-    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "exit", args);
+    __WEBPACK_IMPORTED_MODULE_0__callback__["a" /* default */].call(this, "exit", args);
 
     /**
      * Gets the function name.
@@ -2604,7 +2717,7 @@ function Exit(functionName, args) {
     this.getFunctionName = () => functionName;
 
     /**
-     * Gets the decorator details.
+     * Gets the callback details.
      */
     this.getDetails = () => {
         return {
@@ -2616,7 +2729,7 @@ function Exit(functionName, args) {
     };
 
     /**
-     * Attempt to call the blackboard function that this decorator refers to.
+     * Attempt to call the blackboard function that this callback refers to.
      * @param board The board.
      * @param isSuccess Whether the decorated node was left with a success state.
      * @param isAborted Whether the decorated node was aborted.
@@ -2626,29 +2739,29 @@ function Exit(functionName, args) {
         if (typeof board[functionName] === "function") {
             board[functionName].apply(board, [{ succeeded: isSuccess, aborted: isAborted }].concat(args.map(arg => arg.value)));
         } else {
-            throw new Error(`cannot call exit decorator function '${functionName}' is not defined in the blackboard`);
+            throw new Error(`cannot call exit callback function '${functionName}' is not defined in the blackboard`);
         }
     };
 };
 
-Exit.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
+Exit.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__callback__["a" /* default */].prototype);
 
 /***/ }),
-/* 24 */
+/* 27 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Step;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__callback__ = __webpack_require__(5);
 
 
 /**
- * A STEP decorator which defines a blackboard function to call when the decorated node is updated.
+ * A STEP callback which defines a blackboard function to call when the associated node is updated.
  * @param functionName The name of the blackboard function to call.
- * @param args The array of decorator argument definitions.
+ * @param args The array of callback argument definitions.
  */
 function Step(functionName, args) {
-    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "step", args);
+    __WEBPACK_IMPORTED_MODULE_0__callback__["a" /* default */].call(this, "step", args);
 
     /**
      * Gets the function name.
@@ -2656,7 +2769,7 @@ function Step(functionName, args) {
     this.getFunctionName = () => functionName;
 
     /**
-     * Gets the decorator details.
+     * Gets the callback details.
      */
     this.getDetails = () => {
         return {
@@ -2668,7 +2781,7 @@ function Step(functionName, args) {
     };
 
     /**
-     * Attempt to call the blackboard function that this decorator refers to.
+     * Attempt to call the blackboard function that this callback refers to.
      * @param board The board.
      */
     this.callBlackboardFunction = board => {
@@ -2676,12 +2789,12 @@ function Step(functionName, args) {
         if (typeof board[functionName] === "function") {
             board[functionName].apply(board, args.map(arg => arg.value));
         } else {
-            throw new Error(`cannot call entry decorator function '${functionName}' is not defined in the blackboard`);
+            throw new Error(`cannot call entry callback function '${functionName}' is not defined in the blackboard`);
         }
     };
 };
 
-Step.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
+Step.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__callback__["a" /* default */].prototype);
 
 /***/ })
 /******/ ]);

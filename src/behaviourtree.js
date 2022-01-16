@@ -1,4 +1,4 @@
-import GuardPath from './decorators/guards/guardPath';
+import GuardPath from './attributes/guards/guardPath';
 import buildRootASTNodes from './rootASTNodesBuilder';
 import State from "./state";
 

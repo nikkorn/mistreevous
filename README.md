@@ -26,8 +26,8 @@ const definition = `root {
     }
 }`;
 
-/** Create the blackboard, the object to hold tasks and state for a tree instance. */
-const board = {
+/** Create an entity that we will be modelling the behaviour for. */
+const entity = {
     Walk: () => {
         console.log("walking!");
         return State.SUCCEEDED;
@@ -42,8 +42,8 @@ const board = {
     },
 };
 
-/** Create the behaviour tree. */
-const behaviourTree = new BehaviourTree(definition, board);
+/** Create the behaviour tree, passing our tree definition and the entity that we are modelling behaviour for. */
+const behaviourTree = new BehaviourTree(definition, entity);
 
 /** Step the tree. */
 behaviourTree.step();
@@ -78,12 +78,67 @@ Behaviour tree nodes can be in one of the following states:
 - **SUCCEEDED** A node is in a succeeded state when it is no longer being processed and has succeeded.
 - **FAILED** A node is in a failed state when it is no longer being processed but has failed.
 
+
 ## Composite Nodes
+Composite nodes wrap one or more child nodes, each of which will be processed in a sequence determined by the type of the composite node. A composite node will remain in the running state until it is finished processing the child nodes, after which the state of the composite node will reflect the success or failure of the child nodes.
+
+### Sequence
+This composite node will update each child node in sequence. It will succeed if all of its children have succeeded and will fail if any of its children fail. This node will remain in the running state if one of its children is running.
+
+```
+root {
+    sequence {
+        action [Walk]
+        action [Fall]
+        action [Laugh]
+    }
+}
+```
+
+### Selector
+This composite node will update each child node in sequence. It will fail if all of its children have failed and will succeed if any of its children succeed. This node will remain in the running state if one of its children is running.
+
+```
+root {
+    selector {
+        action [TryThis]
+        action [ThenTryThis]
+        action [TryThisLast]
+    }
+}
+```
+
+### Parallel
+This composite node will update each child node concurrently. It will succeed if all of its children have succeeded and will fail if any of its children fail. This node will remain in the running state if any of its children are running.
+
+```
+root {
+    parallel {
+        action [RubBelly]
+        action [PatHead]
+    }
+}
+```
+
+### Lotto
+This composite node will select a single child at random to run as the active running node. The state of this node will reflect the state of the active child.
+
+```
+root {
+    lotto {
+        action [MoveLeft]
+        action [MoveRight]
+    }
+}
+```
+
+## Decorator Nodes
+A decorator node is similar to a composite node, but it can only have a single child node. The state of a decorator node is usually some transformation of the state of the child node. Decorator nodes are also used to repeat or terminate execution of a particular node.
 
 ### Root
-This node represents the root of a behaviour tree and cannot be the child of another composite node.
+This decorator node represents the root of a behaviour tree and cannot be the child of another composite node.
 
-A root node can only have a single child node. The state of a root node will reflect the state of this single child.
+The state of a root node will reflect the state of its child node.
 
 ```
 root {
@@ -103,44 +158,6 @@ root [SomeOtherTree] {
 }
 ```
 
-### Sequence
-This node will update each child node in sequence. It will succeed if all of its children have succeeded and will fail if any of its children fail. This node will remain in the running state if one of its children is running.
-
-```
-root {
-    sequence {
-        action [Walk]
-        action [Fall]
-        action [Laugh]
-    }
-}
-```
-
-### Selector
-This node will update each child node in sequence. It will fail if all of its children have failed and will succeed if any of its children succeed. This node will remain in the running state if one of its children is running.
-
-```
-root {
-    selector {
-        action [TryThis]
-        action [ThenTryThis]
-        action [TryThisLast]
-    }
-}
-```
-
-### Lotto
-This node will select a single child at random to run as the active running node. The state of this node will reflect the state of the active child.
-
-```
-root {
-    lotto {
-        action [MoveLeft]
-        action [MoveRight]
-    }
-}
-```
-
 A probability weight can be defined for each child node as an optional integer node argument, influencing the likelihood that a particular child will be picked.
 
 ```
@@ -155,7 +172,7 @@ root {
 ```
 
 ### Repeat
-A repeat node can only have a single child node which it will run repeatedly. It will do this until either the child fails, at which point the repeat node will fail, or the maximum number of iterations is reached, which moves the repeat node to a succeeded state. This node will be in a running state if its child is also in a running state, or if further iterations need to be made.
+This decorator node will repeat the execution of its child node if the child moves to the succeeded state. It will do this until either the child fails, at which point the repeat node will fail, or the maximum number of iterations is reached, which moves the repeat node to a succeeded state. This node will be in a running state if its child is also in a running state, or if further iterations need to be made.
 
 The maximum number of iterations can be defined as a single integer node argument. In the example below, we would be repeating the action **SomeAction** 5 times.
 
@@ -186,7 +203,7 @@ root {
 ```
 
 ### Flip
-A flip node can only have a single child node. This node will succeed when its child moves to the failed state, and it will fail if its child moves to the succeeded state. This node will remain in the running state if its children is running.
+This decorator node will succeed when its child moves to the failed state, and it will fail if its child moves to the succeeded state. This node will remain in the running state if its children is running.
 
 ```
 root {
@@ -196,19 +213,8 @@ root {
 }
 ```
 
-### Parallel
-This node will update each child node concurrently. It will succeed if all of its children have succeeded and will fail if any of its children fail. This node will remain in the running state if any of its children are running.
-
-```
-root {
-    parallel {
-        action [RubBelly]
-        action [PatHead]
-    }
-}
-```
-
 ## Leaf Nodes
+Leaf nodes are the lowest level node type and cannot be the parent of other child nodes.
 
 ### Action
 An action node represents an action that can be completed immediately as part of a single tree step, or ongoing behaviour that can take a prolonged amount of time and may take multiple tree steps to complete. Each action node will correspond to functionality defined within the blackboard, where the first action node argument will be an identifier matching the name of the corresponding blackboard action function.

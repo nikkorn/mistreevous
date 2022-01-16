@@ -1,5 +1,5 @@
-import Composite from './composite'
-import State from "../state";
+import Decorator from './decorator';
+import State from '../../state'
 
 /**
  * A Root node.
@@ -8,7 +8,7 @@ import State from "../state";
  * @param child The child node. 
  */
 export default function Root(decorators, child) {
-    Composite.call(this, "root", decorators, [child]);
+    Decorator.call(this, "root", decorators, child);
    
     /**
      * Update the node and get whether the node state has changed.
@@ -32,4 +32,4 @@ export default function Root(decorators, child) {
     this.getName = () => "ROOT";
 };
 
-Root.prototype = Object.create(Composite.prototype);
+Root.prototype = Object.create(Decorator.prototype);

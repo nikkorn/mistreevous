@@ -1,5 +1,5 @@
-import Composite from './composite'
-import State from "../state";
+import Decorator from './decorator';
+import State from '../../state'
 
 /**
  * A REPEAT node.
@@ -14,7 +14,7 @@ import State from "../state";
  * @param child The child node. 
  */
 export default function Repeat(decorators, iterations, maximumIterations, child) {
-    Composite.call(this, "repeat", decorators, [child]);
+    Decorator.call(this, "repeat", decorators, child);
 
     /**
      * The number of target iterations to make.
@@ -129,4 +129,4 @@ export default function Repeat(decorators, iterations, maximumIterations, child)
     }
 };
 
-Repeat.prototype = Object.create(Composite.prototype);
+Repeat.prototype = Object.create(Decorator.prototype);

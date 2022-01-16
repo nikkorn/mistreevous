@@ -1,4 +1,4 @@
-import GuardUnsatisifedException from '../decorators/guards/guardUnsatisifedException';
+import GuardUnsatisifedException from '../attributes/guards/guardUnsatisifedException';
 import State from "../state";
 
 /**
