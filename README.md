@@ -17,7 +17,7 @@ $ npm install --save mistreevous
 ```js
 import { State, BehaviourTree } from "mistreevous";
 
-/** Define some behaviour for an agent. */
+/** Define some behaviour for an entity. */
 const definition = `root {
     sequence {
         action [Walk]
@@ -26,8 +26,8 @@ const definition = `root {
     }
 }`;
 
-/** Create a character that we will be modelling the behaviour for. */
-const character = {
+/** Create an entity that we will be modelling the behaviour for. */
+const entity = {
     Walk: () => {
         console.log("walking!");
         return State.SUCCEEDED;
@@ -42,8 +42,8 @@ const character = {
     },
 };
 
-/** Create the behaviour tree, passing our tree definition and the agent that we are modelling behaviour for. */
-const behaviourTree = new BehaviourTree(definition, character);
+/** Create the behaviour tree, passing our tree definition and the entity that we are modelling behaviour for. */
+const behaviourTree = new BehaviourTree(definition, entity);
 
 /** Step the tree. */
 behaviourTree.step();
