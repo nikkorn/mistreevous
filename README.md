@@ -203,11 +203,33 @@ root {
 ```
 
 ### Flip
-This decorator node will succeed when its child moves to the failed state, and it will fail if its child moves to the succeeded state. This node will remain in the running state if its children is running.
+This decorator node will move to the succeed state when its child moves to the failed state, and it will fail if its child moves to the succeeded state. This node will remain in the running state if its child is in the running state.
 
 ```
 root {
     flip {
+        action [SomeAction]
+    }
+}
+```
+
+### Succeed
+This decorator node will move to the succeed state when its child moves to the either the failed state or the succeeded state. This node will remain in the running state if its child is in the running state.
+
+```
+root {
+    succeed {
+        action [SomeAction]
+    }
+}
+```
+
+### Fail
+This decorator node will move to the failed state when its child moves to the either the failed state or the succeeded state. This node will remain in the running state if its child is in the running state.
+
+```
+root {
+    fail {
         action [SomeAction]
     }
 }
