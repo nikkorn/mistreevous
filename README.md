@@ -414,7 +414,7 @@ root {
 ```
 
 ## Callbacks
-Callbacks can be defined for tree nodes that will be invoked as the node is processed during a tree step. Any number of callbacks can be attached to a node as long as there are not multiple callbacks of the same type.
+Callbacks can be defined for tree nodes and will be invoked as the node is processed during a tree step. Any number of callbacks can be attached to a node as long as there are not multiple callbacks of the same type.
 
 Optional arguments can be defined for callback functions in the same way as action and condition functions.
 
