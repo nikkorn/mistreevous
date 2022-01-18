@@ -249,6 +249,42 @@ const example_snippets = {
     },
 
 
+    "succeed-node": {
+        "definition": `root {
+    sequence {
+        succeed {
+            condition [IsFalse]
+        }
+        succeed {
+            condition [IsTrue]
+        }
+    }
+}`,
+        "blackboard": `{
+    IsTrue: () => true,
+    IsFalse: () => false
+}`
+    },
+
+
+    "fail-node": {
+        "definition": `root {
+    selector {
+        fail {
+            condition [IsFalse]
+        }
+        fail {
+            condition [IsTrue]
+        }
+    }
+}`,
+        "blackboard": `{
+    IsTrue: () => true,
+    IsFalse: () => false
+}`
+    },
+
+
 
     "entry-exit-step-decorators": {
         "definition": `root entry(OnRootStart) exit(OnRootFinish) {
