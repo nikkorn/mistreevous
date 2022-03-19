@@ -4,6 +4,8 @@ import Wait from './nodes/leaf/wait'
 import Root from './nodes/decorator/root'
 import Repeat from './nodes/decorator/repeat'
 import Flip from './nodes/decorator/flip'
+import Succeed from './nodes/decorator/succeed'
+import Fail from './nodes/decorator/fail'
 import Lotto from './nodes/composite/lotto'
 import Selector from './nodes/composite/selector'
 import Sequence from './nodes/composite/sequence'
@@ -194,6 +196,40 @@ const ASTNodeFactories = {
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
             return new Flip(
+                this.decorators,
+                this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
+            );
+        }
+    }),
+    "SUCCEED": () => ({
+        type: "succeed",
+        decorators: [],
+        children: [],
+        validate: function (depth) {
+            // A succeed node must have a single node.
+            if (this.children.length !== 1) {
+                throw new Error("a succeed node must have a single child");
+            }
+        },
+        createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+            return new Succeed(
+                this.decorators,
+                this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
+            );
+        }
+    }),
+    "FAIL": () => ({
+        type: "fail",
+        decorators: [],
+        children: [],
+        validate: function (depth) {
+            // A fail node must have a single node.
+            if (this.children.length !== 1) {
+                throw new Error("a fail node must have a single child");
+            }
+        },
+        createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+            return new Fail(
                 this.decorators,
                 this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
             );
@@ -466,6 +502,38 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 popAndCheck(tokens, "{");
 
                 // The new scope is that of the new FLIP nodes children.
+                stack.push(node.children);
+                break;
+
+            case "SUCCEED":
+                // Create a SUCCEED AST node.
+                node = ASTNodeFactories.SUCCEED();
+
+                // Push the Succeed node into the current scope.
+                stack[stack.length-1].push(node);
+
+                // Try to pick any decorators off of the token stack.
+                node.decorators = getDecorators(tokens, stringArgumentPlaceholders);
+
+                popAndCheck(tokens, "{");
+
+                // The new scope is that of the new Succeed nodes children.
+                stack.push(node.children);
+                break;
+
+            case "FAIL":
+                // Create a FAIL AST node.
+                node = ASTNodeFactories.FAIL();
+
+                // Push the Fail node into the current scope.
+                stack[stack.length-1].push(node);
+
+                // Try to pick any decorators off of the token stack.
+                node.decorators = getDecorators(tokens, stringArgumentPlaceholders);
+
+                popAndCheck(tokens, "{");
+
+                // The new scope is that of the new Fail nodes children.
                 stack.push(node.children);
                 break;
 

@@ -203,11 +203,33 @@ root {
 ```
 
 ### Flip
-This decorator node will succeed when its child moves to the failed state, and it will fail if its child moves to the succeeded state. This node will remain in the running state if its children is running.
+This decorator node will move to the succeed state when its child moves to the failed state, and it will fail if its child moves to the succeeded state. This node will remain in the running state if its child is in the running state.
 
 ```
 root {
     flip {
+        action [SomeAction]
+    }
+}
+```
+
+### Succeed
+This decorator node will move to the succeed state when its child moves to the either the failed state or the succeeded state. This node will remain in the running state if its child is in the running state.
+
+```
+root {
+    succeed {
+        action [SomeAction]
+    }
+}
+```
+
+### Fail
+This decorator node will move to the failed state when its child moves to the either the failed state or the succeeded state. This node will remain in the running state if its child is in the running state.
+
+```
+root {
+    fail {
         action [SomeAction]
     }
 }
@@ -391,13 +413,13 @@ root {
 }
 ```
 
-## Decorators
-Decorators allow additional behaviour to be defined for a tree node. Any number of decorators can be attached to a node as long as there are not multiple decorators of the same type.
+## Callbacks
+Callbacks can be defined for tree nodes and will be invoked as the node is processed during a tree step. Any number of callbacks can be attached to a node as long as there are not multiple callbacks of the same type.
 
-Optional arguments can be defined for decorator blackboard functions in the same way as action and condition blackboard functions.
+Optional arguments can be defined for callback functions in the same way as action and condition functions.
 
 ### Entry
-An entry decorator defines a blackboard function to call whenever the decorated node moves out of the **ready** state when it is first visited.
+An entry callback defines a function to call whenever the associated node moves out of the **ready** state when it is first visited.
 
 ```
 root {
@@ -411,7 +433,7 @@ root {
 ```
 
 ### Exit
-An exit decorator defines a blackboard function to call whenever the decorated node moves to a finished state or is aborted. A results object is passed to the referenced blackboard function containing the **succeeded** and **aborted** boolean properties.
+An exit callback defines a function to call whenever the associated node moves to a finished state or is aborted. A results object is passed to the referenced function containing the **succeeded** and **aborted** boolean properties.
 
 ```
 root {
@@ -425,11 +447,11 @@ root {
 ```
 
 ### Step
-A step decorator defines a blackboard function to call whenever the decorated node is updated as part of a tree step.
+A step callback defines a function to call whenever the associated node is updated as part of a tree step.
 
 ```
 root {
-    sequence step(OnMoving){
+    sequence step(OnMoving) {
         action [WalkNorthOneSpace]
         action [WalkEastOneSpace]
         action [WalkSouthOneSpace]
@@ -439,7 +461,7 @@ root {
 ```
 
 ### Guards
-A guard decorator defines a condition that must be met in order for the node to remain active. Any running nodes will have their guard condition evaluated for each leaf node update, and will move to a failed state if the guard condition is not met.
+A guard defines a condition that must be met in order for the node to remain active. Any running nodes will have their guard condition evaluated for each leaf node update, and will move to a failed state if the guard condition is not met.
 
 This functionality is useful as a means of aborting long running actions or branches that span across multiple steps of the tree.
 
@@ -452,7 +474,7 @@ root {
 In the above example, we have a **wait** node that waits for 10 seconds before moving to a succeeded state. We are using a **while** guard to give up on waiting this long if the condition **CanWait** evaluates to false during a tree step.
 
 #### While
-A while guard decorator will be satisfied as long as its condition evaluates to true.
+A while guard will be satisfied as long as its condition evaluates to true.
 
 ```
 root {
@@ -466,7 +488,7 @@ root {
 ```
 
 #### Until
-An until guard decorator will be satisfied as long as its condition evaluates to false.
+An until guard will be satisfied as long as its condition evaluates to false.
 
 ```
 root {

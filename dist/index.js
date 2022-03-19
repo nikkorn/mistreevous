@@ -96,8 +96,77 @@ const State = {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = Decorator;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+
+
+
+/**
+ * A decorator node that wraps a single child node.
+ * @param type The node type.
+ * @param decorators The node decorators.
+ * @param child The child node. 
+ */
+function Decorator(type, decorators, child) {
+    __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
+
+    /**
+     * Gets whether this node is a leaf node.
+     */
+    this.isLeafNode = () => false;
+
+    /**
+     * Gets the children of this node.
+     */
+    this.getChildren = () => [child];
+
+    /**
+     * Reset the state of the node.
+     */
+    this.reset = () => {
+        // Reset the state of this node.
+        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
+
+        // Reset the state of the child node.
+        child.reset();
+    };
+
+    /**
+     * Abort the running of this node.
+     * @param board The board.
+     */
+    this.abort = board => {
+        // There is nothing to do if this node is not in the running state.
+        if (!this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING)) {
+            return;
+        }
+
+        // Abort the child node.
+        child.abort(board);
+
+        // Reset the state of this node.
+        this.reset();
+
+        // Try to get the exit decorator for this node.
+        const exitDecorator = this.getDecorator("exit");
+
+        // Call the exit decorator function if it exists.
+        if (exitDecorator) {
+            exitDecorator.callBlackboardFunction(board, false, true);
+        }
+    };
+};
+
+Decorator.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
+
+/***/ }),
+/* 2 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Composite;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -161,12 +230,12 @@ function Composite(type, decorators, children) {
 Composite.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Leaf;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(4);
 
 
 /**
@@ -187,7 +256,7 @@ function Leaf(type, decorators, args) {
 Leaf.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -372,75 +441,6 @@ function createNodeUid() {
   };
   return S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
 }
-
-/***/ }),
-/* 4 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = Decorator;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
-
-
-
-/**
- * A decorator node that wraps a single child node.
- * @param type The node type.
- * @param decorators The node decorators.
- * @param child The child node. 
- */
-function Decorator(type, decorators, child) {
-    __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
-
-    /**
-     * Gets whether this node is a leaf node.
-     */
-    this.isLeafNode = () => false;
-
-    /**
-     * Gets the children of this node.
-     */
-    this.getChildren = () => [child];
-
-    /**
-     * Reset the state of the node.
-     */
-    this.reset = () => {
-        // Reset the state of this node.
-        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
-
-        // Reset the state of the child node.
-        child.reset();
-    };
-
-    /**
-     * Abort the running of this node.
-     * @param board The board.
-     */
-    this.abort = board => {
-        // There is nothing to do if this node is not in the running state.
-        if (!this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING)) {
-            return;
-        }
-
-        // Abort the child node.
-        child.abort(board);
-
-        // Reset the state of this node.
-        this.reset();
-
-        // Try to get the exit decorator for this node.
-        const exitDecorator = this.getDecorator("exit");
-
-        // Call the exit decorator function if it exists.
-        if (exitDecorator) {
-            exitDecorator.callBlackboardFunction(board, false, true);
-        }
-    };
-};
-
-Decorator.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
 
 /***/ }),
 /* 5 */
@@ -873,15 +873,19 @@ function GuardPath(nodes) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nodes_decorator_root__ = __webpack_require__(16);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__nodes_decorator_repeat__ = __webpack_require__(17);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__nodes_decorator_flip__ = __webpack_require__(18);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_composite_lotto__ = __webpack_require__(19);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_composite_selector__ = __webpack_require__(20);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_composite_sequence__ = __webpack_require__(21);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__nodes_composite_parallel__ = __webpack_require__(22);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__attributes_guards_while__ = __webpack_require__(23);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__attributes_guards_until__ = __webpack_require__(24);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__attributes_callbacks_entry__ = __webpack_require__(25);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__attributes_callbacks_exit__ = __webpack_require__(26);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__attributes_callbacks_step__ = __webpack_require__(27);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_decorator_succeed__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_decorator_fail__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_composite_lotto__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__nodes_composite_selector__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__nodes_composite_sequence__ = __webpack_require__(23);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__nodes_composite_parallel__ = __webpack_require__(24);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__attributes_guards_while__ = __webpack_require__(25);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__attributes_guards_until__ = __webpack_require__(26);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__attributes_callbacks_entry__ = __webpack_require__(27);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_15__attributes_callbacks_exit__ = __webpack_require__(28);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_16__attributes_callbacks_step__ = __webpack_require__(29);
+
+
 
 
 
@@ -902,11 +906,11 @@ function GuardPath(nodes) {
  * The node decorator factories.
  */
 const DecoratorFactories = {
-    "WHILE": (condition, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_10__attributes_guards_while__["a" /* default */](condition, decoratorArguments),
-    "UNTIL": (condition, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_11__attributes_guards_until__["a" /* default */](condition, decoratorArguments),
-    "ENTRY": (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_12__attributes_callbacks_entry__["a" /* default */](functionName, decoratorArguments),
-    "EXIT": (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_13__attributes_callbacks_exit__["a" /* default */](functionName, decoratorArguments),
-    "STEP": (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_14__attributes_callbacks_step__["a" /* default */](functionName, decoratorArguments)
+    "WHILE": (condition, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_12__attributes_guards_while__["a" /* default */](condition, decoratorArguments),
+    "UNTIL": (condition, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_13__attributes_guards_until__["a" /* default */](condition, decoratorArguments),
+    "ENTRY": (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_14__attributes_callbacks_entry__["a" /* default */](functionName, decoratorArguments),
+    "EXIT": (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_15__attributes_callbacks_exit__["a" /* default */](functionName, decoratorArguments),
+    "STEP": (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_16__attributes_callbacks_step__["a" /* default */](functionName, decoratorArguments)
 };
 
 /**
@@ -965,7 +969,7 @@ const ASTNodeFactories = {
             }
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_7__nodes_composite_selector__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+            return new __WEBPACK_IMPORTED_MODULE_9__nodes_composite_selector__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
         }
     }),
     "SEQUENCE": () => ({
@@ -979,7 +983,7 @@ const ASTNodeFactories = {
             }
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_8__nodes_composite_sequence__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+            return new __WEBPACK_IMPORTED_MODULE_10__nodes_composite_sequence__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
         }
     }),
     "PARALLEL": () => ({
@@ -993,7 +997,7 @@ const ASTNodeFactories = {
             }
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_9__nodes_composite_parallel__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+            return new __WEBPACK_IMPORTED_MODULE_11__nodes_composite_parallel__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
         }
     }),
     "LOTTO": () => ({
@@ -1008,7 +1012,7 @@ const ASTNodeFactories = {
             }
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_6__nodes_composite_lotto__["a" /* default */](this.decorators, this.tickets, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+            return new __WEBPACK_IMPORTED_MODULE_8__nodes_composite_lotto__["a" /* default */](this.decorators, this.tickets, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
         }
     }),
     "REPEAT": () => ({
@@ -1057,6 +1061,34 @@ const ASTNodeFactories = {
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new __WEBPACK_IMPORTED_MODULE_5__nodes_decorator_flip__["a" /* default */](this.decorators, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
+        }
+    }),
+    "SUCCEED": () => ({
+        type: "succeed",
+        decorators: [],
+        children: [],
+        validate: function (depth) {
+            // A succeed node must have a single node.
+            if (this.children.length !== 1) {
+                throw new Error("a succeed node must have a single child");
+            }
+        },
+        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
+            return new __WEBPACK_IMPORTED_MODULE_6__nodes_decorator_succeed__["a" /* default */](this.decorators, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
+        }
+    }),
+    "FAIL": () => ({
+        type: "fail",
+        decorators: [],
+        children: [],
+        validate: function (depth) {
+            // A fail node must have a single node.
+            if (this.children.length !== 1) {
+                throw new Error("a fail node must have a single child");
+            }
+        },
+        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
+            return new __WEBPACK_IMPORTED_MODULE_7__nodes_decorator_fail__["a" /* default */](this.decorators, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
         }
     }),
     "WAIT": () => ({
@@ -1309,6 +1341,38 @@ function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 popAndCheck(tokens, "{");
 
                 // The new scope is that of the new FLIP nodes children.
+                stack.push(node.children);
+                break;
+
+            case "SUCCEED":
+                // Create a SUCCEED AST node.
+                node = ASTNodeFactories.SUCCEED();
+
+                // Push the Succeed node into the current scope.
+                stack[stack.length - 1].push(node);
+
+                // Try to pick any decorators off of the token stack.
+                node.decorators = getDecorators(tokens, stringArgumentPlaceholders);
+
+                popAndCheck(tokens, "{");
+
+                // The new scope is that of the new Succeed nodes children.
+                stack.push(node.children);
+                break;
+
+            case "FAIL":
+                // Create a FAIL AST node.
+                node = ASTNodeFactories.FAIL();
+
+                // Push the Fail node into the current scope.
+                stack[stack.length - 1].push(node);
+
+                // Try to pick any decorators off of the token stack.
+                node.decorators = getDecorators(tokens, stringArgumentPlaceholders);
+
+                popAndCheck(tokens, "{");
+
+                // The new scope is that of the new Fail nodes children.
                 stack.push(node.children);
                 break;
 
@@ -1672,7 +1736,7 @@ function getDecorators(tokens, stringArgumentPlaceholders) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Action;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -1822,7 +1886,7 @@ Action.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* defa
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Condition;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -1865,7 +1929,7 @@ Condition.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* d
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Wait;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -1930,7 +1994,7 @@ Wait.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* defaul
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Root;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -1974,7 +2038,7 @@ Root.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* d
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Repeat;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -2113,7 +2177,7 @@ Repeat.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /*
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Flip;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -2170,8 +2234,118 @@ Flip.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* d
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = Succeed;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+
+
+
+/**
+ * A Succeed node.
+ * This node wraps a single child and will always move to the 'SUCCEEDED' state when the child moves to a 'SUCCEEDED' or 'FAILED' state.
+ * @param decorators The node decorators.
+ * @param child The child node. 
+ */
+function Succeed(decorators, child) {
+  __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "succeed", decorators, child);
+
+  /**
+   * Update the node.
+   * @param board The board.
+   * @returns The result of the update.
+   */
+  this.onUpdate = function (board) {
+    // If the child has never been updated or is running then we will need to update it now.
+    if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
+      child.update(board);
+    }
+
+    // The state of this node will depend in the state of its child.
+    switch (child.getState()) {
+      case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING:
+        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
+        break;
+
+      case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED:
+      case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED:
+        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED);
+        break;
+
+      default:
+        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
+    }
+  };
+
+  /**
+   * Gets the name of the node.
+   */
+  this.getName = () => "SUCCEED";
+};
+
+Succeed.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
+
+/***/ }),
+/* 20 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = Fail;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+
+
+
+/**
+ * A Fail node.
+ * This node wraps a single child and will always move to the 'FAILED' state when the child moves to a 'SUCCEEDED' or 'FAILED' state.
+ * @param decorators The node decorators.
+ * @param child The child node. 
+ */
+function Fail(decorators, child) {
+  __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "fail", decorators, child);
+
+  /**
+   * Update the node.
+   * @param board The board.
+   * @returns The result of the update.
+   */
+  this.onUpdate = function (board) {
+    // If the child has never been updated or is running then we will need to update it now.
+    if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
+      child.update(board);
+    }
+
+    // The state of this node will depend in the state of its child.
+    switch (child.getState()) {
+      case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING:
+        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
+        break;
+
+      case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED:
+      case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED:
+        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
+        break;
+
+      default:
+        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
+    }
+  };
+
+  /**
+   * Gets the name of the node.
+   */
+  this.getName = () => "FAIL";
+};
+
+Fail.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
+
+/***/ }),
+/* 21 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Lotto;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -2284,12 +2458,12 @@ function Lotto(decorators, tickets, children) {
 Lotto.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 20 */
+/* 22 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Selector;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -2365,12 +2539,12 @@ function Selector(decorators, children) {
 Selector.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 21 */
+/* 23 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Sequence;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -2446,12 +2620,12 @@ function Sequence(decorators, children) {
 Sequence.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 22 */
+/* 24 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Parallel;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__composite__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -2533,7 +2707,7 @@ function Parallel(decorators, children) {
 Parallel.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 23 */
+/* 25 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2589,7 +2763,7 @@ function While(condition, args) {
 While.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__guard__["a" /* default */].prototype);
 
 /***/ }),
-/* 24 */
+/* 26 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2645,7 +2819,7 @@ function Until(condition, args) {
 Until.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__guard__["a" /* default */].prototype);
 
 /***/ }),
-/* 25 */
+/* 27 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2695,7 +2869,7 @@ function Entry(functionName, args) {
 Entry.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__callback__["a" /* default */].prototype);
 
 /***/ }),
-/* 26 */
+/* 28 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2747,7 +2921,7 @@ function Exit(functionName, args) {
 Exit.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__callback__["a" /* default */].prototype);
 
 /***/ }),
-/* 27 */
+/* 29 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
