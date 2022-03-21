@@ -292,7 +292,11 @@ a {
 }
 
 .tree-view-icon-repeat {
-    background-color: rgb(224, 85, 115);
+    background-color: rgb(80, 209, 181);
+}
+
+.tree-view-icon-retry {
+    background-color: rgb(224, 85, 159);
 }
 
 .tree-view-icon-while {
@@ -316,7 +320,7 @@ a {
 }
 
 .tree-view-icon-lotto {
-    background-color: rgb(12, 185, 133);
+    background-color: rgb(9, 156, 112);
 }
 
 .tree-view-icon-wait {

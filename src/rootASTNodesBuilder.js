@@ -3,6 +3,7 @@ import Condition from './nodes/leaf/condition'
 import Wait from './nodes/leaf/wait'
 import Root from './nodes/decorator/root'
 import Repeat from './nodes/decorator/repeat'
+import Retry from './nodes/decorator/retry'
 import Flip from './nodes/decorator/flip'
 import Succeed from './nodes/decorator/succeed'
 import Fail from './nodes/decorator/fail'
@@ -177,6 +178,45 @@ const ASTNodeFactories = {
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
             return new Repeat(
+                this.decorators,
+                this.iterations,
+                this.maximumIterations,
+                this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
+            );
+        }
+    }),
+    "RETRY": () => ({
+        type: "retry",
+        decorators: [],
+        iterations: null,
+        maximumIterations: null,
+        children: [],
+        validate: function (depth) {
+            // A retry node must have a single node.
+            if (this.children.length !== 1) {
+                throw new Error("a retry node must have a single child");
+            }
+
+            // A retry node must have a positive number of iterations if defined. 
+            if (this.iterations !== null && this.iterations < 0) {
+                throw new Error("a retry node must have a positive number of iterations if defined");
+            }
+
+            // There is validation to carry out if a longest duration was defined.
+            if (this.maximumIterations !== null) {
+                // A retry node must have a positive maximum iterations count if defined. 
+                if (this.maximumIterations < 0) {
+                    throw new Error("a retry node must have a positive maximum iterations count if defined");
+                }
+
+                // A retry node must not have an iteration count that exceeds the maximum iteration count.
+                if (this.iterations > this.maximumIterations) {
+                    throw new Error("a retry node must not have an iteration count that exceeds the maximum iteration count");
+                }
+            }
+        },
+        createNodeInstance: function (namedRootNodeProvider, visitedBranches) { 
+            return new Retry(
                 this.decorators,
                 this.iterations,
                 this.maximumIterations,
@@ -606,6 +646,46 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 popAndCheck(tokens, "{");
 
                 // The new scope is that of the new REPEAT nodes children.
+                stack.push(node.children);
+                break;
+
+            case "RETRY":
+                // Create a RETRY AST node.
+                node = ASTNodeFactories.RETRY();
+
+                // Push the RETRY node into the current scope.
+                stack[stack.length-1].push(node);
+
+                // Check for iteration counts ([])
+                if (tokens[0] === "[") {
+                    // An iteration count has been defined. Get the iteration and potential maximum iteration of the wait.
+                    const iterationArguments = getArguments(
+                        tokens,
+                        stringArgumentPlaceholders,
+                        (arg) => arg.type === "number" && arg.isInteger,
+                        "retry node iteration counts must be integer values"
+                    ).map(argument => argument.value);
+
+                    // We should have got one or two iteration counts.
+                    if (iterationArguments.length === 1) {
+                        // A static iteration count was defined.
+                        node.iterations = iterationArguments[0];
+                    } else if (iterationArguments.length === 2) {
+                        // A minimum and maximum iteration count was defined.
+                        node.iterations        = iterationArguments[0];
+                        node.maximumIterations = iterationArguments[1];
+                    } else {
+                        // An incorrect number of iteration counts was defined.
+                        throw new Error("invalid number of retry node iteration count arguments defined");
+                    }
+                }
+
+                // Try to pick any decorators off of the token stack.
+                node.decorators = getDecorators(tokens, stringArgumentPlaceholders);
+
+                popAndCheck(tokens, "{");
+
+                // The new scope is that of the new RETRY nodes children.
                 stack.push(node.children);
                 break;
 
