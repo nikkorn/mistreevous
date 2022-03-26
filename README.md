@@ -202,6 +202,37 @@ root {
 }
 ```
 
+### Retry
+This decorator node will repeat the execution of its child node if the child moves to the failed state. It will do this until either the child succeeds, at which point the retry node will succeed, or the maximum number of attempts is reached, which moves the retry node to a failed state. This node will be in a running state if its child is also in a running state, or if further attempts need to be made.
+
+The maximum number of attempts can be defined as a single integer node argument. In the example below, we would be retrying the action **SomeAction** 5 times.
+
+```
+root {
+    retry [5] {
+        action [SomeAction]
+    }
+}
+```
+The number of attempts to make can be selected at random within a lower and upper bound if these are defined as two integer node arguments. In the example below, we would be retrying the action **SomeAction** between 1 and 5 times.
+
+```
+root {
+    retry [1,5] {
+        action [SomeAction]
+    }
+}
+```
+The maximum number of attempts to make can be omitted as a node argument. This would result in the child node being run infinitely until it moves to the succeeded state, as can be seen in the example below.
+
+```
+root {
+    retry {
+        action [SomeAction]
+    }
+}
+```
+
 ### Flip
 This decorator node will move to the succeed state when its child moves to the failed state, and it will fail if its child moves to the succeeded state. This node will remain in the running state if its child is in the running state.
 
