@@ -872,18 +872,20 @@ function GuardPath(nodes) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__nodes_leaf_wait__ = __webpack_require__(15);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nodes_decorator_root__ = __webpack_require__(16);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__nodes_decorator_repeat__ = __webpack_require__(17);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__nodes_decorator_flip__ = __webpack_require__(18);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_decorator_succeed__ = __webpack_require__(19);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_decorator_fail__ = __webpack_require__(20);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_composite_lotto__ = __webpack_require__(21);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__nodes_composite_selector__ = __webpack_require__(22);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__nodes_composite_sequence__ = __webpack_require__(23);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__nodes_composite_parallel__ = __webpack_require__(24);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__attributes_guards_while__ = __webpack_require__(25);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__attributes_guards_until__ = __webpack_require__(26);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__attributes_callbacks_entry__ = __webpack_require__(27);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_15__attributes_callbacks_exit__ = __webpack_require__(28);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_16__attributes_callbacks_step__ = __webpack_require__(29);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__nodes_decorator_retry__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_decorator_flip__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_decorator_succeed__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_decorator_fail__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__nodes_composite_lotto__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__nodes_composite_selector__ = __webpack_require__(23);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__nodes_composite_sequence__ = __webpack_require__(24);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__nodes_composite_parallel__ = __webpack_require__(25);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__attributes_guards_while__ = __webpack_require__(26);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__attributes_guards_until__ = __webpack_require__(27);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_15__attributes_callbacks_entry__ = __webpack_require__(28);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_16__attributes_callbacks_exit__ = __webpack_require__(29);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_17__attributes_callbacks_step__ = __webpack_require__(30);
+
 
 
 
@@ -906,11 +908,11 @@ function GuardPath(nodes) {
  * The node decorator factories.
  */
 const DecoratorFactories = {
-    "WHILE": (condition, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_12__attributes_guards_while__["a" /* default */](condition, decoratorArguments),
-    "UNTIL": (condition, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_13__attributes_guards_until__["a" /* default */](condition, decoratorArguments),
-    "ENTRY": (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_14__attributes_callbacks_entry__["a" /* default */](functionName, decoratorArguments),
-    "EXIT": (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_15__attributes_callbacks_exit__["a" /* default */](functionName, decoratorArguments),
-    "STEP": (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_16__attributes_callbacks_step__["a" /* default */](functionName, decoratorArguments)
+    "WHILE": (condition, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_13__attributes_guards_while__["a" /* default */](condition, decoratorArguments),
+    "UNTIL": (condition, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_14__attributes_guards_until__["a" /* default */](condition, decoratorArguments),
+    "ENTRY": (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_15__attributes_callbacks_entry__["a" /* default */](functionName, decoratorArguments),
+    "EXIT": (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_16__attributes_callbacks_exit__["a" /* default */](functionName, decoratorArguments),
+    "STEP": (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_17__attributes_callbacks_step__["a" /* default */](functionName, decoratorArguments)
 };
 
 /**
@@ -969,7 +971,7 @@ const ASTNodeFactories = {
             }
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_9__nodes_composite_selector__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+            return new __WEBPACK_IMPORTED_MODULE_10__nodes_composite_selector__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
         }
     }),
     "SEQUENCE": () => ({
@@ -983,7 +985,7 @@ const ASTNodeFactories = {
             }
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_10__nodes_composite_sequence__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+            return new __WEBPACK_IMPORTED_MODULE_11__nodes_composite_sequence__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
         }
     }),
     "PARALLEL": () => ({
@@ -997,7 +999,7 @@ const ASTNodeFactories = {
             }
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_11__nodes_composite_parallel__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+            return new __WEBPACK_IMPORTED_MODULE_12__nodes_composite_parallel__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
         }
     }),
     "LOTTO": () => ({
@@ -1012,7 +1014,7 @@ const ASTNodeFactories = {
             }
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_8__nodes_composite_lotto__["a" /* default */](this.decorators, this.tickets, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
+            return new __WEBPACK_IMPORTED_MODULE_9__nodes_composite_lotto__["a" /* default */](this.decorators, this.tickets, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
         }
     }),
     "REPEAT": () => ({
@@ -1049,6 +1051,40 @@ const ASTNodeFactories = {
             return new __WEBPACK_IMPORTED_MODULE_4__nodes_decorator_repeat__["a" /* default */](this.decorators, this.iterations, this.maximumIterations, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
         }
     }),
+    "RETRY": () => ({
+        type: "retry",
+        decorators: [],
+        iterations: null,
+        maximumIterations: null,
+        children: [],
+        validate: function (depth) {
+            // A retry node must have a single node.
+            if (this.children.length !== 1) {
+                throw new Error("a retry node must have a single child");
+            }
+
+            // A retry node must have a positive number of iterations if defined. 
+            if (this.iterations !== null && this.iterations < 0) {
+                throw new Error("a retry node must have a positive number of iterations if defined");
+            }
+
+            // There is validation to carry out if a longest duration was defined.
+            if (this.maximumIterations !== null) {
+                // A retry node must have a positive maximum iterations count if defined. 
+                if (this.maximumIterations < 0) {
+                    throw new Error("a retry node must have a positive maximum iterations count if defined");
+                }
+
+                // A retry node must not have an iteration count that exceeds the maximum iteration count.
+                if (this.iterations > this.maximumIterations) {
+                    throw new Error("a retry node must not have an iteration count that exceeds the maximum iteration count");
+                }
+            }
+        },
+        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
+            return new __WEBPACK_IMPORTED_MODULE_5__nodes_decorator_retry__["a" /* default */](this.decorators, this.iterations, this.maximumIterations, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
+        }
+    }),
     "FLIP": () => ({
         type: "flip",
         decorators: [],
@@ -1060,7 +1096,7 @@ const ASTNodeFactories = {
             }
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_5__nodes_decorator_flip__["a" /* default */](this.decorators, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
+            return new __WEBPACK_IMPORTED_MODULE_6__nodes_decorator_flip__["a" /* default */](this.decorators, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
         }
     }),
     "SUCCEED": () => ({
@@ -1074,7 +1110,7 @@ const ASTNodeFactories = {
             }
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_6__nodes_decorator_succeed__["a" /* default */](this.decorators, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
+            return new __WEBPACK_IMPORTED_MODULE_7__nodes_decorator_succeed__["a" /* default */](this.decorators, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
         }
     }),
     "FAIL": () => ({
@@ -1088,7 +1124,7 @@ const ASTNodeFactories = {
             }
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new __WEBPACK_IMPORTED_MODULE_7__nodes_decorator_fail__["a" /* default */](this.decorators, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
+            return new __WEBPACK_IMPORTED_MODULE_8__nodes_decorator_fail__["a" /* default */](this.decorators, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
         }
     }),
     "WAIT": () => ({
@@ -1435,6 +1471,41 @@ function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 popAndCheck(tokens, "{");
 
                 // The new scope is that of the new REPEAT nodes children.
+                stack.push(node.children);
+                break;
+
+            case "RETRY":
+                // Create a RETRY AST node.
+                node = ASTNodeFactories.RETRY();
+
+                // Push the RETRY node into the current scope.
+                stack[stack.length - 1].push(node);
+
+                // Check for iteration counts ([])
+                if (tokens[0] === "[") {
+                    // An iteration count has been defined. Get the iteration and potential maximum iteration of the wait.
+                    const iterationArguments = getArguments(tokens, stringArgumentPlaceholders, arg => arg.type === "number" && arg.isInteger, "retry node iteration counts must be integer values").map(argument => argument.value);
+
+                    // We should have got one or two iteration counts.
+                    if (iterationArguments.length === 1) {
+                        // A static iteration count was defined.
+                        node.iterations = iterationArguments[0];
+                    } else if (iterationArguments.length === 2) {
+                        // A minimum and maximum iteration count was defined.
+                        node.iterations = iterationArguments[0];
+                        node.maximumIterations = iterationArguments[1];
+                    } else {
+                        // An incorrect number of iteration counts was defined.
+                        throw new Error("invalid number of retry node iteration count arguments defined");
+                    }
+                }
+
+                // Try to pick any decorators off of the token stack.
+                node.decorators = getDecorators(tokens, stringArgumentPlaceholders);
+
+                popAndCheck(tokens, "{");
+
+                // The new scope is that of the new RETRY nodes children.
                 stack.push(node.children);
                 break;
 
@@ -2176,6 +2247,145 @@ Repeat.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /*
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = Retry;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+
+
+
+/**
+ * A RETRY node.
+ * The node has a single child which can have:
+ * -- A number of iterations for which to repeat the child node.
+ * -- An infinite repeat loop if neither an iteration count or a condition function is defined.
+ * The RETRY node will stop and have a 'SUCCEEDED' state if its child is ever in a 'SUCCEEDED' state after an update.
+ * The RETRY node will attempt to move on to the next iteration if its child is ever in a 'FAILED' state.
+ * @param decorators The node decorators.
+ * @param iterations The number of iterations to repeat the child node, or the minimum number of iterations if maximumIterations is defined.
+ * @param maximumIterations The maximum number of iterations to repeat the child node.
+ * @param child The child node. 
+ */
+function Retry(decorators, iterations, maximumIterations, child) {
+    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "retry", decorators, child);
+
+    /**
+     * The number of target iterations to make.
+     */
+    let targetIterationCount = null;
+
+    /**
+     * The current iteration count.
+     */
+    let currentIterationCount = 0;
+
+    /**
+     * Update the node.
+     * @param board The board.
+     * @returns The result of the update.
+     */
+    this.onUpdate = function (board) {
+        // If this node is in the READY state then we need to reset the child and the target iteration count.
+        if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
+            // Reset the child node.
+            child.reset();
+
+            // Set the target iteration count.
+            this._setTargetIterationCount();
+        }
+
+        // Do a check to see if we can iterate. If we can then this node will move into the 'RUNNING' state.
+        // If we cannot iterate then we have hit our target iteration count, which means that the node has succeeded.
+        if (this._canIterate()) {
+            // This node is in the running state and can do its initial iteration.
+            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
+
+            // We may have already completed an iteration, meaning that the child node will be in the FAILED state.
+            // If this is the case then we will have to reset the child node now.
+            if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED) {
+                child.reset();
+            }
+
+            // Update the child of this node.
+            child.update(board);
+
+            // If the child moved into the SUCCEEDED state when we updated it then there is nothing left to do and this node has also succeeded.
+            // If it has moved into the FAILED state then we have completed the current iteration.
+            if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED) {
+                // The child has succeeded, meaning that this node has succeeded.
+                this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED);
+
+                return;
+            } else if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED) {
+                // We have completed an iteration.
+                currentIterationCount += 1;
+            }
+        } else {
+            // This node is in the 'FAILED' state as we cannot iterate any more.
+            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
+        }
+    };
+
+    /**
+     * Gets the name of the node.
+     */
+    this.getName = () => {
+        if (iterations !== null) {
+            return `RETRY ${maximumIterations ? iterations + "x-" + maximumIterations + "x" : iterations + "x"}`;
+        }
+
+        // Return the default retry node name.
+        return "RETRY";
+    };
+
+    /**
+     * Reset the state of the node.
+     */
+    this.reset = () => {
+        // Reset the state of this node.
+        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
+
+        // Reset the current iteration count.
+        currentIterationCount = 0;
+
+        // Reset the child node.
+        child.reset();
+    };
+
+    /**
+     * Gets whether an iteration can be made.
+     * @returns Whether an iteration can be made.
+     */
+    this._canIterate = () => {
+        if (targetIterationCount !== null) {
+            // We can iterate as long as we have not reached our target iteration count.
+            return currentIterationCount < targetIterationCount;
+        }
+
+        // If neither an iteration count or a condition function were defined then we can iterate indefinitely.
+        return true;
+    };
+
+    /**
+     * Sets the target iteration count.
+     */
+    this._setTargetIterationCount = () => {
+        // Are we dealing with a finite number of iterations?
+        if (typeof iterations === "number") {
+            // If we have maximumIterations defined then we will want a random iteration count bounded by iterations and maximumIterations.
+            targetIterationCount = typeof maximumIterations === "number" ? Math.floor(Math.random() * (maximumIterations - iterations + 1) + iterations) : iterations;
+        } else {
+            targetIterationCount = null;
+        }
+    };
+};
+
+Retry.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
+
+/***/ }),
+/* 19 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Flip;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
@@ -2230,7 +2440,7 @@ function Flip(decorators, child) {
 Flip.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2285,7 +2495,7 @@ function Succeed(decorators, child) {
 Succeed.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2340,7 +2550,7 @@ function Fail(decorators, child) {
 Fail.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2458,7 +2668,7 @@ function Lotto(decorators, tickets, children) {
 Lotto.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2539,7 +2749,7 @@ function Selector(decorators, children) {
 Selector.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2620,7 +2830,7 @@ function Sequence(decorators, children) {
 Sequence.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2707,7 +2917,7 @@ function Parallel(decorators, children) {
 Parallel.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2763,7 +2973,7 @@ function While(condition, args) {
 While.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__guard__["a" /* default */].prototype);
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2819,7 +3029,7 @@ function Until(condition, args) {
 Until.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__guard__["a" /* default */].prototype);
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2869,7 +3079,7 @@ function Entry(functionName, args) {
 Entry.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__callback__["a" /* default */].prototype);
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2921,7 +3131,7 @@ function Exit(functionName, args) {
 Exit.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__callback__["a" /* default */].prototype);
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";

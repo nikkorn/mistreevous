@@ -230,6 +230,36 @@ const example_snippets = {
     },
 
 
+    "repeat-node": {
+        "definition": `root {
+    repeat {
+        sequence {
+            wait [1000]
+            wait [1000]
+            wait [1000]
+        }
+    }
+}`,
+        "blackboard": `{}`
+    },
+
+
+    "retry-node": {
+        "definition": `root {
+    retry {
+        sequence {
+            wait [1000]
+            wait [1000]
+            action [Fail]
+        }
+    }
+}`,
+        "blackboard": `{
+    // An action that will immediately fail.
+    Fail: () => Mistreevous.State.FAILED
+}`
+    },
+
 
     "flip-node": {
         "definition": `root {
