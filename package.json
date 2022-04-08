@@ -1,6 +1,6 @@
 {
   "name": "mistreevous",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "description": "A tool to build behaviour trees in JavaScript",
   "main": "dist/index.js",
   "types": "dist/mistreevous.d.ts",
@@ -41,7 +41,7 @@
     "state"
   ],
   "author": "nikolas howard",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/nikkorn/mistreevous/issues"
   },
