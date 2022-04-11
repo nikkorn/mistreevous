@@ -573,6 +573,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__attributes_guards_guardPath__ = __webpack_require__(11);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__rootASTNodesBuilder__ = __webpack_require__(12);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__state__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lookup__ = __webpack_require__(31);
+
 
 
 
@@ -826,6 +828,20 @@ BehaviourTree.prototype.step = function () {
  */
 BehaviourTree.prototype.reset = function () {
     this._rootNode.reset();
+};
+
+BehaviourTree.register = function (nameOrObject, functionOrDefinition) {
+    // This can take either:
+    // - A subtree name AND a stringy (and eventually JSON) definition.
+    // - A function name AND an action/condition/guard/callback function.
+    // - JUST an object that contains a mix of action/condition/guard/callback functions and/or stringy (and eventually JSON) subtree definitions.
+
+
+    __WEBPACK_IMPORTED_MODULE_3__lookup__["a" /* default */].addFunc(name, () => console.log(name));
+};
+
+BehaviourTree.unregister = function (nameOrObject) {
+    // Takes a name of a subtree of function OR an object that was passed to register.
 };
 
 /***/ }),
@@ -3179,6 +3195,32 @@ function Step(functionName, args) {
 };
 
 Step.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__callback__["a" /* default */].prototype);
+
+/***/ }),
+/* 31 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+const funcTable = {};
+const subtreeTable = {};
+
+/* harmony default export */ __webpack_exports__["a"] = ({
+    getFunc(name) {
+        return funcTable[name];
+    },
+    setFunc(name, func) {
+        funcTable[name] = func;
+    },
+    getSubtree(name) {
+        return subtreeTable[name];
+    },
+    setSubtree(name, subtree) {
+        subtreeTable[name] = subtree;
+    },
+    remove(name) {
+        delete funcTable[name];
+    }
+});
 
 /***/ })
 /******/ ]);

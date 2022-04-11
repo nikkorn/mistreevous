@@ -1,6 +1,7 @@
 import GuardPath from './attributes/guards/guardPath';
 import buildRootASTNodes from './rootASTNodesBuilder';
 import State from "./state";
+import Lookup from "./lookup";
 
 /**
  * The behaviour tree.
@@ -258,4 +259,34 @@ BehaviourTree.prototype.step = function () {
  */
 BehaviourTree.prototype.reset = function () {
     this._rootNode.reset();
+};
+
+BehaviourTree.register = function (nameOrObject, functionOrDefinition) {
+    // This can take either:
+    // - A subtree name AND a stringy (and eventually JSON) definition.
+    // - A function name AND an action/condition/guard/callback function.
+    // - JUST an object that contains a mix of action/condition/guard/callback functions and/or stringy (and eventually JSON) subtree definitions.
+
+    if (typeof nameOrObject === "string") {
+        if (typeof functionOrDefinition === "function") {
+            Lookup.setFunc(nameOrObject, functionOrDefinition);
+        }
+        else if (typeof functionOrDefinition === "string") {
+            // TODO Convert functionOrDefinition to a subtree
+            Lookup.setSubtree(nameOrObject, null);
+        }
+        else {
+            throw new Error("not what i expected! if this is a JSON definition then you are a few releases too early");
+        }
+    }
+    else if (typeof nameOrObject === "object") {
+        // TODO I guess we are just going to throw everything in nameOrObject at our lookup?
+    }
+    else {
+        throw new Error("not what i expected!");
+    }
+};
+
+BehaviourTree.unregister = function (nameOrObject) {
+    // Takes a name of a subtree of function OR an object that was passed to register.
 };
