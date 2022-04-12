@@ -337,13 +337,18 @@ const ASTNodeFactories = {
     })
 };
 
- /**
- * Create an array of root AST nodes based on the remaining tokens.
- * @param tokens The remaining tokens.
- * @param stringArgumentPlaceholders The mapping of string literal node argument placeholders to original values.
+/**
+ * Create an array of root AST nodes based on the given definition.
+ * @param definition The definition to parse the AST nodes from.
  * @returns The base definition AST nodes.
  */
-export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
+export default function buildRootASTNodes(definition) {
+    // Swap out any node/decorator argument string literals with a placeholder and get a mapping of placeholders to original values as well as the processed definition.
+    const { placeholders, processedDefinition } = substituteStringLiterals(definition);
+
+    // Convert the processed definition (with substituted string literals) into an array of raw tokens.
+    const tokens = parseTokensFromDefinition(processedDefinition);
+
     // There must be at least 3 tokens for the tree definition to be valid. 'ROOT', '{' and '}'.
     if (tokens.length < 3) {
         throw new Error("invalid token count");
@@ -375,7 +380,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
 
                 // We may have a root node name defined as an argument.
                 if (tokens[0] === "[") {
-                    const rootArguments = getArguments(tokens, stringArgumentPlaceholders);
+                    const rootArguments = getArguments(tokens, placeholders);
 
                     // We should have only a single argument that is not an empty string for a root node, which is the root name identifier.
                     if (rootArguments.length === 1 && rootArguments[0].type === "identifier") {
@@ -387,7 +392,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 }
 
                 // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, stringArgumentPlaceholders);
+                node.decorators = getDecorators(tokens, placeholders);
 
                 popAndCheck(tokens, "{");
 
@@ -408,7 +413,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 } 
 
                 // The branch name will be defined as a node argument.
-                const branchArguments = getArguments(tokens, stringArgumentPlaceholders);
+                const branchArguments = getArguments(tokens, placeholders);
 
                 // We should have only a single identifer argument for a branch node, which is the branch name.
                 if (branchArguments.length === 1 && branchArguments[0].type === "identifier") {
@@ -427,7 +432,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 stack[stack.length-1].push(node);
 
                 // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, stringArgumentPlaceholders);
+                node.decorators = getDecorators(tokens, placeholders);
 
                 popAndCheck(tokens, "{");
 
@@ -443,7 +448,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 stack[stack.length-1].push(node);
 
                 // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, stringArgumentPlaceholders);
+                node.decorators = getDecorators(tokens, placeholders);
 
                 popAndCheck(tokens, "{");
 
@@ -459,7 +464,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 stack[stack.length-1].push(node);
 
                 // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, stringArgumentPlaceholders);
+                node.decorators = getDecorators(tokens, placeholders);
 
                 popAndCheck(tokens, "{");
 
@@ -479,14 +484,14 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                     // Get the ticket count arguments, each argument must be a number.
                     node.tickets = getArguments(
                         tokens,
-                        stringArgumentPlaceholders,
+                        placeholders,
                         (arg) => arg.type === "number" && arg.isInteger, 
                         "lotto node ticket counts must be integer values"
                     ).map(argument => argument.value);
                 }
 
                 // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, stringArgumentPlaceholders);
+                node.decorators = getDecorators(tokens, placeholders);
 
                 popAndCheck(tokens, "{");
 
@@ -507,7 +512,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 } 
 
                 // Grab the condition node arguments.
-                const conditionArguments = getArguments(tokens, stringArgumentPlaceholders);
+                const conditionArguments = getArguments(tokens, placeholders);
 
                 // We should have at least a single identifier argument for a condition node, which is the condition function name.
                 if (conditionArguments.length && conditionArguments[0].type === "identifier") {
@@ -526,7 +531,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 node.conditionArguments = conditionArguments;
 
                 // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, stringArgumentPlaceholders);
+                node.decorators = getDecorators(tokens, placeholders);
                 break;
 
             case "FLIP":
@@ -537,7 +542,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 stack[stack.length-1].push(node);
 
                 // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, stringArgumentPlaceholders);
+                node.decorators = getDecorators(tokens, placeholders);
 
                 popAndCheck(tokens, "{");
 
@@ -553,7 +558,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 stack[stack.length-1].push(node);
 
                 // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, stringArgumentPlaceholders);
+                node.decorators = getDecorators(tokens, placeholders);
 
                 popAndCheck(tokens, "{");
 
@@ -569,7 +574,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 stack[stack.length-1].push(node);
 
                 // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, stringArgumentPlaceholders);
+                node.decorators = getDecorators(tokens, placeholders);
 
                 popAndCheck(tokens, "{");
 
@@ -587,7 +592,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 // Get the duration and potential longest duration of the wait.
                 const durations = getArguments(
                     tokens,
-                    stringArgumentPlaceholders,
+                    placeholders,
                     (arg) => arg.type === "number" && arg.isInteger,
                     "wait node durations must be integer values"
                 ).map(argument => argument.value);
@@ -606,7 +611,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 }
 
                 // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, stringArgumentPlaceholders);
+                node.decorators = getDecorators(tokens, placeholders);
                 break;
 
             case "REPEAT":
@@ -621,7 +626,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                     // An iteration count has been defined. Get the iteration and potential maximum iteration of the wait.
                     const iterationArguments = getArguments(
                         tokens,
-                        stringArgumentPlaceholders,
+                        placeholders,
                         (arg) => arg.type === "number" && arg.isInteger,
                         "repeat node iteration counts must be integer values"
                     ).map(argument => argument.value);
@@ -641,7 +646,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 }
 
                 // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, stringArgumentPlaceholders);
+                node.decorators = getDecorators(tokens, placeholders);
 
                 popAndCheck(tokens, "{");
 
@@ -661,7 +666,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                     // An iteration count has been defined. Get the iteration and potential maximum iteration of the wait.
                     const iterationArguments = getArguments(
                         tokens,
-                        stringArgumentPlaceholders,
+                        placeholders,
                         (arg) => arg.type === "number" && arg.isInteger,
                         "retry node iteration counts must be integer values"
                     ).map(argument => argument.value);
@@ -681,7 +686,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 }
 
                 // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, stringArgumentPlaceholders);
+                node.decorators = getDecorators(tokens, placeholders);
 
                 popAndCheck(tokens, "{");
 
@@ -702,7 +707,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 } 
 
                 // The action name will be defined as a node argument.
-                const actionArguments = getArguments(tokens, stringArgumentPlaceholders);
+                const actionArguments = getArguments(tokens, placeholders);
 
                 // We should have at least one identifer argument for an action node, which is the action name.
                 if (actionArguments.length && actionArguments[0].type === "identifier") {
@@ -721,7 +726,7 @@ export default function buildRootASTNodes(tokens, stringArgumentPlaceholders) {
                 node.actionArguments = actionArguments;
 
                 // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, stringArgumentPlaceholders);
+                node.decorators = getDecorators(tokens, placeholders);
                 break;
 
             case "}": 
@@ -967,4 +972,53 @@ function getDecorators(tokens, stringArgumentPlaceholders) {
     }
   
 	return decorators;
+};
+
+
+/**
+ * Swaps out any node/decorator argument string literals with placeholders.
+ * @param definition The definition.
+ * @returns An object containing a mapping of placeholders to original string values as well as the processed definition string.
+ */
+function substituteStringLiterals(definition) {
+    // Create an object to hold the mapping of placeholders to original string values.
+    const placeholders = {};
+
+    // Replace any string literals wrapped with double quotes in our definition with placeholders to be processed later.
+    const processedDefinition = definition.replace(
+        /\"(\\.|[^"\\])*\"/g,
+        (match) => {
+            var strippedMatch = match.substring(1, match.length - 1);
+            var placeholder   = Object.keys(placeholders).find(key => placeholders[key] === strippedMatch);
+            
+            // If we have no existing string literal match then create a new placeholder.
+            if (!placeholder) {
+                placeholder = `@@${Object.keys(placeholders).length}@@`;
+                placeholders[placeholder] = strippedMatch;
+            } 
+            
+            return placeholder;
+        }
+    );
+
+    return { placeholders, processedDefinition };
+};
+
+/**
+ * Parse the tree definition into an array of raw tokens.
+ * @param definition The definition.
+ * @returns An array of tokens parsed from the definition.
+ */
+function parseTokensFromDefinition(definition) {
+    // Add some space around various important characters so that they can be plucked out easier as individual tokens.
+    definition = definition.replace(/\(/g, " ( ");
+    definition = definition.replace(/\)/g, " ) ");
+    definition = definition.replace(/\{/g, " { ");
+    definition = definition.replace(/\}/g, " } ");
+    definition = definition.replace(/\]/g, " ] ");
+    definition = definition.replace(/\[/g, " [ ");
+    definition = definition.replace(/\,/g, " , ");
+
+    // Split the definition into raw token form and return it.
+    return definition.replace(/\s+/g, " ").trim().split(" ");
 };
