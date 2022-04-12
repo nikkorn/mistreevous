@@ -209,29 +209,32 @@ BehaviourTree.prototype.reset = function () {
     this._rootNode.reset();
 };
 
-BehaviourTree.register = function (nameOrObject, functionOrDefinition) {
-    // This can take either:
-    // - A subtree name AND a stringy (and eventually JSON) definition.
-    // - A function name AND an action/condition/guard/callback function.
-    // - JUST an object that contains a mix of action/condition/guard/callback functions and/or stringy (and eventually JSON) subtree definitions.
-
-    if (typeof nameOrObject === "string") {
-        if (typeof functionOrDefinition === "function") {
-            Lookup.setFunc(nameOrObject, functionOrDefinition);
-        }
-        else if (typeof functionOrDefinition === "string") {
-            // TODO Convert functionOrDefinition to a subtree
-            Lookup.setSubtree(nameOrObject, null);
-        }
-        else {
-            throw new Error("not what i expected! if this is a JSON definition then you are a few releases too early");
-        }
+BehaviourTree.register = function (name, value) {
+    if (typeof value === "function") {
+        // We are going to register a action/condition/guard/callback function.
+        Lookup.setFunc(name, value);
     }
-    else if (typeof nameOrObject === "object") {
-        // TODO I guess we are just going to throw everything in nameOrObject at our lookup?
+    else if (typeof value === "string") {
+        // We are going to register a subtree.
+        let rootASTNodes;
+
+        try {
+            // Try to create the behaviour tree AST based on the definition provided, this could fail if the definition is invalid.
+            rootASTNodes = buildRootASTNodes(value);
+        } catch (exception) {
+            // There was an issue in trying to parse and build the tree definition.
+            throw new Error(`error registering definition: ${exception.message}`);
+        }
+
+        // This function should only ever be called with a definition containing a single unnamed root node.
+        if (rootASTNodes.length != 1 || rootASTNodes[0].name !== null) {
+            throw new Error("error registering definition: expected a single unnamed root node");
+        }
+
+        Lookup.setSubtree(name, rootASTNodes[0]);
     }
     else {
-        throw new Error("not what i expected!");
+        throw new Error("unexpected value");
     }
 };
 

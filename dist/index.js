@@ -781,25 +781,30 @@ BehaviourTree.prototype.reset = function () {
     this._rootNode.reset();
 };
 
-BehaviourTree.register = function (nameOrObject, functionOrDefinition) {
-    // This can take either:
-    // - A subtree name AND a stringy (and eventually JSON) definition.
-    // - A function name AND an action/condition/guard/callback function.
-    // - JUST an object that contains a mix of action/condition/guard/callback functions and/or stringy (and eventually JSON) subtree definitions.
+BehaviourTree.register = function (name, value) {
+    if (typeof value === "function") {
+        // We are going to register a action/condition/guard/callback function.
+        __WEBPACK_IMPORTED_MODULE_3__lookup__["a" /* default */].setFunc(name, value);
+    } else if (typeof value === "string") {
+        // We are going to register a subtree.
+        let rootASTNodes;
 
-    if (typeof nameOrObject === "string") {
-        if (typeof functionOrDefinition === "function") {
-            __WEBPACK_IMPORTED_MODULE_3__lookup__["a" /* default */].setFunc(nameOrObject, functionOrDefinition);
-        } else if (typeof functionOrDefinition === "string") {
-            // TODO Convert functionOrDefinition to a subtree
-            __WEBPACK_IMPORTED_MODULE_3__lookup__["a" /* default */].setSubtree(nameOrObject, null);
-        } else {
-            throw new Error("not what i expected! if this is a JSON definition then you are a few releases too early");
+        try {
+            // Try to create the behaviour tree AST based on the definition provided, this could fail if the definition is invalid.
+            rootASTNodes = Object(__WEBPACK_IMPORTED_MODULE_1__rootASTNodesBuilder__["a" /* default */])(value);
+        } catch (exception) {
+            // There was an issue in trying to parse and build the tree definition.
+            throw new Error(`error registering definition: ${exception.message}`);
         }
-    } else if (typeof nameOrObject === "object") {
-        // TODO I guess we are just going to throw everything in nameOrObject at our lookup?
+
+        // This function should only ever be called with a definition containing a single unnamed root node.
+        if (rootASTNodes.length != 1 || rootASTNodes[0].name !== null) {
+            throw new Error("error registering definition: expected a single unnamed root node");
+        }
+
+        __WEBPACK_IMPORTED_MODULE_3__lookup__["a" /* default */].setSubtree(name, rootASTNodes[0]);
     } else {
-        throw new Error("not what i expected!");
+        throw new Error("unexpected value");
     }
 };
 
