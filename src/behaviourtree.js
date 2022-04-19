@@ -46,7 +46,9 @@ export default function BehaviourTree(definition, board) {
             }
 
             // Create a provider for named root nodes.
-            const namedRootNodeProvider = function (name) { return rootNodeMap[name]; };
+            const namedRootNodeProvider = function (name) {
+                return rootNodeMap[name] ? rootNodeMap[name] : Lookup.getSubtree(name);
+            };
 
             // Convert the AST to our actual tree.
             this._rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(namedRootNodeProvider, []);
@@ -234,10 +236,14 @@ BehaviourTree.register = function (name, value) {
         Lookup.setSubtree(name, rootASTNodes[0]);
     }
     else {
-        throw new Error("unexpected value");
+        throw new Error("unexpected value, expected string definition or function");
     }
 };
 
 BehaviourTree.unregister = function (nameOrObject) {
-    // Takes a name of a subtree of function OR an object that was passed to register.
+    // TODO Takes a name of a subtree of function and unregisters it via lookup.
+};
+
+BehaviourTree.unregisterAll = function () {
+    // TODO Unregister all of the things!
 };

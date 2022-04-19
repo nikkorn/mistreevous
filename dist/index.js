@@ -70,7 +70,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 9);
+/******/ 	return __webpack_require__(__webpack_require__.s = 10);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -448,7 +448,7 @@ function createNodeUid() {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Callback;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__attribute__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__attribute__ = __webpack_require__(9);
 
 
 /**
@@ -498,8 +498,48 @@ GuardUnsatisifedException.prototype = new Error();
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+const funcTable = {};
+const subtreeTable = {};
+
+/* harmony default export */ __webpack_exports__["a"] = ({
+    getFunc(name) {
+        return funcTable[name];
+    },
+    setFunc(name, func) {
+        funcTable[name] = func;
+    },
+    getFuncInvoker(board, name) {
+        // Check whether the board contains the specified function.
+        if (board[name] && typeof board[name] === "function") {
+            return args => board[name].apply(board, args.map(arg => arg.value));
+        }
+
+        // The board does not contain the specified function but it may have been registered at some point.
+        if (funcTable[name] && typeof funcTable[name] === "function") {
+            return args => funcTable[name](board, ...args.map(arg => arg.value));
+        }
+
+        // We have no function to invoke.
+        return null;
+    },
+    getSubtree(name) {
+        return subtreeTable[name];
+    },
+    setSubtree(name, subtree) {
+        subtreeTable[name] = subtree;
+    },
+    remove(name) {
+        delete funcTable[name];
+    }
+});
+
+/***/ }),
+/* 8 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Guard;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__attribute__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__attribute__ = __webpack_require__(9);
 
 
 /**
@@ -519,7 +559,7 @@ function Guard(type, args) {
 Guard.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__attribute__["a" /* default */].prototype);
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -550,12 +590,12 @@ function Attribute(type, args) {
 };
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__behaviourtree__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__behaviourtree__ = __webpack_require__(11);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "BehaviourTree", function() { return __WEBPACK_IMPORTED_MODULE_0__behaviourtree__["a"]; });
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "State", function() { return __WEBPACK_IMPORTED_MODULE_1__state__["a"]; });
@@ -565,15 +605,15 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = BehaviourTree;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__attributes_guards_guardPath__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__rootASTNodesBuilder__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__attributes_guards_guardPath__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__rootASTNodesBuilder__ = __webpack_require__(13);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__state__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lookup__ = __webpack_require__(31);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lookup__ = __webpack_require__(7);
 
 
 
@@ -623,7 +663,7 @@ function BehaviourTree(definition, board) {
 
             // Create a provider for named root nodes.
             const namedRootNodeProvider = function (name) {
-                return rootNodeMap[name];
+                return rootNodeMap[name] ? rootNodeMap[name] : __WEBPACK_IMPORTED_MODULE_3__lookup__["a" /* default */].getSubtree(name);
             };
 
             // Convert the AST to our actual tree.
@@ -804,16 +844,20 @@ BehaviourTree.register = function (name, value) {
 
         __WEBPACK_IMPORTED_MODULE_3__lookup__["a" /* default */].setSubtree(name, rootASTNodes[0]);
     } else {
-        throw new Error("unexpected value");
+        throw new Error("unexpected value, expected string definition or function");
     }
 };
 
 BehaviourTree.unregister = function (nameOrObject) {
-    // Takes a name of a subtree of function OR an object that was passed to register.
+    // TODO Takes a name of a subtree of function and unregisters it via lookup.
+};
+
+BehaviourTree.unregisterAll = function () {
+    // TODO Unregister all of the things!
 };
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -846,29 +890,29 @@ function GuardPath(nodes) {
 };
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = buildRootASTNodes;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__nodes_leaf_action__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__nodes_leaf_condition__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__nodes_leaf_wait__ = __webpack_require__(15);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nodes_decorator_root__ = __webpack_require__(16);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__nodes_decorator_repeat__ = __webpack_require__(17);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__nodes_decorator_retry__ = __webpack_require__(18);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_decorator_flip__ = __webpack_require__(19);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_decorator_succeed__ = __webpack_require__(20);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_decorator_fail__ = __webpack_require__(21);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__nodes_composite_lotto__ = __webpack_require__(22);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__nodes_composite_selector__ = __webpack_require__(23);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__nodes_composite_sequence__ = __webpack_require__(24);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__nodes_composite_parallel__ = __webpack_require__(25);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__attributes_guards_while__ = __webpack_require__(26);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__attributes_guards_until__ = __webpack_require__(27);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_15__attributes_callbacks_entry__ = __webpack_require__(28);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_16__attributes_callbacks_exit__ = __webpack_require__(29);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_17__attributes_callbacks_step__ = __webpack_require__(30);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__nodes_leaf_action__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__nodes_leaf_condition__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__nodes_leaf_wait__ = __webpack_require__(16);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nodes_decorator_root__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__nodes_decorator_repeat__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__nodes_decorator_retry__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__nodes_decorator_flip__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nodes_decorator_succeed__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__nodes_decorator_fail__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__nodes_composite_lotto__ = __webpack_require__(23);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__nodes_composite_selector__ = __webpack_require__(24);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__nodes_composite_sequence__ = __webpack_require__(25);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__nodes_composite_parallel__ = __webpack_require__(26);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__attributes_guards_while__ = __webpack_require__(27);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__attributes_guards_until__ = __webpack_require__(28);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_15__attributes_callbacks_entry__ = __webpack_require__(29);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_16__attributes_callbacks_exit__ = __webpack_require__(30);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_17__attributes_callbacks_step__ = __webpack_require__(31);
 
 
 
@@ -1836,13 +1880,15 @@ function parseTokensFromDefinition(definition) {
 };
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Action;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__lookup__ = __webpack_require__(7);
+
 
 
 
@@ -1872,9 +1918,6 @@ function Action(decorators, actionName, actionArguments) {
      * @returns The result of the update.
      */
     this.onUpdate = function (board) {
-        // Get the corresponding action object or function.
-        const action = board[actionName];
-
         // If the result of this action depends on an update promise then there is nothing to do until
         // it resolves, unless there has been a value set as a result of the update promise resolving.
         if (isUsingUpdatePromise) {
@@ -1887,14 +1930,19 @@ function Action(decorators, actionName, actionArguments) {
             return;
         }
 
-        // Validate the action.
-        this._validateAction(action);
+        // Attempt to get the invoker for the action function.
+        const actionFuncInvoker = __WEBPACK_IMPORTED_MODULE_2__lookup__["a" /* default */].getFuncInvoker(board, actionName);
 
-        // Call the action 'onUpdate' function, the result of which may be:
+        // The action function should be defined.
+        if (actionFuncInvoker === null) {
+            throw new Error(`cannot update action node as the action '${actionName}' function is not defined in the blackboard and has not been registered`);
+        }
+
+        // Call the action function, the result of which may be:
         // - The finished state of this action node.
         // - A promise to return a finished node state.
         // - Undefined if the node should remain in the running state.
-        const updateResult = action.apply(board, actionArguments.map(arg => arg.value));
+        const updateResult = actionFuncInvoker(actionArguments);
 
         if (updateResult instanceof Promise) {
             updateResult.then(result => {
@@ -1952,22 +2000,6 @@ function Action(decorators, actionName, actionArguments) {
     };
 
     /**
-     * Validate an action.
-     * @param action The action to validate.
-     */
-    this._validateAction = action => {
-        // The action should be defined.
-        if (!action) {
-            throw new Error(`cannot update action node as action '${actionName}' is not defined in the blackboard`);
-        }
-
-        // The action will need to be a function or an object, anything else is not valid.
-        if (typeof action !== "function" || typeof action !== "object") {
-            return `action '${actionName}' must be a function`;
-        }
-    };
-
-    /**
      * Validate the result of an update function call.
      * @param result The result of an update function call.
      */
@@ -1986,7 +2018,7 @@ function Action(decorators, actionName, actionArguments) {
 Action.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2029,7 +2061,7 @@ function Condition(decorators, conditionName, conditionArguments) {
 Condition.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2094,7 +2126,7 @@ function Wait(decorators, duration, longestDuration) {
 Wait.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2138,7 +2170,7 @@ function Root(decorators, child) {
 Root.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2277,7 +2309,7 @@ function Repeat(decorators, iterations, maximumIterations, child) {
 Repeat.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2416,7 +2448,7 @@ function Retry(decorators, iterations, maximumIterations, child) {
 Retry.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2474,7 +2506,7 @@ function Flip(decorators, child) {
 Flip.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2529,7 +2561,7 @@ function Succeed(decorators, child) {
 Succeed.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2584,7 +2616,7 @@ function Fail(decorators, child) {
 Fail.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2702,7 +2734,7 @@ function Lotto(decorators, tickets, children) {
 Lotto.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2783,7 +2815,7 @@ function Selector(decorators, children) {
 Selector.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2864,7 +2896,7 @@ function Sequence(decorators, children) {
 Sequence.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2951,12 +2983,12 @@ function Parallel(decorators, children) {
 Parallel.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = While;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__guard__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__guard__ = __webpack_require__(8);
 
 
 /**
@@ -3007,12 +3039,12 @@ function While(condition, args) {
 While.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__guard__["a" /* default */].prototype);
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Until;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__guard__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__guard__ = __webpack_require__(8);
 
 
 /**
@@ -3063,7 +3095,7 @@ function Until(condition, args) {
 Until.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__guard__["a" /* default */].prototype);
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3113,7 +3145,7 @@ function Entry(functionName, args) {
 Entry.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__callback__["a" /* default */].prototype);
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3165,7 +3197,7 @@ function Exit(functionName, args) {
 Exit.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__callback__["a" /* default */].prototype);
 
 /***/ }),
-/* 30 */
+/* 31 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3213,32 +3245,6 @@ function Step(functionName, args) {
 };
 
 Step.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__callback__["a" /* default */].prototype);
-
-/***/ }),
-/* 31 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-const funcTable = {};
-const subtreeTable = {};
-
-/* harmony default export */ __webpack_exports__["a"] = ({
-    getFunc(name) {
-        return funcTable[name];
-    },
-    setFunc(name, func) {
-        funcTable[name] = func;
-    },
-    getSubtree(name) {
-        return subtreeTable[name];
-    },
-    setSubtree(name, subtree) {
-        subtreeTable[name] = subtree;
-    },
-    remove(name) {
-        delete funcTable[name];
-    }
-});
 
 /***/ })
 /******/ ]);

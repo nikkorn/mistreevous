@@ -54,6 +54,10 @@ function reloadVisualiser() {
             return window.allPressedKeyCodes[keyCode];
         });
 
+        // TODO Register some stuff :D
+        Mistreevous.BehaviourTree.register("wow", 'root { action[Bacon, "3"] }');
+        Mistreevous.BehaviourTree.register("yell", () => { console.log("YELLING!"); return Mistreevous.State.SUCCEEDED; })
+
         // Try to create the behaviour tree.
         behaviourTree = new Mistreevous.BehaviourTree(definitionTextArea.value, blackboard);
 
