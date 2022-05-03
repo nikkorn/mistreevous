@@ -211,6 +211,11 @@ BehaviourTree.prototype.reset = function () {
     this._rootNode.reset();
 };
 
+/**
+ * Registers the function or subtree with the given name.
+ * @param name The name of the function or subtree to register.
+ * @param value The function or subtree definition to register.
+ */
 BehaviourTree.register = function (name, value) {
     if (typeof value === "function") {
         // We are going to register a action/condition/guard/callback function.
@@ -240,10 +245,17 @@ BehaviourTree.register = function (name, value) {
     }
 };
 
-BehaviourTree.unregister = function (nameOrObject) {
-    // TODO Takes a name of a subtree of function and unregisters it via lookup.
+/**
+ * Unregisters the function or subtree with the given name.
+ * @param name The name of the function or subtree to unregister.
+ */
+BehaviourTree.unregister = function (name) {
+    Lookup.remove(name);
 };
 
+/**
+ * Unregister all registered action/condition/guard/callback functions and subtrees.
+ */
 BehaviourTree.unregisterAll = function () {
-    // TODO Unregister all of the things!
+    Lookup.empty();
 };

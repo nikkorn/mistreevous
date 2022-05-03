@@ -1,5 +1,5 @@
-const funcTable = {};
-const subtreeTable = {};
+let funcTable = {};
+let subtreeTable = {};
 
 export default {
     getFunc(name) {
@@ -30,5 +30,10 @@ export default {
     },
     remove(name) {
         delete funcTable[name];
+        delete subtreeTable[name];
     },
+    empty() {
+        funcTable = {};
+        subtreeTable = {};
+    }
 }

@@ -172,7 +172,7 @@ describe("An Action node", () => {
       const definition = "root { action [DoTheThing] }";
       let tree;
       assert.doesNotThrow(() => tree = new mistreevous.BehaviourTree(definition, {}), Error);
-      assert.throws(() => tree.step(), Error, "error stepping tree: cannot update action node as action 'DoTheThing' is not defined in the blackboard");
+      assert.throws(() => tree.step(), Error, "error stepping tree: cannot update action node as the action 'DoTheThing' function is not defined in the blackboard and has not been registere");
     });
   });
 });

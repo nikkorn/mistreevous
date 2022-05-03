@@ -498,8 +498,8 @@ GuardUnsatisifedException.prototype = new Error();
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-const funcTable = {};
-const subtreeTable = {};
+let funcTable = {};
+let subtreeTable = {};
 
 /* harmony default export */ __webpack_exports__["a"] = ({
     getFunc(name) {
@@ -530,6 +530,11 @@ const subtreeTable = {};
     },
     remove(name) {
         delete funcTable[name];
+        delete subtreeTable[name];
+    },
+    empty() {
+        funcTable = {};
+        subtreeTable = {};
     }
 });
 
@@ -821,6 +826,11 @@ BehaviourTree.prototype.reset = function () {
     this._rootNode.reset();
 };
 
+/**
+ * Registers the function or subtree with the given name.
+ * @param name The name of the function or subtree to register.
+ * @param value The function or subtree definition to register.
+ */
 BehaviourTree.register = function (name, value) {
     if (typeof value === "function") {
         // We are going to register a action/condition/guard/callback function.
@@ -848,12 +858,19 @@ BehaviourTree.register = function (name, value) {
     }
 };
 
-BehaviourTree.unregister = function (nameOrObject) {
-    // TODO Takes a name of a subtree of function and unregisters it via lookup.
+/**
+ * Unregisters the function or subtree with the given name.
+ * @param name The name of the function or subtree to unregister.
+ */
+BehaviourTree.unregister = function (name) {
+    __WEBPACK_IMPORTED_MODULE_3__lookup__["a" /* default */].remove(name);
 };
 
+/**
+ * Unregister all registered action/condition/guard/callback functions and subtrees.
+ */
 BehaviourTree.unregisterAll = function () {
-    // TODO Unregister all of the things!
+    __WEBPACK_IMPORTED_MODULE_3__lookup__["a" /* default */].empty();
 };
 
 /***/ }),
