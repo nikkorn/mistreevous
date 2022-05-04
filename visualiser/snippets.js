@@ -77,7 +77,7 @@ const example_snippets = {
     HasItem: (item, quantity = 1) => 
     {
         console.log("check whether we have " + quantity + " " + item);
-        return Mistreevous.State.SUCCEEDED;
+        return true;
     }
 }`
     },
