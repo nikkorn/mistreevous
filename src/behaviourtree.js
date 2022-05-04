@@ -45,7 +45,7 @@ export default function BehaviourTree(definition, board) {
                 rootNodeMap[rootASTNode.name === null ? mainRootNodeKey : rootASTNode.name] = rootASTNode;
             }
 
-            // Create a provider for named root nodes.
+            // Create a provider for named root nodes that are part of our definition or have been registered. Prioritising the former.
             const namedRootNodeProvider = function (name) {
                 return rootNodeMap[name] ? rootNodeMap[name] : Lookup.getSubtree(name);
             };

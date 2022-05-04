@@ -127,7 +127,7 @@ describe("A Condition node", () => {
       const definition = "root { condition [someCondition] }";
       let tree;
       assert.doesNotThrow(() => tree = new mistreevous.BehaviourTree(definition, {}), Error);
-      assert.throws(() => tree.step(), Error, "error stepping tree: cannot update condition node as function 'someCondition' is not defined in the blackboard");
+      assert.throws(() => tree.step(), Error, "error stepping tree: cannot update condition node as the condition 'someCondition' function is not defined in the blackboard and has not been registered");
     });
   });
 });

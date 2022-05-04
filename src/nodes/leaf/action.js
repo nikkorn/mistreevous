@@ -1,5 +1,5 @@
 import Leaf from './leaf';
-import State from '../../state'
+import State from '../../state';
 import Lookup from "../../lookup";
 
 /**

@@ -261,7 +261,7 @@ Leaf.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* defaul
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Node;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__attributes_guards_guardUnsatisifedException__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__attributes_guards_guardUnsatisifedException__ = __webpack_require__(7);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -447,57 +447,6 @@ function createNodeUid() {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = Callback;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__attribute__ = __webpack_require__(9);
-
-
-/**
- * A base node callback attribute.
- * @param type The node callback attribute type.
- * @param args The array of attribute argument definitions.
- */
-function Callback(type, args) {
-  __WEBPACK_IMPORTED_MODULE_0__attribute__["a" /* default */].call(this, type, args);
-
-  /**
-   * Gets whether this attribute is a guard.
-   */
-  this.isGuard = () => false;
-};
-
-Callback.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__attribute__["a" /* default */].prototype);
-
-/***/ }),
-/* 6 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = GuardUnsatisifedException;
-/**
- * An exception thrown when evaluating node guard path conditions and a conditions fails.
- * @param source The node at which a guard condition failed. 
- */
-function GuardUnsatisifedException(source) {
-  /**
-   * The exception message.
-   */
-  this.message = "A guard path condition has failed";
-
-  /**
-   * Gets whether the specified node is the node at which a guard condition failed.
-   * @param node The node to check against the source node.
-   * @returns Whether the specified node is the node at which a guard condition failed.
-   */
-  this.isSourceNode = node => node === source;
-}
-
-GuardUnsatisifedException.prototype = new Error();
-
-/***/ }),
-/* 7 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
 let funcTable = {};
 let subtreeTable = {};
 
@@ -537,6 +486,57 @@ let subtreeTable = {};
         subtreeTable = {};
     }
 });
+
+/***/ }),
+/* 6 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = Callback;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__attribute__ = __webpack_require__(9);
+
+
+/**
+ * A base node callback attribute.
+ * @param type The node callback attribute type.
+ * @param args The array of attribute argument definitions.
+ */
+function Callback(type, args) {
+  __WEBPACK_IMPORTED_MODULE_0__attribute__["a" /* default */].call(this, type, args);
+
+  /**
+   * Gets whether this attribute is a guard.
+   */
+  this.isGuard = () => false;
+};
+
+Callback.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__attribute__["a" /* default */].prototype);
+
+/***/ }),
+/* 7 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = GuardUnsatisifedException;
+/**
+ * An exception thrown when evaluating node guard path conditions and a conditions fails.
+ * @param source The node at which a guard condition failed. 
+ */
+function GuardUnsatisifedException(source) {
+  /**
+   * The exception message.
+   */
+  this.message = "A guard path condition has failed";
+
+  /**
+   * Gets whether the specified node is the node at which a guard condition failed.
+   * @param node The node to check against the source node.
+   * @returns Whether the specified node is the node at which a guard condition failed.
+   */
+  this.isSourceNode = node => node === source;
+}
+
+GuardUnsatisifedException.prototype = new Error();
 
 /***/ }),
 /* 8 */
@@ -618,7 +618,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__attributes_guards_guardPath__ = __webpack_require__(12);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__rootASTNodesBuilder__ = __webpack_require__(13);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__state__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lookup__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lookup__ = __webpack_require__(5);
 
 
 
@@ -666,7 +666,7 @@ function BehaviourTree(definition, board) {
                 rootNodeMap[rootASTNode.name === null ? mainRootNodeKey : rootASTNode.name] = rootASTNode;
             }
 
-            // Create a provider for named root nodes.
+            // Create a provider for named root nodes that are part of our definition or have been registered. Prioritising the former.
             const namedRootNodeProvider = function (name) {
                 return rootNodeMap[name] ? rootNodeMap[name] : __WEBPACK_IMPORTED_MODULE_3__lookup__["a" /* default */].getSubtree(name);
             };
@@ -879,7 +879,7 @@ BehaviourTree.unregisterAll = function () {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = GuardPath;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__guardUnsatisifedException__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__guardUnsatisifedException__ = __webpack_require__(7);
 
 
 /**
@@ -1904,7 +1904,7 @@ function parseTokensFromDefinition(definition) {
 /* harmony export (immutable) */ __webpack_exports__["a"] = Action;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__lookup__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__lookup__ = __webpack_require__(5);
 
 
 
@@ -2042,6 +2042,8 @@ Action.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* defa
 /* harmony export (immutable) */ __webpack_exports__["a"] = Condition;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__lookup__ = __webpack_require__(5);
+
 
 
 
@@ -2053,26 +2055,30 @@ Action.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* defa
  * @param conditionArguments The array of condition argument definitions.
  */
 function Condition(decorators, conditionName, conditionArguments) {
-    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "condition", decorators, conditionArguments);
+  __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "condition", decorators, conditionArguments);
 
-    /**
-     * Update the node.
-     * @param board The board.
-     * @returns The result of the update.
-     */
-    this.onUpdate = function (board) {
-        // Call the condition function to determine the state of this node, but it must exist in the blackboard.
-        if (typeof board[conditionName] === "function") {
-            this.setState(!!board[conditionName].apply(board, conditionArguments.map(arg => arg.value)) ? __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED : __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
-        } else {
-            throw new Error(`cannot update condition node as function '${conditionName}' is not defined in the blackboard`);
-        }
-    };
+  /**
+   * Update the node.
+   * @param board The board.
+   * @returns The result of the update.
+   */
+  this.onUpdate = function (board) {
+    // Attempt to get the invoker for the condition function.
+    const conditionFuncInvoker = __WEBPACK_IMPORTED_MODULE_2__lookup__["a" /* default */].getFuncInvoker(board, conditionName);
 
-    /**
-     * Gets the name of the node.
-     */
-    this.getName = () => conditionName;
+    // The condition function should be defined.
+    if (conditionFuncInvoker === null) {
+      throw new Error(`cannot update condition node as the condition '${conditionName}' function is not defined in the blackboard and has not been registered`);
+    }
+
+    // Call the condition function to determine the state of this node.
+    this.setState(!!conditionFuncInvoker(conditionArguments) ? __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED : __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
+  };
+
+  /**
+   * Gets the name of the node.
+   */
+  this.getName = () => conditionName;
 };
 
 Condition.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
@@ -3117,7 +3123,7 @@ Until.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__guard__["a" /* defa
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Entry;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__callback__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__callback__ = __webpack_require__(6);
 
 
 /**
@@ -3167,7 +3173,7 @@ Entry.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__callback__["a" /* d
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Exit;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__callback__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__callback__ = __webpack_require__(6);
 
 
 /**
@@ -3219,7 +3225,7 @@ Exit.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__callback__["a" /* de
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Step;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__callback__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__callback__ = __webpack_require__(6);
 
 
 /**

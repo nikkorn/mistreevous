@@ -1,5 +1,6 @@
-import Leaf from './leaf'
-import State from '../../state'
+import Leaf from './leaf';
+import State from '../../state';
+import Lookup from "../../lookup";
 
 /**
  * A Condition leaf node.
@@ -17,12 +18,16 @@ export default function Condition(decorators, conditionName, conditionArguments)
      * @returns The result of the update.
      */
     this.onUpdate = function(board) {
-        // Call the condition function to determine the state of this node, but it must exist in the blackboard.
-        if (typeof board[conditionName] === "function") {
-            this.setState(!!(board[conditionName].apply(board, conditionArguments.map(arg => arg.value))) ? State.SUCCEEDED : State.FAILED);
-        } else {
-            throw new Error(`cannot update condition node as function '${conditionName}' is not defined in the blackboard`);
+        // Attempt to get the invoker for the condition function.
+        const conditionFuncInvoker = Lookup.getFuncInvoker(board, conditionName);
+
+        // The condition function should be defined.
+        if (conditionFuncInvoker === null) {
+            throw new Error(`cannot update condition node as the condition '${conditionName}' function is not defined in the blackboard and has not been registered`);
         }
+
+        // Call the condition function to determine the state of this node.
+        this.setState(!!conditionFuncInvoker(conditionArguments) ? State.SUCCEEDED : State.FAILED);
     };
 
     /**
