@@ -1,7 +1,7 @@
 /**
  * A collection of definition/blackboard snippets. 
  */
-const example_snippets = {
+ const example_snippets = {
     "none": {
         "definition": "root { }",
         "blackboard": "{}"
@@ -21,8 +21,6 @@ const example_snippets = {
     },
 
 
-
-
     "action-with-args": {
         "definition": `root {
     action [Say, "hello world", 5, true]
@@ -33,6 +31,7 @@ const example_snippets = {
         for (var index = 0; index < times; index++) {
             console.log(sayLoudly ? dialog.toUpperCase() + "!!!" : dialog);
         }
+
         return Mistreevous.State.SUCCEEDED;
     }
 }`
@@ -59,6 +58,7 @@ const example_snippets = {
 
 
 
+
     "basic-condition": {
         "definition": `root {
     condition [SomeCondition]
@@ -77,7 +77,7 @@ const example_snippets = {
     HasItem: (item, quantity = 1) => 
     {
         console.log("check whether we have " + quantity + " " + item);
-        return Mistreevous.State.SUCCEEDED;
+        return true;
     }
 }`
     },
@@ -169,16 +169,24 @@ const example_snippets = {
 
     "node-guards": {
         "definition": `root {
-selector {
-    action [DoSomethingIndefinitely] until(IsSpaceKeyPressed)
-    action [DoSomethingIndefinitely] while(IsSpaceKeyPressed)
-    action [DoSomethingIndefinitely] until(IsSpaceKeyPressed)
-    action [DoSomethingIndefinitely] while(IsSpaceKeyPressed)
-    action [DoSomethingIndefinitely] until(IsSpaceKeyPressed)
-}
+  selector {
+    repeat until(IsSpaceKeyPressed) {
+      action [Succeed]
+    }
+    repeat while(IsSpaceKeyPressed) {
+      action [Succeed]
+    }
+    repeat until(IsSpaceKeyPressed) {
+      action [Succeed]
+    }
+    repeat while(IsSpaceKeyPressed) {
+      action [Succeed]
+    }
+  }
 }`,
         "blackboard": `{
-    DoSomethingIndefinitely: () => {},
+    // An action that will immediately succeed.
+    Succeed: () => Mistreevous.State.SUCCEEDED,
 
     // A condition that returns whether the space key is currently pressed.
     IsSpaceKeyPressed: function () {
@@ -222,6 +230,36 @@ selector {
     },
 
 
+    "repeat-node": {
+        "definition": `root {
+    repeat {
+        sequence {
+            wait [1000]
+            wait [1000]
+            wait [1000]
+        }
+    }
+}`,
+        "blackboard": `{}`
+    },
+
+
+    "retry-node": {
+        "definition": `root {
+    retry {
+        sequence {
+            wait [1000]
+            wait [1000]
+            action [Fail]
+        }
+    }
+}`,
+        "blackboard": `{
+    // An action that will immediately fail.
+    Fail: () => Mistreevous.State.FAILED
+}`
+    },
+
 
     "flip-node": {
         "definition": `root {
@@ -230,6 +268,42 @@ selector {
             condition [IsFalse]
         }
         flip {
+            condition [IsTrue]
+        }
+    }
+}`,
+        "blackboard": `{
+    IsTrue: () => true,
+    IsFalse: () => false
+}`
+    },
+
+
+    "succeed-node": {
+        "definition": `root {
+    sequence {
+        succeed {
+            condition [IsFalse]
+        }
+        succeed {
+            condition [IsTrue]
+        }
+    }
+}`,
+        "blackboard": `{
+    IsTrue: () => true,
+    IsFalse: () => false
+}`
+    },
+
+
+    "fail-node": {
+        "definition": `root {
+    selector {
+        fail {
+            condition [IsFalse]
+        }
+        fail {
             condition [IsTrue]
         }
     }
@@ -296,6 +370,7 @@ selector {
 
 
 
+
     "basic-enemy": {
         "definition": `root {
     selector {
@@ -324,6 +399,7 @@ selector {
     PlayerIsClose: () => false,
     IsHungry: () => false,
     CanSeeFood: () => false,  
+
     AttackPlayer: () => Mistreevous.State.SUCCEEDED,
     MoveTowardsPlayer: () => Mistreevous.State.SUCCEEDED,
     EatFood: () => Mistreevous.State.SUCCEEDED,

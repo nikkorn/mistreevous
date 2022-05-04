@@ -63,10 +63,10 @@
 						</optgroup>
 
 						<optgroup label="Leaves">
-							<option value="basic-action">basic action</option>
+							<option value="basic-action">action</option>
 							<option value="action-with-args">action with arguments</option>
 							<option value="async-action">asynchronous action</option>
-							<option value="basic-condition">basic condition</option>
+							<option value="basic-condition">condition</option>
 							<option value="condition-with-args">condition with arguments</option>
 							<option value="wait-one-second">wait</option>
 							<option value="wait-for-one-to-five-seconds">wait for one-five seconds</option>
@@ -74,13 +74,21 @@
 
 						<optgroup label="Composites">
 							<option value="basic-sequence">sequence</option>
-							<option value="flip-node">flip</option>
+							<option value="basic-selector">selector</option>
 							<option value="basic-lotto">lotto</option>
 							<option value="weighted-lotto">weighted lotto</option>
 							<option value="parallel-node">parallel</option>
 						</optgroup>
 
 						<optgroup label="Decorators">
+							<option value="repeat-node">repeat</option>
+							<option value="retry-node">retry</option>
+							<option value="flip-node">flip</option>
+							<option value="succeed-node">succeed</option>
+							<option value="fail-node">fail</option>
+						</optgroup>
+
+						<optgroup label="Guards And Callbacks">
 							<option value="node-guards">guards</option>
 							<option value="nested-until-node-guard">nested guards</option>
 							<option value="entry-exit-step-decorators">enter exit and step</option>
