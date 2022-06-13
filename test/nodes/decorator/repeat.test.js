@@ -1,4 +1,4 @@
-const mistreevous = require('../../dist/index');
+const mistreevous = require('../../../dist/index');
 const chai = require('chai');
 
 var assert = chai.assert;
