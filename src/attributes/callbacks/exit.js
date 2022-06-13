@@ -1,4 +1,5 @@
-import Callback from './callback'
+import Callback from "./callback";
+import Lookup from "../../lookup";
 
 /**
  * An EXIT callback which defines a blackboard function to call when the associated node is updated and moves to a finished state or is aborted.
@@ -32,12 +33,16 @@ export default function Exit(functionName, args) {
      * @param isAborted Whether the decorated node was aborted.
      */
     this.callBlackboardFunction = (board, isSuccess, isAborted) => {
-        // Call the blackboard function if it exists.
-        if (typeof board[functionName] === "function") {
-            board[functionName].apply(board, [{ succeeded: isSuccess, aborted: isAborted }].concat(args.map(arg => arg.value)));
-        } else {
-            throw new Error(`cannot call exit callback function '${functionName}' is not defined in the blackboard`);
+        // Attempt to get the invoker for the callback function.
+        const callbackFuncInvoker = Lookup.getFuncInvoker(board, functionName);
+
+        // The callback function should be defined.
+        if (callbackFuncInvoker === null) {
+            throw new Error(`cannot call exit function '${functionName}' as is not defined in the blackboard and has not been registered`);
         }
+
+        // Call the callback function.
+        callbackFuncInvoker([{ value: { succeeded: isSuccess, aborted: isAborted } }].concat(args));
     };
 };
 

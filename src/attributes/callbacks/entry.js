@@ -1,4 +1,5 @@
-import Callback from './callback'
+import Callback from "./callback";
+import Lookup from "../../lookup";
 
 /**
  * An ENTRY callback which defines a blackboard function to call when the associated node is updated and moves out of running state.
@@ -30,12 +31,16 @@ export default function Entry(functionName, args) {
      * @param board The board.
      */
     this.callBlackboardFunction = (board) => {
-        // Call the blackboard function if it exists.
-        if (typeof board[functionName] === "function") {
-            board[functionName].apply(board, args.map(arg => arg.value));
-        } else {
-            throw new Error(`cannot call entry callback function '${functionName}' is not defined in the blackboard`);
+        // Attempt to get the invoker for the callback function.
+        const callbackFuncInvoker = Lookup.getFuncInvoker(board, functionName);
+
+        // The callback function should be defined.
+        if (callbackFuncInvoker === null) {
+            throw new Error(`cannot call entry function '${functionName}' as is not defined in the blackboard and has not been registered`);
         }
+
+        // Call the callback function.
+        callbackFuncInvoker(args);
     };
 };
 

@@ -96,6 +96,51 @@ const State = {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+let funcTable = {};
+let subtreeTable = {};
+
+/* harmony default export */ __webpack_exports__["a"] = ({
+    getFunc(name) {
+        return funcTable[name];
+    },
+    setFunc(name, func) {
+        funcTable[name] = func;
+    },
+    getFuncInvoker(board, name) {
+        // Check whether the board contains the specified function.
+        if (board[name] && typeof board[name] === "function") {
+            return args => board[name].apply(board, args.map(arg => arg.value));
+        }
+
+        // The board does not contain the specified function but it may have been registered at some point.
+        if (funcTable[name] && typeof funcTable[name] === "function") {
+            return args => funcTable[name](board, ...args.map(arg => arg.value));
+        }
+
+        // We have no function to invoke.
+        return null;
+    },
+    getSubtree(name) {
+        return subtreeTable[name];
+    },
+    setSubtree(name, subtree) {
+        subtreeTable[name] = subtree;
+    },
+    remove(name) {
+        delete funcTable[name];
+        delete subtreeTable[name];
+    },
+    empty() {
+        funcTable = {};
+        subtreeTable = {};
+    }
+});
+
+/***/ }),
+/* 2 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Decorator;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
@@ -159,51 +204,6 @@ function Decorator(type, decorators, child) {
 };
 
 Decorator.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
-
-/***/ }),
-/* 2 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-let funcTable = {};
-let subtreeTable = {};
-
-/* harmony default export */ __webpack_exports__["a"] = ({
-    getFunc(name) {
-        return funcTable[name];
-    },
-    setFunc(name, func) {
-        funcTable[name] = func;
-    },
-    getFuncInvoker(board, name) {
-        // Check whether the board contains the specified function.
-        if (board[name] && typeof board[name] === "function") {
-            return args => board[name].apply(board, args.map(arg => arg.value));
-        }
-
-        // The board does not contain the specified function but it may have been registered at some point.
-        if (funcTable[name] && typeof funcTable[name] === "function") {
-            return args => funcTable[name](board, ...args.map(arg => arg.value));
-        }
-
-        // We have no function to invoke.
-        return null;
-    },
-    getSubtree(name) {
-        return subtreeTable[name];
-    },
-    setSubtree(name, subtree) {
-        subtreeTable[name] = subtree;
-    },
-    remove(name) {
-        delete funcTable[name];
-        delete subtreeTable[name];
-    },
-    empty() {
-        funcTable = {};
-        subtreeTable = {};
-    }
-});
 
 /***/ }),
 /* 3 */
@@ -618,7 +618,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__attributes_guards_guardPath__ = __webpack_require__(12);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__rootASTNodesBuilder__ = __webpack_require__(13);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__state__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lookup__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lookup__ = __webpack_require__(1);
 
 
 
@@ -1904,7 +1904,7 @@ function parseTokensFromDefinition(definition) {
 /* harmony export (immutable) */ __webpack_exports__["a"] = Action;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__lookup__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__lookup__ = __webpack_require__(1);
 
 
 
@@ -2042,7 +2042,7 @@ Action.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* defa
 /* harmony export (immutable) */ __webpack_exports__["a"] = Condition;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__leaf__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__lookup__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__lookup__ = __webpack_require__(1);
 
 
 
@@ -2154,7 +2154,7 @@ Wait.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* defaul
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Root;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -2198,7 +2198,7 @@ Root.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* d
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Repeat;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -2337,7 +2337,7 @@ Repeat.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /*
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Retry;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -2476,7 +2476,7 @@ Retry.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* 
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Flip;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -2534,7 +2534,7 @@ Flip.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* d
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Succeed;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -2589,7 +2589,7 @@ Succeed.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Fail;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__decorator__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__state__ = __webpack_require__(0);
 
 
@@ -3012,7 +3012,7 @@ Parallel.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = While;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__guard__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__lookup__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__lookup__ = __webpack_require__(1);
 
 
 
@@ -3074,7 +3074,7 @@ While.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__guard__["a" /* defa
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Until;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__guard__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__lookup__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__lookup__ = __webpack_require__(1);
 
 
 
@@ -3136,6 +3136,8 @@ Until.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__guard__["a" /* defa
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Entry;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__callback__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__lookup__ = __webpack_require__(1);
+
 
 
 /**
@@ -3168,12 +3170,16 @@ function Entry(functionName, args) {
      * @param board The board.
      */
     this.callBlackboardFunction = board => {
-        // Call the blackboard function if it exists.
-        if (typeof board[functionName] === "function") {
-            board[functionName].apply(board, args.map(arg => arg.value));
-        } else {
-            throw new Error(`cannot call entry callback function '${functionName}' is not defined in the blackboard`);
+        // Attempt to get the invoker for the callback function.
+        const callbackFuncInvoker = __WEBPACK_IMPORTED_MODULE_1__lookup__["a" /* default */].getFuncInvoker(board, functionName);
+
+        // The callback function should be defined.
+        if (callbackFuncInvoker === null) {
+            throw new Error(`cannot call entry function '${functionName}' as is not defined in the blackboard and has not been registered`);
         }
+
+        // Call the callback function.
+        callbackFuncInvoker(args);
     };
 };
 
@@ -3186,6 +3192,8 @@ Entry.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__callback__["a" /* d
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Exit;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__callback__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__lookup__ = __webpack_require__(1);
+
 
 
 /**
@@ -3220,12 +3228,16 @@ function Exit(functionName, args) {
      * @param isAborted Whether the decorated node was aborted.
      */
     this.callBlackboardFunction = (board, isSuccess, isAborted) => {
-        // Call the blackboard function if it exists.
-        if (typeof board[functionName] === "function") {
-            board[functionName].apply(board, [{ succeeded: isSuccess, aborted: isAborted }].concat(args.map(arg => arg.value)));
-        } else {
-            throw new Error(`cannot call exit callback function '${functionName}' is not defined in the blackboard`);
+        // Attempt to get the invoker for the callback function.
+        const callbackFuncInvoker = __WEBPACK_IMPORTED_MODULE_1__lookup__["a" /* default */].getFuncInvoker(board, functionName);
+
+        // The callback function should be defined.
+        if (callbackFuncInvoker === null) {
+            throw new Error(`cannot call exit function '${functionName}' as is not defined in the blackboard and has not been registered`);
         }
+
+        // Call the callback function.
+        callbackFuncInvoker([{ value: { succeeded: isSuccess, aborted: isAborted } }].concat(args));
     };
 };
 
@@ -3238,6 +3250,8 @@ Exit.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__callback__["a" /* de
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = Step;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__callback__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__lookup__ = __webpack_require__(1);
+
 
 
 /**
@@ -3270,12 +3284,16 @@ function Step(functionName, args) {
      * @param board The board.
      */
     this.callBlackboardFunction = board => {
-        // Call the blackboard function if it exists.
-        if (typeof board[functionName] === "function") {
-            board[functionName].apply(board, args.map(arg => arg.value));
-        } else {
-            throw new Error(`cannot call entry callback function '${functionName}' is not defined in the blackboard`);
+        // Attempt to get the invoker for the callback function.
+        const callbackFuncInvoker = __WEBPACK_IMPORTED_MODULE_1__lookup__["a" /* default */].getFuncInvoker(board, functionName);
+
+        // The callback function should be defined.
+        if (callbackFuncInvoker === null) {
+            throw new Error(`cannot call step function '${functionName}' as is not defined in the blackboard and has not been registered`);
         }
+
+        // Call the callback function.
+        callbackFuncInvoker(args);
     };
 };
 
