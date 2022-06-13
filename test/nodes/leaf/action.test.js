@@ -14,81 +14,107 @@ describe("An Action node", () => {
   });
 
   describe("when updated as part of a tree step", () => {
-    describe("will call the blackboard function defined by the first node arguments and", () => {
-      it("move to the SUCCESS state if the function returns a value of State.SUCCEEDED", () => {
-        const definition = "root { action [doAction] }";
-        const board = { doAction: () => mistreevous.State.SUCCEEDED };
-        const tree = new mistreevous.BehaviourTree(definition, board);
+    describe("will call the function defined by the first node argument", () => {
+      describe("when the referenced function is", () => {
+        it("a registered function", () => {
+          mistreevous.BehaviourTree.register("doAction", () => { return mistreevous.State.SUCCEEDED; });
 
-        let node = findNode(tree, "action", "doAction");
-        assert.strictEqual(node.state, mistreevous.State.READY);
-
-        tree.step();
-
-        node = findNode(tree, "action", "doAction");
-        assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
-      });
-
-      it("move to the FAILED state if the function returns a value of State.FAILED", () => {
-        const definition = "root { action [doAction] }";
-        const board = { doAction: () => mistreevous.State.FAILED };
-        const tree = new mistreevous.BehaviourTree(definition, board);
-
-        let node = findNode(tree, "action", "doAction");
-        assert.strictEqual(node.state, mistreevous.State.READY);
-
-        tree.step();
-
-        node = findNode(tree, "action", "doAction");
-        assert.strictEqual(node.state, mistreevous.State.FAILED);
-      });
-
-      describe("move to the RUNNING state if", () => {
-        it("the function returns undefined", () => {
           const definition = "root { action [doAction] }";
-          const board = { doAction: () => {} };
-          const tree = new mistreevous.BehaviourTree(definition, board);
-
-          let node = findNode(tree, "action", "doAction");
-          assert.strictEqual(node.state, mistreevous.State.READY);
+          const tree = new mistreevous.BehaviourTree(definition, {});
 
           tree.step();
-
+  
           node = findNode(tree, "action", "doAction");
-          assert.strictEqual(node.state, mistreevous.State.RUNNING);
+          assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
         });
 
-        it("the function returns a promise to return a value of State.SUCCEEDED or State.FAILED", (done) => {
-          const result = new Promise((resolve) => resolve(mistreevous.State.SUCCEEDED));
-
+        it("a blackboard function", () => {
           const definition = "root { action [doAction] }";
-          const board = { doAction: () => result };
+          const board = { doAction: () => mistreevous.State.SUCCEEDED };
           const tree = new mistreevous.BehaviourTree(definition, board);
 
-          let node = findNode(tree, "action", "doAction");
-          assert.strictEqual(node.state, mistreevous.State.READY);
-
           tree.step();
-
-          result
-            .then(() => tree.step())
-            .then(() => {
-              node = findNode(tree, "action", "doAction");
-              assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
-            })
-            .then(done);
+  
+          node = findNode(tree, "action", "doAction");
+          assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
         });
       });
 
-      it("will error if the returned value is not State.SUCCEEDED or State.FAILED", () => {
-        const definition = "root { action [doAction] }";
-        const board = { doAction: () => "some-invalid-value" };
-        const tree = new mistreevous.BehaviourTree(definition, board);
-
-        assert.throws(() => tree.step(), Error, "error stepping tree: action 'doAction' 'onUpdate' returned an invalid response, expected an optional State.SUCCEEDED or State.FAILED value to be returned");
+      it("and will error if there is no blackboard function or registered function that matches the action name", () => {
+        const definition = "root { action [DoTheThing] }";
+        let tree;
+        assert.doesNotThrow(() => tree = new mistreevous.BehaviourTree(definition, {}), Error);
+        assert.throws(() => tree.step(), Error, "error stepping tree: cannot update action node as the action 'DoTheThing' function is not defined in the blackboard and has not been registere");
       });
 
-      describe("pass any node arguments that follow the action name identifier argument where", () => {
+      describe("and move to", () => {
+        it("the SUCCESS state if the function returns a value of State.SUCCEEDED", () => {
+          const definition = "root { action [doAction] }";
+          const board = { doAction: () => mistreevous.State.SUCCEEDED };
+          const tree = new mistreevous.BehaviourTree(definition, board);
+  
+          let node = findNode(tree, "action", "doAction");
+          assert.strictEqual(node.state, mistreevous.State.READY);
+  
+          tree.step();
+  
+          node = findNode(tree, "action", "doAction");
+          assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
+        });
+  
+        it("the FAILED state if the function returns a value of State.FAILED", () => {
+          const definition = "root { action [doAction] }";
+          const board = { doAction: () => mistreevous.State.FAILED };
+          const tree = new mistreevous.BehaviourTree(definition, board);
+  
+          let node = findNode(tree, "action", "doAction");
+          assert.strictEqual(node.state, mistreevous.State.READY);
+  
+          tree.step();
+  
+          node = findNode(tree, "action", "doAction");
+          assert.strictEqual(node.state, mistreevous.State.FAILED);
+        });
+  
+        describe("the RUNNING state if", () => {
+          it("the function returns undefined", () => {
+            const definition = "root { action [doAction] }";
+            const board = { doAction: () => {} };
+            const tree = new mistreevous.BehaviourTree(definition, board);
+  
+            let node = findNode(tree, "action", "doAction");
+            assert.strictEqual(node.state, mistreevous.State.READY);
+  
+            tree.step();
+  
+            node = findNode(tree, "action", "doAction");
+            assert.strictEqual(node.state, mistreevous.State.RUNNING);
+          });
+  
+          it("the function returns a promise to return a value of State.SUCCEEDED or State.FAILED", (done) => {
+            const result = new Promise((resolve) => resolve(mistreevous.State.SUCCEEDED));
+  
+            const definition = "root { action [doAction] }";
+            const board = { doAction: () => result };
+            const tree = new mistreevous.BehaviourTree(definition, board);
+  
+            let node = findNode(tree, "action", "doAction");
+            assert.strictEqual(node.state, mistreevous.State.READY);
+  
+            tree.step();
+  
+            result
+              .then(() => tree.step())
+              .then(() => {
+                node = findNode(tree, "action", "doAction");
+                assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
+              })
+              .then(done);
+          });
+        });
+      });
+
+      describe("and pass any node arguments that follow the action name identifier argument where", () => {
         describe("the argument is a", () => {
           it("string", () => {
             const definition = "root { action [doAction, \"hello world!\"] }";
@@ -166,13 +192,6 @@ describe("An Action node", () => {
           tree.step();
         });
       });
-    });
-
-    it("will error if there is no blackboard function that matches the action name", () => {
-      const definition = "root { action [DoTheThing] }";
-      let tree;
-      assert.doesNotThrow(() => tree = new mistreevous.BehaviourTree(definition, {}), Error);
-      assert.throws(() => tree.step(), Error, "error stepping tree: cannot update action node as the action 'DoTheThing' function is not defined in the blackboard and has not been registere");
     });
   });
 });
