@@ -14,36 +14,70 @@ describe("A Condition node", () => {
   });
 
   describe("when updated as part of a tree step", () => {
-    describe("will call the blackboard function defined by the first node arguments and", () => {
-      it("move to the SUCCESS state if the function returns a truthy value", () => {
-        const definition = "root { condition [someCondition] }";
-        const board = { someCondition: () => true };
-        const tree = new mistreevous.BehaviourTree(definition, board);
+    describe("will call the function defined by the first node argument", () => {
+      describe("when the referenced function is", () => {
+        it("a registered function", () => {
+          mistreevous.BehaviourTree.register("someCondition", () => { return true; });
 
-        let node = findNode(tree, "condition", "someCondition");
-        assert.strictEqual(node.state, mistreevous.State.READY);
+          const definition = "root { condition [someCondition] }";
+          const tree = new mistreevous.BehaviourTree(definition, {});
+  
+          tree.step();
+  
+          node = findNode(tree, "condition", "someCondition");
+          assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
+        });
 
-        tree.step();
-
-        node = findNode(tree, "condition", "someCondition");
-        assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
+        it("a blackboard function", () => {
+          const definition = "root { condition [someCondition] }";
+          const board = { someCondition: () => true };
+          const tree = new mistreevous.BehaviourTree(definition, board);
+  
+          tree.step();
+  
+          node = findNode(tree, "condition", "someCondition");
+          assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
+        });
       });
 
-      it("move to the FAILED state if the function returns a falsy value", () => {
+      it("and will error if there is no blackboard function or registered function that matches the condition name", () => {
         const definition = "root { condition [someCondition] }";
-        const board = { someCondition: () => false };
-        const tree = new mistreevous.BehaviourTree(definition, board);
-
-        let node = findNode(tree, "condition", "someCondition");
-        assert.strictEqual(node.state, mistreevous.State.READY);
-
-        tree.step();
-
-        node = findNode(tree, "condition", "someCondition");
-        assert.strictEqual(node.state, mistreevous.State.FAILED);
+        let tree;
+        assert.doesNotThrow(() => tree = new mistreevous.BehaviourTree(definition, {}), Error);
+        assert.throws(() => tree.step(), Error, "error stepping tree: cannot update condition node as the condition 'someCondition' function is not defined in the blackboard and has not been registered");
       });
 
-      describe("pass any node arguments that follow the condition name identifier argument where", () => {
+      describe("and move to", () => {
+        it("the SUCCESS state if the function returns a truthy value", () => {
+          const definition = "root { condition [someCondition] }";
+          const board = { someCondition: () => true };
+          const tree = new mistreevous.BehaviourTree(definition, board);
+  
+          let node = findNode(tree, "condition", "someCondition");
+          assert.strictEqual(node.state, mistreevous.State.READY);
+  
+          tree.step();
+  
+          node = findNode(tree, "condition", "someCondition");
+          assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
+        });
+  
+        it("the FAILED state if the function returns a falsy value", () => {
+          const definition = "root { condition [someCondition] }";
+          const board = { someCondition: () => false };
+          const tree = new mistreevous.BehaviourTree(definition, board);
+  
+          let node = findNode(tree, "condition", "someCondition");
+          assert.strictEqual(node.state, mistreevous.State.READY);
+  
+          tree.step();
+  
+          node = findNode(tree, "condition", "someCondition");
+          assert.strictEqual(node.state, mistreevous.State.FAILED);
+        });
+      });
+
+      describe("and pass any node arguments that follow the condition name identifier argument where", () => {
         describe("the argument is a", () => {
           it("string", () => {
             const definition = "root { condition [someCondition, \"hello world!\"] }";
@@ -121,13 +155,6 @@ describe("A Condition node", () => {
           tree.step();
         });
       });
-    });
-
-    it("will error if there is no blackboard function that matches the condition name", () => {
-      const definition = "root { condition [someCondition] }";
-      let tree;
-      assert.doesNotThrow(() => tree = new mistreevous.BehaviourTree(definition, {}), Error);
-      assert.throws(() => tree.step(), Error, "error stepping tree: cannot update condition node as the condition 'someCondition' function is not defined in the blackboard and has not been registered");
     });
   });
 });
