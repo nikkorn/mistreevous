@@ -38,12 +38,14 @@ export default function Exit(functionName, args) {
 
         // The callback function should be defined.
         if (callbackFuncInvoker === null) {
-            throw new Error(`cannot call exit function '${functionName}' as is not defined in the blackboard and has not been registered`);
+            throw new Error(
+                `cannot call exit function '${functionName}' as is not defined in the blackboard and has not been registered`
+            );
         }
 
         // Call the callback function.
         callbackFuncInvoker([{ value: { succeeded: isSuccess, aborted: isAborted } }].concat(args));
     };
-};
+}
 
 Exit.prototype = Object.create(Callback.prototype);

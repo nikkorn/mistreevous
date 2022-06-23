@@ -1,21 +1,21 @@
-import Decorator from './decorator';
-import State from '../../state'
+import Decorator from "./decorator";
+import State from "../../state";
 
 /**
  * A Flip node.
  * This node wraps a single child and will flip the state of the child state.
  * @param decorators The node decorators.
- * @param child The child node. 
+ * @param child The child node.
  */
 export default function Flip(decorators, child) {
     Decorator.call(this, "flip", decorators, child);
-   
+
     /**
      * Update the node.
      * @param board The board.
      * @returns The result of the update.
      */
-    this.onUpdate = function(board) {
+    this.onUpdate = function (board) {
         // If the child has never been updated or is running then we will need to update it now.
         if (child.getState() === State.READY || child.getState() === State.RUNNING) {
             child.update(board);
@@ -39,11 +39,11 @@ export default function Flip(decorators, child) {
                 this.setState(State.READY);
         }
     };
-   
+
     /**
      * Gets the name of the node.
      */
     this.getName = () => "FLIP";
-};
+}
 
 Flip.prototype = Object.create(Decorator.prototype);

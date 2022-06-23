@@ -42,12 +42,14 @@ export default function While(condition, args) {
 
         // The condition function should be defined.
         if (conditionFuncInvoker === null) {
-            throw new Error(`cannot evaluate node guard as the condition '${condition}' function is not defined in the blackboard and has not been registered`);
+            throw new Error(
+                `cannot evaluate node guard as the condition '${condition}' function is not defined in the blackboard and has not been registered`
+            );
         }
 
         // Call the condition function to determine whether this guard is satisfied.
         return !!conditionFuncInvoker(args);
     };
-};
+}
 
 While.prototype = Object.create(Guard.prototype);

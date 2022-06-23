@@ -3,7 +3,7 @@
  * @param type The node attribute type.
  * @param args The array of attribute argument definitions.
  */
- export default function Attribute(type, args) {
+export default function Attribute(type, args) {
     /**
      * Gets the type of the attribute.
      */
@@ -17,8 +17,8 @@
     /**
      * Gets the attribute details.
      */
-    this.getDetails = () => ({ 
+    this.getDetails = () => ({
         type: this.getType(),
         arguments: this.getArguments()
     });
-};
+}

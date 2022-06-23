@@ -1,4 +1,4 @@
-import Attribute from '../attribute';
+import Attribute from "../attribute";
 
 /**
  * A base node callback attribute.
@@ -12,6 +12,6 @@ export default function Callback(type, args) {
      * Gets whether this attribute is a guard.
      */
     this.isGuard = () => false;
-};
+}
 
 Callback.prototype = Object.create(Attribute.prototype);

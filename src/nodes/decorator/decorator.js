@@ -1,11 +1,11 @@
-import Node from '../node'
-import State from '../../state'
+import Node from "../node";
+import State from "../../state";
 
 /**
  * A decorator node that wraps a single child node.
  * @param type The node type.
  * @param decorators The node decorators.
- * @param child The child node. 
+ * @param child The child node.
  */
 export default function Decorator(type, decorators, child) {
     Node.call(this, type, decorators);
@@ -55,6 +55,6 @@ export default function Decorator(type, decorators, child) {
             exitDecorator.callBlackboardFunction(board, false, true);
         }
     };
-};
+}
 
 Decorator.prototype = Object.create(Node.prototype);

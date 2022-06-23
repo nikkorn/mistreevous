@@ -1,5 +1,5 @@
-import GuardPath from './attributes/guards/guardPath';
-import buildRootASTNodes from './rootASTNodesBuilder';
+import GuardPath from "./attributes/guards/guardPath";
+import buildRootASTNodes from "./rootASTNodesBuilder";
 import State from "./state";
 import Lookup from "./lookup";
 
@@ -21,14 +21,14 @@ export default function BehaviourTree(definition, board) {
     /**
      * Initialise the BehaviourTree instance.
      */
-    this._init = function() {
+    this._init = function () {
         // The tree definition must be defined and a valid string.
         if (typeof definition !== "string") {
             throw new Error("the tree definition must be a string");
         }
 
         // The blackboard must be defined.
-        if (typeof board !== 'object' || board === null) {
+        if (typeof board !== "object" || board === null) {
             throw new Error("the blackboard must be defined");
         }
 
@@ -64,7 +64,7 @@ export default function BehaviourTree(definition, board) {
     /**
      * Apply guard paths for every leaf node in the behaviour tree.
      */
-    this._applyLeafNodeGuardPaths = function() {
+    this._applyLeafNodeGuardPaths = function () {
         this._getAllNodePaths().forEach((path) => {
             // Each node in the current path will have to be assigned a guard path, working from the root outwards.
             for (let depth = 0; depth < path.length; depth++) {
@@ -82,7 +82,7 @@ export default function BehaviourTree(definition, board) {
                         .slice(0, depth + 1)
                         .map((node) => ({ node, guards: node.getGuardDecorators() }))
                         .filter((details) => details.guards.length > 0)
-                )
+                );
 
                 // Assign the guard path to the current node.
                 currentNode.setGuardPath(guardPath);
@@ -94,14 +94,14 @@ export default function BehaviourTree(definition, board) {
      * Gets a multi-dimensional array of root->leaf node paths.
      * @returns A multi-dimensional array of root->leaf node paths.
      */
-    this._getAllNodePaths = function() {
+    this._getAllNodePaths = function () {
         const nodePaths = [];
 
         const findLeafNodes = (path, node) => {
             // Add the current node to the path.
             path = path.concat(node);
 
-            // Check whether the current node is a leaf node. 
+            // Check whether the current node is a leaf node.
             if (node.isLeafNode()) {
                 nodePaths.push(path);
             } else {
@@ -150,9 +150,9 @@ BehaviourTree.prototype.getFlattenedNodeDetails = function () {
             decorators.length > 0 ? decorators.map((decorator) => decorator.getDetails()) : null;
 
         // Push the current node into the flattened nodes array.
-        flattenedTreeNodes.push({ 
+        flattenedTreeNodes.push({
             id: node.getUid(),
-            type: node.getType(), 
+            type: node.getType(),
             caption: node.getName(),
             state: node.getState(),
             decorators: getDecoratorDetails(node.getDecorators()),
@@ -220,8 +220,7 @@ BehaviourTree.register = function (name, value) {
     if (typeof value === "function") {
         // We are going to register a action/condition/guard/callback function.
         Lookup.setFunc(name, value);
-    }
-    else if (typeof value === "string") {
+    } else if (typeof value === "string") {
         // We are going to register a subtree.
         let rootASTNodes;
 
@@ -239,8 +238,7 @@ BehaviourTree.register = function (name, value) {
         }
 
         Lookup.setSubtree(name, rootASTNodes[0]);
-    }
-    else {
+    } else {
         throw new Error("unexpected value, expected string definition or function");
     }
 };

@@ -36,12 +36,14 @@ export default function Entry(functionName, args) {
 
         // The callback function should be defined.
         if (callbackFuncInvoker === null) {
-            throw new Error(`cannot call entry function '${functionName}' as is not defined in the blackboard and has not been registered`);
+            throw new Error(
+                `cannot call entry function '${functionName}' as is not defined in the blackboard and has not been registered`
+            );
         }
 
         // Call the callback function.
         callbackFuncInvoker(args);
     };
-};
+}
 
 Entry.prototype = Object.create(Callback.prototype);

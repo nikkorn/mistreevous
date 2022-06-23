@@ -1,4 +1,4 @@
-import GuardUnsatisifedException from './guardUnsatisifedException'
+import GuardUnsatisifedException from "./guardUnsatisifedException";
 
 /**
  * Represents a path of node guards along a root-to-leaf tree path.
@@ -22,4 +22,4 @@ export default function GuardPath(nodes) {
             }
         }
     };
-};
+}

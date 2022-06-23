@@ -1,5 +1,5 @@
-import Leaf from './leaf';
-import State from '../../state';
+import Leaf from "./leaf";
+import State from "../../state";
 import Lookup from "../../lookup";
 
 /**
@@ -13,7 +13,7 @@ export default function Action(decorators, actionName, actionArguments) {
     Leaf.call(this, "action", decorators, actionArguments);
 
     /**
-     * Whether there is a pending update promise. 
+     * Whether there is a pending update promise.
      */
     let isUsingUpdatePromise = false;
 
@@ -21,13 +21,13 @@ export default function Action(decorators, actionName, actionArguments) {
      * The finished state result of an update promise.
      */
     let updatePromiseStateResult = null;
-   
+
     /**
      * Update the node.
      * @param board The board.
      * @returns The result of the update.
      */
-    this.onUpdate = function(board) {
+    this.onUpdate = function (board) {
         // If the result of this action depends on an update promise then there is nothing to do until
         // it resolves, unless there has been a value set as a result of the update promise resolving.
         if (isUsingUpdatePromise) {
@@ -36,7 +36,7 @@ export default function Action(decorators, actionName, actionArguments) {
                 // Set the state of this node to match the state returned by the promise.
                 this.setState(updatePromiseStateResult);
             }
-            
+
             return;
         }
 
@@ -45,7 +45,9 @@ export default function Action(decorators, actionName, actionArguments) {
 
         // The action function should be defined.
         if (actionFuncInvoker === null) {
-            throw new Error(`cannot update action node as the action '${actionName}' function is not defined in the blackboard and has not been registered`);
+            throw new Error(
+                `cannot update action node as the action '${actionName}' function is not defined in the blackboard and has not been registered`
+            );
         }
 
         // Call the action function, the result of which may be:
@@ -64,12 +66,14 @@ export default function Action(decorators, actionName, actionArguments) {
 
                     // Check to make sure the result is a valid finished state.
                     if (result !== State.SUCCEEDED && result !== State.FAILED) {
-                        throw new Error("action node promise resolved with an invalid value, expected a State.SUCCEEDED or State.FAILED value to be returned");
+                        throw new Error(
+                            "action node promise resolved with an invalid value, expected a State.SUCCEEDED or State.FAILED value to be returned"
+                        );
                     }
 
                     // Set pending update promise state result to be processed on next update.
                     updatePromiseStateResult = result;
-                }, 
+                },
                 (reason) => {
                     // If 'isUpdatePromisePending' is null then the promise was cleared as it was resolving, probably via an abort of reset.
                     if (!isUsingUpdatePromise) {
@@ -108,7 +112,7 @@ export default function Action(decorators, actionName, actionArguments) {
         this.setState(State.READY);
 
         // There is no longer an update promise that we care about.
-        isUsingUpdatePromise     = false;
+        isUsingUpdatePromise = false;
         updatePromiseStateResult = null;
     };
 
@@ -123,9 +127,11 @@ export default function Action(decorators, actionName, actionArguments) {
             case undefined:
                 return;
             default:
-                throw new Error(`action '${actionName}' 'onUpdate' returned an invalid response, expected an optional State.SUCCEEDED or State.FAILED value to be returned`);
+                throw new Error(
+                    `action '${actionName}' 'onUpdate' returned an invalid response, expected an optional State.SUCCEEDED or State.FAILED value to be returned`
+                );
         }
     };
-};
+}
 
 Action.prototype = Object.create(Leaf.prototype);

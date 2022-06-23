@@ -1,5 +1,5 @@
-import Leaf from './leaf';
-import State from '../../state';
+import Leaf from "./leaf";
+import State from "../../state";
 import Lookup from "../../lookup";
 
 /**
@@ -11,19 +11,21 @@ import Lookup from "../../lookup";
  */
 export default function Condition(decorators, conditionName, conditionArguments) {
     Leaf.call(this, "condition", decorators, conditionArguments);
-   
+
     /**
      * Update the node.
      * @param board The board.
      * @returns The result of the update.
      */
-    this.onUpdate = function(board) {
+    this.onUpdate = function (board) {
         // Attempt to get the invoker for the condition function.
         const conditionFuncInvoker = Lookup.getFuncInvoker(board, conditionName);
 
         // The condition function should be defined.
         if (conditionFuncInvoker === null) {
-            throw new Error(`cannot update condition node as the condition '${conditionName}' function is not defined in the blackboard and has not been registered`);
+            throw new Error(
+                `cannot update condition node as the condition '${conditionName}' function is not defined in the blackboard and has not been registered`
+            );
         }
 
         // Call the condition function to determine the state of this node.
@@ -34,6 +36,6 @@ export default function Condition(decorators, conditionName, conditionArguments)
      * Gets the name of the node.
      */
     this.getName = () => conditionName;
-};
+}
 
 Condition.prototype = Object.create(Leaf.prototype);

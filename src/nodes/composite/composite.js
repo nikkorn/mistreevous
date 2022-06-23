@@ -1,11 +1,11 @@
-import Node from '../node'
+import Node from "../node";
 import State from "../../state";
 
 /**
  * A composite node that wraps child nodes.
  * @param type The node type.
  * @param decorators The node decorators.
- * @param children The child nodes. 
+ * @param children The child nodes.
  */
 export default function Composite(type, decorators, children) {
     Node.call(this, type, decorators);
@@ -28,7 +28,7 @@ export default function Composite(type, decorators, children) {
         this.setState(State.READY);
 
         // Reset the state of any child nodes.
-        this.getChildren().forEach(child => child.reset());
+        this.getChildren().forEach((child) => child.reset());
     };
 
     /**
@@ -42,7 +42,7 @@ export default function Composite(type, decorators, children) {
         }
 
         // Abort any child nodes.
-        this.getChildren().forEach(child => child.abort(board));
+        this.getChildren().forEach((child) => child.abort(board));
 
         // Reset the state of this node.
         this.reset();
@@ -55,6 +55,6 @@ export default function Composite(type, decorators, children) {
             exitDecorator.callBlackboardFunction(board, false, true);
         }
     };
-};
+}
 
 Composite.prototype = Object.create(Node.prototype);

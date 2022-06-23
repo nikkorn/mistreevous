@@ -1,4 +1,4 @@
-import Node from '../node'
+import Node from "../node";
 
 /**
  * A leaf node.
@@ -13,6 +13,6 @@ export default function Leaf(type, decorators, args) {
      * Gets whether this node is a leaf node.
      */
     this.isLeafNode = () => true;
-};
+}
 
 Leaf.prototype = Object.create(Node.prototype);

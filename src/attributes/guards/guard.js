@@ -1,4 +1,4 @@
-import Attribute from '../attribute';
+import Attribute from "../attribute";
 
 /**
  * A base node guard attribute.
@@ -11,7 +11,7 @@ export default function Guard(type, args) {
     /**
      * Gets whether this attribute is a guard.
      */
-     this.isGuard = () => true;
-};
+    this.isGuard = () => true;
+}
 
 Guard.prototype = Object.create(Attribute.prototype);

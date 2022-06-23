@@ -96,7 +96,14 @@ const State = {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/**
+ * The object holding any registered functions keyed on function name.
+ */
 let funcTable = {};
+
+/**
+ * The object holding any registered sub-trees keyed on tree name.
+ */
 let subtreeTable = {};
 
 /* harmony default export */ __webpack_exports__["a"] = ({
@@ -151,57 +158,57 @@ let subtreeTable = {};
  * A decorator node that wraps a single child node.
  * @param type The node type.
  * @param decorators The node decorators.
- * @param child The child node. 
+ * @param child The child node.
  */
 function Decorator(type, decorators, child) {
-    __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
+  __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
 
-    /**
-     * Gets whether this node is a leaf node.
-     */
-    this.isLeafNode = () => false;
+  /**
+   * Gets whether this node is a leaf node.
+   */
+  this.isLeafNode = () => false;
 
-    /**
-     * Gets the children of this node.
-     */
-    this.getChildren = () => [child];
+  /**
+   * Gets the children of this node.
+   */
+  this.getChildren = () => [child];
 
-    /**
-     * Reset the state of the node.
-     */
-    this.reset = () => {
-        // Reset the state of this node.
-        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
+  /**
+   * Reset the state of the node.
+   */
+  this.reset = () => {
+    // Reset the state of this node.
+    this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
 
-        // Reset the state of the child node.
-        child.reset();
-    };
+    // Reset the state of the child node.
+    child.reset();
+  };
 
-    /**
-     * Abort the running of this node.
-     * @param board The board.
-     */
-    this.abort = board => {
-        // There is nothing to do if this node is not in the running state.
-        if (!this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING)) {
-            return;
-        }
+  /**
+   * Abort the running of this node.
+   * @param board The board.
+   */
+  this.abort = board => {
+    // There is nothing to do if this node is not in the running state.
+    if (!this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING)) {
+      return;
+    }
 
-        // Abort the child node.
-        child.abort(board);
+    // Abort the child node.
+    child.abort(board);
 
-        // Reset the state of this node.
-        this.reset();
+    // Reset the state of this node.
+    this.reset();
 
-        // Try to get the exit decorator for this node.
-        const exitDecorator = this.getDecorator("exit");
+    // Try to get the exit decorator for this node.
+    const exitDecorator = this.getDecorator("exit");
 
-        // Call the exit decorator function if it exists.
-        if (exitDecorator) {
-            exitDecorator.callBlackboardFunction(board, false, true);
-        }
-    };
-};
+    // Call the exit decorator function if it exists.
+    if (exitDecorator) {
+      exitDecorator.callBlackboardFunction(board, false, true);
+    }
+  };
+}
 
 Decorator.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
 
@@ -220,57 +227,57 @@ Decorator.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* d
  * A composite node that wraps child nodes.
  * @param type The node type.
  * @param decorators The node decorators.
- * @param children The child nodes. 
+ * @param children The child nodes.
  */
 function Composite(type, decorators, children) {
-    __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
+  __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
 
-    /**
-     * Gets whether this node is a leaf node.
-     */
-    this.isLeafNode = () => false;
+  /**
+   * Gets whether this node is a leaf node.
+   */
+  this.isLeafNode = () => false;
 
-    /**
-     * Gets the children of this node.
-     */
-    this.getChildren = () => children;
+  /**
+   * Gets the children of this node.
+   */
+  this.getChildren = () => children;
 
-    /**
-     * Reset the state of the node.
-     */
-    this.reset = () => {
-        // Reset the state of this node.
-        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
+  /**
+   * Reset the state of the node.
+   */
+  this.reset = () => {
+    // Reset the state of this node.
+    this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
 
-        // Reset the state of any child nodes.
-        this.getChildren().forEach(child => child.reset());
-    };
+    // Reset the state of any child nodes.
+    this.getChildren().forEach(child => child.reset());
+  };
 
-    /**
-     * Abort the running of this node.
-     * @param board The board.
-     */
-    this.abort = board => {
-        // There is nothing to do if this node is not in the running state.
-        if (!this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING)) {
-            return;
-        }
+  /**
+   * Abort the running of this node.
+   * @param board The board.
+   */
+  this.abort = board => {
+    // There is nothing to do if this node is not in the running state.
+    if (!this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING)) {
+      return;
+    }
 
-        // Abort any child nodes.
-        this.getChildren().forEach(child => child.abort(board));
+    // Abort any child nodes.
+    this.getChildren().forEach(child => child.abort(board));
 
-        // Reset the state of this node.
-        this.reset();
+    // Reset the state of this node.
+    this.reset();
 
-        // Try to get the exit decorator for this node.
-        const exitDecorator = this.getDecorator("exit");
+    // Try to get the exit decorator for this node.
+    const exitDecorator = this.getDecorator("exit");
 
-        // Call the exit decorator function if it exists.
-        if (exitDecorator) {
-            exitDecorator.callBlackboardFunction(board, false, true);
-        }
-    };
-};
+    // Call the exit decorator function if it exists.
+    if (exitDecorator) {
+      exitDecorator.callBlackboardFunction(board, false, true);
+    }
+  };
+}
 
 Composite.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
 
@@ -296,7 +303,7 @@ function Leaf(type, decorators, args) {
    * Gets whether this node is a leaf node.
    */
   this.isLeafNode = () => true;
-};
+}
 
 Leaf.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
 
@@ -318,173 +325,173 @@ Leaf.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* defaul
  * @param args The node argument definitions.
  */
 function Node(type, decorators, args) {
-  /**
-   * The node uid.
-   */
-  const uid = createNodeUid();
-  /**
-   * The node state.
-   */
-  let state = __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY;
-  /**
-   * The guard path to evaluate as part of a node update.
-   */
-  let guardPath;
+    /**
+     * The node uid.
+     */
+    const uid = createNodeUid();
+    /**
+     * The node state.
+     */
+    let state = __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY;
+    /**
+     * The guard path to evaluate as part of a node update.
+     */
+    let guardPath;
 
-  /**
-   * Gets/Sets the state of the node.
-   */
-  this.getState = () => state;
-  this.setState = value => state = value;
+    /**
+     * Gets/Sets the state of the node.
+     */
+    this.getState = () => state;
+    this.setState = value => state = value;
 
-  /**
-   * Gets the unique id of the node.
-   */
-  this.getUid = () => uid;
+    /**
+     * Gets the unique id of the node.
+     */
+    this.getUid = () => uid;
 
-  /**
-   * Gets the type of the node.
-   */
-  this.getType = () => type;
+    /**
+     * Gets the type of the node.
+     */
+    this.getType = () => type;
 
-  /**
-   * Gets the node decorators.
-   */
-  this.getDecorators = () => decorators || [];
+    /**
+     * Gets the node decorators.
+     */
+    this.getDecorators = () => decorators || [];
 
-  /**
-   * Gets the node arguments.
-   */
-  this.getArguments = () => args || [];
+    /**
+     * Gets the node arguments.
+     */
+    this.getArguments = () => args || [];
 
-  /**
-   * Gets the node decorator with the specified type, or null if it does not exist.
-   */
-  this.getDecorator = type => this.getDecorators().filter(decorator => decorator.getType().toUpperCase() === type.toUpperCase())[0] || null;
+    /**
+     * Gets the node decorator with the specified type, or null if it does not exist.
+     */
+    this.getDecorator = type => this.getDecorators().filter(decorator => decorator.getType().toUpperCase() === type.toUpperCase())[0] || null;
 
-  /**
-   * Gets the node decorators.
-   */
-  this.getGuardDecorators = () => this.getDecorators().filter(decorator => decorator.isGuard());
+    /**
+     * Gets the node decorators.
+     */
+    this.getGuardDecorators = () => this.getDecorators().filter(decorator => decorator.isGuard());
 
-  /**
-   * Sets the guard path to evaluate as part of a node update.
-   */
-  this.setGuardPath = value => guardPath = value;
+    /**
+     * Sets the guard path to evaluate as part of a node update.
+     */
+    this.setGuardPath = value => guardPath = value;
 
-  /**
-   * Gets whether a guard path is assigned to this node.
-   */
-  this.hasGuardPath = () => !!guardPath;
+    /**
+     * Gets whether a guard path is assigned to this node.
+     */
+    this.hasGuardPath = () => !!guardPath;
 
-  /**
-   * Gets whether this node is in the specified state.
-   * @param value The value to compare to the node state.
-   */
-  this.is = value => {
-    return state === value;
-  };
+    /**
+     * Gets whether this node is in the specified state.
+     * @param value The value to compare to the node state.
+     */
+    this.is = value => {
+        return state === value;
+    };
 
-  /**
-   * Reset the state of the node.
-   */
-  this.reset = () => {
-    // Reset the state of this node.
-    this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
-  };
+    /**
+     * Reset the state of the node.
+     */
+    this.reset = () => {
+        // Reset the state of this node.
+        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
+    };
 
-  /**
-   * Abort the running of this node.
-   * @param board The board.
-   */
-  this.abort = board => {
-    // There is nothing to do if this node is not in the running state.
-    if (!this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING)) {
-      return;
-    }
-
-    // Reset the state of this node.
-    this.reset();
-
-    // Try to get the exit decorator for this node.
-    const exitDecorator = this.getDecorator("exit");
-
-    // Call the exit decorator function if it exists.
-    if (exitDecorator) {
-      exitDecorator.callBlackboardFunction(board, false, true);
-    }
-  };
-
-  /**
-   * Update the node.
-   * @param board The board.
-   * @returns The result of the update.
-   */
-  this.update = board => {
-    // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
-    if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED) || this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED)) {
-      // We have not changed state.
-      return {};
-    }
-
-    try {
-      // Evaluate all of the guard path conditions for the current tree path.
-      guardPath.evaluate(board);
-
-      // If this node is in the READY state then call the ENTRY decorator for this node if it exists.
-      if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
-        const entryDecorator = this.getDecorator("entry");
-
-        // Call the entry decorator function if it exists.
-        if (entryDecorator) {
-          entryDecorator.callBlackboardFunction(board);
+    /**
+     * Abort the running of this node.
+     * @param board The board.
+     */
+    this.abort = board => {
+        // There is nothing to do if this node is not in the running state.
+        if (!this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING)) {
+            return;
         }
-      }
 
-      // Try to get the step decorator for this node.
-      const stepDecorator = this.getDecorator("step");
+        // Reset the state of this node.
+        this.reset();
 
-      // Call the step decorator function if it exists.
-      if (stepDecorator) {
-        stepDecorator.callBlackboardFunction(board);
-      }
-
-      // Do the actual update.
-      this.onUpdate(board);
-
-      // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT decorator for this node if it exists.
-      if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED) || this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED)) {
+        // Try to get the exit decorator for this node.
         const exitDecorator = this.getDecorator("exit");
 
         // Call the exit decorator function if it exists.
         if (exitDecorator) {
-          exitDecorator.callBlackboardFunction(board, this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED), false);
+            exitDecorator.callBlackboardFunction(board, false, true);
         }
-      }
-    } catch (error) {
-      // If the error is a GuardUnsatisfiedException then we need to determine if this node is the source.
-      if (error instanceof __WEBPACK_IMPORTED_MODULE_0__attributes_guards_guardUnsatisifedException__["a" /* default */] && error.isSourceNode(this)) {
-        // Abort the current node.
-        this.abort(board);
+    };
 
-        // Any node that is the source of an abort will be a failed node.
-        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
-      } else {
-        throw error;
-      }
-    }
-  };
-};
+    /**
+     * Update the node.
+     * @param board The board.
+     * @returns The result of the update.
+     */
+    this.update = board => {
+        // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
+        if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED) || this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED)) {
+            // We have not changed state.
+            return {};
+        }
+
+        try {
+            // Evaluate all of the guard path conditions for the current tree path.
+            guardPath.evaluate(board);
+
+            // If this node is in the READY state then call the ENTRY decorator for this node if it exists.
+            if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
+                const entryDecorator = this.getDecorator("entry");
+
+                // Call the entry decorator function if it exists.
+                if (entryDecorator) {
+                    entryDecorator.callBlackboardFunction(board);
+                }
+            }
+
+            // Try to get the step decorator for this node.
+            const stepDecorator = this.getDecorator("step");
+
+            // Call the step decorator function if it exists.
+            if (stepDecorator) {
+                stepDecorator.callBlackboardFunction(board);
+            }
+
+            // Do the actual update.
+            this.onUpdate(board);
+
+            // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT decorator for this node if it exists.
+            if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED) || this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED)) {
+                const exitDecorator = this.getDecorator("exit");
+
+                // Call the exit decorator function if it exists.
+                if (exitDecorator) {
+                    exitDecorator.callBlackboardFunction(board, this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED), false);
+                }
+            }
+        } catch (error) {
+            // If the error is a GuardUnsatisfiedException then we need to determine if this node is the source.
+            if (error instanceof __WEBPACK_IMPORTED_MODULE_0__attributes_guards_guardUnsatisifedException__["a" /* default */] && error.isSourceNode(this)) {
+                // Abort the current node.
+                this.abort(board);
+
+                // Any node that is the source of an abort will be a failed node.
+                this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
+            } else {
+                throw error;
+            }
+        }
+    };
+}
 
 /**
  * Create a randomly generated node uid.
  * @returns A randomly generated node uid.
  */
 function createNodeUid() {
-  var S4 = function () {
-    return ((1 + Math.random()) * 0x10000 | 0).toString(16).substring(1);
-  };
-  return S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
+    var S4 = function () {
+        return ((1 + Math.random()) * 0x10000 | 0).toString(16).substring(1);
+    };
+    return S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
 }
 
 /***/ }),
@@ -508,7 +515,7 @@ function Callback(type, args) {
    * Gets whether this attribute is a guard.
    */
   this.isGuard = () => false;
-};
+}
 
 Callback.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__attribute__["a" /* default */].prototype);
 
@@ -520,7 +527,7 @@ Callback.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__attribute__["a" 
 /* harmony export (immutable) */ __webpack_exports__["a"] = GuardUnsatisifedException;
 /**
  * An exception thrown when evaluating node guard path conditions and a conditions fails.
- * @param source The node at which a guard condition failed. 
+ * @param source The node at which a guard condition failed.
  */
 function GuardUnsatisifedException(source) {
   /**
@@ -559,7 +566,7 @@ function Guard(type, args) {
    * Gets whether this attribute is a guard.
    */
   this.isGuard = () => true;
-};
+}
 
 Guard.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__attribute__["a" /* default */].prototype);
 
@@ -592,7 +599,7 @@ function Attribute(type, args) {
     type: this.getType(),
     arguments: this.getArguments()
   });
-};
+}
 
 /***/ }),
 /* 10 */
@@ -649,7 +656,7 @@ function BehaviourTree(definition, board) {
         }
 
         // The blackboard must be defined.
-        if (typeof board !== 'object' || board === null) {
+        if (typeof board !== "object" || board === null) {
             throw new Error("the blackboard must be defined");
         }
 
@@ -717,7 +724,7 @@ function BehaviourTree(definition, board) {
             // Add the current node to the path.
             path = path.concat(node);
 
-            // Check whether the current node is a leaf node. 
+            // Check whether the current node is a leaf node.
             if (node.isLeafNode()) {
                 nodePaths.push(path);
             } else {
@@ -904,7 +911,7 @@ function GuardPath(nodes) {
             }
         }
     };
-};
+}
 
 /***/ }),
 /* 13 */
@@ -953,18 +960,18 @@ function GuardPath(nodes) {
  * The node decorator factories.
  */
 const DecoratorFactories = {
-    "WHILE": (condition, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_13__attributes_guards_while__["a" /* default */](condition, decoratorArguments),
-    "UNTIL": (condition, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_14__attributes_guards_until__["a" /* default */](condition, decoratorArguments),
-    "ENTRY": (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_15__attributes_callbacks_entry__["a" /* default */](functionName, decoratorArguments),
-    "EXIT": (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_16__attributes_callbacks_exit__["a" /* default */](functionName, decoratorArguments),
-    "STEP": (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_17__attributes_callbacks_step__["a" /* default */](functionName, decoratorArguments)
+    WHILE: (condition, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_13__attributes_guards_while__["a" /* default */](condition, decoratorArguments),
+    UNTIL: (condition, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_14__attributes_guards_until__["a" /* default */](condition, decoratorArguments),
+    ENTRY: (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_15__attributes_callbacks_entry__["a" /* default */](functionName, decoratorArguments),
+    EXIT: (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_16__attributes_callbacks_exit__["a" /* default */](functionName, decoratorArguments),
+    STEP: (functionName, decoratorArguments) => new __WEBPACK_IMPORTED_MODULE_17__attributes_callbacks_step__["a" /* default */](functionName, decoratorArguments)
 };
 
 /**
  * The AST node factories.
  */
 const ASTNodeFactories = {
-    "ROOT": () => ({
+    ROOT: () => ({
         type: "root",
         decorators: [],
         name: null,
@@ -984,7 +991,7 @@ const ASTNodeFactories = {
             return new __WEBPACK_IMPORTED_MODULE_3__nodes_decorator_root__["a" /* default */](this.decorators, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
         }
     }),
-    "BRANCH": () => ({
+    BRANCH: () => ({
         type: "branch",
         branchName: "",
         validate: function (depth) {},
@@ -1005,7 +1012,7 @@ const ASTNodeFactories = {
             }
         }
     }),
-    "SELECTOR": () => ({
+    SELECTOR: () => ({
         type: "selector",
         decorators: [],
         children: [],
@@ -1019,7 +1026,7 @@ const ASTNodeFactories = {
             return new __WEBPACK_IMPORTED_MODULE_10__nodes_composite_selector__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
         }
     }),
-    "SEQUENCE": () => ({
+    SEQUENCE: () => ({
         type: "sequence",
         decorators: [],
         children: [],
@@ -1033,7 +1040,7 @@ const ASTNodeFactories = {
             return new __WEBPACK_IMPORTED_MODULE_11__nodes_composite_sequence__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
         }
     }),
-    "PARALLEL": () => ({
+    PARALLEL: () => ({
         type: "parallel",
         decorators: [],
         children: [],
@@ -1047,7 +1054,7 @@ const ASTNodeFactories = {
             return new __WEBPACK_IMPORTED_MODULE_12__nodes_composite_parallel__["a" /* default */](this.decorators, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
         }
     }),
-    "LOTTO": () => ({
+    LOTTO: () => ({
         type: "lotto",
         decorators: [],
         children: [],
@@ -1062,7 +1069,7 @@ const ASTNodeFactories = {
             return new __WEBPACK_IMPORTED_MODULE_9__nodes_composite_lotto__["a" /* default */](this.decorators, this.tickets, this.children.map(child => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice())));
         }
     }),
-    "REPEAT": () => ({
+    REPEAT: () => ({
         type: "repeat",
         decorators: [],
         iterations: null,
@@ -1074,14 +1081,14 @@ const ASTNodeFactories = {
                 throw new Error("a repeat node must have a single child");
             }
 
-            // A repeat node must have a positive number of iterations if defined. 
+            // A repeat node must have a positive number of iterations if defined.
             if (this.iterations !== null && this.iterations < 0) {
                 throw new Error("a repeat node must have a positive number of iterations if defined");
             }
 
             // There is validation to carry out if a longest duration was defined.
             if (this.maximumIterations !== null) {
-                // A repeat node must have a positive maximum iterations count if defined. 
+                // A repeat node must have a positive maximum iterations count if defined.
                 if (this.maximumIterations < 0) {
                     throw new Error("a repeat node must have a positive maximum iterations count if defined");
                 }
@@ -1096,7 +1103,7 @@ const ASTNodeFactories = {
             return new __WEBPACK_IMPORTED_MODULE_4__nodes_decorator_repeat__["a" /* default */](this.decorators, this.iterations, this.maximumIterations, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
         }
     }),
-    "RETRY": () => ({
+    RETRY: () => ({
         type: "retry",
         decorators: [],
         iterations: null,
@@ -1108,14 +1115,14 @@ const ASTNodeFactories = {
                 throw new Error("a retry node must have a single child");
             }
 
-            // A retry node must have a positive number of iterations if defined. 
+            // A retry node must have a positive number of iterations if defined.
             if (this.iterations !== null && this.iterations < 0) {
                 throw new Error("a retry node must have a positive number of iterations if defined");
             }
 
             // There is validation to carry out if a longest duration was defined.
             if (this.maximumIterations !== null) {
-                // A retry node must have a positive maximum iterations count if defined. 
+                // A retry node must have a positive maximum iterations count if defined.
                 if (this.maximumIterations < 0) {
                     throw new Error("a retry node must have a positive maximum iterations count if defined");
                 }
@@ -1130,7 +1137,7 @@ const ASTNodeFactories = {
             return new __WEBPACK_IMPORTED_MODULE_5__nodes_decorator_retry__["a" /* default */](this.decorators, this.iterations, this.maximumIterations, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
         }
     }),
-    "FLIP": () => ({
+    FLIP: () => ({
         type: "flip",
         decorators: [],
         children: [],
@@ -1144,7 +1151,7 @@ const ASTNodeFactories = {
             return new __WEBPACK_IMPORTED_MODULE_6__nodes_decorator_flip__["a" /* default */](this.decorators, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
         }
     }),
-    "SUCCEED": () => ({
+    SUCCEED: () => ({
         type: "succeed",
         decorators: [],
         children: [],
@@ -1158,7 +1165,7 @@ const ASTNodeFactories = {
             return new __WEBPACK_IMPORTED_MODULE_7__nodes_decorator_succeed__["a" /* default */](this.decorators, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
         }
     }),
-    "FAIL": () => ({
+    FAIL: () => ({
         type: "fail",
         decorators: [],
         children: [],
@@ -1172,20 +1179,20 @@ const ASTNodeFactories = {
             return new __WEBPACK_IMPORTED_MODULE_8__nodes_decorator_fail__["a" /* default */](this.decorators, this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice()));
         }
     }),
-    "WAIT": () => ({
+    WAIT: () => ({
         type: "wait",
         decorators: [],
         duration: null,
         longestDuration: null,
         validate: function (depth) {
-            // A wait node must have a positive duration. 
+            // A wait node must have a positive duration.
             if (this.duration < 0) {
                 throw new Error("a wait node must have a positive duration");
             }
 
             // There is validation to carry out if a longest duration was defined.
             if (this.longestDuration) {
-                // A wait node must have a positive longest duration. 
+                // A wait node must have a positive longest duration.
                 if (this.longestDuration < 0) {
                     throw new Error("a wait node must have a positive longest duration if one is defined");
                 }
@@ -1200,7 +1207,7 @@ const ASTNodeFactories = {
             return new __WEBPACK_IMPORTED_MODULE_2__nodes_leaf_wait__["a" /* default */](this.decorators, this.duration, this.longestDuration);
         }
     }),
-    "ACTION": () => ({
+    ACTION: () => ({
         type: "action",
         decorators: [],
         actionName: "",
@@ -1210,7 +1217,7 @@ const ASTNodeFactories = {
             return new __WEBPACK_IMPORTED_MODULE_0__nodes_leaf_action__["a" /* default */](this.decorators, this.actionName, this.actionArguments);
         }
     }),
-    "CONDITION": () => ({
+    CONDITION: () => ({
         type: "condition",
         decorators: [],
         conditionName: "",
@@ -1650,7 +1657,7 @@ function buildRootASTNodes(definition) {
 
     // Return the root AST nodes.
     return stack[0];
-};
+}
 
 /**
  * Pop the next raw token off of the stack and throw an error if it wasn't the expected one.
@@ -1681,7 +1688,7 @@ function popAndCheck(tokens, expected) {
 
     // Return the popped token.
     return popped;
-};
+}
 
 /**
  * Pull an argument definition list off of the token stack.
@@ -1735,7 +1742,7 @@ function getArguments(tokens, stringArgumentPlaceholders, argumentValidator, val
 
     // Return the argument list.
     return argumentList;
-};
+}
 
 /**
  * Gets an argument value definition.
@@ -1784,7 +1791,7 @@ function getArgumentDefinition(token, stringArgumentPlaceholders) {
             value: stringArgumentPlaceholders[token].replace('\\"', '"'),
             type: "string",
             toString: function () {
-                return "\"" + this.value + "\"";
+                return '"' + this.value + '"';
             }
         };
     }
@@ -1797,7 +1804,7 @@ function getArgumentDefinition(token, stringArgumentPlaceholders) {
             return this.value;
         }
     };
-};
+}
 
 /**
  * Pull any decorators off of the token stack.
@@ -1806,7 +1813,7 @@ function getArgumentDefinition(token, stringArgumentPlaceholders) {
  * @returns An array od decorators defined by any directly following tokens.
  */
 function getDecorators(tokens, stringArgumentPlaceholders) {
-    // Create an array to hold any decorators found. 
+    // Create an array to hold any decorators found.
     const decorators = [];
 
     // Keep track of names of decorators that we have found on the token stack, as we cannot have duplicates.
@@ -1849,7 +1856,7 @@ function getDecorators(tokens, stringArgumentPlaceholders) {
     }
 
     return decorators;
-};
+}
 
 /**
  * Swaps out any node/decorator argument string literals with placeholders.
@@ -1875,7 +1882,7 @@ function substituteStringLiterals(definition) {
     });
 
     return { placeholders, processedDefinition };
-};
+}
 
 /**
  * Parse the tree definition into an array of raw tokens.
@@ -1894,7 +1901,7 @@ function parseTokensFromDefinition(definition) {
 
     // Split the definition into raw token form and return it.
     return definition.replace(/\s+/g, " ").trim().split(" ");
-};
+}
 
 /***/ }),
 /* 14 */
@@ -1920,7 +1927,7 @@ function Action(decorators, actionName, actionArguments) {
     __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "action", decorators, actionArguments);
 
     /**
-     * Whether there is a pending update promise. 
+     * Whether there is a pending update promise.
      */
     let isUsingUpdatePromise = false;
 
@@ -2030,7 +2037,7 @@ function Action(decorators, actionName, actionArguments) {
                 throw new Error(`action '${actionName}' 'onUpdate' returned an invalid response, expected an optional State.SUCCEEDED or State.FAILED value to be returned`);
         }
     };
-};
+}
 
 Action.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
 
@@ -2055,31 +2062,31 @@ Action.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* defa
  * @param conditionArguments The array of condition argument definitions.
  */
 function Condition(decorators, conditionName, conditionArguments) {
-  __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "condition", decorators, conditionArguments);
+    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "condition", decorators, conditionArguments);
 
-  /**
-   * Update the node.
-   * @param board The board.
-   * @returns The result of the update.
-   */
-  this.onUpdate = function (board) {
-    // Attempt to get the invoker for the condition function.
-    const conditionFuncInvoker = __WEBPACK_IMPORTED_MODULE_2__lookup__["a" /* default */].getFuncInvoker(board, conditionName);
+    /**
+     * Update the node.
+     * @param board The board.
+     * @returns The result of the update.
+     */
+    this.onUpdate = function (board) {
+        // Attempt to get the invoker for the condition function.
+        const conditionFuncInvoker = __WEBPACK_IMPORTED_MODULE_2__lookup__["a" /* default */].getFuncInvoker(board, conditionName);
 
-    // The condition function should be defined.
-    if (conditionFuncInvoker === null) {
-      throw new Error(`cannot update condition node as the condition '${conditionName}' function is not defined in the blackboard and has not been registered`);
-    }
+        // The condition function should be defined.
+        if (conditionFuncInvoker === null) {
+            throw new Error(`cannot update condition node as the condition '${conditionName}' function is not defined in the blackboard and has not been registered`);
+        }
 
-    // Call the condition function to determine the state of this node.
-    this.setState(!!conditionFuncInvoker(conditionArguments) ? __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED : __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
-  };
+        // Call the condition function to determine the state of this node.
+        this.setState(!!conditionFuncInvoker(conditionArguments) ? __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED : __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
+    };
 
-  /**
-   * Gets the name of the node.
-   */
-  this.getName = () => conditionName;
-};
+    /**
+     * Gets the name of the node.
+     */
+    this.getName = () => conditionName;
+}
 
 Condition.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
 
@@ -2102,49 +2109,49 @@ Condition.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* d
  * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
  */
 function Wait(decorators, duration, longestDuration) {
-    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "wait", decorators);
+  __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "wait", decorators);
 
-    /** 
-     * The time in milliseconds at which this node was first updated.
-     */
-    let initialUpdateTime;
+  /**
+   * The time in milliseconds at which this node was first updated.
+   */
+  let initialUpdateTime;
 
-    /**
-     * The duration in milliseconds that this node will be waiting for. 
-     */
-    let waitDuration;
+  /**
+   * The duration in milliseconds that this node will be waiting for.
+   */
+  let waitDuration;
 
-    /**
-     * Update the node.
-     * @param board The board.
-     * @returns The result of the update.
-     */
-    this.onUpdate = function (board) {
-        // If this node is in the READY state then we need to set the initial update time.
-        if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
-            // Set the initial update time.
-            initialUpdateTime = new Date().getTime();
+  /**
+   * Update the node.
+   * @param board The board.
+   * @returns The result of the update.
+   */
+  this.onUpdate = function (board) {
+    // If this node is in the READY state then we need to set the initial update time.
+    if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
+      // Set the initial update time.
+      initialUpdateTime = new Date().getTime();
 
-            // If a longestDuration value was defined then we will be randomly picking a duration between the
-            // shortest and longest duration. If it was not defined, then we will be just using the duration.
-            waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
+      // If a longestDuration value was defined then we will be randomly picking a duration between the
+      // shortest and longest duration. If it was not defined, then we will be just using the duration.
+      waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
 
-            // The node is now running until we finish waiting.
-            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
-        }
+      // The node is now running until we finish waiting.
+      this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
+    }
 
-        // Have we waited long enough?
-        if (new Date().getTime() >= initialUpdateTime + waitDuration) {
-            // We have finished waiting!
-            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED);
-        }
-    };
+    // Have we waited long enough?
+    if (new Date().getTime() >= initialUpdateTime + waitDuration) {
+      // We have finished waiting!
+      this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED);
+    }
+  };
 
-    /**
-     * Gets the name of the node.
-     */
-    this.getName = () => `WAIT ${longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms"}`;
-};
+  /**
+   * Gets the name of the node.
+   */
+  this.getName = () => `WAIT ${longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms"}`;
+}
 
 Wait.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
 
@@ -2163,7 +2170,7 @@ Wait.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* defaul
  * A Root node.
  * The root node will have a single child.
  * @param decorators The node decorators.
- * @param child The child node. 
+ * @param child The child node.
  */
 function Root(decorators, child) {
   __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "root", decorators, child);
@@ -2188,7 +2195,7 @@ function Root(decorators, child) {
    * Gets the name of the node.
    */
   this.getName = () => "ROOT";
-};
+}
 
 Root.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
@@ -2213,7 +2220,7 @@ Root.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* d
  * @param decorators The node decorators.
  * @param iterations The number of iterations to repeat the child node, or the minimum number of iterations if maximumIterations is defined.
  * @param maximumIterations The maximum number of iterations to repeat the child node.
- * @param child The child node. 
+ * @param child The child node.
  */
 function Repeat(decorators, iterations, maximumIterations, child) {
     __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "repeat", decorators, child);
@@ -2327,7 +2334,7 @@ function Repeat(decorators, iterations, maximumIterations, child) {
             targetIterationCount = null;
         }
     };
-};
+}
 
 Repeat.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
@@ -2352,7 +2359,7 @@ Repeat.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /*
  * @param decorators The node decorators.
  * @param iterations The number of iterations to repeat the child node, or the minimum number of iterations if maximumIterations is defined.
  * @param maximumIterations The maximum number of iterations to repeat the child node.
- * @param child The child node. 
+ * @param child The child node.
  */
 function Retry(decorators, iterations, maximumIterations, child) {
     __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "retry", decorators, child);
@@ -2466,7 +2473,7 @@ function Retry(decorators, iterations, maximumIterations, child) {
             targetIterationCount = null;
         }
     };
-};
+}
 
 Retry.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
@@ -2485,7 +2492,7 @@ Retry.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* 
  * A Flip node.
  * This node wraps a single child and will flip the state of the child state.
  * @param decorators The node decorators.
- * @param child The child node. 
+ * @param child The child node.
  */
 function Flip(decorators, child) {
     __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "flip", decorators, child);
@@ -2524,7 +2531,7 @@ function Flip(decorators, child) {
      * Gets the name of the node.
      */
     this.getName = () => "FLIP";
-};
+}
 
 Flip.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
@@ -2543,43 +2550,43 @@ Flip.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* d
  * A Succeed node.
  * This node wraps a single child and will always move to the 'SUCCEEDED' state when the child moves to a 'SUCCEEDED' or 'FAILED' state.
  * @param decorators The node decorators.
- * @param child The child node. 
+ * @param child The child node.
  */
 function Succeed(decorators, child) {
-  __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "succeed", decorators, child);
+    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "succeed", decorators, child);
 
-  /**
-   * Update the node.
-   * @param board The board.
-   * @returns The result of the update.
-   */
-  this.onUpdate = function (board) {
-    // If the child has never been updated or is running then we will need to update it now.
-    if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
-      child.update(board);
-    }
+    /**
+     * Update the node.
+     * @param board The board.
+     * @returns The result of the update.
+     */
+    this.onUpdate = function (board) {
+        // If the child has never been updated or is running then we will need to update it now.
+        if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
+            child.update(board);
+        }
 
-    // The state of this node will depend in the state of its child.
-    switch (child.getState()) {
-      case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING:
-        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
-        break;
+        // The state of this node will depend in the state of its child.
+        switch (child.getState()) {
+            case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING:
+                this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
+                break;
 
-      case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED:
-      case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED:
-        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED);
-        break;
+            case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED:
+            case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED:
+                this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED);
+                break;
 
-      default:
-        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
-    }
-  };
+            default:
+                this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
+        }
+    };
 
-  /**
-   * Gets the name of the node.
-   */
-  this.getName = () => "SUCCEED";
-};
+    /**
+     * Gets the name of the node.
+     */
+    this.getName = () => "SUCCEED";
+}
 
 Succeed.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
@@ -2598,43 +2605,43 @@ Succeed.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /
  * A Fail node.
  * This node wraps a single child and will always move to the 'FAILED' state when the child moves to a 'SUCCEEDED' or 'FAILED' state.
  * @param decorators The node decorators.
- * @param child The child node. 
+ * @param child The child node.
  */
 function Fail(decorators, child) {
-  __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "fail", decorators, child);
+    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "fail", decorators, child);
 
-  /**
-   * Update the node.
-   * @param board The board.
-   * @returns The result of the update.
-   */
-  this.onUpdate = function (board) {
-    // If the child has never been updated or is running then we will need to update it now.
-    if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
-      child.update(board);
-    }
+    /**
+     * Update the node.
+     * @param board The board.
+     * @returns The result of the update.
+     */
+    this.onUpdate = function (board) {
+        // If the child has never been updated or is running then we will need to update it now.
+        if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
+            child.update(board);
+        }
 
-    // The state of this node will depend in the state of its child.
-    switch (child.getState()) {
-      case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING:
-        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
-        break;
+        // The state of this node will depend in the state of its child.
+        switch (child.getState()) {
+            case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING:
+                this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
+                break;
 
-      case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED:
-      case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED:
-        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
-        break;
+            case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED:
+            case __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED:
+                this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
+                break;
 
-      default:
-        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
-    }
-  };
+            default:
+                this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
+        }
+    };
 
-  /**
-   * Gets the name of the node.
-   */
-  this.getName = () => "FAIL";
-};
+    /**
+     * Gets the name of the node.
+     */
+    this.getName = () => "FAIL";
+}
 
 Fail.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
 
@@ -2655,7 +2662,7 @@ Fail.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* d
  * The state of this node will match the state of the winning child.
  * @param decorators The node decorators.
  * @param tickets The child node tickets
- * @param children The child nodes. 
+ * @param children The child nodes.
  */
 function Lotto(decorators, tickets, children) {
     __WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].call(this, "lotto", decorators, children);
@@ -2706,7 +2713,7 @@ function Lotto(decorators, tickets, children) {
         };
 
         /**
-         * Get a random item form an array. 
+         * Get a random item form an array.
          * @param items Th array of items.
          * @returns The randomly picked item.
          */
@@ -2752,7 +2759,7 @@ function Lotto(decorators, tickets, children) {
      * Gets the name of the node.
      */
     this.getName = () => tickets.length ? `LOTTO [${tickets.join(",")}]` : "LOTTO";
-};
+}
 
 Lotto.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
@@ -2833,7 +2840,7 @@ function Selector(decorators, children) {
      * Gets the name of the node.
      */
     this.getName = () => "SELECTOR";
-};
+}
 
 Selector.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
@@ -2852,7 +2859,7 @@ Selector.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" 
  * A SEQUENCE node.
  * The child nodes are executed in sequence until one fails or all succeed.
  * @param decorators The node decorators.
- * @param children The child nodes. 
+ * @param children The child nodes.
  */
 function Sequence(decorators, children) {
     __WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].call(this, "sequence", decorators, children);
@@ -2914,7 +2921,7 @@ function Sequence(decorators, children) {
      * Gets the name of the node.
      */
     this.getName = () => "SEQUENCE";
-};
+}
 
 Sequence.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
@@ -2933,7 +2940,7 @@ Sequence.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" 
  * A PARALLEL node.
  * The child nodes are executed concurrently until one fails or all succeed.
  * @param decorators The node decorators.
- * @param children The child nodes. 
+ * @param children The child nodes.
  */
 function Parallel(decorators, children) {
     __WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].call(this, "parallel", decorators, children);
@@ -3001,7 +3008,7 @@ function Parallel(decorators, children) {
      * Gets the name of the node.
      */
     this.getName = () => "PARALLEL";
-};
+}
 
 Parallel.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__composite__["a" /* default */].prototype);
 
@@ -3063,7 +3070,7 @@ function While(condition, args) {
         // Call the condition function to determine whether this guard is satisfied.
         return !!conditionFuncInvoker(args);
     };
-};
+}
 
 While.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__guard__["a" /* default */].prototype);
 
@@ -3125,7 +3132,7 @@ function Until(condition, args) {
         // Call the condition function to determine whether this guard is satisfied.
         return !!!conditionFuncInvoker(args);
     };
-};
+}
 
 Until.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__guard__["a" /* default */].prototype);
 
@@ -3181,7 +3188,7 @@ function Entry(functionName, args) {
         // Call the callback function.
         callbackFuncInvoker(args);
     };
-};
+}
 
 Entry.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__callback__["a" /* default */].prototype);
 
@@ -3239,7 +3246,7 @@ function Exit(functionName, args) {
         // Call the callback function.
         callbackFuncInvoker([{ value: { succeeded: isSuccess, aborted: isAborted } }].concat(args));
     };
-};
+}
 
 Exit.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__callback__["a" /* default */].prototype);
 
@@ -3295,7 +3302,7 @@ function Step(functionName, args) {
         // Call the callback function.
         callbackFuncInvoker(args);
     };
-};
+}
 
 Step.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__callback__["a" /* default */].prototype);
 

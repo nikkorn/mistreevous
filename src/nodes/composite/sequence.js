@@ -1,21 +1,21 @@
-import Composite from './composite'
-import State from '../../state'
+import Composite from "./composite";
+import State from "../../state";
 
 /**
  * A SEQUENCE node.
  * The child nodes are executed in sequence until one fails or all succeed.
  * @param decorators The node decorators.
- * @param children The child nodes. 
+ * @param children The child nodes.
  */
 export default function Sequence(decorators, children) {
     Composite.call(this, "sequence", decorators, children);
-   
+
     /**
      * Update the node and get whether the node state has changed.
      * @param board The board.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.onUpdate = function(board) {
+    this.onUpdate = function (board) {
         // Iterate over all of the children of this node.
         for (const child of children) {
             // If the child has never been updated or is running then we will need to update it now.
@@ -62,11 +62,11 @@ export default function Sequence(decorators, children) {
             throw new Error("child node was not in an expected state.");
         }
     };
- 
+
     /**
      * Gets the name of the node.
      */
     this.getName = () => "SEQUENCE";
-};
+}
 
 Sequence.prototype = Object.create(Composite.prototype);

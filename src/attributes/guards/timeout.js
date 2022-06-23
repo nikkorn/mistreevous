@@ -1,4 +1,4 @@
-import Guard from './guard'
+import Guard from "./guard";
 
 /**
  * An UNTIL guard which is satisfied as long as the given condition remains false.
@@ -19,8 +19,8 @@ export default function Timeout(duration, args) {
      * @returns Whether the guard is satisfied.
      */
     this.isSatisfied = (board) => {
-       // TODO
+        // TODO
     };
-};
+}
 
 Timeout.prototype = Object.create(Guard.prototype);

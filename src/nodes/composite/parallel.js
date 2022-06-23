@@ -1,21 +1,21 @@
-import Composite from './composite'
-import State from '../../state'
+import Composite from "./composite";
+import State from "../../state";
 
 /**
  * A PARALLEL node.
  * The child nodes are executed concurrently until one fails or all succeed.
  * @param decorators The node decorators.
- * @param children The child nodes. 
+ * @param children The child nodes.
  */
 export default function Parallel(decorators, children) {
     Composite.call(this, "parallel", decorators, children);
-   
+
     /**
      * Update the node and get whether the node state has changed.
      * @param board The board.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.onUpdate = function(board) {
+    this.onUpdate = function (board) {
         // Keep a count of the number of succeeded child nodes.
         let succeededCount = 0;
 
@@ -68,11 +68,11 @@ export default function Parallel(decorators, children) {
             this.setState(succeededCount === children.length ? State.SUCCEEDED : State.RUNNING);
         }
     };
- 
+
     /**
      * Gets the name of the node.
      */
     this.getName = () => "PARALLEL";
-};
+}
 
 Parallel.prototype = Object.create(Composite.prototype);
