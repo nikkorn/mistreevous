@@ -1,9 +1,12 @@
-# ![logo](https://github.com/nikkorn/mistreevous/raw/master/icons/icon-small.png) Mistreevous
+# ![logo](resources/icons/icon-small.png) Mistreevous
 [![npm version](https://badge.fury.io/js/mistreevous.svg)](https://badge.fury.io/js/mistreevous)
+[![Node.js CI](https://github.com/nikkorn/mistreevous/actions/workflows/node.js.yml/badge.svg?branch=master)](https://github.com/nikkorn/mistreevous/actions/workflows/node.js.yml)
 
 A tool to declaratively define and generate behaviour trees in JavaScript. Behaviour trees are used to create complex AI via the modular heirarchical composition of individual tasks.
 
 Using this tool, trees can be defined with a simple and minimal built-in DSL, avoiding the need to write verbose definitions in JSON.
+
+![Sorting Lunch](resources/images/sorting-lunch-example.png?raw=true "Sorting Lunch")
 
 There is an in-browser editor and tree visualiser that you can try [HERE](https://nikkorn.github.io/mistreevous/playground/index.html)
 
