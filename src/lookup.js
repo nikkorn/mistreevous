@@ -15,19 +15,19 @@ export default {
     setFunc(name, func) {
         funcTable[name] = func;
     },
-    getFuncInvoker(board, name) {
-        // Check whether the board contains the specified function.
-        if (board[name] && typeof board[name] === "function") {
+    getFuncInvoker(agent, name) {
+        // Check whether the agent contains the specified function.
+        if (agent[name] && typeof agent[name] === "function") {
             return (args) =>
-                board[name].apply(
-                    board,
+                agent[name].apply(
+                    agent,
                     args.map((arg) => arg.value)
                 );
         }
 
-        // The board does not contain the specified function but it may have been registered at some point.
+        // The agent does not contain the specified function but it may have been registered at some point.
         if (funcTable[name] && typeof funcTable[name] === "function") {
-            return (args) => funcTable[name](board, ...args.map((arg) => arg.value));
+            return (args) => funcTable[name](agent, ...args.map((arg) => arg.value));
         }
 
         // We have no function to invoke.

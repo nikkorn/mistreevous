@@ -113,15 +113,15 @@ let subtreeTable = {};
     setFunc(name, func) {
         funcTable[name] = func;
     },
-    getFuncInvoker(board, name) {
-        // Check whether the board contains the specified function.
-        if (board[name] && typeof board[name] === "function") {
-            return args => board[name].apply(board, args.map(arg => arg.value));
+    getFuncInvoker(agent, name) {
+        // Check whether the agent contains the specified function.
+        if (agent[name] && typeof agent[name] === "function") {
+            return args => agent[name].apply(agent, args.map(arg => arg.value));
         }
 
-        // The board does not contain the specified function but it may have been registered at some point.
+        // The agent does not contain the specified function but it may have been registered at some point.
         if (funcTable[name] && typeof funcTable[name] === "function") {
-            return args => funcTable[name](board, ...args.map(arg => arg.value));
+            return args => funcTable[name](agent, ...args.map(arg => arg.value));
         }
 
         // We have no function to invoke.
@@ -161,53 +161,53 @@ let subtreeTable = {};
  * @param child The child node.
  */
 function Decorator(type, decorators, child) {
-    __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
+  __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
 
-    /**
-     * Gets whether this node is a leaf node.
-     */
-    this.isLeafNode = () => false;
+  /**
+   * Gets whether this node is a leaf node.
+   */
+  this.isLeafNode = () => false;
 
-    /**
-     * Gets the children of this node.
-     */
-    this.getChildren = () => [child];
+  /**
+   * Gets the children of this node.
+   */
+  this.getChildren = () => [child];
 
-    /**
-     * Reset the state of the node.
-     */
-    this.reset = () => {
-        // Reset the state of this node.
-        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
+  /**
+   * Reset the state of the node.
+   */
+  this.reset = () => {
+    // Reset the state of this node.
+    this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
 
-        // Reset the state of the child node.
-        child.reset();
-    };
+    // Reset the state of the child node.
+    child.reset();
+  };
 
-    /**
-     * Abort the running of this node.
-     * @param board The board.
-     */
-    this.abort = board => {
-        // There is nothing to do if this node is not in the running state.
-        if (!this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING)) {
-            return;
-        }
+  /**
+   * Abort the running of this node.
+   * @param agent The agent.
+   */
+  this.abort = agent => {
+    // There is nothing to do if this node is not in the running state.
+    if (!this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING)) {
+      return;
+    }
 
-        // Abort the child node.
-        child.abort(board);
+    // Abort the child node.
+    child.abort(agent);
 
-        // Reset the state of this node.
-        this.reset();
+    // Reset the state of this node.
+    this.reset();
 
-        // Try to get the exit decorator for this node.
-        const exitDecorator = this.getDecorator("exit");
+    // Try to get the exit decorator for this node.
+    const exitDecorator = this.getDecorator("exit");
 
-        // Call the exit decorator function if it exists.
-        if (exitDecorator) {
-            exitDecorator.callBlackboardFunction(board, false, true);
-        }
-    };
+    // Call the exit decorator function if it exists.
+    if (exitDecorator) {
+      exitDecorator.callAgentFunction(agent, false, true);
+    }
+  };
 }
 
 Decorator.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
@@ -230,53 +230,53 @@ Decorator.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* d
  * @param children The child nodes.
  */
 function Composite(type, decorators, children) {
-    __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
+  __WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].call(this, type, decorators);
 
-    /**
-     * Gets whether this node is a leaf node.
-     */
-    this.isLeafNode = () => false;
+  /**
+   * Gets whether this node is a leaf node.
+   */
+  this.isLeafNode = () => false;
 
-    /**
-     * Gets the children of this node.
-     */
-    this.getChildren = () => children;
+  /**
+   * Gets the children of this node.
+   */
+  this.getChildren = () => children;
 
-    /**
-     * Reset the state of the node.
-     */
-    this.reset = () => {
-        // Reset the state of this node.
-        this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
+  /**
+   * Reset the state of the node.
+   */
+  this.reset = () => {
+    // Reset the state of this node.
+    this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY);
 
-        // Reset the state of any child nodes.
-        this.getChildren().forEach(child => child.reset());
-    };
+    // Reset the state of any child nodes.
+    this.getChildren().forEach(child => child.reset());
+  };
 
-    /**
-     * Abort the running of this node.
-     * @param board The board.
-     */
-    this.abort = board => {
-        // There is nothing to do if this node is not in the running state.
-        if (!this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING)) {
-            return;
-        }
+  /**
+   * Abort the running of this node.
+   * @param agent The agent.
+   */
+  this.abort = agent => {
+    // There is nothing to do if this node is not in the running state.
+    if (!this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING)) {
+      return;
+    }
 
-        // Abort any child nodes.
-        this.getChildren().forEach(child => child.abort(board));
+    // Abort any child nodes.
+    this.getChildren().forEach(child => child.abort(agent));
 
-        // Reset the state of this node.
-        this.reset();
+    // Reset the state of this node.
+    this.reset();
 
-        // Try to get the exit decorator for this node.
-        const exitDecorator = this.getDecorator("exit");
+    // Try to get the exit decorator for this node.
+    const exitDecorator = this.getDecorator("exit");
 
-        // Call the exit decorator function if it exists.
-        if (exitDecorator) {
-            exitDecorator.callBlackboardFunction(board, false, true);
-        }
-    };
+    // Call the exit decorator function if it exists.
+    if (exitDecorator) {
+      exitDecorator.callAgentFunction(agent, false, true);
+    }
+  };
 }
 
 Composite.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__node__["a" /* default */].prototype);
@@ -402,9 +402,9 @@ function Node(type, decorators, args) {
 
     /**
      * Abort the running of this node.
-     * @param board The board.
+     * @param agent The agent.
      */
-    this.abort = board => {
+    this.abort = agent => {
         // There is nothing to do if this node is not in the running state.
         if (!this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING)) {
             return;
@@ -418,16 +418,16 @@ function Node(type, decorators, args) {
 
         // Call the exit decorator function if it exists.
         if (exitDecorator) {
-            exitDecorator.callBlackboardFunction(board, false, true);
+            exitDecorator.callAgentFunction(agent, false, true);
         }
     };
 
     /**
      * Update the node.
-     * @param board The board.
+     * @param agent The agent.
      * @returns The result of the update.
      */
-    this.update = board => {
+    this.update = agent => {
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
         if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED) || this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED)) {
             // We have not changed state.
@@ -436,7 +436,7 @@ function Node(type, decorators, args) {
 
         try {
             // Evaluate all of the guard path conditions for the current tree path.
-            guardPath.evaluate(board);
+            guardPath.evaluate(agent);
 
             // If this node is in the READY state then call the ENTRY decorator for this node if it exists.
             if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
@@ -444,7 +444,7 @@ function Node(type, decorators, args) {
 
                 // Call the entry decorator function if it exists.
                 if (entryDecorator) {
-                    entryDecorator.callBlackboardFunction(board);
+                    entryDecorator.callAgentFunction(agent);
                 }
             }
 
@@ -453,11 +453,11 @@ function Node(type, decorators, args) {
 
             // Call the step decorator function if it exists.
             if (stepDecorator) {
-                stepDecorator.callBlackboardFunction(board);
+                stepDecorator.callAgentFunction(agent);
             }
 
             // Do the actual update.
-            this.onUpdate(board);
+            this.onUpdate(agent);
 
             // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT decorator for this node if it exists.
             if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED) || this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED)) {
@@ -465,14 +465,14 @@ function Node(type, decorators, args) {
 
                 // Call the exit decorator function if it exists.
                 if (exitDecorator) {
-                    exitDecorator.callBlackboardFunction(board, this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED), false);
+                    exitDecorator.callAgentFunction(agent, this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED), false);
                 }
             }
         } catch (error) {
             // If the error is a GuardUnsatisfiedException then we need to determine if this node is the source.
             if (error instanceof __WEBPACK_IMPORTED_MODULE_0__attributes_guards_guardUnsatisifedException__["a" /* default */] && error.isSourceNode(this)) {
                 // Abort the current node.
-                this.abort(board);
+                this.abort(agent);
 
                 // Any node that is the source of an abort will be a failed node.
                 this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].FAILED);
@@ -634,13 +634,13 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /**
  * The behaviour tree.
  * @param definition The tree definition.
- * @param board The board.
+ * @param agent The agent.
  */
-function BehaviourTree(definition, board) {
+function BehaviourTree(definition, agent) {
     /**
-     * The blackboard.
+     * The agent that this tree is modelling behaviour for.
      */
-    this._blackboard = board;
+    this._agent = agent;
     /**
      * The main root tree node.
      */
@@ -655,9 +655,9 @@ function BehaviourTree(definition, board) {
             throw new Error("the tree definition must be a string");
         }
 
-        // The blackboard must be defined.
-        if (typeof board !== "object" || board === null) {
-            throw new Error("the blackboard must be defined");
+        // The agent must be defined.
+        if (typeof agent !== "object" || agent === null) {
+            throw new Error("the agent must be defined and not null");
         }
 
         try {
@@ -820,7 +820,7 @@ BehaviourTree.prototype.step = function () {
     }
 
     try {
-        this._rootNode.update(this._blackboard);
+        this._rootNode.update(this._agent);
     } catch (exception) {
         throw new Error(`error stepping tree: ${exception.message}`);
     }
@@ -896,16 +896,16 @@ BehaviourTree.unregisterAll = function () {
 function GuardPath(nodes) {
     /**
      * Evaluate guard conditions for all guards in the tree path, moving outwards from the root.
-     * @param board The blackboard, required for guard evaluation.
+     * @param agent The agent, required for guard evaluation.
      * @returns An evaluation results object.
      */
-    this.evaluate = board => {
+    this.evaluate = agent => {
         // We need to evaluate guard conditions for nodes up the tree, moving outwards from the root.
         for (const details of nodes) {
             // There can be multiple guards per node.
             for (const guard of details.guards) {
                 // Check whether the guard condition passes, and throw an exception if not.
-                if (!guard.isSatisfied(board)) {
+                if (!guard.isSatisfied(agent)) {
                     throw new __WEBPACK_IMPORTED_MODULE_0__guardUnsatisifedException__["a" /* default */](details.node);
                 }
             }
@@ -1835,12 +1835,12 @@ function getDecorators(tokens, stringArgumentPlaceholders) {
         // Grab any decorator arguments.
         const decoratorArguments = getArguments(tokens, stringArgumentPlaceholders);
 
-        // The first decorator argument has to be an identifer, this will reference a blackboard function.
+        // The first decorator argument has to be an identifer, this will reference an agent function.
         if (decoratorArguments.length === 0 || decoratorArguments[0].type !== "identifier") {
-            throw new Error("expected blackboard function name identifier argument for decorator");
+            throw new Error("expected agent function name identifier argument for decorator");
         }
 
-        // Grab the first decorator which is an identifier that will reference a blackboard function.
+        // Grab the first decorator which is an identifier that will reference an agent function.
         const decoratorFunctionName = decoratorArguments.shift();
 
         // Any remaining decorator arguments must have a type of string, number, boolean or null.
@@ -1938,10 +1938,10 @@ function Action(decorators, actionName, actionArguments) {
 
     /**
      * Update the node.
-     * @param board The board.
+     * @param agent The agent.
      * @returns The result of the update.
      */
-    this.onUpdate = function (board) {
+    this.onUpdate = function (agent) {
         // If the result of this action depends on an update promise then there is nothing to do until
         // it resolves, unless there has been a value set as a result of the update promise resolving.
         if (isUsingUpdatePromise) {
@@ -1955,11 +1955,11 @@ function Action(decorators, actionName, actionArguments) {
         }
 
         // Attempt to get the invoker for the action function.
-        const actionFuncInvoker = __WEBPACK_IMPORTED_MODULE_2__lookup__["a" /* default */].getFuncInvoker(board, actionName);
+        const actionFuncInvoker = __WEBPACK_IMPORTED_MODULE_2__lookup__["a" /* default */].getFuncInvoker(agent, actionName);
 
         // The action function should be defined.
         if (actionFuncInvoker === null) {
-            throw new Error(`cannot update action node as the action '${actionName}' function is not defined in the blackboard and has not been registered`);
+            throw new Error(`cannot update action node as the action '${actionName}' function is not defined on the agent and has not been registered`);
         }
 
         // Call the action function, the result of which may be:
@@ -2056,7 +2056,7 @@ Action.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* defa
 
 /**
  * A Condition leaf node.
- * This will succeed or fail immediately based on a board predicate, without moving to the 'RUNNING' state.
+ * This will succeed or fail immediately based on an agent predicate, without moving to the 'RUNNING' state.
  * @param decorators The node decorators.
  * @param conditionName The name of the condition function.
  * @param conditionArguments The array of condition argument definitions.
@@ -2066,16 +2066,16 @@ function Condition(decorators, conditionName, conditionArguments) {
 
     /**
      * Update the node.
-     * @param board The board.
+     * @param agent The agent.
      * @returns The result of the update.
      */
-    this.onUpdate = function (board) {
+    this.onUpdate = function (agent) {
         // Attempt to get the invoker for the condition function.
-        const conditionFuncInvoker = __WEBPACK_IMPORTED_MODULE_2__lookup__["a" /* default */].getFuncInvoker(board, conditionName);
+        const conditionFuncInvoker = __WEBPACK_IMPORTED_MODULE_2__lookup__["a" /* default */].getFuncInvoker(agent, conditionName);
 
         // The condition function should be defined.
         if (conditionFuncInvoker === null) {
-            throw new Error(`cannot update condition node as the condition '${conditionName}' function is not defined in the blackboard and has not been registered`);
+            throw new Error(`cannot update condition node as the condition '${conditionName}' function is not defined on the agent and has not been registered`);
         }
 
         // Call the condition function to determine the state of this node.
@@ -2109,48 +2109,48 @@ Condition.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* d
  * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
  */
 function Wait(decorators, duration, longestDuration) {
-    __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "wait", decorators);
+  __WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].call(this, "wait", decorators);
 
-    /**
-     * The time in milliseconds at which this node was first updated.
-     */
-    let initialUpdateTime;
+  /**
+   * The time in milliseconds at which this node was first updated.
+   */
+  let initialUpdateTime;
 
-    /**
-     * The duration in milliseconds that this node will be waiting for.
-     */
-    let waitDuration;
+  /**
+   * The duration in milliseconds that this node will be waiting for.
+   */
+  let waitDuration;
 
-    /**
-     * Update the node.
-     * @param board The board.
-     * @returns The result of the update.
-     */
-    this.onUpdate = function (board) {
-        // If this node is in the READY state then we need to set the initial update time.
-        if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
-            // Set the initial update time.
-            initialUpdateTime = new Date().getTime();
+  /**
+   * Update the node.
+   * @param agent The agent.
+   * @returns The result of the update.
+   */
+  this.onUpdate = function (agent) {
+    // If this node is in the READY state then we need to set the initial update time.
+    if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
+      // Set the initial update time.
+      initialUpdateTime = new Date().getTime();
 
-            // If a longestDuration value was defined then we will be randomly picking a duration between the
-            // shortest and longest duration. If it was not defined, then we will be just using the duration.
-            waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
+      // If a longestDuration value was defined then we will be randomly picking a duration between the
+      // shortest and longest duration. If it was not defined, then we will be just using the duration.
+      waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
 
-            // The node is now running until we finish waiting.
-            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
-        }
+      // The node is now running until we finish waiting.
+      this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING);
+    }
 
-        // Have we waited long enough?
-        if (new Date().getTime() >= initialUpdateTime + waitDuration) {
-            // We have finished waiting!
-            this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED);
-        }
-    };
+    // Have we waited long enough?
+    if (new Date().getTime() >= initialUpdateTime + waitDuration) {
+      // We have finished waiting!
+      this.setState(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].SUCCEEDED);
+    }
+  };
 
-    /**
-     * Gets the name of the node.
-     */
-    this.getName = () => `WAIT ${longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms"}`;
+  /**
+   * Gets the name of the node.
+   */
+  this.getName = () => `WAIT ${longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms"}`;
 }
 
 Wait.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* default */].prototype);
@@ -2173,28 +2173,28 @@ Wait.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__leaf__["a" /* defaul
  * @param child The child node.
  */
 function Root(decorators, child) {
-    __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "root", decorators, child);
+  __WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].call(this, "root", decorators, child);
 
-    /**
-     * Update the node and get whether the node state has changed.
-     * @param board The board.
-     * @returns Whether the state of this node has changed as part of the update.
-     */
-    this.onUpdate = function (board) {
-        // If the child has never been updated or is running then we will need to update it now.
-        if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
-            // Update the child of this node.
-            child.update(board);
-        }
+  /**
+   * Update the node and get whether the node state has changed.
+   * @param agent The agent.
+   * @returns Whether the state of this node has changed as part of the update.
+   */
+  this.onUpdate = function (agent) {
+    // If the child has never been updated or is running then we will need to update it now.
+    if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
+      // Update the child of this node.
+      child.update(agent);
+    }
 
-        // The state of the root node is the state of its child.
-        this.setState(child.getState());
-    };
+    // The state of the root node is the state of its child.
+    this.setState(child.getState());
+  };
 
-    /**
-     * Gets the name of the node.
-     */
-    this.getName = () => "ROOT";
+  /**
+   * Gets the name of the node.
+   */
+  this.getName = () => "ROOT";
 }
 
 Root.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__decorator__["a" /* default */].prototype);
@@ -2237,10 +2237,10 @@ function Repeat(decorators, iterations, maximumIterations, child) {
 
     /**
      * Update the node.
-     * @param board The board.
+     * @param agent The agent.
      * @returns The result of the update.
      */
-    this.onUpdate = function (board) {
+    this.onUpdate = function (agent) {
         // If this node is in the READY state then we need to reset the child and the target iteration count.
         if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
             // Reset the child node.
@@ -2263,7 +2263,7 @@ function Repeat(decorators, iterations, maximumIterations, child) {
             }
 
             // Update the child of this node.
-            child.update(board);
+            child.update(agent);
 
             // If the child moved into the FAILED state when we updated it then there is nothing left to do and this node has also failed.
             // If it has moved into the SUCCEEDED state then we have completed the current iteration.
@@ -2376,10 +2376,10 @@ function Retry(decorators, iterations, maximumIterations, child) {
 
     /**
      * Update the node.
-     * @param board The board.
+     * @param agent The agent.
      * @returns The result of the update.
      */
-    this.onUpdate = function (board) {
+    this.onUpdate = function (agent) {
         // If this node is in the READY state then we need to reset the child and the target iteration count.
         if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
             // Reset the child node.
@@ -2402,7 +2402,7 @@ function Retry(decorators, iterations, maximumIterations, child) {
             }
 
             // Update the child of this node.
-            child.update(board);
+            child.update(agent);
 
             // If the child moved into the SUCCEEDED state when we updated it then there is nothing left to do and this node has also succeeded.
             // If it has moved into the FAILED state then we have completed the current iteration.
@@ -2499,13 +2499,13 @@ function Flip(decorators, child) {
 
     /**
      * Update the node.
-     * @param board The board.
+     * @param agent The agent.
      * @returns The result of the update.
      */
-    this.onUpdate = function (board) {
+    this.onUpdate = function (agent) {
         // If the child has never been updated or is running then we will need to update it now.
         if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
-            child.update(board);
+            child.update(agent);
         }
 
         // The state of this node will depend in the state of its child.
@@ -2557,13 +2557,13 @@ function Succeed(decorators, child) {
 
     /**
      * Update the node.
-     * @param board The board.
+     * @param agent The agent.
      * @returns The result of the update.
      */
-    this.onUpdate = function (board) {
+    this.onUpdate = function (agent) {
         // If the child has never been updated or is running then we will need to update it now.
         if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
-            child.update(board);
+            child.update(agent);
         }
 
         // The state of this node will depend in the state of its child.
@@ -2612,13 +2612,13 @@ function Fail(decorators, child) {
 
     /**
      * Update the node.
-     * @param board The board.
+     * @param agent The agent.
      * @returns The result of the update.
      */
-    this.onUpdate = function (board) {
+    this.onUpdate = function (agent) {
         // If the child has never been updated or is running then we will need to update it now.
         if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
-            child.update(board);
+            child.update(agent);
         }
 
         // The state of this node will depend in the state of its child.
@@ -2730,10 +2730,10 @@ function Lotto(decorators, tickets, children) {
 
     /**
      * Update the node and get whether the node state has changed.
-     * @param board The board.
+     * @param agent The agent.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.onUpdate = function (board) {
+    this.onUpdate = function (agent) {
         // If this node is in the READY state then we need to pick a winning child node.
         if (this.is(__WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY)) {
             // Create a lotto draw.
@@ -2748,7 +2748,7 @@ function Lotto(decorators, tickets, children) {
 
         // If the winning child has never been updated or is running then we will need to update it now.
         if (winningChild.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || winningChild.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
-            winningChild.update(board);
+            winningChild.update(agent);
         }
 
         // The state of the lotto node is the state of its winning child.
@@ -2785,16 +2785,16 @@ function Selector(decorators, children) {
 
     /**
      * Update the node and get whether the node state has changed.
-     * @param board The board.
+     * @param agent The agent.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.onUpdate = function (board) {
+    this.onUpdate = function (agent) {
         // Iterate over all of the children of this node.
         for (const child of children) {
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
                 // Update the child of this node.
-                child.update(board);
+                child.update(agent);
             }
 
             // If the current child has a state of 'SUCCEEDED' then this node is also a 'SUCCEEDED' node.
@@ -2866,16 +2866,16 @@ function Sequence(decorators, children) {
 
     /**
      * Update the node and get whether the node state has changed.
-     * @param board The board.
+     * @param agent The agent.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.onUpdate = function (board) {
+    this.onUpdate = function (agent) {
         // Iterate over all of the children of this node.
         for (const child of children) {
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
                 // Update the child of this node.
-                child.update(board);
+                child.update(agent);
             }
 
             // If the current child has a state of 'SUCCEEDED' then we should move on to the next child.
@@ -2947,10 +2947,10 @@ function Parallel(decorators, children) {
 
     /**
      * Update the node and get whether the node state has changed.
-     * @param board The board.
+     * @param agent The agent.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.onUpdate = function (board) {
+    this.onUpdate = function (agent) {
         // Keep a count of the number of succeeded child nodes.
         let succeededCount = 0;
 
@@ -2961,7 +2961,7 @@ function Parallel(decorators, children) {
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].READY || child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
                 // Update the child of this node.
-                child.update(board);
+                child.update(agent);
             }
 
             // If the current child has a state of 'SUCCEEDED' then we should move on to the next child.
@@ -2995,7 +2995,7 @@ function Parallel(decorators, children) {
             // Abort every running child.
             for (const child of children) {
                 if (child.getState() === __WEBPACK_IMPORTED_MODULE_1__state__["a" /* default */].RUNNING) {
-                    child.abort(board);
+                    child.abort(agent);
                 }
             }
         } else {
@@ -3055,16 +3055,16 @@ function While(condition, args) {
 
     /**
      * Gets whether the guard is satisfied.
-     * @param board The board.
+     * @param agent The agent.
      * @returns Whether the guard is satisfied.
      */
-    this.isSatisfied = board => {
+    this.isSatisfied = agent => {
         // Attempt to get the invoker for the condition function.
-        const conditionFuncInvoker = __WEBPACK_IMPORTED_MODULE_1__lookup__["a" /* default */].getFuncInvoker(board, condition);
+        const conditionFuncInvoker = __WEBPACK_IMPORTED_MODULE_1__lookup__["a" /* default */].getFuncInvoker(agent, condition);
 
         // The condition function should be defined.
         if (conditionFuncInvoker === null) {
-            throw new Error(`cannot evaluate node guard as the condition '${condition}' function is not defined in the blackboard and has not been registered`);
+            throw new Error(`cannot evaluate node guard as the condition '${condition}' function is not defined on the agent and has not been registered`);
         }
 
         // Call the condition function to determine whether this guard is satisfied.
@@ -3117,16 +3117,16 @@ function Until(condition, args) {
 
     /**
      * Gets whether the guard is satisfied.
-     * @param board The board.
+     * @param agent The agent.
      * @returns Whether the guard is satisfied.
      */
-    this.isSatisfied = board => {
+    this.isSatisfied = agent => {
         // Attempt to get the invoker for the condition function.
-        const conditionFuncInvoker = __WEBPACK_IMPORTED_MODULE_1__lookup__["a" /* default */].getFuncInvoker(board, condition);
+        const conditionFuncInvoker = __WEBPACK_IMPORTED_MODULE_1__lookup__["a" /* default */].getFuncInvoker(agent, condition);
 
         // The condition function should be defined.
         if (conditionFuncInvoker === null) {
-            throw new Error(`cannot evaluate node guard as the condition '${condition}' function is not defined in the blackboard and has not been registered`);
+            throw new Error(`cannot evaluate node guard as the condition '${condition}' function is not defined on the agent and has not been registered`);
         }
 
         // Call the condition function to determine whether this guard is satisfied.
@@ -3148,8 +3148,8 @@ Until.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__guard__["a" /* defa
 
 
 /**
- * An ENTRY callback which defines a blackboard function to call when the associated node is updated and moves out of running state.
- * @param functionName The name of the blackboard function to call.
+ * An ENTRY callback which defines an agent function to call when the associated node is updated and moves out of running state.
+ * @param functionName The name of the agent function to call.
  * @param args The array of callback argument definitions.
  */
 function Entry(functionName, args) {
@@ -3173,16 +3173,16 @@ function Entry(functionName, args) {
     };
 
     /**
-     * Attempt to call the blackboard function that this callback refers to.
-     * @param board The board.
+     * Attempt to call the agent function that this callback refers to.
+     * @param agent The agent.
      */
-    this.callBlackboardFunction = board => {
+    this.callAgentFunction = agent => {
         // Attempt to get the invoker for the callback function.
-        const callbackFuncInvoker = __WEBPACK_IMPORTED_MODULE_1__lookup__["a" /* default */].getFuncInvoker(board, functionName);
+        const callbackFuncInvoker = __WEBPACK_IMPORTED_MODULE_1__lookup__["a" /* default */].getFuncInvoker(agent, functionName);
 
         // The callback function should be defined.
         if (callbackFuncInvoker === null) {
-            throw new Error(`cannot call entry function '${functionName}' as is not defined in the blackboard and has not been registered`);
+            throw new Error(`cannot call entry function '${functionName}' as is not defined on the agent and has not been registered`);
         }
 
         // Call the callback function.
@@ -3204,8 +3204,8 @@ Entry.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__callback__["a" /* d
 
 
 /**
- * An EXIT callback which defines a blackboard function to call when the associated node is updated and moves to a finished state or is aborted.
- * @param functionName The name of the blackboard function to call.
+ * An EXIT callback which defines an agent function to call when the associated node is updated and moves to a finished state or is aborted.
+ * @param functionName The name of the agent function to call.
  * @param args The array of callback argument definitions.
  */
 function Exit(functionName, args) {
@@ -3229,18 +3229,18 @@ function Exit(functionName, args) {
     };
 
     /**
-     * Attempt to call the blackboard function that this callback refers to.
-     * @param board The board.
+     * Attempt to call the agent function that this callback refers to.
+     * @param agent The agent.
      * @param isSuccess Whether the decorated node was left with a success state.
      * @param isAborted Whether the decorated node was aborted.
      */
-    this.callBlackboardFunction = (board, isSuccess, isAborted) => {
+    this.callAgentFunction = (agent, isSuccess, isAborted) => {
         // Attempt to get the invoker for the callback function.
-        const callbackFuncInvoker = __WEBPACK_IMPORTED_MODULE_1__lookup__["a" /* default */].getFuncInvoker(board, functionName);
+        const callbackFuncInvoker = __WEBPACK_IMPORTED_MODULE_1__lookup__["a" /* default */].getFuncInvoker(agent, functionName);
 
         // The callback function should be defined.
         if (callbackFuncInvoker === null) {
-            throw new Error(`cannot call exit function '${functionName}' as is not defined in the blackboard and has not been registered`);
+            throw new Error(`cannot call exit function '${functionName}' as is not defined on the agent and has not been registered`);
         }
 
         // Call the callback function.
@@ -3262,8 +3262,8 @@ Exit.prototype = Object.create(__WEBPACK_IMPORTED_MODULE_0__callback__["a" /* de
 
 
 /**
- * A STEP callback which defines a blackboard function to call when the associated node is updated.
- * @param functionName The name of the blackboard function to call.
+ * A STEP callback which defines an agent function to call when the associated node is updated.
+ * @param functionName The name of the agent function to call.
  * @param args The array of callback argument definitions.
  */
 function Step(functionName, args) {
@@ -3287,16 +3287,16 @@ function Step(functionName, args) {
     };
 
     /**
-     * Attempt to call the blackboard function that this callback refers to.
-     * @param board The board.
+     * Attempt to call the agent function that this callback refers to.
+     * @param agent The agent.
      */
-    this.callBlackboardFunction = board => {
+    this.callAgentFunction = agent => {
         // Attempt to get the invoker for the callback function.
-        const callbackFuncInvoker = __WEBPACK_IMPORTED_MODULE_1__lookup__["a" /* default */].getFuncInvoker(board, functionName);
+        const callbackFuncInvoker = __WEBPACK_IMPORTED_MODULE_1__lookup__["a" /* default */].getFuncInvoker(agent, functionName);
 
         // The callback function should be defined.
         if (callbackFuncInvoker === null) {
-            throw new Error(`cannot call step function '${functionName}' as is not defined in the blackboard and has not been registered`);
+            throw new Error(`cannot call step function '${functionName}' as is not defined on the agent and has not been registered`);
         }
 
         // Call the callback function.

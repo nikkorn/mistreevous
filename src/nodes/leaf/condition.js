@@ -4,7 +4,7 @@ import Lookup from "../../lookup";
 
 /**
  * A Condition leaf node.
- * This will succeed or fail immediately based on a board predicate, without moving to the 'RUNNING' state.
+ * This will succeed or fail immediately based on an agent predicate, without moving to the 'RUNNING' state.
  * @param decorators The node decorators.
  * @param conditionName The name of the condition function.
  * @param conditionArguments The array of condition argument definitions.
@@ -14,17 +14,17 @@ export default function Condition(decorators, conditionName, conditionArguments)
 
     /**
      * Update the node.
-     * @param board The board.
+     * @param agent The agent.
      * @returns The result of the update.
      */
-    this.onUpdate = function (board) {
+    this.onUpdate = function (agent) {
         // Attempt to get the invoker for the condition function.
-        const conditionFuncInvoker = Lookup.getFuncInvoker(board, conditionName);
+        const conditionFuncInvoker = Lookup.getFuncInvoker(agent, conditionName);
 
         // The condition function should be defined.
         if (conditionFuncInvoker === null) {
             throw new Error(
-                `cannot update condition node as the condition '${conditionName}' function is not defined in the blackboard and has not been registered`
+                `cannot update condition node as the condition '${conditionName}' function is not defined on the agent and has not been registered`
             );
         }
 

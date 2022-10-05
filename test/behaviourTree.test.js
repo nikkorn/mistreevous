@@ -20,8 +20,8 @@ describe("A BehaviourTree instance", () => {
         assert.throws(() => new mistreevous.BehaviourTree("invalid-token { }", {}), Error, "error parsing tree: unexpected token: invalid-token");
       });
 
-      it("the blackboard object is not defined", () => {
-        assert.throws(() => new mistreevous.BehaviourTree("", undefined), Error, "the blackboard must be defined");
+      it("the agent object is not defined", () => {
+        assert.throws(() => new mistreevous.BehaviourTree("", undefined), Error, "the agent must be defined");
       });
     });
 
@@ -34,8 +34,8 @@ describe("A BehaviourTree instance", () => {
     let actionResult = undefined;
 
     const definition = "root { action [getActionResult] }";
-    const board = { getActionResult: () => actionResult };
-    const tree = new mistreevous.BehaviourTree(definition, board);
+    const agent = { getActionResult: () => actionResult };
+    const tree = new mistreevous.BehaviourTree(definition, agent);
 
     assert.strictEqual(tree.getState(), mistreevous.State.READY);
 
@@ -54,8 +54,8 @@ describe("A BehaviourTree instance", () => {
     let actionResult = undefined;
 
     const definition = "root { action [getActionResult] }";
-    const board = { getActionResult: () => actionResult };
-    const tree = new mistreevous.BehaviourTree(definition, board);
+    const agent = { getActionResult: () => actionResult };
+    const tree = new mistreevous.BehaviourTree(definition, agent);
 
     assert.strictEqual(tree.isRunning(), false);
 
@@ -72,8 +72,8 @@ describe("A BehaviourTree instance", () => {
 
   it("has a 'reset' function that resets the tree from the root node outwards to each nested node, giving each a state of READY", () => {
     const definition = "root { action [getActionResult] }";
-    const board = { getActionResult: () => mistreevous.State.SUCCEEDED };
-    const tree = new mistreevous.BehaviourTree(definition, board);
+    const agent = { getActionResult: () => mistreevous.State.SUCCEEDED };
+    const tree = new mistreevous.BehaviourTree(definition, agent);
 
     assert.strictEqual(tree.getState(), mistreevous.State.READY);
 
@@ -88,13 +88,13 @@ describe("A BehaviourTree instance", () => {
 
   it("has a 'step' function that .....", () => {
     const definition = "root { sequence { action [getActionResult0] action [getActionResult1] action [getActionResult2] action [getActionResult3] } }";
-    const board = { 
+    const agent = { 
       getActionResult0: () => mistreevous.State.SUCCEEDED,
       getActionResult1: () => mistreevous.State.SUCCEEDED,
       getActionResult2: () => undefined,
       getActionResult3: () => mistreevous.State.SUCCEEDED
     };
-    const tree = new mistreevous.BehaviourTree(definition, board);
+    const tree = new mistreevous.BehaviourTree(definition, agent);
 
     assert.strictEqual(findNode(tree, "action", "getActionResult0").state, mistreevous.State.READY);
     assert.strictEqual(findNode(tree, "action", "getActionResult1").state, mistreevous.State.READY);
@@ -108,7 +108,7 @@ describe("A BehaviourTree instance", () => {
     assert.strictEqual(findNode(tree, "action", "getActionResult2").state, mistreevous.State.RUNNING);
     assert.strictEqual(findNode(tree, "action", "getActionResult3").state, mistreevous.State.READY);
 
-    board.getActionResult2 = () => mistreevous.State.SUCCEEDED;
+    agent.getActionResult2 = () => mistreevous.State.SUCCEEDED;
 
     tree.step();
 
@@ -117,7 +117,7 @@ describe("A BehaviourTree instance", () => {
     assert.strictEqual(findNode(tree, "action", "getActionResult2").state, mistreevous.State.SUCCEEDED);
     assert.strictEqual(findNode(tree, "action", "getActionResult3").state, mistreevous.State.SUCCEEDED);
 
-    board.getActionResult2 = () => undefined;
+    agent.getActionResult2 = () => undefined;
 
     tree.step();
 

@@ -977,12 +977,12 @@ function getDecorators(tokens, stringArgumentPlaceholders) {
         // Grab any decorator arguments.
         const decoratorArguments = getArguments(tokens, stringArgumentPlaceholders);
 
-        // The first decorator argument has to be an identifer, this will reference a blackboard function.
+        // The first decorator argument has to be an identifer, this will reference an agent function.
         if (decoratorArguments.length === 0 || decoratorArguments[0].type !== "identifier") {
-            throw new Error("expected blackboard function name identifier argument for decorator");
+            throw new Error("expected agent function name identifier argument for decorator");
         }
 
-        // Grab the first decorator which is an identifier that will reference a blackboard function.
+        // Grab the first decorator which is an identifier that will reference an agent function.
         const decoratorFunctionName = decoratorArguments.shift();
 
         // Any remaining decorator arguments must have a type of string, number, boolean or null.

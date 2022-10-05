@@ -12,14 +12,14 @@ export default function Root(decorators, child) {
 
     /**
      * Update the node and get whether the node state has changed.
-     * @param board The board.
+     * @param agent The agent.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.onUpdate = function (board) {
+    this.onUpdate = function (agent) {
         // If the child has never been updated or is running then we will need to update it now.
         if (child.getState() === State.READY || child.getState() === State.RUNNING) {
             // Update the child of this node.
-            child.update(board);
+            child.update(agent);
         }
 
         // The state of the root node is the state of its child.

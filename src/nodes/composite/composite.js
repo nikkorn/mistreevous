@@ -33,16 +33,16 @@ export default function Composite(type, decorators, children) {
 
     /**
      * Abort the running of this node.
-     * @param board The board.
+     * @param agent The agent.
      */
-    this.abort = (board) => {
+    this.abort = (agent) => {
         // There is nothing to do if this node is not in the running state.
         if (!this.is(State.RUNNING)) {
             return;
         }
 
         // Abort any child nodes.
-        this.getChildren().forEach((child) => child.abort(board));
+        this.getChildren().forEach((child) => child.abort(agent));
 
         // Reset the state of this node.
         this.reset();
@@ -52,7 +52,7 @@ export default function Composite(type, decorators, children) {
 
         // Call the exit decorator function if it exists.
         if (exitDecorator) {
-            exitDecorator.callBlackboardFunction(board, false, true);
+            exitDecorator.callAgentFunction(agent, false, true);
         }
     };
 }

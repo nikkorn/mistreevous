@@ -86,9 +86,9 @@ export default function Node(type, decorators, args) {
 
     /**
      * Abort the running of this node.
-     * @param board The board.
+     * @param agent The agent.
      */
-    this.abort = (board) => {
+    this.abort = (agent) => {
         // There is nothing to do if this node is not in the running state.
         if (!this.is(State.RUNNING)) {
             return;
@@ -102,16 +102,16 @@ export default function Node(type, decorators, args) {
 
         // Call the exit decorator function if it exists.
         if (exitDecorator) {
-            exitDecorator.callBlackboardFunction(board, false, true);
+            exitDecorator.callAgentFunction(agent, false, true);
         }
     };
 
     /**
      * Update the node.
-     * @param board The board.
+     * @param agent The agent.
      * @returns The result of the update.
      */
-    this.update = (board) => {
+    this.update = (agent) => {
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
         if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {
             // We have not changed state.
@@ -120,7 +120,7 @@ export default function Node(type, decorators, args) {
 
         try {
             // Evaluate all of the guard path conditions for the current tree path.
-            guardPath.evaluate(board);
+            guardPath.evaluate(agent);
 
             // If this node is in the READY state then call the ENTRY decorator for this node if it exists.
             if (this.is(State.READY)) {
@@ -128,7 +128,7 @@ export default function Node(type, decorators, args) {
 
                 // Call the entry decorator function if it exists.
                 if (entryDecorator) {
-                    entryDecorator.callBlackboardFunction(board);
+                    entryDecorator.callAgentFunction(agent);
                 }
             }
 
@@ -137,11 +137,11 @@ export default function Node(type, decorators, args) {
 
             // Call the step decorator function if it exists.
             if (stepDecorator) {
-                stepDecorator.callBlackboardFunction(board);
+                stepDecorator.callAgentFunction(agent);
             }
 
             // Do the actual update.
-            this.onUpdate(board);
+            this.onUpdate(agent);
 
             // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT decorator for this node if it exists.
             if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {
@@ -149,14 +149,14 @@ export default function Node(type, decorators, args) {
 
                 // Call the exit decorator function if it exists.
                 if (exitDecorator) {
-                    exitDecorator.callBlackboardFunction(board, this.is(State.SUCCEEDED), false);
+                    exitDecorator.callAgentFunction(agent, this.is(State.SUCCEEDED), false);
                 }
             }
         } catch (error) {
             // If the error is a GuardUnsatisfiedException then we need to determine if this node is the source.
             if (error instanceof GuardUnsatisifedException && error.isSourceNode(this)) {
                 // Abort the current node.
-                this.abort(board);
+                this.abort(agent);
 
                 // Any node that is the source of an abort will be a failed node.
                 this.setState(State.FAILED);

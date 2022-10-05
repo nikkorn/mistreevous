@@ -24,10 +24,10 @@ export default function Action(decorators, actionName, actionArguments) {
 
     /**
      * Update the node.
-     * @param board The board.
+     * @param agent The agent.
      * @returns The result of the update.
      */
-    this.onUpdate = function (board) {
+    this.onUpdate = function (agent) {
         // If the result of this action depends on an update promise then there is nothing to do until
         // it resolves, unless there has been a value set as a result of the update promise resolving.
         if (isUsingUpdatePromise) {
@@ -41,12 +41,12 @@ export default function Action(decorators, actionName, actionArguments) {
         }
 
         // Attempt to get the invoker for the action function.
-        const actionFuncInvoker = Lookup.getFuncInvoker(board, actionName);
+        const actionFuncInvoker = Lookup.getFuncInvoker(agent, actionName);
 
         // The action function should be defined.
         if (actionFuncInvoker === null) {
             throw new Error(
-                `cannot update action node as the action '${actionName}' function is not defined in the blackboard and has not been registered`
+                `cannot update action node as the action '${actionName}' function is not defined on the agent and has not been registered`
             );
         }
 

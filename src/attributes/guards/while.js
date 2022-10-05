@@ -33,17 +33,17 @@ export default function While(condition, args) {
 
     /**
      * Gets whether the guard is satisfied.
-     * @param board The board.
+     * @param agent The agent.
      * @returns Whether the guard is satisfied.
      */
-    this.isSatisfied = (board) => {
+    this.isSatisfied = (agent) => {
         // Attempt to get the invoker for the condition function.
-        const conditionFuncInvoker = Lookup.getFuncInvoker(board, condition);
+        const conditionFuncInvoker = Lookup.getFuncInvoker(agent, condition);
 
         // The condition function should be defined.
         if (conditionFuncInvoker === null) {
             throw new Error(
-                `cannot evaluate node guard as the condition '${condition}' function is not defined in the blackboard and has not been registered`
+                `cannot evaluate node guard as the condition '${condition}' function is not defined on the agent and has not been registered`
             );
         }
 

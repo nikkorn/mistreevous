@@ -17,8 +17,8 @@ describe("A Succeed node", () => {
     describe("move to the SUCCEEDED state if the child node moves to the", () => {
       it("FAILED state", () => {
         const definition = "root { succeed { condition [someCondition] } }";
-        const board = { someCondition: () => false };
-        const tree = new mistreevous.BehaviourTree(definition, board);
+        const agent = { someCondition: () => false };
+        const tree = new mistreevous.BehaviourTree(definition, agent);
   
         let node = findNode(tree, "succeed", "SUCCEED");
         assert.strictEqual(node.state, mistreevous.State.READY);
@@ -31,8 +31,8 @@ describe("A Succeed node", () => {
   
       it("SUCCESS state", () => {
         const definition = "root { succeed { condition [someCondition] } }";
-        const board = { someCondition: () => true };
-        const tree = new mistreevous.BehaviourTree(definition, board);
+        const agent = { someCondition: () => true };
+        const tree = new mistreevous.BehaviourTree(definition, agent);
   
         let node = findNode(tree, "succeed", "SUCCEED");
         assert.strictEqual(node.state, mistreevous.State.READY);
@@ -46,8 +46,8 @@ describe("A Succeed node", () => {
 
     it("move to the RUNNING state if the child node does not move to the SUCCESS or FAILED state", () => {
       const definition = "root { succeed { action [someAction] } }";
-      const board = { someAction: () => {} };
-      const tree = new mistreevous.BehaviourTree(definition, board);
+      const agent = { someAction: () => {} };
+      const tree = new mistreevous.BehaviourTree(definition, agent);
 
       let node = findNode(tree, "succeed", "SUCCEED");
       assert.strictEqual(node.state, mistreevous.State.READY);

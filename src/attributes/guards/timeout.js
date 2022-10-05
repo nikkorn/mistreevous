@@ -1,7 +1,7 @@
 import Guard from "./guard";
 
 /**
- * An UNTIL guard which is satisfied as long as the given condition remains false.
+ * A TIMEOUT guard which is satisfied as long as the given condition remains false.
  * @param duration The duration of the timeout.
  * @param args The array of decorator argument definitions.
  */
@@ -15,10 +15,10 @@ export default function Timeout(duration, args) {
 
     /**
      * Gets whether the guard is satisfied.
-     * @param board The board.
+     * @param agent The agent.
      * @returns Whether the guard is satisfied.
      */
-    this.isSatisfied = (board) => {
+    this.isSatisfied = (agent) => {
         // TODO
     };
 }

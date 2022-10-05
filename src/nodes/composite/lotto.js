@@ -75,10 +75,10 @@ export default function Lotto(decorators, tickets, children) {
 
     /**
      * Update the node and get whether the node state has changed.
-     * @param board The board.
+     * @param agent The agent.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.onUpdate = function (board) {
+    this.onUpdate = function (agent) {
         // If this node is in the READY state then we need to pick a winning child node.
         if (this.is(State.READY)) {
             // Create a lotto draw.
@@ -93,7 +93,7 @@ export default function Lotto(decorators, tickets, children) {
 
         // If the winning child has never been updated or is running then we will need to update it now.
         if (winningChild.getState() === State.READY || winningChild.getState() === State.RUNNING) {
-            winningChild.update(board);
+            winningChild.update(agent);
         }
 
         // The state of the lotto node is the state of its winning child.

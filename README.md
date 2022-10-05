@@ -20,7 +20,7 @@ $ npm install --save mistreevous
 ```js
 import { State, BehaviourTree } from "mistreevous";
 
-/** Define some behaviour for an entity. */
+/** Define some behaviour for an agent. */
 const definition = `root {
     sequence {
         action [Walk]
@@ -29,8 +29,8 @@ const definition = `root {
     }
 }`;
 
-/** Create an entity that we will be modelling the behaviour for. */
-const entity = {
+/** Create an agent that we will be modelling the behaviour for. */
+const agent = {
     Walk: () => {
         console.log("walking!");
         return State.SUCCEEDED;
@@ -45,8 +45,8 @@ const entity = {
     },
 };
 
-/** Create the behaviour tree, passing our tree definition and the entity that we are modelling behaviour for. */
-const behaviourTree = new BehaviourTree(definition, entity);
+/** Create the behaviour tree, passing our tree definition and the agent that we are modelling behaviour for. */
+const behaviourTree = new BehaviourTree(definition, agent);
 
 /** Step the tree. */
 behaviourTree.step();
@@ -273,9 +273,9 @@ root {
 Leaf nodes are the lowest level node type and cannot be the parent of other child nodes.
 
 ### Action
-An action node represents an action that can be completed immediately as part of a single tree step, or ongoing behaviour that can take a prolonged amount of time and may take multiple tree steps to complete. Each action node will correspond to functionality defined within the blackboard, where the first action node argument will be an identifier matching the name of the corresponding blackboard action function.
+An action node represents an action that can be completed immediately as part of a single tree step, or ongoing behaviour that can take a prolonged amount of time and may take multiple tree steps to complete. Each action node will correspond to some action that can be carried out by the agent, where the first action node argument will be an identifier matching the name of the corresponding agent action function.
 
-A blackboard action function can optionally return a finished action state of **succeeded** or **failed**. If the **succeeded** or **failed** state is returned, then the action will move into that state.
+An agent action function can optionally return a finished action state of **succeeded** or **failed**. If the **succeeded** or **failed** state is returned, then the action will move into that state.
 
 ```
 root {
@@ -284,7 +284,7 @@ root {
 ```
 
 ```js
-const board = {
+const agent = {
     //...
     Attack: () => {
         // If we do not have a weapon then we cannot attack.
@@ -305,7 +305,7 @@ const board = {
 If no value is returned from the action function the action node will move into the **running** state and no following nodes will be processed as part of the current tree step. In the example below, any action node that references **WalkToPosition** will remain in the **running** state until the target position is reached.
 
 ```js
-const board = {
+const agent = {
     //...
     WalkToPosition: () => {
         // ... Walk towards the position we are trying to reach ...
@@ -326,7 +326,7 @@ Further steps of the tree will resume processing from leaf nodes that were left 
 As well as returning a finished action state from an action function, you can also return a promise that should eventually resolve with a finished state as its value. The action will remain in the running state until the promise is fulfilled, and any following tree steps will not call the action function again.
 
 ```js
-const board = {
+const agent = {
     //...
     SomeAsyncAction: () => {
         return new Promise(function(resolve, reject) {
@@ -340,7 +340,7 @@ const board = {
 ```
 
 #### Optional Arguments
-Arguments can optionally be passed to blackboard action functions. This is done by including them in the action node argument list in the definition. These optional arguments must be defined after the action name identifier argument, and can be  a `number`, `string`, `boolean` or `null`.
+Arguments can optionally be passed to agent action functions. This is done by including them in the action node argument list in the definition. These optional arguments must be defined after the action name identifier argument, and can be  a `number`, `string`, `boolean` or `null`.
 
 ```
 root {
@@ -349,7 +349,7 @@ root {
 ```
 
 ```js
-const board = {
+const agent = {
     //...
     Say: (dialog, times = 1, sayLoudly = false) => 
     {
@@ -364,7 +364,7 @@ const board = {
 ```
 
 ### Condition
-A Condition node will immediately move into either a **succeeded** or **failed** based of the boolean result of calling a function in the blackboard. Each condition node will correspond to functionality defined within the blackboard, where the first condition node argument will be an identifier matching the name of the corresponding blackboard condition function.
+A Condition node will immediately move into either a **succeeded** or **failed** state based on the boolean result of calling a function on the agent. Each condition node will correspond to functionality defined on the agent, where the first condition node argument will be an identifier matching the name of the corresponding agent condition function.
 
 ```
 root {
@@ -375,7 +375,7 @@ root {
 }
 ```
 ```js
-const board = {
+const agent = {
     //...
     HasWeapon: () => this.isHoldingWeapon(),
     //...
@@ -385,7 +385,7 @@ const board = {
 ```
 
 #### Optional Arguments
-Arguments can optionally be passed to blackboard condition functions in the same was as action nodes. This is done by including them in the condition node argument list in the definition. These optional arguments must be defined after the condition name identifier argument, and can be a `number`, `string`, `boolean` or `null`.
+Arguments can optionally be passed to agent condition functions in the same was as action nodes. This is done by including them in the condition node argument list in the definition. These optional arguments must be defined after the condition name identifier argument, and can be a `number`, `string`, `boolean` or `null`.
 
 ```
 root {
@@ -395,7 +395,7 @@ root {
 }
 ```
 ```js
-const board = {
+const agent = {
     //...
     HasItem: (itemName) => this.inventory.includes(itemName),
     // ...
@@ -543,5 +543,5 @@ root {
 | 2.0.1          | Fixed isses with inconsistent guard condition evaluation for composite nodes | 
 | 2.0.0          | Fixed broken typings | 
 | 1.1.0          | Added parallel composite node |
-| 1.0.0          | Calls to action, condition and guard blackboard functions are now bound to the blackboard  |
+| 1.0.0          | Calls to action, condition and guard agent functions are now bound to the agent instance  |
 | 0.0.6          | Added promisey actions     |

@@ -28,10 +28,10 @@ export default function Retry(decorators, iterations, maximumIterations, child) 
 
     /**
      * Update the node.
-     * @param board The board.
+     * @param agent The agent.
      * @returns The result of the update.
      */
-    this.onUpdate = function (board) {
+    this.onUpdate = function (agent) {
         // If this node is in the READY state then we need to reset the child and the target iteration count.
         if (this.is(State.READY)) {
             // Reset the child node.
@@ -54,7 +54,7 @@ export default function Retry(decorators, iterations, maximumIterations, child) 
             }
 
             // Update the child of this node.
-            child.update(board);
+            child.update(agent);
 
             // If the child moved into the SUCCEEDED state when we updated it then there is nothing left to do and this node has also succeeded.
             // If it has moved into the FAILED state then we have completed the current iteration.

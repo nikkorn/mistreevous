@@ -23,10 +23,10 @@ export default function Wait(decorators, duration, longestDuration) {
 
     /**
      * Update the node.
-     * @param board The board.
+     * @param agent The agent.
      * @returns The result of the update.
      */
-    this.onUpdate = function (board) {
+    this.onUpdate = function (agent) {
         // If this node is in the READY state then we need to set the initial update time.
         if (this.is(State.READY)) {
             // Set the initial update time.

@@ -16,8 +16,8 @@ describe("A Flip node", () => {
   describe("when updated as part of a tree step will", () => {
     it("move to the SUCCESS state if the child node moves to the FAILED state", () => {
       const definition = "root { flip { condition [someCondition] } }";
-      const board = { someCondition: () => false };
-      const tree = new mistreevous.BehaviourTree(definition, board);
+      const agent = { someCondition: () => false };
+      const tree = new mistreevous.BehaviourTree(definition, agent);
 
       let node = findNode(tree, "flip", "FLIP");
       assert.strictEqual(node.state, mistreevous.State.READY);
@@ -30,8 +30,8 @@ describe("A Flip node", () => {
 
     it("move to the FAILED state if the child node moves to the SUCCESS state", () => {
       const definition = "root { flip { condition [someCondition] } }";
-      const board = { someCondition: () => true };
-      const tree = new mistreevous.BehaviourTree(definition, board);
+      const agent = { someCondition: () => true };
+      const tree = new mistreevous.BehaviourTree(definition, agent);
 
       let node = findNode(tree, "flip", "FLIP");
       assert.strictEqual(node.state, mistreevous.State.READY);
@@ -44,8 +44,8 @@ describe("A Flip node", () => {
 
     it("move to the RUNNING state if the child node dos not move to the SUCCESS or FAILED state", () => {
       const definition = "root { flip { action [someAction] } }";
-      const board = { someAction: () => {} };
-      const tree = new mistreevous.BehaviourTree(definition, board);
+      const agent = { someAction: () => {} };
+      const tree = new mistreevous.BehaviourTree(definition, agent);
 
       let node = findNode(tree, "flip", "FLIP");
       assert.strictEqual(node.state, mistreevous.State.READY);

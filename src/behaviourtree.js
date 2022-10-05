@@ -6,13 +6,13 @@ import Lookup from "./lookup";
 /**
  * The behaviour tree.
  * @param definition The tree definition.
- * @param board The board.
+ * @param agent The agent.
  */
-export default function BehaviourTree(definition, board) {
+export default function BehaviourTree(definition, agent) {
     /**
-     * The blackboard.
+     * The agent that this tree is modelling behaviour for.
      */
-    this._blackboard = board;
+    this._agent = agent;
     /**
      * The main root tree node.
      */
@@ -27,9 +27,9 @@ export default function BehaviourTree(definition, board) {
             throw new Error("the tree definition must be a string");
         }
 
-        // The blackboard must be defined.
-        if (typeof board !== "object" || board === null) {
-            throw new Error("the blackboard must be defined");
+        // The agent must be defined.
+        if (typeof agent !== "object" || agent === null) {
+            throw new Error("the agent must be defined and not null");
         }
 
         try {
@@ -198,7 +198,7 @@ BehaviourTree.prototype.step = function () {
     }
 
     try {
-        this._rootNode.update(this._blackboard);
+        this._rootNode.update(this._agent);
     } catch (exception) {
         throw new Error(`error stepping tree: ${exception.message}`);
     }

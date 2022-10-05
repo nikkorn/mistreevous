@@ -19,9 +19,9 @@ declare module "mistreevous" {
 		/**
 		 * Creates a new instance of the BehaviourTree class.
 		 * @param definition The tree definition.
-		 * @param board The board.
+		 * @param agent The agent that the tree is modelling behaviour for.
 		 */
-		constructor(definition: string, board: any);
+		constructor(definition: string, agent: any);
 
 		/**
 		 * Carries out a node update that traverses the tree from the root node outwards to any child nodes, skipping those that are already in a resolved state of SUCCEEDED or FAILED.

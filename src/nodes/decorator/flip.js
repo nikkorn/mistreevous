@@ -12,13 +12,13 @@ export default function Flip(decorators, child) {
 
     /**
      * Update the node.
-     * @param board The board.
+     * @param agent The agent.
      * @returns The result of the update.
      */
-    this.onUpdate = function (board) {
+    this.onUpdate = function (agent) {
         // If the child has never been updated or is running then we will need to update it now.
         if (child.getState() === State.READY || child.getState() === State.RUNNING) {
-            child.update(board);
+            child.update(agent);
         }
 
         // The state of this node will depend in the state of its child.

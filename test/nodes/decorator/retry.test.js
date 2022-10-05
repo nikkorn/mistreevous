@@ -16,8 +16,8 @@ describe("A Retry node", () => {
   describe("when updated as part of a tree step", () => {
     it("will move to the SUCCEEDED state if the child node moves to the SUCCEEDED state", () => {
       const definition = "root { retry { condition [someCondition] } }";
-      const board = { someCondition: () => true };
-      const tree = new mistreevous.BehaviourTree(definition, board);
+      const agent = { someCondition: () => true };
+      const tree = new mistreevous.BehaviourTree(definition, agent);
 
       let node = findNode(tree, "retry", "RETRY");
       assert.strictEqual(node.state, mistreevous.State.READY);
@@ -30,8 +30,8 @@ describe("A Retry node", () => {
 
     it("will move to the RUNNING state if the child node moves to the FAILED state", () => {
       const definition = "root { retry { condition [someCondition] } }";
-      const board = { someCondition: () => false };
-      const tree = new mistreevous.BehaviourTree(definition, board);
+      const agent = { someCondition: () => false };
+      const tree = new mistreevous.BehaviourTree(definition, agent);
 
       let node = findNode(tree, "retry", "RETRY");
       assert.strictEqual(node.state, mistreevous.State.READY);
@@ -44,8 +44,8 @@ describe("A Retry node", () => {
 
     it("and a maximum attempt node argument is defined will attempt to re-run the child node until the maximum attempt is reached", () => {
       const definition = "root { retry [3] { condition [someCondition] } }";
-      const board = { someCondition: () => false };
-      const tree = new mistreevous.BehaviourTree(definition, board);
+      const agent = { someCondition: () => false };
+      const tree = new mistreevous.BehaviourTree(definition, agent);
 
       let node = findNode(tree, "retry", "RETRY 3x");
       assert.strictEqual(node.state, mistreevous.State.READY);
