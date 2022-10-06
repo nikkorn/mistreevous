@@ -212,7 +212,7 @@ BehaviourTree.prototype.reset = function () {
 };
 
 /**
- * Registers the function or subtree with the given name.
+ * Registers the action/condition/guard/callback function or subtree with the given name.
  * @param name The name of the function or subtree to register.
  * @param value The function or subtree definition to register.
  */
@@ -244,7 +244,7 @@ BehaviourTree.register = function (name, value) {
 };
 
 /**
- * Unregisters the function or subtree with the given name.
+ * Unregisters the action/condition/guard/callback function or subtree with the given name.
  * @param name The name of the function or subtree to unregister.
  */
 BehaviourTree.unregister = function (name) {
