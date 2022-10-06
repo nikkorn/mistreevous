@@ -55,11 +55,11 @@ function reloadVisualiser() {
         });
 
         // TODO Register some stuff :D
-        Mistreevous.BehaviourTree.register("wow", 'root { action[Bacon, "3"] }');
-        Mistreevous.BehaviourTree.register("yell", () => { console.log("YELLING!"); return Mistreevous.State.SUCCEEDED; })
+        mistreevous.BehaviourTree.register("wow", 'root { action[Bacon, "3"] }');
+        mistreevous.BehaviourTree.register("yell", () => { console.log("YELLING!"); return mistreevous.State.SUCCEEDED; })
 
         // Try to create the behaviour tree.
-        behaviourTree = new Mistreevous.BehaviourTree(definitionTextArea.value, blackboard);
+        behaviourTree = new mistreevous.BehaviourTree(definitionTextArea.value, blackboard);
 
         // We created the behaviour tree without an issue.
         resultTextArea.innerHTML             = "OK";
@@ -260,11 +260,11 @@ function buildTreeView() {
     // A function to convert a node state to a string.
     const convertNodeStateToString = (state) => {
         switch (state) {
-            case Mistreevous.State.RUNNING:
+            case mistreevous.State.RUNNING:
                 return "running";
-            case Mistreevous.State.SUCCEEDED:
+            case mistreevous.State.SUCCEEDED:
                 return "succeeded";
-            case Mistreevous.State.FAILED:
+            case mistreevous.State.FAILED:
                 return "failed";
             default:
                 return "ready";

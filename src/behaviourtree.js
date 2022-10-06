@@ -55,7 +55,7 @@ export default class BehaviourTree {
      * Gets whether the tree is in the running state.
      * @returns Whether the tree is in the running state.
      */
-    get isRunning() {
+    isRunning() {
         return this.#rootNode.getState() === State.RUNNING;
     }
 
@@ -63,7 +63,7 @@ export default class BehaviourTree {
      * Gets the current tree state of SUCCEEDED, FAILED, READY or RUNNING.
      * @returns The current tree state.
      */
-    get state() {
+    getState() {
         return this.#rootNode.getState();
     }
 
