@@ -1,7 +1,7 @@
 import GuardPath from "./attributes/guards/guardPath";
 import buildRootASTNodes from "./rootASTNodesBuilder";
 import State from "./state";
-import Lookup from "./lookup";
+import Lookup from "./Lookup";
 
 /**
  * The behaviour tree.

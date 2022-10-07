@@ -1,5 +1,5 @@
 import Guard from "./guard";
-import Lookup from "../../lookup";
+import Lookup from "../../Lookup";
 
 /**
  * An UNTIL guard which is satisfied as long as the given condition remains false.

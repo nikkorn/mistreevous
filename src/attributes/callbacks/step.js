@@ -1,5 +1,5 @@
 import Callback from "./callback";
-import Lookup from "../../lookup";
+import Lookup from "../../Lookup";
 
 /**
  * A STEP callback which defines an agent function to call when the associated node is updated.

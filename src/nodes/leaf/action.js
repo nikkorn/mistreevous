@@ -1,6 +1,6 @@
 import Leaf from "./leaf";
 import State from "../../state";
-import Lookup from "../../lookup";
+import Lookup from "../../Lookup";
 
 /**
  * An Action leaf node.
