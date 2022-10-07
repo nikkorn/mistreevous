@@ -8,10 +8,6 @@ import Lookup from "./lookup";
  */
 export default class BehaviourTree {
     /**
-     * The behaviour tree definition.
-     */
-    #definition;
-    /**
      * The agent instance that this behaviour tree is modelling behaviour for.
      */
     #agent;
@@ -26,7 +22,6 @@ export default class BehaviourTree {
      * @param agent The agent instance that this behaviour tree is modelling behaviour for.
      */
     constructor(definition, agent) {
-        this.#definition = definition;
         this.#agent = agent;
 
         // The tree definition must be defined and a valid string.
