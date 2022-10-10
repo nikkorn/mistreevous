@@ -47,5 +47,23 @@ declare module "mistreevous" {
 		 * @returns The current tree state.
 		 */
 		getState(): State;
+
+		/**
+		 * Registers the action/condition/guard/callback function or subtree with the given name.
+		 * @param name The name of the function or subtree to register.
+		 * @param value The function or subtree definition to register.
+		 */
+		static register(name: string, value: Function | string): void;
+
+		/**
+		 * Unregisters the registered action/condition/guard/callback function or subtree with the given name.
+		 * @param name The name of the registered action/condition/guard/callback function or subtree to unregister.
+		 */
+		static unregister(name: string): void;
+
+		/**
+		 * Unregister all registered action/condition/guard/callback functions and subtrees.
+		 */
+		static unregisterAll(): void;
 	}
 }
