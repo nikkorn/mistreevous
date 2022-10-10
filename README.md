@@ -494,7 +494,16 @@ root {
 }
 ```
 
-### Guards
+#### Optional Arguments
+Arguments can optionally be passed to agent callback functions and can be a `number`, `string`, `boolean` or `null`.
+
+```
+root {
+    action [Walk] entry(OnMovementStart, "walking")
+}
+```
+
+## Guards
 A guard defines a condition that must be met in order for the node to remain active. Any running nodes will have their guard condition evaluated for each leaf node update, and will move to a failed state if the guard condition is not met.
 
 This functionality is useful as a means of aborting long running actions or branches that span across multiple steps of the tree.
@@ -505,9 +514,22 @@ root {
 }
 ```
 
-In the above example, we have a **wait** node that waits for 10 seconds before moving to a succeeded state. We are using a **while** guard to give up on waiting this long if the condition **CanWait** evaluates to false during a tree step.
+In the above example, we have a **wait** node that waits for 10 seconds before moving to a succeeded state. We are using a **while** guard to give up on waiting this long if the guard function **CanWait** returns false during a tree step.
 
-#### While
+#### Optional Arguments
+Arguments can optionally be passed to agent guard functions and can be a `number`, `string`, `boolean` or `null`.
+
+```
+root {
+    action [Run] while(HasItemEquipped, "running-shoes")
+}
+
+root {
+    action [Gamble] until(HasGold, 1000)
+}
+```
+
+### While
 A while guard will be satisfied as long as its condition evaluates to true.
 
 ```
@@ -521,7 +543,7 @@ root {
 }
 ```
 
-#### Until
+### Until
 An until guard will be satisfied as long as its condition evaluates to false.
 
 ```
