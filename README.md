@@ -535,6 +535,10 @@ root {
 }
 ```
 
+## Globals
+
+When dealing with multiple agents, each with their own behaviour tree instance, it can often be useful to have functions and subtrees that can be registered globally once and referenced by each of them.
+
 ## Version History
 | Version        | Notes           |
 | -------------- |:-------------|
