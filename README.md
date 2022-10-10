@@ -135,6 +135,19 @@ root {
 }
 ```
 
+A probability weight can be defined for each child node as an optional integer node argument, influencing the likelihood that a particular child will be picked.
+
+```
+root {
+    lotto [10,5,3,1] {
+        action [CommonAction]
+        action [UncommonAction]
+        action [RareAction]
+        action [VeryRareAction]
+    }
+}
+```
+
 ## Decorator Nodes
 A decorator node is similar to a composite node, but it can only have a single child node. The state of a decorator node is usually some transformation of the state of the child node. Decorator nodes are also used to repeat or terminate execution of a particular node.
 
@@ -158,19 +171,6 @@ root {
 
 root [SomeOtherTree] {
     action [Dance]
-}
-```
-
-A probability weight can be defined for each child node as an optional integer node argument, influencing the likelihood that a particular child will be picked.
-
-```
-root {
-    lotto [10,5,3,1] {
-        action [CommonAction]
-        action [UncommonAction]
-        action [RareAction]
-        action [VeryRareAction]
-    }
 }
 ```
 
@@ -302,7 +302,7 @@ const agent = {
 };
 ```
 
-If no value is returned from the action function the action node will move into the **running** state and no following nodes will be processed as part of the current tree step. In the example below, any action node that references **WalkToPosition** will remain in the **running** state until the target position is reached.
+If no value or undefined is returned from the action function the action node will move into the **running** state and no following nodes will be processed as part of the current tree step. In the example below, any action node that references **WalkToPosition** will remain in the **running** state until the target position is reached.
 
 ```js
 const agent = {
@@ -320,7 +320,7 @@ const agent = {
 };
 ```
 
-Further steps of the tree will resume processing from leaf nodes that were left in the **running** state until they succeed, fail, or processing of the running branch is aborted via a guard.
+Further steps of the tree will resume processing from leaf nodes that were left in the **running** state until those nodes succeed, fail, or processing of the running branch is aborted via a guard.
 
 #### Promise-based Actions
 As well as returning a finished action state from an action function, you can also return a promise that should eventually resolve with a finished state as its value. The action will remain in the running state until the promise is fulfilled, and any following tree steps will not call the action function again.
