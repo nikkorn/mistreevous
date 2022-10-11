@@ -86,6 +86,7 @@ Composite nodes wrap one or more child nodes, each of which will be processed in
 
 ### Sequence
 This composite node will update each child node in sequence. It will succeed if all of its children have succeeded and will fail if any of its children fail. This node will remain in the running state if one of its children is running.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=sequence)
 
 ```
 root {
@@ -99,6 +100,7 @@ root {
 
 ### Selector
 This composite node will update each child node in sequence. It will fail if all of its children have failed and will succeed if any of its children succeed. This node will remain in the running state if one of its children is running.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=selector)
 
 ```
 root {
@@ -112,6 +114,7 @@ root {
 
 ### Parallel
 This composite node will update each child node concurrently. It will succeed if all of its children have succeeded and will fail if any of its children fail. This node will remain in the running state if any of its children are running.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=parallel)
 
 ```
 root {
@@ -124,6 +127,7 @@ root {
 
 ### Lotto
 This composite node will select a single child at random to run as the active running node. The state of this node will reflect the state of the active child.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=lotto)
 
 ```
 root {
@@ -135,6 +139,7 @@ root {
 ```
 
 A probability weight can be defined for each child node as an optional integer node argument, influencing the likelihood that a particular child will be picked.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=weighted-lotto)
 
 ```
 root {
@@ -175,6 +180,7 @@ root [SomeOtherTree] {
 
 ### Repeat
 This decorator node will repeat the execution of its child node if the child moves to the succeeded state. It will do this until either the child fails, at which point the repeat node will fail, or the maximum number of iterations is reached, which moves the repeat node to a succeeded state. This node will be in a running state if its child is also in a running state, or if further iterations need to be made.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=repeat)
 
 The maximum number of iterations can be defined as a single integer node argument. In the example below, we would be repeating the action **SomeAction** 5 times.
 
@@ -237,6 +243,7 @@ root {
 
 ### Flip
 This decorator node will move to the succeed state when its child moves to the failed state, and it will fail if its child moves to the succeeded state. This node will remain in the running state if its child is in the running state.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=flip)
 
 ```
 root {
@@ -248,6 +255,7 @@ root {
 
 ### Succeed
 This decorator node will move to the succeed state when its child moves to the either the failed state or the succeeded state. This node will remain in the running state if its child is in the running state.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=succeed)
 
 ```
 root {
@@ -259,6 +267,7 @@ root {
 
 ### Fail
 This decorator node will move to the failed state when its child moves to the either the failed state or the succeeded state. This node will remain in the running state if its child is in the running state.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=fail)
 
 ```
 root {
@@ -273,8 +282,10 @@ Leaf nodes are the lowest level node type and cannot be the parent of other chil
 
 ### Action
 An action node represents an action that can be completed immediately as part of a single tree step, or ongoing behaviour that can take a prolonged amount of time and may take multiple tree steps to complete. Each action node will correspond to some action that can be carried out by the agent, where the first action node argument will be an identifier matching the name of the corresponding agent action function.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=action)
 
 An agent action function can optionally return a finished action state of **succeeded** or **failed**. If the **succeeded** or **failed** state is returned, then the action will move into that state.
+
 
 ```
 root {
@@ -323,6 +334,7 @@ Further steps of the tree will resume processing from leaf nodes that were left 
 
 #### Promise-based Actions
 As well as returning a finished action state from an action function, you can also return a promise that should eventually resolve with a finished state as its value. The action will remain in the running state until the promise is fulfilled, and any following tree steps will not call the action function again.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=async-action)
 
 ```js
 const agent = {
@@ -340,6 +352,7 @@ const agent = {
 
 #### Optional Arguments
 Arguments can optionally be passed to agent action functions. This is done by including them in the action node argument list in the definition. These optional arguments must be defined after the action name identifier argument, and can be  a `number`, `string`, `boolean` or `null`.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=action-with-args)
 
 ```
 root {
@@ -364,6 +377,7 @@ const agent = {
 
 ### Condition
 A Condition node will immediately move into either a **succeeded** or **failed** state based on the boolean result of calling a function on the agent. Each condition node will correspond to functionality defined on the agent, where the first condition node argument will be an identifier matching the name of the corresponding agent condition function.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=condition)
 
 ```
 root {
@@ -385,6 +399,7 @@ const agent = {
 
 #### Optional Arguments
 Arguments can optionally be passed to agent condition functions in the same was as action nodes. This is done by including them in the condition node argument list in the definition. These optional arguments must be defined after the condition name identifier argument, and can be a `number`, `string`, `boolean` or `null`.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=condition-with-args)
 
 ```
 root {
@@ -403,6 +418,8 @@ const agent = {
 
 ### Wait
 A wait node will remain in a running state for a specified duration, after which it will move into the succeeded state. The duration in milliseconds can be defined as a single integer node argument.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=wait)
+
 ```
 root {
     repeat {
@@ -416,6 +433,7 @@ root {
 In the above example, we are using a wait node to wait 2 seconds between each run of the **FireWeapon** action.
 
 The duration to wait in milliseconds can also be selected at random within a lower and upper bound if these are defined as two integer node arguments. In the example below, we would run the **PickUpProjectile** action and then wait for 2 to 8 seconds before running the **ThrowProjectile** action.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=wait-one-to-five-seconds)
 
 ```
 root {
@@ -448,6 +466,7 @@ root {
 
 ## Callbacks
 Callbacks can be defined for tree nodes and will be invoked as the node is processed during a tree step. Any number of callbacks can be attached to a node as long as there are not multiple callbacks of the same type.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=callbacks)
 
 Optional arguments can be defined for callback functions in the same way as action and condition functions.
 
@@ -504,6 +523,7 @@ root {
 
 ## Guards
 A guard defines a condition that must be met in order for the node to remain active. Any running nodes will have their guard condition evaluated for each leaf node update, and will move to a failed state if the guard condition is not met.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=guards)
 
 This functionality is useful as a means of aborting long running actions or branches that span across multiple steps of the tree.
 
