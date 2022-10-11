@@ -8,7 +8,7 @@ Using this tool, trees can be defined with a simple and minimal built-in DSL, av
 
 ![Sorting Lunch](resources/images/sorting-lunch-example.png?raw=true "Sorting Lunch")
 
-There is an in-browser editor and tree visualiser that you can try [HERE](https://nikkorn.github.io/mistreevous/playground/index.html)
+There is an in-browser editor and tree visualiser that you can try [HERE](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=sorting-lunch)
 
 ## Install
 
@@ -70,7 +70,6 @@ Calling this method when the tree is already in a resolved state of `SUCCEEDED` 
 
 #### .reset()
 Resets the tree from the root node outwards to each nested node, giving each a state of `READY`.
-
 
 # Nodes
 
@@ -560,6 +559,32 @@ root {
 ## Globals
 
 When dealing with multiple agents, each with their own behaviour tree instance, it can often be useful to have functions and subtrees that can be registered globally once and referenced by each of them.
+
+### Global Subtrees
+We can globally register a subtree that can be referenced from any behaviour tree via a **branch** node.
+
+```
+/** Create the global subtree for some celebratory behaviour. */
+BehaviourTree.register("Celebrate", `root {
+    sequence {
+        action [Jump]
+        action [Say, "Yay!"]
+        action [Jump]
+        action [Say, "We did it!"]
+    }
+}`);
+
+/** Define some behaviour for an agent that references our registered 'Celebrate' subtree. */
+const definition = `root {
+    sequence {
+        action [AttemptDifficultTask]
+        branch [Celebrate]
+    }
+}`;
+
+/** Create our agent behaviour tree. */
+const agentBehaviourTree = new BehaviourTree(definition, agent);
+```
 
 ## Version History
 | Version        | Notes           |
