@@ -640,6 +640,7 @@ const agentBehaviourTree = new BehaviourTree(definition, agent);
 ## Version History
 | Version        | Notes           |
 | -------------- |:-------------|
+| 2.3.0          | Added Global Functions and Subtrees  | 
 | 2.2.0          | Added Succeed, Fail and Retry decorators  | 
 | 2.1.0          | Added optional arguments for actions, conditions and decorators  | 
 | 2.0.1          | Fixed isses with inconsistent guard condition evaluation for composite nodes | 
