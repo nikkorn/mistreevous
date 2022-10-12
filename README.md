@@ -582,8 +582,9 @@ When dealing with multiple agents, each with their own behaviour tree instance, 
 
 ### Global Subtrees
 We can globally register a subtree that can be referenced from any behaviour tree via a **branch** node.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=global-subtrees)
 
-```
+```js
 /** Create the global subtree for some celebratory behaviour. */
 BehaviourTree.register("Celebrate", `root {
     sequence {
