@@ -585,7 +585,7 @@ We can globally register a subtree that can be referenced from any behaviour tre
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=global-subtrees)
 
 ```js
-/** Create the global subtree for some celebratory behaviour. */
+/** Register the global subtree for some celebratory behaviour. */
 BehaviourTree.register("Celebrate", `root {
     sequence {
         action [Jump]
@@ -600,6 +600,36 @@ const definition = `root {
     sequence {
         action [AttemptDifficultTask]
         branch [Celebrate]
+    }
+}`;
+
+/** Create our agent behaviour tree. */
+const agentBehaviourTree = new BehaviourTree(definition, agent);
+```
+
+### Global Functions
+We can globally register functions to be invoked in place of any agent instance functions, these functions can be referenced throughout a tree definition anywhere that we can reference an agent instance function. The primary difference between these globally registered functions and any agent instance functions is that all global functions that are invoked will take the invoking agent object as the first argument, followed by any optional arguments.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=global-functions)
+
+In a situation where a tree will reference a function by name that is defined on both the agent instance as well as a function that is registered globally, the agent instance function will take precedence.
+
+```js
+/** Register the 'speak' global function that any agent tree can invoke for an action. */
+BehaviourTree.register("Speak", (agent, text) => {
+    showInfoToast(`${agent.getName()}: ${text}`);
+    return State.SUCCEEDED;
+});
+
+/** Register the 'IsSimulationRunning' global function that any agent tree can invoke for a condition. */
+BehaviourTree.register("IsSimulationRunning", (agent) => {
+    return simulation.isRunning();
+});
+
+/** Define some behaviour for an agent that references our registered functions. */
+const definition = `root {
+    sequence {
+        condition [IsSimulationRunning]
+        action [Speak, "I still have work to do"]
     }
 }`;
 
