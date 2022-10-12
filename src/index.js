@@ -1,4 +1,4 @@
-import BehaviourTree from './behaviourtree';
-import State from './state';
+import BehaviourTree from "./BehaviourTree";
+import State from "./state";
 
 export { BehaviourTree, State };

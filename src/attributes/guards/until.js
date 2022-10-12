@@ -1,4 +1,5 @@
-import Guard from './guard'
+import Guard from "./guard";
+import Lookup from "../../Lookup";
 
 /**
  * An UNTIL guard which is satisfied as long as the given condition remains false.
@@ -32,17 +33,23 @@ export default function Until(condition, args) {
 
     /**
      * Gets whether the guard is satisfied.
-     * @param board The board.
+     * @param agent The agent.
      * @returns Whether the guard is satisfied.
      */
-    this.isSatisfied = (board) => {
-        // Call the condition function to determine whether this guard is satisfied.
-        if (typeof board[condition] === "function") {
-            return !!!(board[condition].apply(board, args.map(arg => arg.value)));
-        } else {
-            throw new Error(`cannot evaluate node guard as function '${condition}' is not defined in the blackboard`);
+    this.isSatisfied = (agent) => {
+        // Attempt to get the invoker for the condition function.
+        const conditionFuncInvoker = Lookup.getFuncInvoker(agent, condition);
+
+        // The condition function should be defined.
+        if (conditionFuncInvoker === null) {
+            throw new Error(
+                `cannot evaluate node guard as the condition '${condition}' function is not defined on the agent and has not been registered`
+            );
         }
+
+        // Call the condition function to determine whether this guard is satisfied.
+        return !!!conditionFuncInvoker(args);
     };
-};
+}
 
 Until.prototype = Object.create(Guard.prototype);

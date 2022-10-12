@@ -1,4 +1,3 @@
-// Type definitions for Mistreevous 2.2.0
 // Project: Mistreevous
 // Definitions by: nikolas howard <https://github.com/nikkorn>
 declare module "mistreevous" {
@@ -19,9 +18,9 @@ declare module "mistreevous" {
 		/**
 		 * Creates a new instance of the BehaviourTree class.
 		 * @param definition The tree definition.
-		 * @param board The board.
+		 * @param agent The agent that the tree is modelling behaviour for.
 		 */
-		constructor(definition: string, board: any);
+		constructor(definition: string, agent: any);
 
 		/**
 		 * Carries out a node update that traverses the tree from the root node outwards to any child nodes, skipping those that are already in a resolved state of SUCCEEDED or FAILED.
@@ -48,5 +47,23 @@ declare module "mistreevous" {
 		 * @returns The current tree state.
 		 */
 		getState(): State;
+
+		/**
+		 * Registers the action/condition/guard/callback function or subtree with the given name.
+		 * @param name The name of the function or subtree to register.
+		 * @param value The function or subtree definition to register.
+		 */
+		static register(name: string, value: Function | string): void;
+
+		/**
+		 * Unregisters the registered action/condition/guard/callback function or subtree with the given name.
+		 * @param name The name of the registered action/condition/guard/callback function or subtree to unregister.
+		 */
+		static unregister(name: string): void;
+
+		/**
+		 * Unregister all registered action/condition/guard/callback functions and subtrees.
+		 */
+		static unregisterAll(): void;
 	}
 }

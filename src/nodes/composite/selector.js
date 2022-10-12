@@ -1,5 +1,5 @@
-import Composite from './composite'
-import State from '../../state'
+import Composite from "./composite";
+import State from "../../state";
 
 /**
  * A SELECTOR node.
@@ -12,16 +12,16 @@ export default function Selector(decorators, children) {
 
     /**
      * Update the node and get whether the node state has changed.
-     * @param board The board.
+     * @param agent The agent.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.onUpdate = function(board) {
+    this.onUpdate = function (agent) {
         // Iterate over all of the children of this node.
         for (const child of children) {
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === State.READY || child.getState() === State.RUNNING) {
                 // Update the child of this node.
-                child.update(board);
+                child.update(agent);
             }
 
             // If the current child has a state of 'SUCCEEDED' then this node is also a 'SUCCEEDED' node.
@@ -67,6 +67,6 @@ export default function Selector(decorators, children) {
      * Gets the name of the node.
      */
     this.getName = () => "SELECTOR";
-};
+}
 
 Selector.prototype = Object.create(Composite.prototype);

@@ -1,5 +1,5 @@
-import Composite from './composite'
-import State from '../../state'
+import Composite from "./composite";
+import State from "../../state";
 
 /**
  * A LOTTO node.
@@ -7,7 +7,7 @@ import State from '../../state'
  * The state of this node will match the state of the winning child.
  * @param decorators The node decorators.
  * @param tickets The child node tickets
- * @param children The child nodes. 
+ * @param children The child nodes.
  */
 export default function Lotto(decorators, tickets, children) {
     Composite.call(this, "lotto", decorators, children);
@@ -31,7 +31,7 @@ export default function Lotto(decorators, tickets, children) {
          * @param participant The participant.
          * @param tickets The number of tickets held by the participant.
          */
-        this.add = function(participant, tickets) {
+        this.add = function (participant, tickets) {
             this.participants.push({ participant, tickets });
             return this;
         };
@@ -40,7 +40,7 @@ export default function Lotto(decorators, tickets, children) {
          * Draw a winning participant.
          * @returns A winning participant.
          */
-        this.draw = function() {
+        this.draw = function () {
             // We cannot do anything if there are no participants.
             if (!this.participants.length) {
                 throw new Error("cannot draw a lotto winner when there are no participants");
@@ -58,27 +58,27 @@ export default function Lotto(decorators, tickets, children) {
         };
 
         /**
-         * Get a random item form an array. 
+         * Get a random item form an array.
          * @param items Th array of items.
          * @returns The randomly picked item.
          */
-        this.getRandomItem = function(items) {
+        this.getRandomItem = function (items) {
             // We cant pick a random item from an empty array.
             if (!items.length) {
                 return undefined;
             }
 
             // Return a random item.
-            return items[Math.floor(Math.random() * items.length)]; 
-        }
+            return items[Math.floor(Math.random() * items.length)];
+        };
     }
-   
+
     /**
      * Update the node and get whether the node state has changed.
-     * @param board The board.
+     * @param agent The agent.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.onUpdate = function(board) {
+    this.onUpdate = function (agent) {
         // If this node is in the READY state then we need to pick a winning child node.
         if (this.is(State.READY)) {
             // Create a lotto draw.
@@ -93,7 +93,7 @@ export default function Lotto(decorators, tickets, children) {
 
         // If the winning child has never been updated or is running then we will need to update it now.
         if (winningChild.getState() === State.READY || winningChild.getState() === State.RUNNING) {
-            winningChild.update(board);
+            winningChild.update(agent);
         }
 
         // The state of the lotto node is the state of its winning child.
@@ -103,7 +103,7 @@ export default function Lotto(decorators, tickets, children) {
     /**
      * Gets the name of the node.
      */
-    this.getName = () => tickets.length ? `LOTTO [${ tickets.join(",") }]` : "LOTTO";
-};
+    this.getName = () => (tickets.length ? `LOTTO [${tickets.join(",")}]` : "LOTTO");
+}
 
 Lotto.prototype = Object.create(Composite.prototype);

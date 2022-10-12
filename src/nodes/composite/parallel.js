@@ -1,21 +1,21 @@
-import Composite from './composite'
-import State from '../../state'
+import Composite from "./composite";
+import State from "../../state";
 
 /**
  * A PARALLEL node.
  * The child nodes are executed concurrently until one fails or all succeed.
  * @param decorators The node decorators.
- * @param children The child nodes. 
+ * @param children The child nodes.
  */
 export default function Parallel(decorators, children) {
     Composite.call(this, "parallel", decorators, children);
-   
+
     /**
      * Update the node and get whether the node state has changed.
-     * @param board The board.
+     * @param agent The agent.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.onUpdate = function(board) {
+    this.onUpdate = function (agent) {
         // Keep a count of the number of succeeded child nodes.
         let succeededCount = 0;
 
@@ -26,7 +26,7 @@ export default function Parallel(decorators, children) {
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === State.READY || child.getState() === State.RUNNING) {
                 // Update the child of this node.
-                child.update(board);
+                child.update(agent);
             }
 
             // If the current child has a state of 'SUCCEEDED' then we should move on to the next child.
@@ -60,7 +60,7 @@ export default function Parallel(decorators, children) {
             // Abort every running child.
             for (const child of children) {
                 if (child.getState() === State.RUNNING) {
-                    child.abort(board);
+                    child.abort(agent);
                 }
             }
         } else {
@@ -68,11 +68,11 @@ export default function Parallel(decorators, children) {
             this.setState(succeededCount === children.length ? State.SUCCEEDED : State.RUNNING);
         }
     };
- 
+
     /**
      * Gets the name of the node.
      */
     this.getName = () => "PARALLEL";
-};
+}
 
 Parallel.prototype = Object.create(Composite.prototype);

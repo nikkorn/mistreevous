@@ -1,11 +1,11 @@
-import Node from '../node'
-import State from '../../state'
+import Node from "../node";
+import State from "../../state";
 
 /**
  * A decorator node that wraps a single child node.
  * @param type The node type.
  * @param decorators The node decorators.
- * @param child The child node. 
+ * @param child The child node.
  */
 export default function Decorator(type, decorators, child) {
     Node.call(this, type, decorators);
@@ -33,16 +33,16 @@ export default function Decorator(type, decorators, child) {
 
     /**
      * Abort the running of this node.
-     * @param board The board.
+     * @param agent The agent.
      */
-    this.abort = (board) => {
+    this.abort = (agent) => {
         // There is nothing to do if this node is not in the running state.
         if (!this.is(State.RUNNING)) {
             return;
         }
 
         // Abort the child node.
-        child.abort(board);
+        child.abort(agent);
 
         // Reset the state of this node.
         this.reset();
@@ -52,9 +52,9 @@ export default function Decorator(type, decorators, child) {
 
         // Call the exit decorator function if it exists.
         if (exitDecorator) {
-            exitDecorator.callBlackboardFunction(board, false, true);
+            exitDecorator.callAgentFunction(agent, false, true);
         }
     };
-};
+}
 
 Decorator.prototype = Object.create(Node.prototype);

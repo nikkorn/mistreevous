@@ -16,7 +16,7 @@ const example_snippets = {
     action [SomeAction]
 }`,
         "blackboard": `{
-    SomeAction: () => Mistreevous.State.SUCCEEDED
+    SomeAction: () => mistreevous.State.SUCCEEDED
 }`
     },
 
@@ -32,7 +32,7 @@ const example_snippets = {
             console.log(sayLoudly ? dialog.toUpperCase() + "!!!" : dialog);
         }
 
-        return Mistreevous.State.SUCCEEDED;
+        return mistreevous.State.SUCCEEDED;
     }
 }`
     },
@@ -48,7 +48,7 @@ const example_snippets = {
   SomeAsyncAction: () => {
     return new Promise(function(resolve, reject) {
       setTimeout(function() {
-        resolve(Mistreevous.State.SUCCEEDED);
+        resolve(mistreevous.State.SUCCEEDED);
       }, 3000);
     });
   }
@@ -77,7 +77,7 @@ const example_snippets = {
     HasItem: (item, quantity = 1) => 
     {
         console.log("check whether we have " + quantity + " " + item);
-        return Mistreevous.State.SUCCEEDED;
+        return true;
     }
 }`
     },
@@ -116,15 +116,15 @@ const example_snippets = {
         "blackboard": `{
     Walk: () => {
         console.log("walking!");
-        return Mistreevous.State.SUCCEEDED;
+        return mistreevous.State.SUCCEEDED;
     },
     Fall: () => {
         console.log("falling!");
-        return Mistreevous.State.SUCCEEDED;
+        return mistreevous.State.SUCCEEDED;
     },
     Laugh: () => {
         console.log("laughing!");
-        return Mistreevous.State.SUCCEEDED;
+        return mistreevous.State.SUCCEEDED;
     },
 }`
     },
@@ -139,8 +139,8 @@ const example_snippets = {
     }
 }`,
         "blackboard": `{
-    PickLeftPath: () => Mistreevous.State.SUCCEEDED,
-    PickRightPath: () => Mistreevous.State.SUCCEEDED
+    PickLeftPath: () => mistreevous.State.SUCCEEDED,
+    PickRightPath: () => mistreevous.State.SUCCEEDED
 }`
     },
 
@@ -157,10 +157,10 @@ const example_snippets = {
     }
 }`,
         "blackboard": `{
-    CommonAction: () => Mistreevous.State.SUCCEEDED,
-    UncommonAction: () => Mistreevous.State.SUCCEEDED,
-    RareAction: () => Mistreevous.State.SUCCEEDED,
-    VeryRareAction: () => Mistreevous.State.SUCCEEDED
+    CommonAction: () => mistreevous.State.SUCCEEDED,
+    UncommonAction: () => mistreevous.State.SUCCEEDED,
+    RareAction: () => mistreevous.State.SUCCEEDED,
+    VeryRareAction: () => mistreevous.State.SUCCEEDED
 }`
     },
 
@@ -186,7 +186,7 @@ const example_snippets = {
 }`,
         "blackboard": `{
     // An action that will immediately succeed.
-    Succeed: () => Mistreevous.State.SUCCEEDED,
+    Succeed: () => mistreevous.State.SUCCEEDED,
 
     // A condition that returns whether the space key is currently pressed.
     IsSpaceKeyPressed: function () {
@@ -219,7 +219,7 @@ const example_snippets = {
 }`,
         "blackboard": `{
     // An action that will immediately succeed.
-    Succeed: () => Mistreevous.State.SUCCEEDED,
+    Succeed: () => mistreevous.State.SUCCEEDED,
 
     // A condition that returns whether the space key is currently pressed.
     IsSpaceKeyPressed: function () {
@@ -256,7 +256,7 @@ const example_snippets = {
 }`,
         "blackboard": `{
     // An action that will immediately fail.
-    Fail: () => Mistreevous.State.FAILED
+    Fail: () => mistreevous.State.FAILED
 }`
     },
 
@@ -361,10 +361,10 @@ const example_snippets = {
 }`,
         "blackboard": `{
     // An action that will immediately succeed.
-    Succeed: () => Mistreevous.State.SUCCEEDED,
+    Succeed: () => mistreevous.State.SUCCEEDED,
 
     // An action that will immediately fail.
-    Fail: () => Mistreevous.State.FAILED
+    Fail: () => mistreevous.State.FAILED
 }`
     },
 
@@ -400,12 +400,12 @@ const example_snippets = {
     IsHungry: () => false,
     CanSeeFood: () => false,  
 
-    AttackPlayer: () => Mistreevous.State.SUCCEEDED,
-    MoveTowardsPlayer: () => Mistreevous.State.SUCCEEDED,
-    EatFood: () => Mistreevous.State.SUCCEEDED,
-    Complain: () => Mistreevous.State.SUCCEEDED,
-    Wander: () => Mistreevous.State.SUCCEEDED,
-    Sleep: () => Mistreevous.State.SUCCEEDED
+    AttackPlayer: () => mistreevous.State.SUCCEEDED,
+    MoveTowardsPlayer: () => mistreevous.State.SUCCEEDED,
+    EatFood: () => mistreevous.State.SUCCEEDED,
+    Complain: () => mistreevous.State.SUCCEEDED,
+    Wander: () => mistreevous.State.SUCCEEDED,
+    Sleep: () => mistreevous.State.SUCCEEDED
 }`
     }
 };

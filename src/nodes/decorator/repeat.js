@@ -1,5 +1,5 @@
-import Decorator from './decorator';
-import State from '../../state'
+import Decorator from "./decorator";
+import State from "../../state";
 
 /**
  * A REPEAT node.
@@ -11,7 +11,7 @@ import State from '../../state'
  * @param decorators The node decorators.
  * @param iterations The number of iterations to repeat the child node, or the minimum number of iterations if maximumIterations is defined.
  * @param maximumIterations The maximum number of iterations to repeat the child node.
- * @param child The child node. 
+ * @param child The child node.
  */
 export default function Repeat(decorators, iterations, maximumIterations, child) {
     Decorator.call(this, "repeat", decorators, child);
@@ -28,10 +28,10 @@ export default function Repeat(decorators, iterations, maximumIterations, child)
 
     /**
      * Update the node.
-     * @param board The board.
+     * @param agent The agent.
      * @returns The result of the update.
      */
-    this.onUpdate = function(board) {
+    this.onUpdate = function (agent) {
         // If this node is in the READY state then we need to reset the child and the target iteration count.
         if (this.is(State.READY)) {
             // Reset the child node.
@@ -54,7 +54,7 @@ export default function Repeat(decorators, iterations, maximumIterations, child)
             }
 
             // Update the child of this node.
-            child.update(board);
+            child.update(agent);
 
             // If the child moved into the FAILED state when we updated it then there is nothing left to do and this node has also failed.
             // If it has moved into the SUCCEEDED state then we have completed the current iteration.
@@ -78,12 +78,12 @@ export default function Repeat(decorators, iterations, maximumIterations, child)
      */
     this.getName = () => {
         if (iterations !== null) {
-            return `REPEAT ${ maximumIterations ? iterations + "x-" + maximumIterations + "x" : iterations + "x" }`;
+            return `REPEAT ${maximumIterations ? iterations + "x-" + maximumIterations + "x" : iterations + "x"}`;
         }
 
         // Return the default repeat node name.
         return "REPEAT";
-    }
+    };
 
     /**
      * Reset the state of the node.
@@ -120,13 +120,14 @@ export default function Repeat(decorators, iterations, maximumIterations, child)
         // Are we dealing with a finite number of iterations?
         if (typeof iterations === "number") {
             // If we have maximumIterations defined then we will want a random iteration count bounded by iterations and maximumIterations.
-            targetIterationCount = (typeof maximumIterations === "number") ? 
-                Math.floor(Math.random() * (maximumIterations - iterations + 1) + iterations) : 
-                iterations;
+            targetIterationCount =
+                typeof maximumIterations === "number"
+                    ? Math.floor(Math.random() * (maximumIterations - iterations + 1) + iterations)
+                    : iterations;
         } else {
             targetIterationCount = null;
         }
-    }
-};
+    };
+}
 
 Repeat.prototype = Object.create(Decorator.prototype);

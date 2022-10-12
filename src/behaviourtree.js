@@ -1,45 +1,193 @@
-import GuardPath from './attributes/guards/guardPath';
-import buildRootASTNodes from './rootASTNodesBuilder';
+import GuardPath from "./attributes/guards/guardPath";
+import buildRootASTNodes from "./rootASTNodesBuilder";
 import State from "./state";
+import Lookup from "./Lookup";
 
 /**
  * The behaviour tree.
- * @param definition The tree definition.
- * @param board The board.
  */
-export default function BehaviourTree(definition, board) {
+export default class BehaviourTree {
     /**
-     * The blackboard.
+     * The agent instance that this behaviour tree is modelling behaviour for.
      */
-    this._blackboard = board;
+    #agent;
     /**
      * The main root tree node.
      */
-    this._rootNode;
+    #rootNode;
 
     /**
-     * Initialise the BehaviourTree instance.
+     * Constructor for the BehaviourTree class.
+     * @param definition The behaviour tree definition.
+     * @param agent The agent instance that this behaviour tree is modelling behaviour for.
      */
-    this._init = function() {
+    constructor(definition, agent) {
+        this.#agent = agent;
+
         // The tree definition must be defined and a valid string.
         if (typeof definition !== "string") {
             throw new Error("the tree definition must be a string");
         }
 
-        // The blackboard must be defined.
-        if (typeof board !== 'object' || board === null) {
-            throw new Error("the blackboard must be defined");
+        // The agent must be defined and not null.
+        if (typeof agent !== "object" || agent === null) {
+            throw new Error("the agent must be defined and not null");
         }
 
-        // Swap out any node/decorator argument string literals with a placeholder and get a mapping of placeholders to original values.
-        const stringArgumentPlaceholders = this._substituteStringLiterals();
+        // Parse the behaviour tree definition, create the populated tree of behaviour tree nodes, and get the root.
+        this.#rootNode = BehaviourTree.#createRootNode(definition);
+    }
 
-        // Convert the definition into an array of raw tokens.
-        const tokens = this._parseTokensFromDefinition();
+    /**
+     * Gets the main root tree node.
+     * @returns The main root tree node.
+     */
+    get rootNode() {
+        return this.#rootNode;
+    }
+
+    /**
+     * Gets whether the tree is in the running state.
+     * @returns Whether the tree is in the running state.
+     */
+    isRunning() {
+        return this.#rootNode.getState() === State.RUNNING;
+    }
+
+    /**
+     * Gets the current tree state of SUCCEEDED, FAILED, READY or RUNNING.
+     * @returns The current tree state.
+     */
+    getState() {
+        return this.#rootNode.getState();
+    }
+
+    /**
+     * Step the tree.
+     * This carries out a node update that traverses the tree from the root node outwards to any child nodes, skipping those that are already in a resolved state of SUCCEEDED or FAILED.
+     * Calling this method when the tree is already in a resolved state of SUCCEEDED or FAILED will cause it to be reset before tree traversal begins.
+     */
+    step() {
+        // If the root node has already been stepped to completion then we need to reset it.
+        if (this.#rootNode.getState() === State.SUCCEEDED || this.#rootNode.getState() === State.FAILED) {
+            this.#rootNode.reset();
+        }
 
         try {
-            // Try to create the behaviour tree AST from tokens, this could fail if the definition is invalid.
-            const rootASTNodes = buildRootASTNodes(tokens, stringArgumentPlaceholders);
+            this.#rootNode.update(this.#agent);
+        } catch (exception) {
+            throw new Error(`error stepping tree: ${exception.message}`);
+        }
+    }
+
+    /**
+     * Resets the tree from the root node outwards to each nested node, giving each a state of READY.
+     */
+    reset() {
+        this.#rootNode.reset();
+    }
+
+    /**
+     * Gets the flattened details of every node in the tree.
+     * @returns The flattened details of every node in the tree.
+     */
+    getFlattenedNodeDetails() {
+        // Create an empty flattened array of tree nodes.
+        const flattenedTreeNodes = [];
+
+        /**
+         * Helper function to process a node instance and push details into the flattened tree nodes array.
+         * @param node The current node.
+         * @param parentUid The UID of the node parent, or null if the node is the main root node.
+         */
+        const processNode = (node, parentUid) => {
+            /**
+             * Helper function to get details for all node decorators.
+             * @param decorators The node decorators.
+             * @returns The decorator details for a node.
+             */
+            const getDecoratorDetails = (decorators) =>
+                decorators.length > 0 ? decorators.map((decorator) => decorator.getDetails()) : null;
+
+            // Push the current node into the flattened nodes array.
+            flattenedTreeNodes.push({
+                id: node.getUid(),
+                type: node.getType(),
+                caption: node.getName(),
+                state: node.getState(),
+                decorators: getDecoratorDetails(node.getDecorators()),
+                arguments: node.getArguments(),
+                parentId: parentUid
+            });
+
+            // Process each of the nodes children if it is not a leaf node.
+            if (!node.isLeafNode()) {
+                node.getChildren().forEach((child) => processNode(child, node.getUid()));
+            }
+        };
+
+        // Convert the nested node structure into a flattened array of node details.
+        processNode(this.#rootNode, null);
+
+        return flattenedTreeNodes;
+    }
+
+    /**
+     * Registers the action/condition/guard/callback function or subtree with the given name.
+     * @param name The name of the function or subtree to register.
+     * @param value The function or subtree definition to register.
+     */
+    static register(name, value) {
+        if (typeof value === "function") {
+            // We are going to register a action/condition/guard/callback function.
+            Lookup.setFunc(name, value);
+        } else if (typeof value === "string") {
+            // We are going to register a subtree.
+            let rootASTNodes;
+
+            try {
+                // Try to create the behaviour tree AST based on the definition provided, this could fail if the definition is invalid.
+                rootASTNodes = buildRootASTNodes(value);
+            } catch (exception) {
+                // There was an issue in trying to parse and build the tree definition.
+                throw new Error(`error registering definition: ${exception.message}`);
+            }
+
+            // This function should only ever be called with a definition containing a single unnamed root node.
+            if (rootASTNodes.length != 1 || rootASTNodes[0].name !== null) {
+                throw new Error("error registering definition: expected a single unnamed root node");
+            }
+
+            Lookup.setSubtree(name, rootASTNodes[0]);
+        } else {
+            throw new Error("unexpected value, expected string definition or function");
+        }
+    }
+
+    /**
+     * Unregisters the action/condition/guard/callback function or subtree with the given name.
+     * @param name The name of the action/condition/guard/callback function or subtree to unregister.
+     */
+    static unregister(name) {
+        Lookup.remove(name);
+    }
+
+    /**
+     * Unregister all registered action/condition/guard/callback functions and subtrees.
+     */
+    static unregisterAll() {
+        Lookup.empty();
+    }
+
+    /**
+     * Parses a behaviour tree definition and creates a tree of behaviour tree nodes.
+     * @param {string} definition The behaviour tree definition.
+     * @returns The root behaviour tree node.
+     */
+    static #createRootNode(definition) {
+        try {
+            // Try to create the behaviour tree AST based on the definition provided, this could fail if the definition is invalid.
+            const rootASTNodes = buildRootASTNodes(definition);
 
             // Create a symbol to use as the main root key in our root node mapping.
             const mainRootNodeKey = Symbol("__root__");
@@ -50,71 +198,48 @@ export default function BehaviourTree(definition, board) {
                 rootNodeMap[rootASTNode.name === null ? mainRootNodeKey : rootASTNode.name] = rootASTNode;
             }
 
-            // Create a provider for named root nodes.
-            const namedRootNodeProvider = function (name) { return rootNodeMap[name]; };
+            // Create a provider for named root nodes that are part of our definition or have been registered. Prioritising the former.
+            const namedRootNodeProvider = function (name) {
+                return rootNodeMap[name] ? rootNodeMap[name] : Lookup.getSubtree(name);
+            };
 
-            // Convert the AST to our actual tree.
-            this._rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(namedRootNodeProvider, []);
+            // Convert the AST to our actual tree and get the root node.
+            const rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(namedRootNodeProvider, []);
 
             // Set a guard path on every leaf of the tree to evaluate as part of its update.
-            this._applyLeafNodeGuardPaths();
+            BehaviourTree.#applyLeafNodeGuardPaths(rootNode);
+
+            // Return the root node.
+            return rootNode;
         } catch (exception) {
             // There was an issue in trying to parse and build the tree definition.
             throw new Error(`error parsing tree: ${exception.message}`);
         }
-    };
+    }
 
     /**
-     * Swaps out any node/decorator argument string literals with placeholders.
-     * @returns A mapping of placeholders to original string values.
+     * Applies a guard path to every leaf of the tree to evaluate as part of each update.
+     * @param {*} rootNode The main root tree node.
      */
-    this._substituteStringLiterals = function() {
-        // Create an object to hold the mapping of placeholders to original string values.
-        const matches = {};
+    static #applyLeafNodeGuardPaths(rootNode) {
+        const nodePaths = [];
 
-        // Replace any string literals wrapped with double quotes in our definition with placeholders to be processed later.
-        definition = definition.replace(
-            /\"(\\.|[^"\\])*\"/g,
-            (match) => {
-                var strippedMatch = match.substring(1, match.length - 1);
-                var placeholder   = Object.keys(matches).find(key => matches[key] === strippedMatch);
-                
-                // If we have no existing string literal match then create a new placeholder.
-                if (!placeholder) {
-                    placeholder          = `@@${Object.keys(matches).length}@@`;
-                    matches[placeholder] = strippedMatch;
-                } 
-                
-                return placeholder;
+        const findLeafNodes = (path, node) => {
+            // Add the current node to the path.
+            path = path.concat(node);
+
+            // Check whether the current node is a leaf node.
+            if (node.isLeafNode()) {
+                nodePaths.push(path);
+            } else {
+                node.getChildren().forEach((child) => findLeafNodes(path, child));
             }
-        );
+        };
 
-        return matches;
-    };
+        // Find all leaf node paths, starting from the root.
+        findLeafNodes([], rootNode);
 
-    /**
-     * Parse the BT tree definition into an array of raw tokens.
-     * @returns An array of tokens parsed from the definition.
-     */
-    this._parseTokensFromDefinition = function() {
-        // Add some space around various important characters so that they can be plucked out easier as individual tokens.
-        definition = definition.replace(/\(/g, " ( ");
-        definition = definition.replace(/\)/g, " ) ");
-        definition = definition.replace(/\{/g, " { ");
-        definition = definition.replace(/\}/g, " } ");
-        definition = definition.replace(/\]/g, " ] ");
-        definition = definition.replace(/\[/g, " [ ");
-        definition = definition.replace(/\,/g, " , ");
-
-        // Split the definition into raw token form and return it.
-        return definition.replace(/\s+/g, " ").trim().split(" ");
-    };
-
-    /**
-     * Apply guard paths for every leaf node in the behaviour tree.
-     */
-    this._applyLeafNodeGuardPaths = function() {
-        this._getAllNodePaths().forEach((path) => {
+        nodePaths.forEach((path) => {
             // Each node in the current path will have to be assigned a guard path, working from the root outwards.
             for (let depth = 0; depth < path.length; depth++) {
                 // Get the node in the path at the current depth.
@@ -131,131 +256,11 @@ export default function BehaviourTree(definition, board) {
                         .slice(0, depth + 1)
                         .map((node) => ({ node, guards: node.getGuardDecorators() }))
                         .filter((details) => details.guards.length > 0)
-                )
+                );
 
                 // Assign the guard path to the current node.
                 currentNode.setGuardPath(guardPath);
             }
         });
-    };
-
-    /**
-     * Gets a multi-dimensional array of root->leaf node paths.
-     * @returns A multi-dimensional array of root->leaf node paths.
-     */
-    this._getAllNodePaths = function() {
-        const nodePaths = [];
-
-        const findLeafNodes = (path, node) => {
-            // Add the current node to the path.
-            path = path.concat(node);
-
-            // Check whether the current node is a leaf node. 
-            if (node.isLeafNode()) {
-                nodePaths.push(path);
-            } else {
-                node.getChildren().forEach((child) => findLeafNodes(path, child));
-            }
-        };
-
-        // Find all leaf node paths, starting from the root.
-        findLeafNodes([], this._rootNode);
-
-        return nodePaths;
-    };
-
-    // Call init logic.
-    this._init();
+    }
 }
-
-/**
- * Gets the root node.
- * @returns The root node.
- */
-BehaviourTree.prototype.getRootNode = function () {
-    return this._rootNode;
-};
-
-/**
- * Gets the flattened details of every node in the tree.
- * @returns The flattened details of every node in the tree.
- */
-BehaviourTree.prototype.getFlattenedNodeDetails = function () {
-    // Create an empty flattened array of tree nodes.
-    const flattenedTreeNodes = [];
-
-    /**
-     * Helper function to process a node instance and push details into the flattened tree nodes array.
-     * @param node The current node.
-     * @param parentUid The UID of the node parent, or null if the node is the main root node.
-     */
-    const processNode = (node, parentUid) => {
-        /**
-         * Helper function to get details for all node decorators.
-         * @param decorators The node decorators.
-         * @returns The decorator details for a node.
-         */
-        const getDecoratorDetails = (decorators) =>
-            decorators.length > 0 ? decorators.map((decorator) => decorator.getDetails()) : null;
-
-        // Push the current node into the flattened nodes array.
-        flattenedTreeNodes.push({ 
-            id: node.getUid(),
-            type: node.getType(), 
-            caption: node.getName(),
-            state: node.getState(),
-            decorators: getDecoratorDetails(node.getDecorators()),
-            arguments: node.getArguments(),
-            parentId: parentUid
-        });
-
-        // Process each of the nodes children if it is not a leaf node.
-        if (!node.isLeafNode()) {
-            node.getChildren().forEach((child) => processNode(child, node.getUid()));
-        }
-    };
-
-    // Convert the nested node structure into a flattened array of node details.
-    processNode(this._rootNode, null);
-
-    return flattenedTreeNodes;
-};
-
-/**
- * Gets whether the tree is in the running state.
- * @returns Whether the tree is in the running state.
- */
-BehaviourTree.prototype.isRunning = function () {
-    return this._rootNode.getState() === State.RUNNING;
-};
-
-/**
- * Gets the current tree state.
- * @returns The current tree state.
- */
-BehaviourTree.prototype.getState = function () {
-    return this._rootNode.getState();
-};
-
-/**
- * Step the tree.
- */
-BehaviourTree.prototype.step = function () {
-    // If the root node has already been stepped to completion then we need to reset it.
-    if (this._rootNode.getState() === State.SUCCEEDED || this._rootNode.getState() === State.FAILED) {
-        this._rootNode.reset();
-    }
-
-    try {
-        this._rootNode.update(this._blackboard);
-    } catch (exception) {
-        throw new Error(`error stepping tree: ${exception.message}`);
-    }
-};
-
-/**
- * Reset the tree from the root.
- */
-BehaviourTree.prototype.reset = function () {
-    this._rootNode.reset();
-};

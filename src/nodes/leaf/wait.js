@@ -1,5 +1,5 @@
-import Leaf from './leaf'
-import State from '../../state'
+import Leaf from "./leaf";
+import State from "../../state";
 
 /**
  * A WAIT node.
@@ -11,22 +11,22 @@ import State from '../../state'
 export default function Wait(decorators, duration, longestDuration) {
     Leaf.call(this, "wait", decorators);
 
-    /** 
+    /**
      * The time in milliseconds at which this node was first updated.
      */
     let initialUpdateTime;
 
     /**
-     * The duration in milliseconds that this node will be waiting for. 
+     * The duration in milliseconds that this node will be waiting for.
      */
     let waitDuration;
-   
+
     /**
      * Update the node.
-     * @param board The board.
+     * @param agent The agent.
      * @returns The result of the update.
      */
-    this.onUpdate = function(board) {
+    this.onUpdate = function (agent) {
         // If this node is in the READY state then we need to set the initial update time.
         if (this.is(State.READY)) {
             // Set the initial update time.
@@ -34,14 +34,16 @@ export default function Wait(decorators, duration, longestDuration) {
 
             // If a longestDuration value was defined then we will be randomly picking a duration between the
             // shortest and longest duration. If it was not defined, then we will be just using the duration.
-            waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
+            waitDuration = longestDuration
+                ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration)
+                : duration;
 
             // The node is now running until we finish waiting.
             this.setState(State.RUNNING);
         }
 
         // Have we waited long enough?
-        if (new Date().getTime() >= (initialUpdateTime + waitDuration)) {
+        if (new Date().getTime() >= initialUpdateTime + waitDuration) {
             // We have finished waiting!
             this.setState(State.SUCCEEDED);
         }
@@ -50,7 +52,7 @@ export default function Wait(decorators, duration, longestDuration) {
     /**
      * Gets the name of the node.
      */
-    this.getName = () => `WAIT ${ longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms" }`;
-};
+    this.getName = () => `WAIT ${longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms"}`;
+}
 
 Wait.prototype = Object.create(Leaf.prototype);

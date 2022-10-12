@@ -1,11 +1,14 @@
-# ![logo](https://github.com/nikkorn/mistreevous/raw/master/icons/icon-small.png) Mistreevous
+# ![logo](resources/icons/icon-small.png) Mistreevous
 [![npm version](https://badge.fury.io/js/mistreevous.svg)](https://badge.fury.io/js/mistreevous)
+[![Node.js CI](https://github.com/nikkorn/mistreevous/actions/workflows/node.js.yml/badge.svg?branch=master)](https://github.com/nikkorn/mistreevous/actions/workflows/node.js.yml)
 
 A tool to declaratively define and generate behaviour trees in JavaScript. Behaviour trees are used to create complex AI via the modular heirarchical composition of individual tasks.
 
 Using this tool, trees can be defined with a simple and minimal built-in DSL, avoiding the need to write verbose definitions in JSON.
 
-There is an in-browser editor and tree visualiser that you can try [HERE](https://nikkorn.github.io/mistreevous/playground/index.html)
+![Sorting Lunch](resources/images/sorting-lunch-example.png?raw=true "Sorting Lunch")
+
+There is an in-browser editor and tree visualiser that you can try [HERE](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=sorting-lunch)
 
 ## Install
 
@@ -17,7 +20,7 @@ $ npm install --save mistreevous
 ```js
 import { State, BehaviourTree } from "mistreevous";
 
-/** Define some behaviour for an entity. */
+/** Define some behaviour for an agent. */
 const definition = `root {
     sequence {
         action [Walk]
@@ -26,8 +29,8 @@ const definition = `root {
     }
 }`;
 
-/** Create an entity that we will be modelling the behaviour for. */
-const entity = {
+/** Create an agent that we will be modelling the behaviour for. */
+const agent = {
     Walk: () => {
         console.log("walking!");
         return State.SUCCEEDED;
@@ -42,8 +45,8 @@ const entity = {
     },
 };
 
-/** Create the behaviour tree, passing our tree definition and the entity that we are modelling behaviour for. */
-const behaviourTree = new BehaviourTree(definition, entity);
+/** Create the behaviour tree, passing our tree definition and the agent that we are modelling behaviour for. */
+const behaviourTree = new BehaviourTree(definition, agent);
 
 /** Step the tree. */
 behaviourTree.step();
@@ -68,7 +71,6 @@ Calling this method when the tree is already in a resolved state of `SUCCEEDED` 
 #### .reset()
 Resets the tree from the root node outwards to each nested node, giving each a state of `READY`.
 
-
 # Nodes
 
 ## States
@@ -84,6 +86,7 @@ Composite nodes wrap one or more child nodes, each of which will be processed in
 
 ### Sequence
 This composite node will update each child node in sequence. It will succeed if all of its children have succeeded and will fail if any of its children fail. This node will remain in the running state if one of its children is running.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=sequence)
 
 ```
 root {
@@ -97,6 +100,7 @@ root {
 
 ### Selector
 This composite node will update each child node in sequence. It will fail if all of its children have failed and will succeed if any of its children succeed. This node will remain in the running state if one of its children is running.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=selector)
 
 ```
 root {
@@ -110,6 +114,7 @@ root {
 
 ### Parallel
 This composite node will update each child node concurrently. It will succeed if all of its children have succeeded and will fail if any of its children fail. This node will remain in the running state if any of its children are running.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=parallel)
 
 ```
 root {
@@ -122,12 +127,27 @@ root {
 
 ### Lotto
 This composite node will select a single child at random to run as the active running node. The state of this node will reflect the state of the active child.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=lotto)
 
 ```
 root {
     lotto {
         action [MoveLeft]
         action [MoveRight]
+    }
+}
+```
+
+A probability weight can be defined for each child node as an optional integer node argument, influencing the likelihood that a particular child will be picked.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=weighted-lotto)
+
+```
+root {
+    lotto [10,5,3,1] {
+        action [CommonAction]
+        action [UncommonAction]
+        action [RareAction]
+        action [VeryRareAction]
     }
 }
 ```
@@ -158,21 +178,9 @@ root [SomeOtherTree] {
 }
 ```
 
-A probability weight can be defined for each child node as an optional integer node argument, influencing the likelihood that a particular child will be picked.
-
-```
-root {
-    lotto [10,5,3,1] {
-        action [CommonAction]
-        action [UncommonAction]
-        action [RareAction]
-        action [VeryRareAction]
-    }
-}
-```
-
 ### Repeat
 This decorator node will repeat the execution of its child node if the child moves to the succeeded state. It will do this until either the child fails, at which point the repeat node will fail, or the maximum number of iterations is reached, which moves the repeat node to a succeeded state. This node will be in a running state if its child is also in a running state, or if further iterations need to be made.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=repeat)
 
 The maximum number of iterations can be defined as a single integer node argument. In the example below, we would be repeating the action **SomeAction** 5 times.
 
@@ -235,6 +243,7 @@ root {
 
 ### Flip
 This decorator node will move to the succeed state when its child moves to the failed state, and it will fail if its child moves to the succeeded state. This node will remain in the running state if its child is in the running state.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=flip)
 
 ```
 root {
@@ -246,6 +255,7 @@ root {
 
 ### Succeed
 This decorator node will move to the succeed state when its child moves to the either the failed state or the succeeded state. This node will remain in the running state if its child is in the running state.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=succeed)
 
 ```
 root {
@@ -257,6 +267,7 @@ root {
 
 ### Fail
 This decorator node will move to the failed state when its child moves to the either the failed state or the succeeded state. This node will remain in the running state if its child is in the running state.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=fail)
 
 ```
 root {
@@ -270,9 +281,11 @@ root {
 Leaf nodes are the lowest level node type and cannot be the parent of other child nodes.
 
 ### Action
-An action node represents an action that can be completed immediately as part of a single tree step, or ongoing behaviour that can take a prolonged amount of time and may take multiple tree steps to complete. Each action node will correspond to functionality defined within the blackboard, where the first action node argument will be an identifier matching the name of the corresponding blackboard action function.
+An action node represents an action that can be completed immediately as part of a single tree step, or ongoing behaviour that can take a prolonged amount of time and may take multiple tree steps to complete. Each action node will correspond to some action that can be carried out by the agent, where the first action node argument will be an identifier matching the name of the corresponding agent action function.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=action)
 
-A blackboard action function can optionally return a finished action state of **succeeded** or **failed**. If the **succeeded** or **failed** state is returned, then the action will move into that state.
+An agent action function can optionally return a finished action state of **succeeded** or **failed**. If the **succeeded** or **failed** state is returned, then the action will move into that state.
+
 
 ```
 root {
@@ -281,7 +294,7 @@ root {
 ```
 
 ```js
-const board = {
+const agent = {
     //...
     Attack: () => {
         // If we do not have a weapon then we cannot attack.
@@ -299,10 +312,10 @@ const board = {
 };
 ```
 
-If no value is returned from the action function the action node will move into the **running** state and no following nodes will be processed as part of the current tree step. In the example below, any action node that references **WalkToPosition** will remain in the **running** state until the target position is reached.
+If no value or undefined is returned from the action function the action node will move into the **running** state and no following nodes will be processed as part of the current tree step. In the example below, any action node that references **WalkToPosition** will remain in the **running** state until the target position is reached.
 
 ```js
-const board = {
+const agent = {
     //...
     WalkToPosition: () => {
         // ... Walk towards the position we are trying to reach ...
@@ -317,13 +330,14 @@ const board = {
 };
 ```
 
-Further steps of the tree will resume processing from leaf nodes that were left in the **running** state until they succeed, fail, or processing of the running branch is aborted via a guard.
+Further steps of the tree will resume processing from leaf nodes that were left in the **running** state until those nodes succeed, fail, or processing of the running branch is aborted via a guard.
 
 #### Promise-based Actions
 As well as returning a finished action state from an action function, you can also return a promise that should eventually resolve with a finished state as its value. The action will remain in the running state until the promise is fulfilled, and any following tree steps will not call the action function again.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=async-action)
 
 ```js
-const board = {
+const agent = {
     //...
     SomeAsyncAction: () => {
         return new Promise(function(resolve, reject) {
@@ -337,7 +351,8 @@ const board = {
 ```
 
 #### Optional Arguments
-Arguments can optionally be passed to blackboard action functions. This is done by including them in the action node argument list in the definition. These optional arguments must be defined after the action name identifier argument, and can be  a `number`, `string`, `boolean` or `null`.
+Arguments can optionally be passed to agent action functions. This is done by including them in the action node argument list in the definition. These optional arguments must be defined after the action name identifier argument, and can be  a `number`, `string`, `boolean` or `null`.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=action-with-args)
 
 ```
 root {
@@ -346,7 +361,7 @@ root {
 ```
 
 ```js
-const board = {
+const agent = {
     //...
     Say: (dialog, times = 1, sayLoudly = false) => 
     {
@@ -361,7 +376,8 @@ const board = {
 ```
 
 ### Condition
-A Condition node will immediately move into either a **succeeded** or **failed** based of the boolean result of calling a function in the blackboard. Each condition node will correspond to functionality defined within the blackboard, where the first condition node argument will be an identifier matching the name of the corresponding blackboard condition function.
+A Condition node will immediately move into either a **succeeded** or **failed** state based on the boolean result of calling a function on the agent. Each condition node will correspond to functionality defined on the agent, where the first condition node argument will be an identifier matching the name of the corresponding agent condition function.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=condition)
 
 ```
 root {
@@ -372,7 +388,7 @@ root {
 }
 ```
 ```js
-const board = {
+const agent = {
     //...
     HasWeapon: () => this.isHoldingWeapon(),
     //...
@@ -382,7 +398,8 @@ const board = {
 ```
 
 #### Optional Arguments
-Arguments can optionally be passed to blackboard condition functions in the same was as action nodes. This is done by including them in the condition node argument list in the definition. These optional arguments must be defined after the condition name identifier argument, and can be a `number`, `string`, `boolean` or `null`.
+Arguments can optionally be passed to agent condition functions in the same was as action nodes. This is done by including them in the condition node argument list in the definition. These optional arguments must be defined after the condition name identifier argument, and can be a `number`, `string`, `boolean` or `null`.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=condition-with-args)
 
 ```
 root {
@@ -392,7 +409,7 @@ root {
 }
 ```
 ```js
-const board = {
+const agent = {
     //...
     HasItem: (itemName) => this.inventory.includes(itemName),
     // ...
@@ -401,6 +418,8 @@ const board = {
 
 ### Wait
 A wait node will remain in a running state for a specified duration, after which it will move into the succeeded state. The duration in milliseconds can be defined as a single integer node argument.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=wait)
+
 ```
 root {
     repeat {
@@ -414,6 +433,7 @@ root {
 In the above example, we are using a wait node to wait 2 seconds between each run of the **FireWeapon** action.
 
 The duration to wait in milliseconds can also be selected at random within a lower and upper bound if these are defined as two integer node arguments. In the example below, we would run the **PickUpProjectile** action and then wait for 2 to 8 seconds before running the **ThrowProjectile** action.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=wait-one-to-five-seconds)
 
 ```
 root {
@@ -446,6 +466,7 @@ root {
 
 ## Callbacks
 Callbacks can be defined for tree nodes and will be invoked as the node is processed during a tree step. Any number of callbacks can be attached to a node as long as there are not multiple callbacks of the same type.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=callbacks)
 
 Optional arguments can be defined for callback functions in the same way as action and condition functions.
 
@@ -491,8 +512,18 @@ root {
 }
 ```
 
-### Guards
+#### Optional Arguments
+Arguments can optionally be passed to agent callback functions and can be a `number`, `string`, `boolean` or `null`.
+
+```
+root {
+    action [Walk] entry(OnMovementStart, "walking")
+}
+```
+
+## Guards
 A guard defines a condition that must be met in order for the node to remain active. Any running nodes will have their guard condition evaluated for each leaf node update, and will move to a failed state if the guard condition is not met.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=guards)
 
 This functionality is useful as a means of aborting long running actions or branches that span across multiple steps of the tree.
 
@@ -502,9 +533,22 @@ root {
 }
 ```
 
-In the above example, we have a **wait** node that waits for 10 seconds before moving to a succeeded state. We are using a **while** guard to give up on waiting this long if the condition **CanWait** evaluates to false during a tree step.
+In the above example, we have a **wait** node that waits for 10 seconds before moving to a succeeded state. We are using a **while** guard to give up on waiting this long if the guard function **CanWait** returns false during a tree step.
 
-#### While
+#### Optional Arguments
+Arguments can optionally be passed to agent guard functions and can be a `number`, `string`, `boolean` or `null`.
+
+```
+root {
+    action [Run] while(HasItemEquipped, "running-shoes")
+}
+
+root {
+    action [Gamble] until(HasGold, 1000)
+}
+```
+
+### While
 A while guard will be satisfied as long as its condition evaluates to true.
 
 ```
@@ -518,7 +562,7 @@ root {
 }
 ```
 
-#### Until
+### Until
 An until guard will be satisfied as long as its condition evaluates to false.
 
 ```
@@ -532,6 +576,67 @@ root {
 }
 ```
 
+## Globals
+
+When dealing with multiple agents, each with their own behaviour tree instance, it can often be useful to have functions and subtrees that can be registered globally once and referenced by each of them.
+
+### Global Subtrees
+We can globally register a subtree that can be referenced from any behaviour tree via a **branch** node.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=global-subtrees)
+
+```js
+/** Register the global subtree for some celebratory behaviour. */
+BehaviourTree.register("Celebrate", `root {
+    sequence {
+        action [Jump]
+        action [Say, "Yay!"]
+        action [Jump]
+        action [Say, "We did it!"]
+    }
+}`);
+
+/** Define some behaviour for an agent that references our registered 'Celebrate' subtree. */
+const definition = `root {
+    sequence {
+        action [AttemptDifficultTask]
+        branch [Celebrate]
+    }
+}`;
+
+/** Create our agent behaviour tree. */
+const agentBehaviourTree = new BehaviourTree(definition, agent);
+```
+
+### Global Functions
+We can globally register functions to be invoked in place of any agent instance functions, these functions can be referenced throughout a tree definition anywhere that we can reference an agent instance function. The primary difference between these globally registered functions and any agent instance functions is that all global functions that are invoked will take the invoking agent object as the first argument, followed by any optional arguments.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=global-functions)
+
+In a situation where a tree will reference a function by name that is defined on both the agent instance as well as a function that is registered globally, the agent instance function will take precedence.
+
+```js
+/** Register the 'speak' global function that any agent tree can invoke for an action. */
+BehaviourTree.register("Speak", (agent, text) => {
+    showInfoToast(`${agent.getName()}: ${text}`);
+    return State.SUCCEEDED;
+});
+
+/** Register the 'IsSimulationRunning' global function that any agent tree can invoke for a condition. */
+BehaviourTree.register("IsSimulationRunning", (agent) => {
+    return simulation.isRunning();
+});
+
+/** Define some behaviour for an agent that references our registered functions. */
+const definition = `root {
+    sequence {
+        condition [IsSimulationRunning]
+        action [Speak, "I still have work to do"]
+    }
+}`;
+
+/** Create our agent behaviour tree. */
+const agentBehaviourTree = new BehaviourTree(definition, agent);
+```
+
 ## Version History
 | Version        | Notes           |
 | -------------- |:-------------|
@@ -540,5 +645,5 @@ root {
 | 2.0.1          | Fixed isses with inconsistent guard condition evaluation for composite nodes | 
 | 2.0.0          | Fixed broken typings | 
 | 1.1.0          | Added parallel composite node |
-| 1.0.0          | Calls to action, condition and guard blackboard functions are now bound to the blackboard  |
+| 1.0.0          | Calls to action, condition and guard agent functions are now bound to the agent instance  |
 | 0.0.6          | Added promisey actions     |

@@ -1,11 +1,11 @@
-import Node from '../node'
+import Node from "../node";
 import State from "../../state";
 
 /**
  * A composite node that wraps child nodes.
  * @param type The node type.
  * @param decorators The node decorators.
- * @param children The child nodes. 
+ * @param children The child nodes.
  */
 export default function Composite(type, decorators, children) {
     Node.call(this, type, decorators);
@@ -28,21 +28,21 @@ export default function Composite(type, decorators, children) {
         this.setState(State.READY);
 
         // Reset the state of any child nodes.
-        this.getChildren().forEach(child => child.reset());
+        this.getChildren().forEach((child) => child.reset());
     };
 
     /**
      * Abort the running of this node.
-     * @param board The board.
+     * @param agent The agent.
      */
-    this.abort = (board) => {
+    this.abort = (agent) => {
         // There is nothing to do if this node is not in the running state.
         if (!this.is(State.RUNNING)) {
             return;
         }
 
         // Abort any child nodes.
-        this.getChildren().forEach(child => child.abort(board));
+        this.getChildren().forEach((child) => child.abort(agent));
 
         // Reset the state of this node.
         this.reset();
@@ -52,9 +52,9 @@ export default function Composite(type, decorators, children) {
 
         // Call the exit decorator function if it exists.
         if (exitDecorator) {
-            exitDecorator.callBlackboardFunction(board, false, true);
+            exitDecorator.callAgentFunction(agent, false, true);
         }
     };
-};
+}
 
 Composite.prototype = Object.create(Node.prototype);

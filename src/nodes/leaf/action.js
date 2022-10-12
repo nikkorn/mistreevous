@@ -1,5 +1,6 @@
-import Leaf from './leaf';
-import State from '../../state'
+import Leaf from "./leaf";
+import State from "../../state";
+import Lookup from "../../Lookup";
 
 /**
  * An Action leaf node.
@@ -12,7 +13,7 @@ export default function Action(decorators, actionName, actionArguments) {
     Leaf.call(this, "action", decorators, actionArguments);
 
     /**
-     * Whether there is a pending update promise. 
+     * Whether there is a pending update promise.
      */
     let isUsingUpdatePromise = false;
 
@@ -20,16 +21,13 @@ export default function Action(decorators, actionName, actionArguments) {
      * The finished state result of an update promise.
      */
     let updatePromiseStateResult = null;
-   
+
     /**
      * Update the node.
-     * @param board The board.
+     * @param agent The agent.
      * @returns The result of the update.
      */
-    this.onUpdate = function(board) {
-        // Get the corresponding action object or function.
-        const action = board[actionName];
-
+    this.onUpdate = function (agent) {
         // If the result of this action depends on an update promise then there is nothing to do until
         // it resolves, unless there has been a value set as a result of the update promise resolving.
         if (isUsingUpdatePromise) {
@@ -38,18 +36,25 @@ export default function Action(decorators, actionName, actionArguments) {
                 // Set the state of this node to match the state returned by the promise.
                 this.setState(updatePromiseStateResult);
             }
-            
+
             return;
         }
 
-        // Validate the action.
-        this._validateAction(action);
+        // Attempt to get the invoker for the action function.
+        const actionFuncInvoker = Lookup.getFuncInvoker(agent, actionName);
 
-        // Call the action 'onUpdate' function, the result of which may be:
+        // The action function should be defined.
+        if (actionFuncInvoker === null) {
+            throw new Error(
+                `cannot update action node as the action '${actionName}' function is not defined on the agent and has not been registered`
+            );
+        }
+
+        // Call the action function, the result of which may be:
         // - The finished state of this action node.
         // - A promise to return a finished node state.
         // - Undefined if the node should remain in the running state.
-        const updateResult = action.apply(board, actionArguments.map(arg => arg.value));
+        const updateResult = actionFuncInvoker(actionArguments);
 
         if (updateResult instanceof Promise) {
             updateResult.then(
@@ -61,12 +66,14 @@ export default function Action(decorators, actionName, actionArguments) {
 
                     // Check to make sure the result is a valid finished state.
                     if (result !== State.SUCCEEDED && result !== State.FAILED) {
-                        throw new Error("action node promise resolved with an invalid value, expected a State.SUCCEEDED or State.FAILED value to be returned");
+                        throw new Error(
+                            "action node promise resolved with an invalid value, expected a State.SUCCEEDED or State.FAILED value to be returned"
+                        );
                     }
 
                     // Set pending update promise state result to be processed on next update.
                     updatePromiseStateResult = result;
-                }, 
+                },
                 (reason) => {
                     // If 'isUpdatePromisePending' is null then the promise was cleared as it was resolving, probably via an abort of reset.
                     if (!isUsingUpdatePromise) {
@@ -105,24 +112,8 @@ export default function Action(decorators, actionName, actionArguments) {
         this.setState(State.READY);
 
         // There is no longer an update promise that we care about.
-        isUsingUpdatePromise     = false;
+        isUsingUpdatePromise = false;
         updatePromiseStateResult = null;
-    };
-
-    /**
-     * Validate an action.
-     * @param action The action to validate.
-     */
-    this._validateAction = (action) => {
-        // The action should be defined.
-        if (!action) {
-            throw new Error(`cannot update action node as action '${actionName}' is not defined in the blackboard`);
-        }
-
-        // The action will need to be a function or an object, anything else is not valid.
-        if (typeof action !== "function" || typeof action !== "object") {
-            return `action '${actionName}' must be a function`;
-        }
     };
 
     /**
@@ -136,9 +127,11 @@ export default function Action(decorators, actionName, actionArguments) {
             case undefined:
                 return;
             default:
-                throw new Error(`action '${actionName}' 'onUpdate' returned an invalid response, expected an optional State.SUCCEEDED or State.FAILED value to be returned`);
+                throw new Error(
+                    `action '${actionName}' 'onUpdate' returned an invalid response, expected an optional State.SUCCEEDED or State.FAILED value to be returned`
+                );
         }
     };
-};
+}
 
 Action.prototype = Object.create(Leaf.prototype);

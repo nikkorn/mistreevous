@@ -1,4 +1,4 @@
-const mistreevous = require('../../dist/index');
+const mistreevous = require('../../../dist/index');
 const chai = require('chai');
 
 var assert = chai.assert;
@@ -16,8 +16,8 @@ describe("A Repeat node", () => {
   describe("when updated as part of a tree step", () => {
     it("will move to the FAILED state if the child node moves to the FAILED state", () => {
       const definition = "root { repeat { condition [someCondition] } }";
-      const board = { someCondition: () => false };
-      const tree = new mistreevous.BehaviourTree(definition, board);
+      const agent = { someCondition: () => false };
+      const tree = new mistreevous.BehaviourTree(definition, agent);
 
       let node = findNode(tree, "repeat", "REPEAT");
       assert.strictEqual(node.state, mistreevous.State.READY);
@@ -30,8 +30,8 @@ describe("A Repeat node", () => {
 
     it("will move to the RUNNING state if the child node moves to the SUCCEEDED state", () => {
       const definition = "root { repeat { condition [someCondition] } }";
-      const board = { someCondition: () => true };
-      const tree = new mistreevous.BehaviourTree(definition, board);
+      const agent = { someCondition: () => true };
+      const tree = new mistreevous.BehaviourTree(definition, agent);
 
       let node = findNode(tree, "repeat", "REPEAT");
       assert.strictEqual(node.state, mistreevous.State.READY);
@@ -44,8 +44,8 @@ describe("A Repeat node", () => {
 
     it("and a maximum iteration node argument is defined will attempt to re-run the child node until the maximum iteration is reached", () => {
       const definition = "root { repeat [3] { condition [someCondition] } }";
-      const board = { someCondition: () => true };
-      const tree = new mistreevous.BehaviourTree(definition, board);
+      const agent = { someCondition: () => true };
+      const tree = new mistreevous.BehaviourTree(definition, agent);
 
       let node = findNode(tree, "repeat", "REPEAT 3x");
       assert.strictEqual(node.state, mistreevous.State.READY);
