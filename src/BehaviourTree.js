@@ -15,14 +15,20 @@ export default class BehaviourTree {
      * The main root tree node.
      */
     #rootNode;
+    /**
+     * The behaviour tree options object.
+     */
+    #options;
 
     /**
      * Constructor for the BehaviourTree class.
      * @param definition The behaviour tree definition.
      * @param agent The agent instance that this behaviour tree is modelling behaviour for.
+     * @param options The behaviour tree options object.
      */
-    constructor(definition, agent) {
+    constructor(definition, agent, options = {}) {
         this.#agent = agent;
+        this.#options = options;
 
         // The tree definition must be defined and a valid string.
         if (typeof definition !== "string") {
@@ -74,7 +80,7 @@ export default class BehaviourTree {
         }
 
         try {
-            this.#rootNode.update(this.#agent);
+            this.#rootNode.update(this.#agent, this.#options);
         } catch (exception) {
             throw new Error(`error stepping tree: ${exception.message}`);
         }

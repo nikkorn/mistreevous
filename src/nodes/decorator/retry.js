@@ -29,9 +29,10 @@ export default function Retry(decorators, iterations, maximumIterations, child) 
     /**
      * Update the node.
      * @param agent The agent.
+     * @param options The behaviour tree options object.
      * @returns The result of the update.
      */
-    this.onUpdate = function (agent) {
+    this.onUpdate = function (agent, options) {
         // If this node is in the READY state then we need to reset the child and the target iteration count.
         if (this.is(State.READY)) {
             // Reset the child node.
@@ -54,7 +55,7 @@ export default function Retry(decorators, iterations, maximumIterations, child) 
             }
 
             // Update the child of this node.
-            child.update(agent);
+            child.update(agent, options);
 
             // If the child moved into the SUCCEEDED state when we updated it then there is nothing left to do and this node has also succeeded.
             // If it has moved into the FAILED state then we have completed the current iteration.

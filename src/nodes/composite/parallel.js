@@ -13,9 +13,10 @@ export default function Parallel(decorators, children) {
     /**
      * Update the node and get whether the node state has changed.
      * @param agent The agent.
+     * @param options The behaviour tree options object.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.onUpdate = function (agent) {
+    this.onUpdate = function (agent, options) {
         // Keep a count of the number of succeeded child nodes.
         let succeededCount = 0;
 
@@ -26,7 +27,7 @@ export default function Parallel(decorators, children) {
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === State.READY || child.getState() === State.RUNNING) {
                 // Update the child of this node.
-                child.update(agent);
+                child.update(agent, options);
             }
 
             // If the current child has a state of 'SUCCEEDED' then we should move on to the next child.

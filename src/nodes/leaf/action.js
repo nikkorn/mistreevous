@@ -25,9 +25,10 @@ export default function Action(decorators, actionName, actionArguments) {
     /**
      * Update the node.
      * @param agent The agent.
+     * @param options The behaviour tree options object.
      * @returns The result of the update.
      */
-    this.onUpdate = function (agent) {
+    this.onUpdate = function (agent, options) {
         // If the result of this action depends on an update promise then there is nothing to do until
         // it resolves, unless there has been a value set as a result of the update promise resolving.
         if (isUsingUpdatePromise) {

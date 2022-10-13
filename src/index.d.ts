@@ -12,6 +12,17 @@ declare module "mistreevous" {
 	}
 
 	/**
+	 * The options object that can be passed as an argument when instantiating the BehaviourTree class.
+	 */
+	interface BehaviourTreeOptions {
+		/**
+		 * Gets the delta time to use in seconds.
+		 * @returns The delta time to use in seconds.
+		 */
+		getDeltaTime?(): number;
+	}
+
+	/**
 	 * A representation of a behaviour tree.
 	 */
 	class BehaviourTree {
@@ -19,8 +30,9 @@ declare module "mistreevous" {
 		 * Creates a new instance of the BehaviourTree class.
 		 * @param definition The tree definition.
 		 * @param agent The agent that the tree is modelling behaviour for.
+		 * @param options The options object.
 		 */
-		constructor(definition: string, agent: any);
+		constructor(definition: string, agent: any, options?: BehaviourTreeOptions);
 
 		/**
 		 * Carries out a node update that traverses the tree from the root node outwards to any child nodes, skipping those that are already in a resolved state of SUCCEEDED or FAILED.

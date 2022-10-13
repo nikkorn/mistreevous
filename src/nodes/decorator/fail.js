@@ -13,12 +13,13 @@ export default function Fail(decorators, child) {
     /**
      * Update the node.
      * @param agent The agent.
+     * @param options The behaviour tree options object.
      * @returns The result of the update.
      */
-    this.onUpdate = function (agent) {
+    this.onUpdate = function (agent, options) {
         // If the child has never been updated or is running then we will need to update it now.
         if (child.getState() === State.READY || child.getState() === State.RUNNING) {
-            child.update(agent);
+            child.update(agent, options);
         }
 
         // The state of this node will depend in the state of its child.

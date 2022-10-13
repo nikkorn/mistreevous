@@ -15,9 +15,10 @@ export default function Condition(decorators, conditionName, conditionArguments)
     /**
      * Update the node.
      * @param agent The agent.
+     * @param options The behaviour tree options object.
      * @returns The result of the update.
      */
-    this.onUpdate = function (agent) {
+    this.onUpdate = function (agent, options) {
         // Attempt to get the invoker for the condition function.
         const conditionFuncInvoker = Lookup.getFuncInvoker(agent, conditionName);
 

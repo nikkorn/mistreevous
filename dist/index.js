@@ -166,9 +166,10 @@
         /**
          * Update the node.
          * @param agent The agent.
+         * @param options The behaviour tree options object.
          * @returns The result of the update.
          */
-        this.update = (agent) => {
+        this.update = (agent, options) => {
             // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
             if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {
                 // We have not changed state.
@@ -198,7 +199,7 @@
                 }
 
                 // Do the actual update.
-                this.onUpdate(agent);
+                this.onUpdate(agent, options);
 
                 // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT decorator for this node if it exists.
                 if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {
@@ -369,9 +370,10 @@
         /**
          * Update the node.
          * @param agent The agent.
+         * @param options The behaviour tree options object.
          * @returns The result of the update.
          */
-        this.onUpdate = function (agent) {
+        this.onUpdate = function (agent, options) {
             // If the result of this action depends on an update promise then there is nothing to do until
             // it resolves, unless there has been a value set as a result of the update promise resolving.
             if (isUsingUpdatePromise) {
@@ -493,9 +495,10 @@
         /**
          * Update the node.
          * @param agent The agent.
+         * @param options The behaviour tree options object.
          * @returns The result of the update.
          */
-        this.onUpdate = function (agent) {
+        this.onUpdate = function (agent, options) {
             // Attempt to get the invoker for the condition function.
             const conditionFuncInvoker = Lookup.getFuncInvoker(agent, conditionName);
 
@@ -534,24 +537,33 @@
         let initialUpdateTime;
 
         /**
-         * The duration in milliseconds that this node will be waiting for.
+         * The total duration in milliseconds that this node will be waiting for.
          */
-        let waitDuration;
+        let totalDuration;
+
+        /**
+         * The duration in milliseconds that this node has been waiting for.
+         */
+        let waitedDuration;
 
         /**
          * Update the node.
          * @param agent The agent.
+         * @param options The behaviour tree options object.
          * @returns The result of the update.
          */
-        this.onUpdate = function (agent) {
+        this.onUpdate = function (agent, options) {
             // If this node is in the READY state then we need to set the initial update time.
             if (this.is(State.READY)) {
                 // Set the initial update time.
                 initialUpdateTime = new Date().getTime();
 
+                // Set the initial waited duration.
+                waitedDuration = 0;
+
                 // If a longestDuration value was defined then we will be randomly picking a duration between the
                 // shortest and longest duration. If it was not defined, then we will be just using the duration.
-                waitDuration = longestDuration
+                totalDuration = longestDuration
                     ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration)
                     : duration;
 
@@ -559,8 +571,25 @@
                 this.setState(State.RUNNING);
             }
 
+            // If we have a 'getDeltaTime' function defined as part of our options then we will use it to figure out how long we have waited for.
+            if (typeof options.getDeltaTime === "function") {
+                // Get the delta time.
+                const deltaTime = options.getDeltaTime();
+
+                // Our delta time must be a valid number and cannot be NaN.
+                if (typeof deltaTime !== "number" || isNaN(deltaTime)) {
+                    throw new Error("The delta time must be a valid number and not NaN.");
+                }
+
+                // Update the amount of time that this node has been waiting for based on the delta time.
+                waitedDuration += deltaTime * 1000;
+            } else {
+                // We are not using a delta time, so we will just work out hom much time has passed since the first update.
+                waitedDuration = new Date().getTime() - initialUpdateTime;
+            }
+
             // Have we waited long enough?
-            if (new Date().getTime() >= initialUpdateTime + waitDuration) {
+            if (waitedDuration >= totalDuration) {
                 // We have finished waiting!
                 this.setState(State.SUCCEEDED);
             }
@@ -644,13 +673,14 @@
         /**
          * Update the node and get whether the node state has changed.
          * @param agent The agent.
+         * @param options The behaviour tree options object.
          * @returns Whether the state of this node has changed as part of the update.
          */
-        this.onUpdate = function (agent) {
+        this.onUpdate = function (agent, options) {
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === State.READY || child.getState() === State.RUNNING) {
                 // Update the child of this node.
-                child.update(agent);
+                child.update(agent, options);
             }
 
             // The state of the root node is the state of its child.
@@ -693,9 +723,10 @@
         /**
          * Update the node.
          * @param agent The agent.
+         * @param options The behaviour tree options object.
          * @returns The result of the update.
          */
-        this.onUpdate = function (agent) {
+        this.onUpdate = function (agent, options) {
             // If this node is in the READY state then we need to reset the child and the target iteration count.
             if (this.is(State.READY)) {
                 // Reset the child node.
@@ -718,7 +749,7 @@
                 }
 
                 // Update the child of this node.
-                child.update(agent);
+                child.update(agent, options);
 
                 // If the child moved into the FAILED state when we updated it then there is nothing left to do and this node has also failed.
                 // If it has moved into the SUCCEEDED state then we have completed the current iteration.
@@ -824,9 +855,10 @@
         /**
          * Update the node.
          * @param agent The agent.
+         * @param options The behaviour tree options object.
          * @returns The result of the update.
          */
-        this.onUpdate = function (agent) {
+        this.onUpdate = function (agent, options) {
             // If this node is in the READY state then we need to reset the child and the target iteration count.
             if (this.is(State.READY)) {
                 // Reset the child node.
@@ -849,7 +881,7 @@
                 }
 
                 // Update the child of this node.
-                child.update(agent);
+                child.update(agent, options);
 
                 // If the child moved into the SUCCEEDED state when we updated it then there is nothing left to do and this node has also succeeded.
                 // If it has moved into the FAILED state then we have completed the current iteration.
@@ -939,12 +971,13 @@
         /**
          * Update the node.
          * @param agent The agent.
+         * @param options The behaviour tree options object.
          * @returns The result of the update.
          */
-        this.onUpdate = function (agent) {
+        this.onUpdate = function (agent, options) {
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === State.READY || child.getState() === State.RUNNING) {
-                child.update(agent);
+                child.update(agent, options);
             }
 
             // The state of this node will depend in the state of its child.
@@ -986,12 +1019,13 @@
         /**
          * Update the node.
          * @param agent The agent.
+         * @param options The behaviour tree options object.
          * @returns The result of the update.
          */
-        this.onUpdate = function (agent) {
+        this.onUpdate = function (agent, options) {
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === State.READY || child.getState() === State.RUNNING) {
-                child.update(agent);
+                child.update(agent, options);
             }
 
             // The state of this node will depend in the state of its child.
@@ -1030,12 +1064,13 @@
         /**
          * Update the node.
          * @param agent The agent.
+         * @param options The behaviour tree options object.
          * @returns The result of the update.
          */
-        this.onUpdate = function (agent) {
+        this.onUpdate = function (agent, options) {
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === State.READY || child.getState() === State.RUNNING) {
-                child.update(agent);
+                child.update(agent, options);
             }
 
             // The state of this node will depend in the state of its child.
@@ -1195,9 +1230,10 @@
         /**
          * Update the node and get whether the node state has changed.
          * @param agent The agent.
+         * @param options The behaviour tree options object.
          * @returns Whether the state of this node has changed as part of the update.
          */
-        this.onUpdate = function (agent) {
+        this.onUpdate = function (agent, options) {
             // If this node is in the READY state then we need to pick a winning child node.
             if (this.is(State.READY)) {
                 // Create a lotto draw.
@@ -1212,7 +1248,7 @@
 
             // If the winning child has never been updated or is running then we will need to update it now.
             if (winningChild.getState() === State.READY || winningChild.getState() === State.RUNNING) {
-                winningChild.update(agent);
+                winningChild.update(agent, options);
             }
 
             // The state of the lotto node is the state of its winning child.
@@ -1239,15 +1275,16 @@
         /**
          * Update the node and get whether the node state has changed.
          * @param agent The agent.
+         * @param options The behaviour tree options object.
          * @returns Whether the state of this node has changed as part of the update.
          */
-        this.onUpdate = function (agent) {
+        this.onUpdate = function (agent, options) {
             // Iterate over all of the children of this node.
             for (const child of children) {
                 // If the child has never been updated or is running then we will need to update it now.
                 if (child.getState() === State.READY || child.getState() === State.RUNNING) {
                     // Update the child of this node.
-                    child.update(agent);
+                    child.update(agent, options);
                 }
 
                 // If the current child has a state of 'SUCCEEDED' then this node is also a 'SUCCEEDED' node.
@@ -1309,15 +1346,16 @@
         /**
          * Update the node and get whether the node state has changed.
          * @param agent The agent.
+         * @param options The behaviour tree options object.
          * @returns Whether the state of this node has changed as part of the update.
          */
-        this.onUpdate = function (agent) {
+        this.onUpdate = function (agent, options) {
             // Iterate over all of the children of this node.
             for (const child of children) {
                 // If the child has never been updated or is running then we will need to update it now.
                 if (child.getState() === State.READY || child.getState() === State.RUNNING) {
                     // Update the child of this node.
-                    child.update(agent);
+                    child.update(agent, options);
                 }
 
                 // If the current child has a state of 'SUCCEEDED' then we should move on to the next child.
@@ -1379,9 +1417,10 @@
         /**
          * Update the node and get whether the node state has changed.
          * @param agent The agent.
+         * @param options The behaviour tree options object.
          * @returns Whether the state of this node has changed as part of the update.
          */
-        this.onUpdate = function (agent) {
+        this.onUpdate = function (agent, options) {
             // Keep a count of the number of succeeded child nodes.
             let succeededCount = 0;
 
@@ -1392,7 +1431,7 @@
                 // If the child has never been updated or is running then we will need to update it now.
                 if (child.getState() === State.READY || child.getState() === State.RUNNING) {
                     // Update the child of this node.
-                    child.update(agent);
+                    child.update(agent, options);
                 }
 
                 // If the current child has a state of 'SUCCEEDED' then we should move on to the next child.
@@ -2789,14 +2828,20 @@
          * The main root tree node.
          */
         #rootNode;
+        /**
+         * The behaviour tree options object.
+         */
+        #options;
 
         /**
          * Constructor for the BehaviourTree class.
          * @param definition The behaviour tree definition.
          * @param agent The agent instance that this behaviour tree is modelling behaviour for.
+         * @param options The behaviour tree options object.
          */
-        constructor(definition, agent) {
+        constructor(definition, agent, options = {}) {
             this.#agent = agent;
+            this.#options = options;
 
             // The tree definition must be defined and a valid string.
             if (typeof definition !== "string") {
@@ -2848,7 +2893,7 @@
             }
 
             try {
-                this.#rootNode.update(this.#agent);
+                this.#rootNode.update(this.#agent, this.#options);
             } catch (exception) {
                 throw new Error(`error stepping tree: ${exception.message}`);
             }

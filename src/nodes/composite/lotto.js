@@ -76,9 +76,10 @@ export default function Lotto(decorators, tickets, children) {
     /**
      * Update the node and get whether the node state has changed.
      * @param agent The agent.
+     * @param options The behaviour tree options object.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.onUpdate = function (agent) {
+    this.onUpdate = function (agent, options) {
         // If this node is in the READY state then we need to pick a winning child node.
         if (this.is(State.READY)) {
             // Create a lotto draw.
@@ -93,7 +94,7 @@ export default function Lotto(decorators, tickets, children) {
 
         // If the winning child has never been updated or is running then we will need to update it now.
         if (winningChild.getState() === State.READY || winningChild.getState() === State.RUNNING) {
-            winningChild.update(agent);
+            winningChild.update(agent, options);
         }
 
         // The state of the lotto node is the state of its winning child.

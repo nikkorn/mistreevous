@@ -109,9 +109,10 @@ export default function Node(type, decorators, args) {
     /**
      * Update the node.
      * @param agent The agent.
+     * @param options The behaviour tree options object.
      * @returns The result of the update.
      */
-    this.update = (agent) => {
+    this.update = (agent, options) => {
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
         if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {
             // We have not changed state.
@@ -141,7 +142,7 @@ export default function Node(type, decorators, args) {
             }
 
             // Do the actual update.
-            this.onUpdate(agent);
+            this.onUpdate(agent, options);
 
             // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT decorator for this node if it exists.
             if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {
