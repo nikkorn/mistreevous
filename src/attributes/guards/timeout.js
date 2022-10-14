@@ -14,6 +14,22 @@ export default function Timeout(duration, args) {
     this.isGuard = () => true;
 
     /**
+     * Gets the decorator details.
+     */
+    this.getDetails = () => {
+        return {
+            type: this.getType(),
+            isGuard: this.isGuard(),
+            condition: this.getCondition(),
+            arguments: this.getArguments()
+        };
+    };
+
+    this.onReady = () => {
+       
+    };
+
+    /**
      * Gets whether the guard is satisfied.
      * @param agent The agent.
      * @returns Whether the guard is satisfied.

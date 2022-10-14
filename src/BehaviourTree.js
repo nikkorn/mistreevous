@@ -94,8 +94,8 @@ export default class BehaviourTree {
     }
 
     /**
-     * Gets the flattened details of every node in the tree.
-     * @returns The flattened details of every node in the tree.
+     * Gets the tree as a flattened array of tree node details.
+     * @returns The tree as a flattened array of tree node details.
      */
     getFlattenedNodeDetails() {
         // Create an empty flattened array of tree nodes.
@@ -260,7 +260,7 @@ export default class BehaviourTree {
                 const guardPath = new GuardPath(
                     path
                         .slice(0, depth + 1)
-                        .map((node) => ({ node, guards: node.getGuardDecorators() }))
+                        .map((node) => ({ node, guards: node.getAttributes().filter(attribute => attribute.isGuard()) }))
                         .filter((details) => details.guards.length > 0)
                 );
 

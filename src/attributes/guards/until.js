@@ -4,13 +4,13 @@ import Lookup from "../../Lookup";
 /**
  * An UNTIL guard which is satisfied as long as the given condition remains false.
  * @param condition The name of the condition function that determines whether the guard is satisfied.
- * @param args The array of decorator argument definitions.
+ * @param args The array of attribute argument definitions.
  */
 export default function Until(condition, args) {
     Guard.call(this, "until", args);
 
     /**
-     * Gets whether the decorator is a guard.
+     * Gets whether the attribute is a guard.
      */
     this.isGuard = () => true;
 
@@ -20,7 +20,7 @@ export default function Until(condition, args) {
     this.getCondition = () => condition;
 
     /**
-     * Gets the decorator details.
+     * Gets the attribute details.
      */
     this.getDetails = () => {
         return {
@@ -29,6 +29,11 @@ export default function Until(condition, args) {
             condition: this.getCondition(),
             arguments: this.getArguments()
         };
+    };
+
+ 
+    this.onReady = () => {
+       
     };
 
     /**

@@ -61,10 +61,10 @@
     /**
      * A base node.
      * @param type The node type.
-     * @param decorators The node decorators.
+     * @param attributes The node guard/callback attributes.
      * @param args The node argument definitions.
      */
-    function Node(type, decorators, args) {
+    function Node(type, attributes, args) {
         /**
          * The node uid.
          */
@@ -95,9 +95,9 @@
         this.getType = () => type;
 
         /**
-         * Gets the node decorators.
+         * Gets the node guard/callback attributes.
          */
-        this.getDecorators = () => decorators || [];
+        this.getAttributes = () => attributes || [];
 
         /**
          * Gets the node arguments.
@@ -105,15 +105,10 @@
         this.getArguments = () => args || [];
 
         /**
-         * Gets the node decorator with the specified type, or null if it does not exist.
+         * Gets the node guard/callback attribute with the specified type, or null if it does not exist.
          */
-        this.getDecorator = (type) =>
-            this.getDecorators().filter((decorator) => decorator.getType().toUpperCase() === type.toUpperCase())[0] || null;
-
-        /**
-         * Gets the node decorators.
-         */
-        this.getGuardDecorators = () => this.getDecorators().filter((decorator) => decorator.isGuard());
+        this.getAttribute = (type) =>
+            this.getAttributes().filter((attribute) => attribute.getType().toUpperCase() === type.toUpperCase())[0] || null;
 
         /**
          * Sets the guard path to evaluate as part of a node update.
@@ -154,12 +149,12 @@
             // Reset the state of this node.
             this.reset();
 
-            // Try to get the exit decorator for this node.
-            const exitDecorator = this.getDecorator("exit");
+            // Try to get the exit callback attribute for this node.
+            const exitCallback = this.getAttribute("exit");
 
-            // Call the exit decorator function if it exists.
-            if (exitDecorator) {
-                exitDecorator.callAgentFunction(agent, false, true);
+            // Call the exit callback attribute function if it exists.
+            if (exitCallback) {
+                exitCallback.callAgentFunction(agent, false, true);
             }
         };
 
@@ -176,38 +171,46 @@
                 return {};
             }
 
+            // If this node is in a 'READY' state then we may want to carry out some initialisation for any node guard attributes. 
+            if (this.is(State.READY)) {
+                this.getAttributes()
+                    .filter((attribute) => attribute.isGuard())
+                    .forEach((guard) => guard.onReady());
+            }
+
             try {
                 // Evaluate all of the guard path conditions for the current tree path.
                 guardPath.evaluate(agent);
 
-                // If this node is in the READY state then call the ENTRY decorator for this node if it exists.
+                // If this node is in the READY state then call the ENTRY callback for this node if it exists.
                 if (this.is(State.READY)) {
-                    const entryDecorator = this.getDecorator("entry");
+                    const entryCallback = this.getAttribute("entry");
 
-                    // Call the entry decorator function if it exists.
-                    if (entryDecorator) {
-                        entryDecorator.callAgentFunction(agent);
+                    // Call the entry attribute function if it exists.
+                    if (entryCallback) {
+                        entryCallback.callAgentFunction(agent);
                     }
                 }
 
-                // Try to get the step decorator for this node.
-                const stepDecorator = this.getDecorator("step");
+                // Try to get the step callback attribute for this node.
+                const stepCallback = this.getAttribute("step");
 
-                // Call the step decorator function if it exists.
-                if (stepDecorator) {
-                    stepDecorator.callAgentFunction(agent);
+                // Call the step callback attribute function if it exists.
+                if (stepCallback) {
+                    stepCallback.callAgentFunction(agent);
                 }
 
                 // Do the actual update.
                 this.onUpdate(agent, options);
 
-                // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT decorator for this node if it exists.
+                // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT callback for this node if it exists.
                 if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {
-                    const exitDecorator = this.getDecorator("exit");
+                    // Try to get the exit callback attribute for this node.
+                    const exitCallback = this.getAttribute("exit");
 
-                    // Call the exit decorator function if it exists.
-                    if (exitDecorator) {
-                        exitDecorator.callAgentFunction(agent, this.is(State.SUCCEEDED), false);
+                    // Call the exit callback attribute function if it exists.
+                    if (exitCallback) {
+                        exitCallback.callAgentFunction(agent, this.is(State.SUCCEEDED), false);
                     }
                 }
             } catch (error) {
@@ -1526,13 +1529,13 @@
     /**
      * A WHILE guard which is satisfied as long as the given condition remains true.
      * @param condition The name of the condition function that determines whether the guard is satisfied.
-     * @param args The array of decorator argument definitions.
+     * @param args The array of attribute argument definitions.
      */
     function While(condition, args) {
         Guard.call(this, "while", args);
 
         /**
-         * Gets whether the decorator is a guard.
+         * Gets whether the attribute is a guard.
          */
         this.isGuard = () => true;
 
@@ -1542,7 +1545,7 @@
         this.getCondition = () => condition;
 
         /**
-         * Gets the decorator details.
+         * Gets the attribute details.
          */
         this.getDetails = () => {
             return {
@@ -1551,6 +1554,10 @@
                 condition: this.getCondition(),
                 arguments: this.getArguments()
             };
+        };
+
+        this.onReady = () => {
+           
         };
 
         /**
@@ -1579,13 +1586,13 @@
     /**
      * An UNTIL guard which is satisfied as long as the given condition remains false.
      * @param condition The name of the condition function that determines whether the guard is satisfied.
-     * @param args The array of decorator argument definitions.
+     * @param args The array of attribute argument definitions.
      */
     function Until(condition, args) {
         Guard.call(this, "until", args);
 
         /**
-         * Gets whether the decorator is a guard.
+         * Gets whether the attribute is a guard.
          */
         this.isGuard = () => true;
 
@@ -1595,7 +1602,7 @@
         this.getCondition = () => condition;
 
         /**
-         * Gets the decorator details.
+         * Gets the attribute details.
          */
         this.getDetails = () => {
             return {
@@ -1604,6 +1611,11 @@
                 condition: this.getCondition(),
                 arguments: this.getArguments()
             };
+        };
+
+     
+        this.onReady = () => {
+           
         };
 
         /**
@@ -2907,8 +2919,8 @@
         }
 
         /**
-         * Gets the flattened details of every node in the tree.
-         * @returns The flattened details of every node in the tree.
+         * Gets the tree as a flattened array of tree node details.
+         * @returns The tree as a flattened array of tree node details.
          */
         getFlattenedNodeDetails() {
             // Create an empty flattened array of tree nodes.
@@ -3073,7 +3085,7 @@
                     const guardPath = new GuardPath(
                         path
                             .slice(0, depth + 1)
-                            .map((node) => ({ node, guards: node.getGuardDecorators() }))
+                            .map((node) => ({ node, guards: node.getAttributes().filter(attribute => attribute.isGuard()) }))
                             .filter((details) => details.guards.length > 0)
                     );
 

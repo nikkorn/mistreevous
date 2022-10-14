@@ -4,10 +4,10 @@ import State from "../State";
 /**
  * A base node.
  * @param type The node type.
- * @param decorators The node decorators.
+ * @param attributes The node guard/callback attributes.
  * @param args The node argument definitions.
  */
-export default function Node(type, decorators, args) {
+export default function Node(type, attributes, args) {
     /**
      * The node uid.
      */
@@ -38,9 +38,9 @@ export default function Node(type, decorators, args) {
     this.getType = () => type;
 
     /**
-     * Gets the node decorators.
+     * Gets the node guard/callback attributes.
      */
-    this.getDecorators = () => decorators || [];
+    this.getAttributes = () => attributes || [];
 
     /**
      * Gets the node arguments.
@@ -48,15 +48,10 @@ export default function Node(type, decorators, args) {
     this.getArguments = () => args || [];
 
     /**
-     * Gets the node decorator with the specified type, or null if it does not exist.
+     * Gets the node guard/callback attribute with the specified type, or null if it does not exist.
      */
-    this.getDecorator = (type) =>
-        this.getDecorators().filter((decorator) => decorator.getType().toUpperCase() === type.toUpperCase())[0] || null;
-
-    /**
-     * Gets the node decorators.
-     */
-    this.getGuardDecorators = () => this.getDecorators().filter((decorator) => decorator.isGuard());
+    this.getAttribute = (type) =>
+        this.getAttributes().filter((attribute) => attribute.getType().toUpperCase() === type.toUpperCase())[0] || null;
 
     /**
      * Sets the guard path to evaluate as part of a node update.
@@ -97,12 +92,12 @@ export default function Node(type, decorators, args) {
         // Reset the state of this node.
         this.reset();
 
-        // Try to get the exit decorator for this node.
-        const exitDecorator = this.getDecorator("exit");
+        // Try to get the exit callback attribute for this node.
+        const exitCallback = this.getAttribute("exit");
 
-        // Call the exit decorator function if it exists.
-        if (exitDecorator) {
-            exitDecorator.callAgentFunction(agent, false, true);
+        // Call the exit callback attribute function if it exists.
+        if (exitCallback) {
+            exitCallback.callAgentFunction(agent, false, true);
         }
     };
 
@@ -119,38 +114,47 @@ export default function Node(type, decorators, args) {
             return {};
         }
 
+        // If this node is in a 'READY' state then we may want to carry out some initialisation for any node guard attributes. 
+        if (this.is(State.READY)) {
+            this.getAttributes()
+                .filter((attribute) => attribute.isGuard())
+                .forEach((guard) => guard.onReady());
+        }
+
         try {
             // Evaluate all of the guard path conditions for the current tree path.
             guardPath.evaluate(agent);
 
-            // If this node is in the READY state then call the ENTRY decorator for this node if it exists.
+            // If this node is in the READY state then call the entry callback for this node if it exists.
             if (this.is(State.READY)) {
-                const entryDecorator = this.getDecorator("entry");
+                // Try to get the entry callback attribute for this node.
+                const entryCallback = this.getAttribute("entry");
 
-                // Call the entry decorator function if it exists.
-                if (entryDecorator) {
-                    entryDecorator.callAgentFunction(agent);
+                // Call the entry callback attribute function if it exists.
+                if (entryCallback) {
+                    entryCallback.callAgentFunction(agent);
                 }
             }
 
-            // Try to get the step decorator for this node.
-            const stepDecorator = this.getDecorator("step");
+            // Try to get the step callback attribute for this node.
+            const stepCallback = this.getAttribute("step");
 
-            // Call the step decorator function if it exists.
-            if (stepDecorator) {
-                stepDecorator.callAgentFunction(agent);
+            // Call the step callback attribute function if it exists.
+            if (stepCallback) {
+                stepCallback.callAgentFunction(agent);
             }
 
             // Do the actual update.
             this.onUpdate(agent, options);
 
-            // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT decorator for this node if it exists.
+            // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT callback for this node if it exists.
             if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {
-                const exitDecorator = this.getDecorator("exit");
+                // Try to get the exit callback attribute for this node.
+                const exitCallback = this.getAttribute("exit");
 
-                // Call the exit decorator function if it exists.
-                if (exitDecorator) {
-                    exitDecorator.callAgentFunction(agent, this.is(State.SUCCEEDED), false);
+                // Call the exit callback attribute function if it exists.
+                if (exitCallback) {
+                    exitCallback.callAgentFunction(agent, this.is(State.SUCCEEDED), false);
                 }
             }
         } catch (error) {
