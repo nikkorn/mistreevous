@@ -1,5 +1,5 @@
 import Node from "../node";
-import State from "../../state";
+import State from "../../State";
 
 /**
  * A decorator node that wraps a single child node.
