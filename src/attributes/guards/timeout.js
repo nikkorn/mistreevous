@@ -19,8 +19,6 @@ export default function Timeout(duration, args) {
     this.getDetails = () => {
         return {
             type: this.getType(),
-            isGuard: this.isGuard(),
-            condition: this.getCondition(),
             arguments: this.getArguments()
         };
     };

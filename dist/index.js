@@ -1549,18 +1549,12 @@
         this.isGuard = () => true;
 
         /**
-         * Gets the condition of the guard.
-         */
-        this.getCondition = () => condition;
-
-        /**
          * Gets the attribute details.
          */
         this.getDetails = () => {
             return {
                 type: this.getType(),
-                isGuard: this.isGuard(),
-                condition: this.getCondition(),
+                functionName: condition,
                 arguments: this.getArguments()
             };
         };
@@ -1604,18 +1598,12 @@
         this.isGuard = () => true;
 
         /**
-         * Gets the condition of the guard.
-         */
-        this.getCondition = () => condition;
-
-        /**
          * Gets the attribute details.
          */
         this.getDetails = () => {
             return {
                 type: this.getType(),
-                isGuard: this.isGuard(),
-                condition: this.getCondition(),
+                functionName: condition,
                 arguments: this.getArguments()
             };
         };
@@ -1670,18 +1658,12 @@
         Callback.call(this, "entry", args);
 
         /**
-         * Gets the function name.
-         */
-        this.getFunctionName = () => functionName;
-
-        /**
          * Gets the callback details.
          */
         this.getDetails = () => {
             return {
                 type: this.getType(),
-                isGuard: this.isGuard(),
-                functionName: this.getFunctionName(),
+                functionName: functionName,
                 arguments: this.getArguments()
             };
         };
@@ -1717,18 +1699,12 @@
         Callback.call(this, "exit", args);
 
         /**
-         * Gets the function name.
-         */
-        this.getFunctionName = () => functionName;
-
-        /**
          * Gets the callback details.
          */
         this.getDetails = () => {
             return {
                 type: this.getType(),
-                isGuard: this.isGuard(),
-                functionName: this.getFunctionName(),
+                functionName: functionName,
                 arguments: this.getArguments()
             };
         };
@@ -1766,18 +1742,12 @@
         Callback.call(this, "step", args);
 
         /**
-         * Gets the function name.
-         */
-        this.getFunctionName = () => functionName;
-
-        /**
          * Gets the callback details.
          */
         this.getDetails = () => {
             return {
                 type: this.getType(),
-                isGuard: this.isGuard(),
-                functionName: this.getFunctionName(),
+                functionName: functionName,
                 arguments: this.getArguments()
             };
         };
@@ -2766,7 +2736,7 @@
             }
 
             // Grab the first decorator which is an identifier that will reference an agent function.
-            const decoratorFunctionName = decoratorArguments.shift();
+            const decoratorFunctionNameArg = decoratorArguments.shift();
 
             // Any remaining decorator arguments must have a type of string, number, boolean or null.
             decoratorArguments
@@ -2778,7 +2748,7 @@
                 });
 
             // Create the decorator and add it to the array of decorators found.
-            decorators.push(decoratorFactory(decoratorFunctionName, decoratorArguments));
+            decorators.push(decoratorFactory(decoratorFunctionNameArg.value, decoratorArguments));
 
             // Try to get the next decorator name token, as there could be multiple.
             decoratorFactory = DecoratorFactories[(tokens[0] || "").toUpperCase()];

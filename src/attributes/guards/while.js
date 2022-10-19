@@ -15,18 +15,12 @@ export default function While(condition, args) {
     this.isGuard = () => true;
 
     /**
-     * Gets the condition of the guard.
-     */
-    this.getCondition = () => condition;
-
-    /**
      * Gets the attribute details.
      */
     this.getDetails = () => {
         return {
             type: this.getType(),
-            isGuard: this.isGuard(),
-            condition: this.getCondition(),
+            functionName: condition,
             arguments: this.getArguments()
         };
     };

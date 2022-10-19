@@ -2,13 +2,116 @@
 // Definitions by: nikolas howard <https://github.com/nikkorn>
 declare module "mistreevous" {
 	/**
-	 * Enumeration of node state types.
+	 * Enumeration of behaviour tree node state types.
 	 */
 	enum State {
 		READY,
 		RUNNING,
 		SUCCEEDED,
 		FAILED
+	}
+
+	/**
+	 * The type of a behaviour tree node.
+	 */
+	type NodeType = "root" | "branch" | "action" | "condition" | "wait" | "sequence" | "selector" | "repeat" | "retry" | "lotto" | "parallel" | "flip" | "succeed" | "fail";
+
+	/**
+	 * The type of a behaviour tree node callback.
+	 */
+	type NodeCallbackType = "entry" | "exit" | "step";
+
+	/**
+	 * The type of a behaviour tree node guard.
+	 */
+	type NodeGuardType = "while" | "until";
+
+	/**
+	 * A behaviour tree node argument.
+	 */
+	interface NodeArgument {
+		/**
+		 * The argument value.
+		 */
+		value: string | number | boolean | null;
+		/**
+		 * The argument data type.
+		 */
+		type: "string" | "number" | "boolean" | "null";
+	}
+
+	/**
+	 * A behaviour tree node guard.
+	 */
+	interface NodeGuard {
+		/**
+		 * The guard type.
+		 */
+		type: NodeGuardType;
+		/**
+		 * The name of the condition function that will be invoked when evaluating this guard.
+		 */
+		functionName: string;
+		/**
+		 * The guard arguments.
+		 */
+		arguments: NodeArgument[];
+	}
+
+	/**
+	 * A behaviour tree node callback.
+	 */
+	interface NodeCallback {
+		/**
+		 * The callback type.
+		 */
+		type: NodeCallbackType;
+		/**
+		 * The name of the callback function.
+		 */
+		functionName: string;
+		/**
+		 * The guard arguments.
+		 */
+		arguments: NodeArgument[];
+	}
+
+	/**
+	 * The details of a behaviour tree node.
+	 */
+	interface NodeDetails {
+		/**
+		 * The node identifier.
+		 */
+		id: string;
+		/**
+		 * The node identifier of the parent of this node, or null if this node has no parent.
+		 */
+		parentId: string | null;
+		/**
+		 * The node type.
+		 */
+		type: NodeType;
+		/**
+		 * The node caption.
+		 */
+		caption: string;
+		/**
+		 * The current state of the node.
+		 */
+		state: State;
+		/**
+		 * The node arguments.
+		 */
+		arguments: NodeArgument[];
+		/**
+		 * The node guards.
+		 */
+		guards: NodeGuard[];
+		/**
+		 * The node callbacks.
+		 */
+		callbacks: NodeCallback[];
 	}
 
 	/**
@@ -59,6 +162,12 @@ declare module "mistreevous" {
 		 * @returns The current tree state.
 		 */
 		getState(): State;
+
+		/**
+		 * Gets the behaviour tree as a flattened array of details for each tree node.
+		 * @returns The behaviour tree as a flattened array of details for each tree node.
+		 */
+		getFlattenedNodeDetails(): NodeDetails[];
 
 		/**
 		 * Registers the action/condition/guard/callback function or subtree with the given name.

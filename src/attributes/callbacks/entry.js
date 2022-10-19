@@ -10,18 +10,12 @@ export default function Entry(functionName, args) {
     Callback.call(this, "entry", args);
 
     /**
-     * Gets the function name.
-     */
-    this.getFunctionName = () => functionName;
-
-    /**
      * Gets the callback details.
      */
     this.getDetails = () => {
         return {
             type: this.getType(),
-            isGuard: this.isGuard(),
-            functionName: this.getFunctionName(),
+            functionName: functionName,
             arguments: this.getArguments()
         };
     };

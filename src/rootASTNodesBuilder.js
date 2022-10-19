@@ -983,7 +983,7 @@ function getDecorators(tokens, stringArgumentPlaceholders) {
         }
 
         // Grab the first decorator which is an identifier that will reference an agent function.
-        const decoratorFunctionName = decoratorArguments.shift();
+        const decoratorFunctionNameArg = decoratorArguments.shift();
 
         // Any remaining decorator arguments must have a type of string, number, boolean or null.
         decoratorArguments
@@ -995,7 +995,7 @@ function getDecorators(tokens, stringArgumentPlaceholders) {
             });
 
         // Create the decorator and add it to the array of decorators found.
-        decorators.push(decoratorFactory(decoratorFunctionName, decoratorArguments));
+        decorators.push(decoratorFactory(decoratorFunctionNameArg.value, decoratorArguments));
 
         // Try to get the next decorator name token, as there could be multiple.
         decoratorFactory = DecoratorFactories[(tokens[0] || "").toUpperCase()];
