@@ -31,10 +31,7 @@ export default function Until(condition, args) {
         };
     };
 
- 
-    this.onReady = () => {
-       
-    };
+    this.onReady = () => {};
 
     /**
      * Gets whether the guard is satisfied.

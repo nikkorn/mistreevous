@@ -25,9 +25,7 @@ export default function Timeout(duration, args) {
         };
     };
 
-    this.onReady = () => {
-       
-    };
+    this.onReady = () => {};
 
     /**
      * Gets whether the guard is satisfied.

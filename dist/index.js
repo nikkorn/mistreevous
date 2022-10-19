@@ -95,20 +95,30 @@
         this.getType = () => type;
 
         /**
-         * Gets the node guard/callback attributes.
-         */
-        this.getAttributes = () => attributes || [];
-
-        /**
          * Gets the node arguments.
          */
         this.getArguments = () => args || [];
+
+        /**
+         * Gets the node guard/callback attributes.
+         */
+        this.getAttributes = () => attributes || [];
 
         /**
          * Gets the node guard/callback attribute with the specified type, or null if it does not exist.
          */
         this.getAttribute = (type) =>
             this.getAttributes().filter((attribute) => attribute.getType().toUpperCase() === type.toUpperCase())[0] || null;
+
+        /**
+         * Gets the node guard attributes.
+         */
+        this.getGuardAttributes = () => this.getAttributes().filter((attribute) => attribute.isGuard());
+
+        /**
+         * Gets the node callback attributes.
+         */
+        this.getCallbackAttributes = () => this.getAttributes().filter((attribute) => !attribute.isGuard());
 
         /**
          * Sets the guard path to evaluate as part of a node update.
@@ -171,22 +181,21 @@
                 return {};
             }
 
-            // If this node is in a 'READY' state then we may want to carry out some initialisation for any node guard attributes. 
+            // If this node is in a 'READY' state then we may want to carry out some initialisation for any node guard attributes.
             if (this.is(State.READY)) {
-                this.getAttributes()
-                    .filter((attribute) => attribute.isGuard())
-                    .forEach((guard) => guard.onReady());
+                this.getGuardAttributes().forEach((guard) => guard.onReady());
             }
 
             try {
                 // Evaluate all of the guard path conditions for the current tree path.
                 guardPath.evaluate(agent);
 
-                // If this node is in the READY state then call the ENTRY callback for this node if it exists.
+                // If this node is in the READY state then call the entry callback for this node if it exists.
                 if (this.is(State.READY)) {
+                    // Try to get the entry callback attribute for this node.
                     const entryCallback = this.getAttribute("entry");
 
-                    // Call the entry attribute function if it exists.
+                    // Call the entry callback attribute function if it exists.
                     if (entryCallback) {
                         entryCallback.callAgentFunction(agent);
                     }
@@ -1556,9 +1565,7 @@
             };
         };
 
-        this.onReady = () => {
-           
-        };
+        this.onReady = () => {};
 
         /**
          * Gets whether the guard is satisfied.
@@ -1613,10 +1620,7 @@
             };
         };
 
-     
-        this.onReady = () => {
-           
-        };
+        this.onReady = () => {};
 
         /**
          * Gets whether the guard is satisfied.
@@ -2932,21 +2936,14 @@
              * @param parentUid The UID of the node parent, or null if the node is the main root node.
              */
             const processNode = (node, parentUid) => {
-                /**
-                 * Helper function to get details for all node decorators.
-                 * @param decorators The node decorators.
-                 * @returns The decorator details for a node.
-                 */
-                const getDecoratorDetails = (decorators) =>
-                    decorators.length > 0 ? decorators.map((decorator) => decorator.getDetails()) : null;
-
                 // Push the current node into the flattened nodes array.
                 flattenedTreeNodes.push({
                     id: node.getUid(),
                     type: node.getType(),
                     caption: node.getName(),
                     state: node.getState(),
-                    decorators: getDecoratorDetails(node.getDecorators()),
+                    callbacks: node.getCallbackAttributes().map((callback) => callback.getDetails()),
+                    guards: node.getGuardAttributes().map((guard) => guard.getDetails()),
                     arguments: node.getArguments(),
                     parentId: parentUid
                 });
@@ -3085,7 +3082,10 @@
                     const guardPath = new GuardPath(
                         path
                             .slice(0, depth + 1)
-                            .map((node) => ({ node, guards: node.getAttributes().filter(attribute => attribute.isGuard()) }))
+                            .map((node) => ({
+                                node,
+                                guards: node.getAttributes().filter((attribute) => attribute.isGuard())
+                            }))
                             .filter((details) => details.guards.length > 0)
                     );
 

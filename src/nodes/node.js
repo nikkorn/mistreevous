@@ -38,20 +38,30 @@ export default function Node(type, attributes, args) {
     this.getType = () => type;
 
     /**
-     * Gets the node guard/callback attributes.
-     */
-    this.getAttributes = () => attributes || [];
-
-    /**
      * Gets the node arguments.
      */
     this.getArguments = () => args || [];
+
+    /**
+     * Gets the node guard/callback attributes.
+     */
+    this.getAttributes = () => attributes || [];
 
     /**
      * Gets the node guard/callback attribute with the specified type, or null if it does not exist.
      */
     this.getAttribute = (type) =>
         this.getAttributes().filter((attribute) => attribute.getType().toUpperCase() === type.toUpperCase())[0] || null;
+
+    /**
+     * Gets the node guard attributes.
+     */
+    this.getGuardAttributes = () => this.getAttributes().filter((attribute) => attribute.isGuard());
+
+    /**
+     * Gets the node callback attributes.
+     */
+    this.getCallbackAttributes = () => this.getAttributes().filter((attribute) => !attribute.isGuard());
 
     /**
      * Sets the guard path to evaluate as part of a node update.
@@ -114,11 +124,9 @@ export default function Node(type, attributes, args) {
             return {};
         }
 
-        // If this node is in a 'READY' state then we may want to carry out some initialisation for any node guard attributes. 
+        // If this node is in a 'READY' state then we may want to carry out some initialisation for any node guard attributes.
         if (this.is(State.READY)) {
-            this.getAttributes()
-                .filter((attribute) => attribute.isGuard())
-                .forEach((guard) => guard.onReady());
+            this.getGuardAttributes().forEach((guard) => guard.onReady());
         }
 
         try {

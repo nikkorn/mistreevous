@@ -31,9 +31,7 @@ export default function While(condition, args) {
         };
     };
 
-    this.onReady = () => {
-       
-    };
+    this.onReady = () => {};
 
     /**
      * Gets whether the guard is satisfied.

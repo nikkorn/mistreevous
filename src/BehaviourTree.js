@@ -107,21 +107,14 @@ export default class BehaviourTree {
          * @param parentUid The UID of the node parent, or null if the node is the main root node.
          */
         const processNode = (node, parentUid) => {
-            /**
-             * Helper function to get details for all node decorators.
-             * @param decorators The node decorators.
-             * @returns The decorator details for a node.
-             */
-            const getDecoratorDetails = (decorators) =>
-                decorators.length > 0 ? decorators.map((decorator) => decorator.getDetails()) : null;
-
             // Push the current node into the flattened nodes array.
             flattenedTreeNodes.push({
                 id: node.getUid(),
                 type: node.getType(),
                 caption: node.getName(),
                 state: node.getState(),
-                decorators: getDecoratorDetails(node.getDecorators()),
+                callbacks: node.getCallbackAttributes().map((callback) => callback.getDetails()),
+                guards: node.getGuardAttributes().map((guard) => guard.getDetails()),
                 arguments: node.getArguments(),
                 parentId: parentUid
             });
@@ -260,7 +253,10 @@ export default class BehaviourTree {
                 const guardPath = new GuardPath(
                     path
                         .slice(0, depth + 1)
-                        .map((node) => ({ node, guards: node.getAttributes().filter(attribute => attribute.isGuard()) }))
+                        .map((node) => ({
+                            node,
+                            guards: node.getAttributes().filter((attribute) => attribute.isGuard())
+                        }))
                         .filter((details) => details.guards.length > 0)
                 );
 
