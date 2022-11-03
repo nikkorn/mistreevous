@@ -1,3 +1,4 @@
+import AttributeBuilder from "./AttributeBuilder";
 import Action from "./nodes/leaf/action";
 import Condition from "./nodes/leaf/condition";
 import Wait from "./nodes/leaf/wait";
@@ -11,22 +12,6 @@ import Lotto from "./nodes/composite/lotto";
 import Selector from "./nodes/composite/selector";
 import Sequence from "./nodes/composite/sequence";
 import Parallel from "./nodes/composite/parallel";
-import While from "./attributes/guards/while";
-import Until from "./attributes/guards/until";
-import Entry from "./attributes/callbacks/entry";
-import Exit from "./attributes/callbacks/exit";
-import Step from "./attributes/callbacks/step";
-
-/**
- * The node decorator factories.
- */
-const DecoratorFactories = {
-    WHILE: (condition, decoratorArguments) => new While(condition, decoratorArguments),
-    UNTIL: (condition, decoratorArguments) => new Until(condition, decoratorArguments),
-    ENTRY: (functionName, decoratorArguments) => new Entry(functionName, decoratorArguments),
-    EXIT: (functionName, decoratorArguments) => new Exit(functionName, decoratorArguments),
-    STEP: (functionName, decoratorArguments) => new Step(functionName, decoratorArguments)
-};
 
 /**
  * The AST node factories.
@@ -34,7 +19,7 @@ const DecoratorFactories = {
 const ASTNodeFactories = {
     ROOT: () => ({
         type: "root",
-        decorators: [],
+        attributes: [],
         name: null,
         children: [],
         validate: function (depth) {
@@ -50,7 +35,7 @@ const ASTNodeFactories = {
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new Root(
-                this.decorators,
+                this.attributes,
                 this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
             );
         }
@@ -80,7 +65,7 @@ const ASTNodeFactories = {
     }),
     SELECTOR: () => ({
         type: "selector",
-        decorators: [],
+        attributes: [],
         children: [],
         validate: function (depth) {
             // A selector node must have at least a single node.
@@ -90,14 +75,14 @@ const ASTNodeFactories = {
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new Selector(
-                this.decorators,
+                this.attributes,
                 this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
             );
         }
     }),
     SEQUENCE: () => ({
         type: "sequence",
-        decorators: [],
+        attributes: [],
         children: [],
         validate: function (depth) {
             // A sequence node must have at least a single node.
@@ -107,14 +92,14 @@ const ASTNodeFactories = {
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new Sequence(
-                this.decorators,
+                this.attributes,
                 this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
             );
         }
     }),
     PARALLEL: () => ({
         type: "parallel",
-        decorators: [],
+        attributes: [],
         children: [],
         validate: function (depth) {
             // A parallel node must have at least a single node.
@@ -124,14 +109,14 @@ const ASTNodeFactories = {
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new Parallel(
-                this.decorators,
+                this.attributes,
                 this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
             );
         }
     }),
     LOTTO: () => ({
         type: "lotto",
-        decorators: [],
+        attributes: [],
         children: [],
         tickets: [],
         validate: function (depth) {
@@ -142,7 +127,7 @@ const ASTNodeFactories = {
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new Lotto(
-                this.decorators,
+                this.attributes,
                 this.tickets,
                 this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
             );
@@ -150,7 +135,7 @@ const ASTNodeFactories = {
     }),
     REPEAT: () => ({
         type: "repeat",
-        decorators: [],
+        attributes: [],
         iterations: null,
         maximumIterations: null,
         children: [],
@@ -182,7 +167,7 @@ const ASTNodeFactories = {
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new Repeat(
-                this.decorators,
+                this.attributes,
                 this.iterations,
                 this.maximumIterations,
                 this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
@@ -191,7 +176,7 @@ const ASTNodeFactories = {
     }),
     RETRY: () => ({
         type: "retry",
-        decorators: [],
+        attributes: [],
         iterations: null,
         maximumIterations: null,
         children: [],
@@ -223,7 +208,7 @@ const ASTNodeFactories = {
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new Retry(
-                this.decorators,
+                this.attributes,
                 this.iterations,
                 this.maximumIterations,
                 this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
@@ -232,7 +217,7 @@ const ASTNodeFactories = {
     }),
     FLIP: () => ({
         type: "flip",
-        decorators: [],
+        attributes: [],
         children: [],
         validate: function (depth) {
             // A flip node must have a single node.
@@ -242,14 +227,14 @@ const ASTNodeFactories = {
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new Flip(
-                this.decorators,
+                this.attributes,
                 this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
             );
         }
     }),
     SUCCEED: () => ({
         type: "succeed",
-        decorators: [],
+        attributes: [],
         children: [],
         validate: function (depth) {
             // A succeed node must have a single node.
@@ -259,14 +244,14 @@ const ASTNodeFactories = {
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new Succeed(
-                this.decorators,
+                this.attributes,
                 this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
             );
         }
     }),
     FAIL: () => ({
         type: "fail",
-        decorators: [],
+        attributes: [],
         children: [],
         validate: function (depth) {
             // A fail node must have a single node.
@@ -276,14 +261,14 @@ const ASTNodeFactories = {
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
             return new Fail(
-                this.decorators,
+                this.attributes,
                 this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
             );
         }
     }),
     WAIT: () => ({
         type: "wait",
-        decorators: [],
+        attributes: [],
         duration: null,
         longestDuration: null,
         validate: function (depth) {
@@ -306,27 +291,27 @@ const ASTNodeFactories = {
             }
         },
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new Wait(this.decorators, this.duration, this.longestDuration);
+            return new Wait(this.attributes, this.duration, this.longestDuration);
         }
     }),
     ACTION: () => ({
         type: "action",
-        decorators: [],
+        attributes: [],
         actionName: "",
         actionArguments: [],
         validate: function (depth) {},
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new Action(this.decorators, this.actionName, this.actionArguments);
+            return new Action(this.attributes, this.actionName, this.actionArguments);
         }
     }),
     CONDITION: () => ({
         type: "condition",
-        decorators: [],
+        attributes: [],
         conditionName: "",
         conditionArguments: [],
         validate: function (depth) {},
         createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new Condition(this.decorators, this.conditionName, this.conditionArguments);
+            return new Condition(this.attributes, this.conditionName, this.conditionArguments);
         }
     })
 };
@@ -336,7 +321,7 @@ const ASTNodeFactories = {
  * @param definition The definition to parse the AST nodes from.
  * @returns The base definition AST nodes.
  */
-export default function buildRootASTNodes(definition) {
+export default function parseRootNodes(definition) {
     // Swap out any node/decorator argument string literals with a placeholder and get a mapping of placeholders to original values as well as the processed definition.
     const { placeholders, processedDefinition } = substituteStringLiterals(definition);
 
@@ -385,8 +370,8 @@ export default function buildRootASTNodes(definition) {
                     }
                 }
 
-                // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, placeholders);
+                // Try to pick any attributes off of the token stack.
+                node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
 
                 popAndCheck(tokens, "{");
 
@@ -425,8 +410,8 @@ export default function buildRootASTNodes(definition) {
                 // Push the SELECTOR node into the current scope.
                 stack[stack.length - 1].push(node);
 
-                // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, placeholders);
+                // Try to pick any attributes off of the token stack.
+                node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
 
                 popAndCheck(tokens, "{");
 
@@ -441,8 +426,8 @@ export default function buildRootASTNodes(definition) {
                 // Push the SEQUENCE node into the current scope.
                 stack[stack.length - 1].push(node);
 
-                // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, placeholders);
+                // Try to pick any attributes off of the token stack.
+                node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
 
                 popAndCheck(tokens, "{");
 
@@ -457,8 +442,8 @@ export default function buildRootASTNodes(definition) {
                 // Push the PARALLEL node into the current scope.
                 stack[stack.length - 1].push(node);
 
-                // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, placeholders);
+                // Try to pick any attributes off of the token stack.
+                node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
 
                 popAndCheck(tokens, "{");
 
@@ -484,8 +469,8 @@ export default function buildRootASTNodes(definition) {
                     ).map((argument) => argument.value);
                 }
 
-                // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, placeholders);
+                // Try to pick any attributes off of the token stack.
+                node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
 
                 popAndCheck(tokens, "{");
 
@@ -530,8 +515,8 @@ export default function buildRootASTNodes(definition) {
                 // Any node arguments that follow the condition name identifier will be treated as condition function arguments.
                 node.conditionArguments = conditionArguments;
 
-                // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, placeholders);
+                // Try to pick any attributes off of the token stack.
+                node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
                 break;
 
             case "FLIP":
@@ -541,8 +526,8 @@ export default function buildRootASTNodes(definition) {
                 // Push the Flip node into the current scope.
                 stack[stack.length - 1].push(node);
 
-                // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, placeholders);
+                // Try to pick any attributes off of the token stack.
+                node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
 
                 popAndCheck(tokens, "{");
 
@@ -557,8 +542,8 @@ export default function buildRootASTNodes(definition) {
                 // Push the Succeed node into the current scope.
                 stack[stack.length - 1].push(node);
 
-                // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, placeholders);
+                // Try to pick any attributes off of the token stack.
+                node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
 
                 popAndCheck(tokens, "{");
 
@@ -573,8 +558,8 @@ export default function buildRootASTNodes(definition) {
                 // Push the Fail node into the current scope.
                 stack[stack.length - 1].push(node);
 
-                // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, placeholders);
+                // Try to pick any attributes off of the token stack.
+                node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
 
                 popAndCheck(tokens, "{");
 
@@ -610,8 +595,8 @@ export default function buildRootASTNodes(definition) {
                     throw new Error("invalid number of wait node duration arguments defined");
                 }
 
-                // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, placeholders);
+                // Try to pick any attributes off of the token stack.
+                node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
                 break;
 
             case "REPEAT":
@@ -645,8 +630,8 @@ export default function buildRootASTNodes(definition) {
                     }
                 }
 
-                // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, placeholders);
+                // Try to pick any attributes off of the token stack.
+                node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
 
                 popAndCheck(tokens, "{");
 
@@ -685,8 +670,8 @@ export default function buildRootASTNodes(definition) {
                     }
                 }
 
-                // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, placeholders);
+                // Try to pick any attributes off of the token stack.
+                node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
 
                 popAndCheck(tokens, "{");
 
@@ -731,8 +716,8 @@ export default function buildRootASTNodes(definition) {
                 // Any node arguments that follow the action name identifier will be treated as action function arguments.
                 node.actionArguments = actionArguments;
 
-                // Try to pick any decorators off of the token stack.
-                node.decorators = getDecorators(tokens, placeholders);
+                // Try to pick any attributes off of the token stack.
+                node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
                 break;
 
             case "}":
@@ -946,62 +931,6 @@ function getArgumentDefinition(token, stringArgumentPlaceholders) {
             return this.value;
         }
     };
-}
-
-/**
- * Pull any decorators off of the token stack.
- * @param tokens The array of remaining tokens.
- * @param stringArgumentPlaceholders The mapping of string literal node argument placeholders to original values.
- * @returns An array od decorators defined by any directly following tokens.
- */
-function getDecorators(tokens, stringArgumentPlaceholders) {
-    // Create an array to hold any decorators found.
-    const decorators = [];
-
-    // Keep track of names of decorators that we have found on the token stack, as we cannot have duplicates.
-    const decoratorsFound = [];
-
-    // Try to get the decorator factory for the next token.
-    let decoratorFactory = DecoratorFactories[(tokens[0] || "").toUpperCase()];
-
-    // Pull decorator tokens off of the tokens stack until we have no more.
-    while (decoratorFactory) {
-        // Check to make sure that we have not already created a decorator of this type for this node.
-        if (decoratorsFound.indexOf(tokens[0].toUpperCase()) !== -1) {
-            throw new Error(`duplicate decorator '${tokens[0].toUpperCase()}' found for node`);
-        }
-
-        // Add the current decorator type to our array of found decorators.
-        decoratorsFound.push(tokens.shift().toUpperCase());
-
-        // Grab any decorator arguments.
-        const decoratorArguments = getArguments(tokens, stringArgumentPlaceholders);
-
-        // The first decorator argument has to be an identifer, this will reference an agent function.
-        if (decoratorArguments.length === 0 || decoratorArguments[0].type !== "identifier") {
-            throw new Error("expected agent function name identifier argument for decorator");
-        }
-
-        // Grab the first decorator which is an identifier that will reference an agent function.
-        const decoratorFunctionNameArg = decoratorArguments.shift();
-
-        // Any remaining decorator arguments must have a type of string, number, boolean or null.
-        decoratorArguments
-            .filter((arg) => arg.type === "identifier")
-            .forEach((arg) => {
-                throw new Error(
-                    "invalid decorator argument value '" + arg.value + "', must be string, number, boolean or null"
-                );
-            });
-
-        // Create the decorator and add it to the array of decorators found.
-        decorators.push(decoratorFactory(decoratorFunctionNameArg.value, decoratorArguments));
-
-        // Try to get the next decorator name token, as there could be multiple.
-        decoratorFactory = DecoratorFactories[(tokens[0] || "").toUpperCase()];
-    }
-
-    return decorators;
 }
 
 /**

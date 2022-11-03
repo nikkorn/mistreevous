@@ -49,6 +49,452 @@
     }
 
     /**
+     * A base node attribute.
+     * @param type The node attribute type.
+     * @param args The array of attribute argument definitions.
+     */
+    function Attribute(type, args) {
+        /**
+         * Gets the type of the attribute.
+         */
+        this.getType = () => type;
+
+        /**
+         * Gets the array of attribute argument definitions.
+         */
+        this.getArguments = () => args;
+
+        /**
+         * Gets the attribute details.
+         */
+        this.getDetails = () => ({
+            type: this.getType(),
+            arguments: this.getArguments()
+        });
+    }
+
+    /**
+     * A base node guard attribute.
+     * @param type The node guard attribute type.
+     * @param args The array of attribute argument definitions.
+     */
+    function Guard(type, args) {
+        Attribute.call(this, type, args);
+
+        /**
+         * Gets whether this attribute is a guard.
+         */
+        this.isGuard = () => true;
+    }
+
+    Guard.prototype = Object.create(Attribute.prototype);
+
+    /**
+     * A singleton used to store and lookup registered functions and subtrees.
+     */
+    class Lookup {
+        /**
+         * The object holding any registered functions keyed on function name.
+         */
+        static #functionTable = {};
+        /**
+         * The object holding any registered sub-trees keyed on tree name.
+         */
+        static #subtreeTable = {};
+
+        /**
+         * Gets the function with the specified name.
+         * @param {string} name The name of the function.
+         * @returns The function with the specified name.
+         */
+        static getFunc(name) {
+            return this.#functionTable[name];
+        }
+
+        /**
+         * Sets the function with the specified name for later lookup.
+         * @param {string} name The name of the function.
+         * @param {function} func The function.
+         */
+        static setFunc(name, func) {
+            this.#functionTable[name] = func;
+        }
+
+        /**
+         * Gets the function invoker for the specified agent and function name.
+         * If a function with the specified name exists on the agent object then it will
+         * be returned, otherwise we will then check the registered functions for a match.
+         * @param {object} agent The agent instance that this behaviour tree is modelling behaviour for.
+         * @param {string} name The function name.
+         * @returns The function invoker for the specified agent and function name.
+         */
+        static getFuncInvoker(agent, name) {
+            // Check whether the agent contains the specified function.
+            if (agent[name] && typeof agent[name] === "function") {
+                return (args) =>
+                    agent[name].apply(
+                        agent,
+                        args.map((arg) => arg.value)
+                    );
+            }
+
+            // The agent does not contain the specified function but it may have been registered at some point.
+            if (this.#functionTable[name] && typeof this.#functionTable[name] === "function") {
+                return (args) => this.#functionTable[name](agent, ...args.map((arg) => arg.value));
+            }
+
+            // We have no function to invoke.
+            return null;
+        }
+
+        /**
+         * Gets the subtree with the specified name.
+         * @param {string} name The name of the subtree.
+         * @returns The subtree with the specified name.
+         */
+        static getSubtree(name) {
+            return this.#subtreeTable[name];
+        }
+
+        /**
+         * Sets the subtree with the specified name for later lookup.
+         * @param {string} name The name of the subtree.
+         * @param {object} subtree The subtree.
+         */
+        static setSubtree(name, subtree) {
+            this.#subtreeTable[name] = subtree;
+        }
+
+        /**
+         * Removes the registered function or subtree with the specified name.
+         * @param {string} name The name of the registered function or subtree.
+         */
+        static remove(name) {
+            delete this.#functionTable[name];
+            delete this.#subtreeTable[name];
+        }
+
+        /**
+         * Remove all registered functions and subtrees.
+         */
+        static empty() {
+            this.#functionTable = {};
+            this.#subtreeTable = {};
+        }
+    }
+
+    /**
+     * A WHILE guard which is satisfied as long as the given condition remains true.
+     * @param condition The name of the condition function that determines whether the guard is satisfied.
+     * @param args The array of attribute argument definitions.
+     */
+    function While(condition, args) {
+        Guard.call(this, "while", args);
+
+        /**
+         * Gets whether the attribute is a guard.
+         */
+        this.isGuard = () => true;
+
+        /**
+         * Gets the attribute details.
+         */
+        this.getDetails = () => {
+            return {
+                type: this.getType(),
+                functionName: condition,
+                arguments: this.getArguments()
+            };
+        };
+
+        this.onReady = () => {};
+
+        /**
+         * Gets whether the guard is satisfied.
+         * @param agent The agent.
+         * @returns Whether the guard is satisfied.
+         */
+        this.isSatisfied = (agent) => {
+            // Attempt to get the invoker for the condition function.
+            const conditionFuncInvoker = Lookup.getFuncInvoker(agent, condition);
+
+            // The condition function should be defined.
+            if (conditionFuncInvoker === null) {
+                throw new Error(
+                    `cannot evaluate node guard as the condition '${condition}' function is not defined on the agent and has not been registered`
+                );
+            }
+
+            // Call the condition function to determine whether this guard is satisfied.
+            return !!conditionFuncInvoker(args);
+        };
+    }
+
+    While.prototype = Object.create(Guard.prototype);
+
+    /**
+     * An UNTIL guard which is satisfied as long as the given condition remains false.
+     * @param condition The name of the condition function that determines whether the guard is satisfied.
+     * @param args The array of attribute argument definitions.
+     */
+    function Until(condition, args) {
+        Guard.call(this, "until", args);
+
+        /**
+         * Gets whether the attribute is a guard.
+         */
+        this.isGuard = () => true;
+
+        /**
+         * Gets the attribute details.
+         */
+        this.getDetails = () => {
+            return {
+                type: this.getType(),
+                functionName: condition,
+                arguments: this.getArguments()
+            };
+        };
+
+        this.onReady = () => {};
+
+        /**
+         * Gets whether the guard is satisfied.
+         * @param agent The agent.
+         * @returns Whether the guard is satisfied.
+         */
+        this.isSatisfied = (agent) => {
+            // Attempt to get the invoker for the condition function.
+            const conditionFuncInvoker = Lookup.getFuncInvoker(agent, condition);
+
+            // The condition function should be defined.
+            if (conditionFuncInvoker === null) {
+                throw new Error(
+                    `cannot evaluate node guard as the condition '${condition}' function is not defined on the agent and has not been registered`
+                );
+            }
+
+            // Call the condition function to determine whether this guard is satisfied.
+            return !!!conditionFuncInvoker(args);
+        };
+    }
+
+    Until.prototype = Object.create(Guard.prototype);
+
+    /**
+     * A base node callback attribute.
+     * @param type The node callback attribute type.
+     * @param args The array of attribute argument definitions.
+     */
+    function Callback(type, args) {
+        Attribute.call(this, type, args);
+
+        /**
+         * Gets whether this attribute is a guard.
+         */
+        this.isGuard = () => false;
+    }
+
+    Callback.prototype = Object.create(Attribute.prototype);
+
+    /**
+     * An ENTRY callback which defines an agent function to call when the associated node is updated and moves out of running state.
+     * @param functionName The name of the agent function to call.
+     * @param args The array of callback argument definitions.
+     */
+    function Entry(functionName, args) {
+        Callback.call(this, "entry", args);
+
+        /**
+         * Gets the callback details.
+         */
+        this.getDetails = () => {
+            return {
+                type: this.getType(),
+                functionName: functionName,
+                arguments: this.getArguments()
+            };
+        };
+
+        /**
+         * Attempt to call the agent function that this callback refers to.
+         * @param agent The agent.
+         */
+        this.callAgentFunction = (agent) => {
+            // Attempt to get the invoker for the callback function.
+            const callbackFuncInvoker = Lookup.getFuncInvoker(agent, functionName);
+
+            // The callback function should be defined.
+            if (callbackFuncInvoker === null) {
+                throw new Error(
+                    `cannot call entry function '${functionName}' as is not defined on the agent and has not been registered`
+                );
+            }
+
+            // Call the callback function.
+            callbackFuncInvoker(args);
+        };
+    }
+
+    Entry.prototype = Object.create(Callback.prototype);
+
+    /**
+     * An EXIT callback which defines an agent function to call when the associated node is updated and moves to a finished state or is aborted.
+     * @param functionName The name of the agent function to call.
+     * @param args The array of callback argument definitions.
+     */
+    function Exit(functionName, args) {
+        Callback.call(this, "exit", args);
+
+        /**
+         * Gets the callback details.
+         */
+        this.getDetails = () => {
+            return {
+                type: this.getType(),
+                functionName: functionName,
+                arguments: this.getArguments()
+            };
+        };
+
+        /**
+         * Attempt to call the agent function that this callback refers to.
+         * @param agent The agent.
+         * @param isSuccess Whether the decorated node was left with a success state.
+         * @param isAborted Whether the decorated node was aborted.
+         */
+        this.callAgentFunction = (agent, isSuccess, isAborted) => {
+            // Attempt to get the invoker for the callback function.
+            const callbackFuncInvoker = Lookup.getFuncInvoker(agent, functionName);
+
+            // The callback function should be defined.
+            if (callbackFuncInvoker === null) {
+                throw new Error(
+                    `cannot call exit function '${functionName}' as is not defined on the agent and has not been registered`
+                );
+            }
+
+            // Call the callback function.
+            callbackFuncInvoker([{ value: { succeeded: isSuccess, aborted: isAborted } }].concat(args));
+        };
+    }
+
+    Exit.prototype = Object.create(Callback.prototype);
+
+    /**
+     * A STEP callback which defines an agent function to call when the associated node is updated.
+     * @param functionName The name of the agent function to call.
+     * @param args The array of callback argument definitions.
+     */
+    function Step(functionName, args) {
+        Callback.call(this, "step", args);
+
+        /**
+         * Gets the callback details.
+         */
+        this.getDetails = () => {
+            return {
+                type: this.getType(),
+                functionName: functionName,
+                arguments: this.getArguments()
+            };
+        };
+
+        /**
+         * Attempt to call the agent function that this callback refers to.
+         * @param agent The agent.
+         */
+        this.callAgentFunction = (agent) => {
+            // Attempt to get the invoker for the callback function.
+            const callbackFuncInvoker = Lookup.getFuncInvoker(agent, functionName);
+
+            // The callback function should be defined.
+            if (callbackFuncInvoker === null) {
+                throw new Error(
+                    `cannot call step function '${functionName}' as is not defined on the agent and has not been registered`
+                );
+            }
+
+            // Call the callback function.
+            callbackFuncInvoker(args);
+        };
+    }
+
+    Step.prototype = Object.create(Callback.prototype);
+
+    /**
+     * The builder of node attributes.
+     */
+    class AttributeBuilder {
+        /**
+         * The node attribute factories.
+         */
+        static #factories = {
+            WHILE: (condition, attributeArguments) => new While(condition, attributeArguments),
+            UNTIL: (condition, attributeArguments) => new Until(condition, attributeArguments),
+            ENTRY: (functionName, attributeArguments) => new Entry(functionName, attributeArguments),
+            EXIT: (functionName, attributeArguments) => new Exit(functionName, attributeArguments),
+            STEP: (functionName, attributeArguments) => new Step(functionName, attributeArguments)
+        };
+
+        /**
+         * Pull any attributes off of the token stack.
+         * @param tokens The array of remaining tokens.
+         * @param stringArgumentPlaceholders The mapping of string literal node argument placeholders to original values.
+         * @returns An array of attributes defined by any directly following tokens.
+         */
+        static parseFromTokens(tokens, stringArgumentPlaceholders) {
+            // Create an array to hold any attributes found.
+            const attributes = [];
+
+            // Keep track of names of attributes that we have found on the token stack, as we cannot have duplicates.
+            const attributesFound = [];
+
+            // Try to get the attribute factory for the next token.
+            let attributeFactory = this.#factories[(tokens[0] || "").toUpperCase()];
+
+            // Pull attribute tokens off of the tokens stack until we have no more.
+            while (attributeFactory) {
+                // Check to make sure that we have not already created a attribute of this type for this node.
+                if (attributesFound.indexOf(tokens[0].toUpperCase()) !== -1) {
+                    throw new Error(`duplicate attribute '${tokens[0].toUpperCase()}' found for node`);
+                }
+
+                // Add the current attribute type to our array of found attributes.
+                attributesFound.push(tokens.shift().toUpperCase());
+
+                // Grab any attribute arguments.
+                const attributeArguments = getArguments(tokens, stringArgumentPlaceholders);
+
+                // The first attribute argument has to be an identifer, this will reference an agent function.
+                if (attributeArguments.length === 0 || attributeArguments[0].type !== "identifier") {
+                    throw new Error("expected agent function name identifier argument for attribute");
+                }
+
+                // Grab the first attribute which is an identifier that will reference an agent function.
+                const attributeFunctionNameArg = attributeArguments.shift();
+
+                // Any remaining attribute arguments must have a type of string, number, boolean or null.
+                attributeArguments
+                    .filter((arg) => arg.type === "identifier")
+                    .forEach((arg) => {
+                        throw new Error(
+                            "invalid attribute argument value '" + arg.value + "', must be string, number, boolean or null"
+                        );
+                    });
+
+                // Create the attribute and add it to the array of attribute found.
+                attributes.push(attributeFactory(attributeFunctionNameArg.value, attributeArguments));
+
+                // Try to get the next attribute name token, as there could be multiple.
+                attributeFactory = this.#factories[(tokens[0] || "").toUpperCase()];
+            }
+
+            return attributes;
+        }
+    }
+
+    /**
      * Enumeration of node states.
      */
     const State = {
@@ -264,100 +710,6 @@
     }
 
     Leaf.prototype = Object.create(Node.prototype);
-
-    /**
-     * A singleton used to store and lookup registered functions and subtrees.
-     */
-    class Lookup {
-        /**
-         * The object holding any registered functions keyed on function name.
-         */
-        static #functionTable = {};
-        /**
-         * The object holding any registered sub-trees keyed on tree name.
-         */
-        static #subtreeTable = {};
-
-        /**
-         * Gets the function with the specified name.
-         * @param {string} name The name of the function.
-         * @returns The function with the specified name.
-         */
-        static getFunc(name) {
-            return this.#functionTable[name];
-        }
-
-        /**
-         * Sets the function with the specified name for later lookup.
-         * @param {string} name The name of the function.
-         * @param {function} func The function.
-         */
-        static setFunc(name, func) {
-            this.#functionTable[name] = func;
-        }
-
-        /**
-         * Gets the function invoker for the specified agent and function name.
-         * If a function with the specified name exists on the agent object then it will
-         * be returned, otherwise we will then check the registered functions for a match.
-         * @param {object} agent The agent instance that this behaviour tree is modelling behaviour for.
-         * @param {string} name The function name.
-         * @returns The function invoker for the specified agent and function name.
-         */
-        static getFuncInvoker(agent, name) {
-            // Check whether the agent contains the specified function.
-            if (agent[name] && typeof agent[name] === "function") {
-                return (args) =>
-                    agent[name].apply(
-                        agent,
-                        args.map((arg) => arg.value)
-                    );
-            }
-
-            // The agent does not contain the specified function but it may have been registered at some point.
-            if (this.#functionTable[name] && typeof this.#functionTable[name] === "function") {
-                return (args) => this.#functionTable[name](agent, ...args.map((arg) => arg.value));
-            }
-
-            // We have no function to invoke.
-            return null;
-        }
-
-        /**
-         * Gets the subtree with the specified name.
-         * @param {string} name The name of the subtree.
-         * @returns The subtree with the specified name.
-         */
-        static getSubtree(name) {
-            return this.#subtreeTable[name];
-        }
-
-        /**
-         * Sets the subtree with the specified name for later lookup.
-         * @param {string} name The name of the subtree.
-         * @param {object} subtree The subtree.
-         */
-        static setSubtree(name, subtree) {
-            this.#subtreeTable[name] = subtree;
-        }
-
-        /**
-         * Removes the registered function or subtree with the specified name.
-         * @param {string} name The name of the registered function or subtree.
-         */
-        static remove(name) {
-            delete this.#functionTable[name];
-            delete this.#subtreeTable[name];
-        }
-
-        /**
-         * Remove all registered functions and subtrees.
-         */
-        static empty() {
-            this.#functionTable = {};
-            this.#subtreeTable = {};
-        }
-    }
 
     /**
      * An Action leaf node.
@@ -1495,303 +1847,12 @@
     Parallel.prototype = Object.create(Composite.prototype);
 
     /**
-     * A base node attribute.
-     * @param type The node attribute type.
-     * @param args The array of attribute argument definitions.
-     */
-    function Attribute(type, args) {
-        /**
-         * Gets the type of the attribute.
-         */
-        this.getType = () => type;
-
-        /**
-         * Gets the array of attribute argument definitions.
-         */
-        this.getArguments = () => args;
-
-        /**
-         * Gets the attribute details.
-         */
-        this.getDetails = () => ({
-            type: this.getType(),
-            arguments: this.getArguments()
-        });
-    }
-
-    /**
-     * A base node guard attribute.
-     * @param type The node guard attribute type.
-     * @param args The array of attribute argument definitions.
-     */
-    function Guard(type, args) {
-        Attribute.call(this, type, args);
-
-        /**
-         * Gets whether this attribute is a guard.
-         */
-        this.isGuard = () => true;
-    }
-
-    Guard.prototype = Object.create(Attribute.prototype);
-
-    /**
-     * A WHILE guard which is satisfied as long as the given condition remains true.
-     * @param condition The name of the condition function that determines whether the guard is satisfied.
-     * @param args The array of attribute argument definitions.
-     */
-    function While(condition, args) {
-        Guard.call(this, "while", args);
-
-        /**
-         * Gets whether the attribute is a guard.
-         */
-        this.isGuard = () => true;
-
-        /**
-         * Gets the attribute details.
-         */
-        this.getDetails = () => {
-            return {
-                type: this.getType(),
-                functionName: condition,
-                arguments: this.getArguments()
-            };
-        };
-
-        this.onReady = () => {};
-
-        /**
-         * Gets whether the guard is satisfied.
-         * @param agent The agent.
-         * @returns Whether the guard is satisfied.
-         */
-        this.isSatisfied = (agent) => {
-            // Attempt to get the invoker for the condition function.
-            const conditionFuncInvoker = Lookup.getFuncInvoker(agent, condition);
-
-            // The condition function should be defined.
-            if (conditionFuncInvoker === null) {
-                throw new Error(
-                    `cannot evaluate node guard as the condition '${condition}' function is not defined on the agent and has not been registered`
-                );
-            }
-
-            // Call the condition function to determine whether this guard is satisfied.
-            return !!conditionFuncInvoker(args);
-        };
-    }
-
-    While.prototype = Object.create(Guard.prototype);
-
-    /**
-     * An UNTIL guard which is satisfied as long as the given condition remains false.
-     * @param condition The name of the condition function that determines whether the guard is satisfied.
-     * @param args The array of attribute argument definitions.
-     */
-    function Until(condition, args) {
-        Guard.call(this, "until", args);
-
-        /**
-         * Gets whether the attribute is a guard.
-         */
-        this.isGuard = () => true;
-
-        /**
-         * Gets the attribute details.
-         */
-        this.getDetails = () => {
-            return {
-                type: this.getType(),
-                functionName: condition,
-                arguments: this.getArguments()
-            };
-        };
-
-        this.onReady = () => {};
-
-        /**
-         * Gets whether the guard is satisfied.
-         * @param agent The agent.
-         * @returns Whether the guard is satisfied.
-         */
-        this.isSatisfied = (agent) => {
-            // Attempt to get the invoker for the condition function.
-            const conditionFuncInvoker = Lookup.getFuncInvoker(agent, condition);
-
-            // The condition function should be defined.
-            if (conditionFuncInvoker === null) {
-                throw new Error(
-                    `cannot evaluate node guard as the condition '${condition}' function is not defined on the agent and has not been registered`
-                );
-            }
-
-            // Call the condition function to determine whether this guard is satisfied.
-            return !!!conditionFuncInvoker(args);
-        };
-    }
-
-    Until.prototype = Object.create(Guard.prototype);
-
-    /**
-     * A base node callback attribute.
-     * @param type The node callback attribute type.
-     * @param args The array of attribute argument definitions.
-     */
-    function Callback(type, args) {
-        Attribute.call(this, type, args);
-
-        /**
-         * Gets whether this attribute is a guard.
-         */
-        this.isGuard = () => false;
-    }
-
-    Callback.prototype = Object.create(Attribute.prototype);
-
-    /**
-     * An ENTRY callback which defines an agent function to call when the associated node is updated and moves out of running state.
-     * @param functionName The name of the agent function to call.
-     * @param args The array of callback argument definitions.
-     */
-    function Entry(functionName, args) {
-        Callback.call(this, "entry", args);
-
-        /**
-         * Gets the callback details.
-         */
-        this.getDetails = () => {
-            return {
-                type: this.getType(),
-                functionName: functionName,
-                arguments: this.getArguments()
-            };
-        };
-
-        /**
-         * Attempt to call the agent function that this callback refers to.
-         * @param agent The agent.
-         */
-        this.callAgentFunction = (agent) => {
-            // Attempt to get the invoker for the callback function.
-            const callbackFuncInvoker = Lookup.getFuncInvoker(agent, functionName);
-
-            // The callback function should be defined.
-            if (callbackFuncInvoker === null) {
-                throw new Error(
-                    `cannot call entry function '${functionName}' as is not defined on the agent and has not been registered`
-                );
-            }
-
-            // Call the callback function.
-            callbackFuncInvoker(args);
-        };
-    }
-
-    Entry.prototype = Object.create(Callback.prototype);
-
-    /**
-     * An EXIT callback which defines an agent function to call when the associated node is updated and moves to a finished state or is aborted.
-     * @param functionName The name of the agent function to call.
-     * @param args The array of callback argument definitions.
-     */
-    function Exit(functionName, args) {
-        Callback.call(this, "exit", args);
-
-        /**
-         * Gets the callback details.
-         */
-        this.getDetails = () => {
-            return {
-                type: this.getType(),
-                functionName: functionName,
-                arguments: this.getArguments()
-            };
-        };
-
-        /**
-         * Attempt to call the agent function that this callback refers to.
-         * @param agent The agent.
-         * @param isSuccess Whether the decorated node was left with a success state.
-         * @param isAborted Whether the decorated node was aborted.
-         */
-        this.callAgentFunction = (agent, isSuccess, isAborted) => {
-            // Attempt to get the invoker for the callback function.
-            const callbackFuncInvoker = Lookup.getFuncInvoker(agent, functionName);
-
-            // The callback function should be defined.
-            if (callbackFuncInvoker === null) {
-                throw new Error(
-                    `cannot call exit function '${functionName}' as is not defined on the agent and has not been registered`
-                );
-            }
-
-            // Call the callback function.
-            callbackFuncInvoker([{ value: { succeeded: isSuccess, aborted: isAborted } }].concat(args));
-        };
-    }
-
-    Exit.prototype = Object.create(Callback.prototype);
-
-    /**
-     * A STEP callback which defines an agent function to call when the associated node is updated.
-     * @param functionName The name of the agent function to call.
-     * @param args The array of callback argument definitions.
-     */
-    function Step(functionName, args) {
-        Callback.call(this, "step", args);
-
-        /**
-         * Gets the callback details.
-         */
-        this.getDetails = () => {
-            return {
-                type: this.getType(),
-                functionName: functionName,
-                arguments: this.getArguments()
-            };
-        };
-
-        /**
-         * Attempt to call the agent function that this callback refers to.
-         * @param agent The agent.
-         */
-        this.callAgentFunction = (agent) => {
-            // Attempt to get the invoker for the callback function.
-            const callbackFuncInvoker = Lookup.getFuncInvoker(agent, functionName);
-
-            // The callback function should be defined.
-            if (callbackFuncInvoker === null) {
-                throw new Error(
-                    `cannot call step function '${functionName}' as is not defined on the agent and has not been registered`
-                );
-            }
-
-            // Call the callback function.
-            callbackFuncInvoker(args);
-        };
-    }
-
-    Step.prototype = Object.create(Callback.prototype);
-
-    /**
-     * The node decorator factories.
-     */
-    const DecoratorFactories = {
-        WHILE: (condition, decoratorArguments) => new While(condition, decoratorArguments),
-        UNTIL: (condition, decoratorArguments) => new Until(condition, decoratorArguments),
-        ENTRY: (functionName, decoratorArguments) => new Entry(functionName, decoratorArguments),
-        EXIT: (functionName, decoratorArguments) => new Exit(functionName, decoratorArguments),
-        STEP: (functionName, decoratorArguments) => new Step(functionName, decoratorArguments)
-    };
-
-    /**
      * The AST node factories.
      */
     const ASTNodeFactories = {
         ROOT: () => ({
             type: "root",
-            decorators: [],
+            attributes: [],
             name: null,
             children: [],
             validate: function (depth) {
@@ -1807,7 +1868,7 @@
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
                 return new Root(
-                    this.decorators,
+                    this.attributes,
                     this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
                 );
             }
@@ -1837,7 +1898,7 @@
         }),
         SELECTOR: () => ({
             type: "selector",
-            decorators: [],
+            attributes: [],
             children: [],
             validate: function (depth) {
                 // A selector node must have at least a single node.
@@ -1847,14 +1908,14 @@
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
                 return new Selector(
-                    this.decorators,
+                    this.attributes,
                     this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
                 );
             }
         }),
         SEQUENCE: () => ({
             type: "sequence",
-            decorators: [],
+            attributes: [],
             children: [],
             validate: function (depth) {
                 // A sequence node must have at least a single node.
@@ -1864,14 +1925,14 @@
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
                 return new Sequence(
-                    this.decorators,
+                    this.attributes,
                     this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
                 );
             }
         }),
         PARALLEL: () => ({
             type: "parallel",
-            decorators: [],
+            attributes: [],
             children: [],
             validate: function (depth) {
                 // A parallel node must have at least a single node.
@@ -1881,14 +1942,14 @@
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
                 return new Parallel(
-                    this.decorators,
+                    this.attributes,
                     this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
                 );
             }
         }),
         LOTTO: () => ({
             type: "lotto",
-            decorators: [],
+            attributes: [],
             children: [],
             tickets: [],
             validate: function (depth) {
@@ -1899,7 +1960,7 @@
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
                 return new Lotto(
-                    this.decorators,
+                    this.attributes,
                     this.tickets,
                     this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
                 );
@@ -1907,7 +1968,7 @@
         }),
         REPEAT: () => ({
             type: "repeat",
-            decorators: [],
+            attributes: [],
             iterations: null,
             maximumIterations: null,
             children: [],
@@ -1939,7 +2000,7 @@
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
                 return new Repeat(
-                    this.decorators,
+                    this.attributes,
                     this.iterations,
                     this.maximumIterations,
                     this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
@@ -1948,7 +2009,7 @@
         }),
         RETRY: () => ({
             type: "retry",
-            decorators: [],
+            attributes: [],
             iterations: null,
             maximumIterations: null,
             children: [],
@@ -1980,7 +2041,7 @@
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
                 return new Retry(
-                    this.decorators,
+                    this.attributes,
                     this.iterations,
                     this.maximumIterations,
                     this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
@@ -1989,7 +2050,7 @@
         }),
         FLIP: () => ({
             type: "flip",
-            decorators: [],
+            attributes: [],
             children: [],
             validate: function (depth) {
                 // A flip node must have a single node.
@@ -1999,14 +2060,14 @@
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
                 return new Flip(
-                    this.decorators,
+                    this.attributes,
                     this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
                 );
             }
         }),
         SUCCEED: () => ({
             type: "succeed",
-            decorators: [],
+            attributes: [],
             children: [],
             validate: function (depth) {
                 // A succeed node must have a single node.
@@ -2016,14 +2077,14 @@
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
                 return new Succeed(
-                    this.decorators,
+                    this.attributes,
                     this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
                 );
             }
         }),
         FAIL: () => ({
             type: "fail",
-            decorators: [],
+            attributes: [],
             children: [],
             validate: function (depth) {
                 // A fail node must have a single node.
@@ -2033,14 +2094,14 @@
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
                 return new Fail(
-                    this.decorators,
+                    this.attributes,
                     this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
                 );
             }
         }),
         WAIT: () => ({
             type: "wait",
-            decorators: [],
+            attributes: [],
             duration: null,
             longestDuration: null,
             validate: function (depth) {
@@ -2063,27 +2124,27 @@
                 }
             },
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-                return new Wait(this.decorators, this.duration, this.longestDuration);
+                return new Wait(this.attributes, this.duration, this.longestDuration);
             }
         }),
         ACTION: () => ({
             type: "action",
-            decorators: [],
+            attributes: [],
             actionName: "",
             actionArguments: [],
             validate: function (depth) {},
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-                return new Action(this.decorators, this.actionName, this.actionArguments);
+                return new Action(this.attributes, this.actionName, this.actionArguments);
             }
         }),
         CONDITION: () => ({
             type: "condition",
-            decorators: [],
+            attributes: [],
             conditionName: "",
             conditionArguments: [],
             validate: function (depth) {},
             createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-                return new Condition(this.decorators, this.conditionName, this.conditionArguments);
+                return new Condition(this.attributes, this.conditionName, this.conditionArguments);
             }
         })
     };
@@ -2093,7 +2154,7 @@
      * @param definition The definition to parse the AST nodes from.
      * @returns The base definition AST nodes.
      */
-    function buildRootASTNodes(definition) {
+    function parseRootNodes(definition) {
         // Swap out any node/decorator argument string literals with a placeholder and get a mapping of placeholders to original values as well as the processed definition.
         const { placeholders, processedDefinition } = substituteStringLiterals(definition);
 
@@ -2131,7 +2192,7 @@
 
                     // We may have a root node name defined as an argument.
                     if (tokens[0] === "[") {
-                        const rootArguments = getArguments(tokens, placeholders);
+                        const rootArguments = getArguments$1(tokens, placeholders);
 
                         // We should have only a single argument that is not an empty string for a root node, which is the root name identifier.
                         if (rootArguments.length === 1 && rootArguments[0].type === "identifier") {
@@ -2142,8 +2203,8 @@
                         }
                     }
 
-                    // Try to pick any decorators off of the token stack.
-                    node.decorators = getDecorators(tokens, placeholders);
+                    // Try to pick any attributes off of the token stack.
+                    node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
 
                     popAndCheck(tokens, "{");
 
@@ -2164,7 +2225,7 @@
                     }
 
                     // The branch name will be defined as a node argument.
-                    const branchArguments = getArguments(tokens, placeholders);
+                    const branchArguments = getArguments$1(tokens, placeholders);
 
                     // We should have only a single identifer argument for a branch node, which is the branch name.
                     if (branchArguments.length === 1 && branchArguments[0].type === "identifier") {
@@ -2182,8 +2243,8 @@
                     // Push the SELECTOR node into the current scope.
                     stack[stack.length - 1].push(node);
 
-                    // Try to pick any decorators off of the token stack.
-                    node.decorators = getDecorators(tokens, placeholders);
+                    // Try to pick any attributes off of the token stack.
+                    node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
 
                     popAndCheck(tokens, "{");
 
@@ -2198,8 +2259,8 @@
                     // Push the SEQUENCE node into the current scope.
                     stack[stack.length - 1].push(node);
 
-                    // Try to pick any decorators off of the token stack.
-                    node.decorators = getDecorators(tokens, placeholders);
+                    // Try to pick any attributes off of the token stack.
+                    node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
 
                     popAndCheck(tokens, "{");
 
@@ -2214,8 +2275,8 @@
                     // Push the PARALLEL node into the current scope.
                     stack[stack.length - 1].push(node);
 
-                    // Try to pick any decorators off of the token stack.
-                    node.decorators = getDecorators(tokens, placeholders);
+                    // Try to pick any attributes off of the token stack.
+                    node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
 
                     popAndCheck(tokens, "{");
 
@@ -2233,7 +2294,7 @@
                     // If the next token is a '[' character then some ticket counts have been defined as arguments.
                     if (tokens[0] === "[") {
                         // Get the ticket count arguments, each argument must be a number.
-                        node.tickets = getArguments(
+                        node.tickets = getArguments$1(
                             tokens,
                             placeholders,
                             (arg) => arg.type === "number" && arg.isInteger,
@@ -2241,8 +2302,8 @@
                         ).map((argument) => argument.value);
                     }
 
-                    // Try to pick any decorators off of the token stack.
-                    node.decorators = getDecorators(tokens, placeholders);
+                    // Try to pick any attributes off of the token stack.
+                    node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
 
                     popAndCheck(tokens, "{");
 
@@ -2263,7 +2324,7 @@
                     }
 
                     // Grab the condition node arguments.
-                    const conditionArguments = getArguments(tokens, placeholders);
+                    const conditionArguments = getArguments$1(tokens, placeholders);
 
                     // We should have at least a single identifier argument for a condition node, which is the condition function name.
                     if (conditionArguments.length && conditionArguments[0].type === "identifier") {
@@ -2287,8 +2348,8 @@
                     // Any node arguments that follow the condition name identifier will be treated as condition function arguments.
                     node.conditionArguments = conditionArguments;
 
-                    // Try to pick any decorators off of the token stack.
-                    node.decorators = getDecorators(tokens, placeholders);
+                    // Try to pick any attributes off of the token stack.
+                    node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
                     break;
 
                 case "FLIP":
@@ -2298,8 +2359,8 @@
                     // Push the Flip node into the current scope.
                     stack[stack.length - 1].push(node);
 
-                    // Try to pick any decorators off of the token stack.
-                    node.decorators = getDecorators(tokens, placeholders);
+                    // Try to pick any attributes off of the token stack.
+                    node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
 
                     popAndCheck(tokens, "{");
 
@@ -2314,8 +2375,8 @@
                     // Push the Succeed node into the current scope.
                     stack[stack.length - 1].push(node);
 
-                    // Try to pick any decorators off of the token stack.
-                    node.decorators = getDecorators(tokens, placeholders);
+                    // Try to pick any attributes off of the token stack.
+                    node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
 
                     popAndCheck(tokens, "{");
 
@@ -2330,8 +2391,8 @@
                     // Push the Fail node into the current scope.
                     stack[stack.length - 1].push(node);
 
-                    // Try to pick any decorators off of the token stack.
-                    node.decorators = getDecorators(tokens, placeholders);
+                    // Try to pick any attributes off of the token stack.
+                    node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
 
                     popAndCheck(tokens, "{");
 
@@ -2347,7 +2408,7 @@
                     stack[stack.length - 1].push(node);
 
                     // Get the duration and potential longest duration of the wait.
-                    const durations = getArguments(
+                    const durations = getArguments$1(
                         tokens,
                         placeholders,
                         (arg) => arg.type === "number" && arg.isInteger,
@@ -2367,8 +2428,8 @@
                         throw new Error("invalid number of wait node duration arguments defined");
                     }
 
-                    // Try to pick any decorators off of the token stack.
-                    node.decorators = getDecorators(tokens, placeholders);
+                    // Try to pick any attributes off of the token stack.
+                    node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
                     break;
 
                 case "REPEAT":
@@ -2381,7 +2442,7 @@
                     // Check for iteration counts ([])
                     if (tokens[0] === "[") {
                         // An iteration count has been defined. Get the iteration and potential maximum iteration of the wait.
-                        const iterationArguments = getArguments(
+                        const iterationArguments = getArguments$1(
                             tokens,
                             placeholders,
                             (arg) => arg.type === "number" && arg.isInteger,
@@ -2402,8 +2463,8 @@
                         }
                     }
 
-                    // Try to pick any decorators off of the token stack.
-                    node.decorators = getDecorators(tokens, placeholders);
+                    // Try to pick any attributes off of the token stack.
+                    node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
 
                     popAndCheck(tokens, "{");
 
@@ -2421,7 +2482,7 @@
                     // Check for iteration counts ([])
                     if (tokens[0] === "[") {
                         // An iteration count has been defined. Get the iteration and potential maximum iteration of the wait.
-                        const iterationArguments = getArguments(
+                        const iterationArguments = getArguments$1(
                             tokens,
                             placeholders,
                             (arg) => arg.type === "number" && arg.isInteger,
@@ -2442,8 +2503,8 @@
                         }
                     }
 
-                    // Try to pick any decorators off of the token stack.
-                    node.decorators = getDecorators(tokens, placeholders);
+                    // Try to pick any attributes off of the token stack.
+                    node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
 
                     popAndCheck(tokens, "{");
 
@@ -2464,7 +2525,7 @@
                     }
 
                     // The action name will be defined as a node argument.
-                    const actionArguments = getArguments(tokens, placeholders);
+                    const actionArguments = getArguments$1(tokens, placeholders);
 
                     // We should have at least one identifer argument for an action node, which is the action name.
                     if (actionArguments.length && actionArguments[0].type === "identifier") {
@@ -2488,8 +2549,8 @@
                     // Any node arguments that follow the action name identifier will be treated as action function arguments.
                     node.actionArguments = actionArguments;
 
-                    // Try to pick any decorators off of the token stack.
-                    node.decorators = getDecorators(tokens, placeholders);
+                    // Try to pick any attributes off of the token stack.
+                    node.attributes = AttributeBuilder.parseFromTokens(tokens, placeholders);
                     break;
 
                 case "}":
@@ -2593,7 +2654,7 @@
      * @param validationFailedMessage  The exception message to throw if argument validation fails.
      * @returns The argument definition list.
      */
-    function getArguments(tokens, stringArgumentPlaceholders, argumentValidator, validationFailedMessage) {
+    function getArguments$1(tokens, stringArgumentPlaceholders, argumentValidator, validationFailedMessage) {
         // Any lists of arguments will always be wrapped in '[]' for node arguments or '()' for decorator arguments.
         // We are looking for a '[' or '(' opener that wraps the argument tokens and the relevant closer.
         const closer = popAndCheck(tokens, ["[", "("]) === "[" ? "]" : ")";
@@ -2699,62 +2760,6 @@
                 return this.value;
             }
         };
-    }
-
-    /**
-     * Pull any decorators off of the token stack.
-     * @param tokens The array of remaining tokens.
-     * @param stringArgumentPlaceholders The mapping of string literal node argument placeholders to original values.
-     * @returns An array od decorators defined by any directly following tokens.
-     */
-    function getDecorators(tokens, stringArgumentPlaceholders) {
-        // Create an array to hold any decorators found.
-        const decorators = [];
-
-        // Keep track of names of decorators that we have found on the token stack, as we cannot have duplicates.
-        const decoratorsFound = [];
-
-        // Try to get the decorator factory for the next token.
-        let decoratorFactory = DecoratorFactories[(tokens[0] || "").toUpperCase()];
-
-        // Pull decorator tokens off of the tokens stack until we have no more.
-        while (decoratorFactory) {
-            // Check to make sure that we have not already created a decorator of this type for this node.
-            if (decoratorsFound.indexOf(tokens[0].toUpperCase()) !== -1) {
-                throw new Error(`duplicate decorator '${tokens[0].toUpperCase()}' found for node`);
-            }
-
-            // Add the current decorator type to our array of found decorators.
-            decoratorsFound.push(tokens.shift().toUpperCase());
-
-            // Grab any decorator arguments.
-            const decoratorArguments = getArguments(tokens, stringArgumentPlaceholders);
-
-            // The first decorator argument has to be an identifer, this will reference an agent function.
-            if (decoratorArguments.length === 0 || decoratorArguments[0].type !== "identifier") {
-                throw new Error("expected agent function name identifier argument for decorator");
-            }
-
-            // Grab the first decorator which is an identifier that will reference an agent function.
-            const decoratorFunctionNameArg = decoratorArguments.shift();
-
-            // Any remaining decorator arguments must have a type of string, number, boolean or null.
-            decoratorArguments
-                .filter((arg) => arg.type === "identifier")
-                .forEach((arg) => {
-                    throw new Error(
-                        "invalid decorator argument value '" + arg.value + "', must be string, number, boolean or null"
-                    );
-                });
-
-            // Create the decorator and add it to the array of decorators found.
-            decorators.push(decoratorFactory(decoratorFunctionNameArg.value, decoratorArguments));
-
-            // Try to get the next decorator name token, as there could be multiple.
-            decoratorFactory = DecoratorFactories[(tokens[0] || "").toUpperCase()];
-        }
-
-        return decorators;
     }
 
     /**
@@ -2985,15 +2990,15 @@
         static #createRootNode(definition) {
             try {
                 // Try to create the behaviour tree AST based on the definition provided, this could fail if the definition is invalid.
-                const rootASTNodes = buildRootASTNodes(definition);
+                const rootNodes = parseRootNodes(definition);
 
                 // Create a symbol to use as the main root key in our root node mapping.
                 const mainRootNodeKey = Symbol("__root__");
 
                 // Create a mapping of root node names to root AST tokens. The main root node will have a key of Symbol("__root__").
                 const rootNodeMap = {};
-                for (const rootASTNode of rootASTNodes) {
-                    rootNodeMap[rootASTNode.name === null ? mainRootNodeKey : rootASTNode.name] = rootASTNode;
+                for (const rootNode of rootNodes) {
+                    rootNodeMap[rootNode.name === null ? mainRootNodeKey : rootNode.name] = rootNode;
                 }
 
                 // Create a provider for named root nodes that are part of our definition or have been registered. Prioritising the former.

@@ -1,5 +1,5 @@
 import GuardPath from "./attributes/guards/guardPath";
-import buildRootASTNodes from "./rootASTNodesBuilder";
+import parseRootNodes from "./NodeBuilder";
 import State from "./State";
 import Lookup from "./Lookup";
 
@@ -186,15 +186,15 @@ export default class BehaviourTree {
     static #createRootNode(definition) {
         try {
             // Try to create the behaviour tree AST based on the definition provided, this could fail if the definition is invalid.
-            const rootASTNodes = buildRootASTNodes(definition);
+            const rootNodes = parseRootNodes(definition);
 
             // Create a symbol to use as the main root key in our root node mapping.
             const mainRootNodeKey = Symbol("__root__");
 
             // Create a mapping of root node names to root AST tokens. The main root node will have a key of Symbol("__root__").
             const rootNodeMap = {};
-            for (const rootASTNode of rootASTNodes) {
-                rootNodeMap[rootASTNode.name === null ? mainRootNodeKey : rootASTNode.name] = rootASTNode;
+            for (const rootNode of rootNodes) {
+                rootNodeMap[rootNode.name === null ? mainRootNodeKey : rootNode.name] = rootNode;
             }
 
             // Create a provider for named root nodes that are part of our definition or have been registered. Prioritising the former.
