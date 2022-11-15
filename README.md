@@ -648,3 +648,7 @@ const agentBehaviourTree = new BehaviourTree(definition, agent);
 | 1.1.0          | Added parallel composite node |
 | 1.0.0          | Calls to action, condition and guard agent functions are now bound to the agent instance  |
 | 0.0.6          | Added promisey actions     |
+
+## Ben's Notes
+- ESBuild Output: https://github.com/evanw/esbuild/issues/1360 :/
+- Copy index.d.ts to output dir
