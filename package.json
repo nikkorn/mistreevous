@@ -16,11 +16,12 @@
     "should": "^1.3.0"
   },
   "scripts": {
-    "build": "npm run esbuild",
+    "build": "npm run esbuild && npm run typecheck",
     "build-watch": "npm run esbuild -- --watch",
-    "test": "npm run build && mocha \"test/**/*.js\"",
+    "test": "npm run build && npm run typecheck && mocha \"test/**/*.js\"",
     "format": "prettier --write \"src/**/*.js\"",
-    "esbuild": "esbuild ./src/index.js --bundle --sourcemap --outdir=dist --platform=node"
+    "esbuild": "esbuild ./src/index.js --bundle --sourcemap --outdir=dist --platform=node",
+    "typecheck": "tsc --noEmit"
   },
   "repository": {
     "type": "git",
