@@ -3,6 +3,7 @@ import Until from "./attributes/guards/until";
 import Entry from "./attributes/callbacks/entry";
 import Exit from "./attributes/callbacks/exit";
 import Step from "./attributes/callbacks/step";
+import { getArguments } from "./TokenParsingUtilities";
 
 /**
  * The builder of node attributes.

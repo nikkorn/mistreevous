@@ -263,6 +263,102 @@ var Step = class extends Callback {
   };
 };
 
+// src/TokenParsingUtilities.js
+function parseTokensFromDefinition(definition) {
+  definition = definition.replace(/\(/g, " ( ");
+  definition = definition.replace(/\)/g, " ) ");
+  definition = definition.replace(/\{/g, " { ");
+  definition = definition.replace(/\}/g, " } ");
+  definition = definition.replace(/\]/g, " ] ");
+  definition = definition.replace(/\[/g, " [ ");
+  definition = definition.replace(/\,/g, " , ");
+  return definition.replace(/\s+/g, " ").trim().split(" ");
+}
+function popAndCheck(tokens, expected) {
+  const popped = tokens.shift();
+  if (popped === void 0) {
+    throw new Error("unexpected end of definition");
+  }
+  if (expected !== void 0) {
+    var tokenMatchesExpectation = [].concat(expected).some((item) => popped.toUpperCase() === item.toUpperCase());
+    if (!tokenMatchesExpectation) {
+      const expectationString = [].concat(expected).map((item) => "'" + item + "'").join(" or ");
+      throw new Error("unexpected token found. Expected " + expected + " but got '" + popped + "'");
+    }
+  }
+  return popped;
+}
+function getArguments(tokens, stringArgumentPlaceholders, argumentValidator, validationFailedMessage) {
+  const closer = popAndCheck(tokens, ["[", "("]) === "[" ? "]" : ")";
+  const argumentListTokens = [];
+  const argumentList = [];
+  while (tokens.length && tokens[0] !== closer) {
+    argumentListTokens.push(tokens.shift());
+  }
+  argumentListTokens.forEach((token, index) => {
+    const shouldBeArgumentToken = !(index & 1);
+    if (shouldBeArgumentToken) {
+      const argumentDefinition = getArgumentDefinition(token, stringArgumentPlaceholders);
+      if (argumentValidator && !argumentValidator(argumentDefinition)) {
+        throw new Error(validationFailedMessage);
+      }
+      argumentList.push(argumentDefinition);
+    } else {
+      if (token !== ",") {
+        throw new Error(`invalid argument list, expected ',' or ']' but got '${token}'`);
+      }
+    }
+  });
+  popAndCheck(tokens, closer);
+  return argumentList;
+}
+function getArgumentDefinition(token, stringArgumentPlaceholders) {
+  if (token === "null") {
+    return {
+      value: null,
+      type: "null",
+      toString: function() {
+        return this.value;
+      }
+    };
+  }
+  if (token === "true" || token === "false") {
+    return {
+      value: token === "true",
+      type: "boolean",
+      toString: function() {
+        return this.value;
+      }
+    };
+  }
+  if (!isNaN(token)) {
+    return {
+      value: parseFloat(token, 10),
+      isInteger: parseFloat(token, 10) === parseInt(token, 10),
+      type: "number",
+      toString: function() {
+        return this.value;
+      }
+    };
+  }
+  if (token.match(/^@@\d+@@$/g)) {
+    return {
+      value: stringArgumentPlaceholders[token].replace('\\"', '"'),
+      type: "string",
+      toString: function() {
+        return '"' + this.value + '"';
+      }
+    };
+  }
+  return {
+    value: token,
+    type: "identifier",
+    toString: function() {
+      return this.value;
+    }
+  };
+}
+
 // src/AttributeBuilder.js
 var _factories;
 var AttributeBuilder = class {
@@ -1164,7 +1260,7 @@ function parseRootNodes(definition) {
         node = ASTNodeFactories.ROOT();
         stack[stack.length - 1].push(node);
         if (tokens[0] === "[") {
-          const rootArguments = getArguments2(tokens, placeholders);
+          const rootArguments = getArguments(tokens, placeholders);
           if (rootArguments.length === 1 && rootArguments[0].type === "identifier") {
             node.name = rootArguments[0].value;
           } else {
@@ -1181,7 +1277,7 @@ function parseRootNodes(definition) {
         if (tokens[0] !== "[") {
           throw new Error("expected single branch name argument");
         }
-        const branchArguments = getArguments2(tokens, placeholders);
+        const branchArguments = getArguments(tokens, placeholders);
         if (branchArguments.length === 1 && branchArguments[0].type === "identifier") {
           node.branchName = branchArguments[0].value;
         } else {
@@ -1213,7 +1309,7 @@ function parseRootNodes(definition) {
         node = ASTNodeFactories.LOTTO();
         stack[stack.length - 1].push(node);
         if (tokens[0] === "[") {
-          node.tickets = getArguments2(
+          node.tickets = getArguments(
             tokens,
             placeholders,
             (arg) => arg.type === "number" && arg.isInteger,
@@ -1230,7 +1326,7 @@ function parseRootNodes(definition) {
         if (tokens[0] !== "[") {
           throw new Error("expected condition name identifier argument");
         }
-        const conditionArguments = getArguments2(tokens, placeholders);
+        const conditionArguments = getArguments(tokens, placeholders);
         if (conditionArguments.length && conditionArguments[0].type === "identifier") {
           node.conditionName = conditionArguments.shift().value;
         } else {
@@ -1268,7 +1364,7 @@ function parseRootNodes(definition) {
       case "WAIT":
         node = ASTNodeFactories.WAIT();
         stack[stack.length - 1].push(node);
-        const durations = getArguments2(
+        const durations = getArguments(
           tokens,
           placeholders,
           (arg) => arg.type === "number" && arg.isInteger,
@@ -1288,7 +1384,7 @@ function parseRootNodes(definition) {
         node = ASTNodeFactories.REPEAT();
         stack[stack.length - 1].push(node);
         if (tokens[0] === "[") {
-          const iterationArguments = getArguments2(
+          const iterationArguments = getArguments(
             tokens,
             placeholders,
             (arg) => arg.type === "number" && arg.isInteger,
@@ -1311,7 +1407,7 @@ function parseRootNodes(definition) {
         node = ASTNodeFactories.RETRY();
         stack[stack.length - 1].push(node);
         if (tokens[0] === "[") {
-          const iterationArguments = getArguments2(
+          const iterationArguments = getArguments(
             tokens,
             placeholders,
             (arg) => arg.type === "number" && arg.isInteger,
@@ -1336,7 +1432,7 @@ function parseRootNodes(definition) {
         if (tokens[0] !== "[") {
           throw new Error("expected action name identifier argument");
         }
-        const actionArguments = getArguments2(tokens, placeholders);
+        const actionArguments = getArguments(tokens, placeholders);
         if (actionArguments.length && actionArguments[0].type === "identifier") {
           node.actionName = actionArguments.shift().value;
         } else {
@@ -1392,90 +1488,6 @@ function parseRootNodes(definition) {
   );
   return stack[0];
 }
-function popAndCheck(tokens, expected) {
-  const popped = tokens.shift();
-  if (popped === void 0) {
-    throw new Error("unexpected end of definition");
-  }
-  if (expected !== void 0) {
-    var tokenMatchesExpectation = [].concat(expected).some((item) => popped.toUpperCase() === item.toUpperCase());
-    if (!tokenMatchesExpectation) {
-      const expectationString = [].concat(expected).map((item) => "'" + item + "'").join(" or ");
-      throw new Error("unexpected token found. Expected " + expected + " but got '" + popped + "'");
-    }
-  }
-  return popped;
-}
-function getArguments2(tokens, stringArgumentPlaceholders, argumentValidator, validationFailedMessage) {
-  const closer = popAndCheck(tokens, ["[", "("]) === "[" ? "]" : ")";
-  const argumentListTokens = [];
-  const argumentList = [];
-  while (tokens.length && tokens[0] !== closer) {
-    argumentListTokens.push(tokens.shift());
-  }
-  argumentListTokens.forEach((token, index) => {
-    const shouldBeArgumentToken = !(index & 1);
-    if (shouldBeArgumentToken) {
-      const argumentDefinition = getArgumentDefinition(token, stringArgumentPlaceholders);
-      if (argumentValidator && !argumentValidator(argumentDefinition)) {
-        throw new Error(validationFailedMessage);
-      }
-      argumentList.push(argumentDefinition);
-    } else {
-      if (token !== ",") {
-        throw new Error(`invalid argument list, expected ',' or ']' but got '${token}'`);
-      }
-    }
-  });
-  popAndCheck(tokens, closer);
-  return argumentList;
-}
-function getArgumentDefinition(token, stringArgumentPlaceholders) {
-  if (token === "null") {
-    return {
-      value: null,
-      type: "null",
-      toString: function() {
-        return this.value;
-      }
-    };
-  }
-  if (token === "true" || token === "false") {
-    return {
-      value: token === "true",
-      type: "boolean",
-      toString: function() {
-        return this.value;
-      }
-    };
-  }
-  if (!isNaN(token)) {
-    return {
-      value: parseFloat(token, 10),
-      isInteger: parseFloat(token, 10) === parseInt(token, 10),
-      type: "number",
-      toString: function() {
-        return this.value;
-      }
-    };
-  }
-  if (token.match(/^@@\d+@@$/g)) {
-    return {
-      value: stringArgumentPlaceholders[token].replace('\\"', '"'),
-      type: "string",
-      toString: function() {
-        return '"' + this.value + '"';
-      }
-    };
-  }
-  return {
-    value: token,
-    type: "identifier",
-    toString: function() {
-      return this.value;
-    }
-  };
-}
 function substituteStringLiterals(definition) {
   const placeholders = {};
   const processedDefinition = definition.replace(/\"(\\.|[^"\\])*\"/g, (match) => {
@@ -1488,16 +1500,6 @@ function substituteStringLiterals(definition) {
     return placeholder;
   });
   return { placeholders, processedDefinition };
-}
-function parseTokensFromDefinition(definition) {
-  definition = definition.replace(/\(/g, " ( ");
-  definition = definition.replace(/\)/g, " ) ");
-  definition = definition.replace(/\{/g, " { ");
-  definition = definition.replace(/\}/g, " } ");
-  definition = definition.replace(/\]/g, " ] ");
-  definition = definition.replace(/\[/g, " [ ");
-  definition = definition.replace(/\,/g, " , ");
-  return definition.replace(/\s+/g, " ").trim().split(" ");
 }
 
 // src/BehaviourTree.js
