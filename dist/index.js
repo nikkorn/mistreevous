@@ -72,7 +72,7 @@ var GuardPath = class {
   };
 };
 
-// src/state.js
+// src/State.js
 var State = {
   READY: Symbol("mistreevous.ready"),
   RUNNING: Symbol("mistreevous.running"),

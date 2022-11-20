@@ -1,5 +1,5 @@
 import GuardUnsatisifedException from "../attributes/guards/guardUnsatisifedException";
-import State from "../state";
+import State from "../State";
 
 /**
  * A base node.

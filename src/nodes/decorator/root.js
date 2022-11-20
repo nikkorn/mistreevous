@@ -1,5 +1,5 @@
 import Decorator from "./decorator";
-import State from "../../state";
+import State from "../../State";
 
 /**
  * A Root node.
