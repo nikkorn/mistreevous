@@ -1,4 +1,5 @@
 import Callback from "./callback";
+// @ts-ignore
 import Lookup from "../../Lookup";
 
 /**
@@ -6,16 +7,18 @@ import Lookup from "../../Lookup";
  * @param functionName The name of the agent function to call.
  * @param args The array of callback argument definitions.
  */
-export default function Exit(functionName, args) {
-    Callback.call(this, "exit", args);
+export default class Exit extends Callback {
+    constructor(private functionName: string, args: any[]) {
+        super("exit", args);
+    }
 
     /**
      * Gets the callback details.
      */
-    this.getDetails = () => {
+    getDetails = () => {
         return {
             type: this.getType(),
-            functionName: functionName,
+            functionName: this.functionName,
             arguments: this.getArguments()
         };
     };
@@ -26,20 +29,18 @@ export default function Exit(functionName, args) {
      * @param isSuccess Whether the decorated node was left with a success state.
      * @param isAborted Whether the decorated node was aborted.
      */
-    this.callAgentFunction = (agent, isSuccess, isAborted) => {
+    callAgentFunction = (agent: any, isSuccess: boolean, isAborted: boolean) => {
         // Attempt to get the invoker for the callback function.
-        const callbackFuncInvoker = Lookup.getFuncInvoker(agent, functionName);
+        const callbackFuncInvoker = Lookup.getFuncInvoker(agent, this.functionName);
 
         // The callback function should be defined.
         if (callbackFuncInvoker === null) {
             throw new Error(
-                `cannot call exit function '${functionName}' as is not defined on the agent and has not been registered`
+                `cannot call exit function '${this.functionName}' as is not defined on the agent and has not been registered`
             );
         }
 
         // Call the callback function.
-        callbackFuncInvoker([{ value: { succeeded: isSuccess, aborted: isAborted } }].concat(args));
+        callbackFuncInvoker([{ value: { succeeded: isSuccess, aborted: isAborted } }].concat(this.args));
     };
 }
-
-Exit.prototype = Object.create(Callback.prototype);

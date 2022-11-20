@@ -146,7 +146,7 @@ export default class BehaviourTree {
 
             try {
                 // Try to create the behaviour tree AST based on the definition provided, this could fail if the definition is invalid.
-                rootASTNodes = buildRootASTNodes(value);
+                rootASTNodes = parseRootNodes(value);
             } catch (exception) {
                 // There was an issue in trying to parse and build the tree definition.
                 throw new Error(`error registering definition: ${exception.message}`);

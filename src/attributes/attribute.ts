@@ -3,21 +3,22 @@
  * @param type The node attribute type.
  * @param args The array of attribute argument definitions.
  */
-export default function Attribute(type, args) {
+export default abstract class Attribute {
+    constructor(protected type: string, protected args: any[]) {}
     /**
      * Gets the type of the attribute.
      */
-    this.getType = () => type;
+    getType = () => this.type;
 
     /**
      * Gets the array of attribute argument definitions.
      */
-    this.getArguments = () => args;
+    getArguments = () => this.args;
 
     /**
      * Gets the attribute details.
      */
-    this.getDetails = () => ({
+    getDetails = () => ({
         type: this.getType(),
         arguments: this.getArguments()
     });

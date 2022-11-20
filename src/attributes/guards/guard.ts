@@ -5,13 +5,11 @@ import Attribute from "../attribute";
  * @param type The node guard attribute type.
  * @param args The array of attribute argument definitions.
  */
-export default function Guard(type, args) {
-    Attribute.call(this, type, args);
-
+export default abstract class Guard extends Attribute {
     /**
      * Gets whether this attribute is a guard.
      */
-    this.isGuard = () => true;
-}
+    isGuard = () => true;
 
-Guard.prototype = Object.create(Attribute.prototype);
+    abstract isSatisfied(agent: any): boolean
+}

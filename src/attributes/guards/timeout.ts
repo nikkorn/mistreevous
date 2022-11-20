@@ -5,34 +5,34 @@ import Guard from "./guard";
  * @param duration The duration of the timeout.
  * @param args The array of decorator argument definitions.
  */
-export default function Timeout(duration, args) {
-    Guard.call(this, "timeout", args);
+export default class Timeout extends Guard {
+    constructor(private duration: number, args: any[]) {
+        super("timeout", args);
+    }
 
     /**
      * Gets whether the decorator is a guard.
      */
-    this.isGuard = () => true;
+    isGuard = () => true;
 
     /**
      * Gets the decorator details.
      */
-    this.getDetails = () => {
+    getDetails = () => {
         return {
             type: this.getType(),
             arguments: this.getArguments()
         };
     };
 
-    this.onReady = () => {};
+    onReady = () => {};
 
     /**
      * Gets whether the guard is satisfied.
      * @param agent The agent.
      * @returns Whether the guard is satisfied.
      */
-    this.isSatisfied = (agent) => {
-        // TODO
+    isSatisfied = (agent: any) => {
+        throw new Error("TODO");
     };
 }
-
-Timeout.prototype = Object.create(Guard.prototype);

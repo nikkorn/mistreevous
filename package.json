@@ -4,30 +4,29 @@
   "description": "A tool to build behaviour trees in JavaScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "directories": {
-    "lib": "lib"
-  },
   "files": [
     "dist/*"
   ],
   "devDependencies": {
-    "babel-core": "^6.26.3",
-    "babel-loader": "^7.1.2",
-    "babel-preset-env": "^1.7.0",
     "chai": "^4.3.4",
+    "cpy-cli": "^4.2.0",
+    "esbuild": "^0.15.13",
     "expect": "^25.5.0",
     "mocha": "^7.2.0",
+    "npm-run-all": "^4.1.5",
     "prettier": "2.7.1",
-    "rollup": "^2.79.1",
-    "rollup-plugin-copy": "^3.4.0",
     "should": "^1.3.0",
     "sinon": "^14.0.1"
   },
   "scripts": {
-    "build": "rollup -c",
-    "build-watch": "rollup -c -w",
-    "test": "npm run build && mocha \"test/**/*.js\"",
-    "format": "prettier --write \"src/**/*.js\" \"test/**/*.js\""
+    "build": "npm-run-all build:esbuild build:typecheck build:copy-typings",
+    "watch": "npm run build:esbuild -- --watch",
+    "test": "npm-run-all build test:unit-test",
+    "build:format": "prettier --write \"src/**/*.js\"",
+    "build:esbuild": "esbuild ./src/index.js --bundle --sourcemap --outdir=dist --platform=node",
+    "build:typecheck": "tsc --noEmit",
+    "build:copy-typings": "cpy ./index.d.ts ../dist/ --cwd=src",
+    "test:unit-test": "mocha \"test/**/*.js\""
   },
   "repository": {
     "type": "git",
@@ -45,7 +44,7 @@
     "machine",
     "state"
   ],
-  "author": "nikolas howard",
+  "author": "nikolas howard smells",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/nikkorn/mistreevous/issues"
