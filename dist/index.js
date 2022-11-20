@@ -614,7 +614,7 @@ function Decorator(type, decorators, child) {
     }
     child.abort(agent);
     this.reset();
-    const exitDecorator = this.getDecorator("exit");
+    const exitDecorator = this.getAttribute("exit");
     if (exitDecorator) {
       exitDecorator.callAgentFunction(agent, false, true);
     }
@@ -827,7 +827,7 @@ function Composite(type, decorators, children) {
     }
     this.getChildren().forEach((child) => child.abort(agent));
     this.reset();
-    const exitDecorator = this.getDecorator("exit");
+    const exitDecorator = this.getAttribute("exit");
     if (exitDecorator) {
       exitDecorator.callAgentFunction(agent, false, true);
     }

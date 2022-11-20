@@ -48,7 +48,7 @@ export default function Decorator(type, decorators, child) {
         this.reset();
 
         // Try to get the exit decorator for this node.
-        const exitDecorator = this.getDecorator("exit");
+        const exitDecorator = this.getAttribute("exit");
 
         // Call the exit decorator function if it exists.
         if (exitDecorator) {
