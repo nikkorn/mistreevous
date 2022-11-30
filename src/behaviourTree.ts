@@ -1,29 +1,37 @@
 import GuardPath from "./attributes/guards/guardPath";
-import buildRootASTNodes from "./rootASTNodesBuilder";
-import State from "./State";
-import Lookup from "./Lookup";
+import buildRootASTNodes, { AstNode } from "./rootAstNodesBuilder";
+import State from "./state";
+import Lookup from "./lookup";
+import Node from "./nodes/node";
+import Root from "./nodes/decorator/root";
+import Composite from "./nodes/composite/composite";
+import Decorator from "./nodes/decorator/decorator";
+
+type FlattenedTreeNode = {
+    id: string,
+    type: string,
+    caption: string,
+    state: any,
+    decorators: any[] | null,
+    arguments: any[],
+    parentId: string | null
+}
 
 /**
  * The behaviour tree.
  */
 export default class BehaviourTree {
     /**
-     * The agent instance that this behaviour tree is modelling behaviour for.
-     */
-    #agent;
-    /**
      * The main root tree node.
      */
-    #rootNode;
+    public readonly rootNode: Root;
 
     /**
      * Constructor for the BehaviourTree class.
      * @param definition The behaviour tree definition.
      * @param agent The agent instance that this behaviour tree is modelling behaviour for.
      */
-    constructor(definition, agent) {
-        this.#agent = agent;
-
+    constructor(definition: string, private agent: any) {
         // The tree definition must be defined and a valid string.
         if (typeof definition !== "string") {
             throw new Error("the tree definition must be a string");
@@ -35,15 +43,7 @@ export default class BehaviourTree {
         }
 
         // Parse the behaviour tree definition, create the populated tree of behaviour tree nodes, and get the root.
-        this.#rootNode = BehaviourTree.#createRootNode(definition);
-    }
-
-    /**
-     * Gets the main root tree node.
-     * @returns The main root tree node.
-     */
-    get rootNode() {
-        return this.#rootNode;
+        this.rootNode = BehaviourTree.createRootNode(definition);
     }
 
     /**
@@ -51,7 +51,7 @@ export default class BehaviourTree {
      * @returns Whether the tree is in the running state.
      */
     isRunning() {
-        return this.#rootNode.getState() === State.RUNNING;
+        return this.rootNode.getState() === State.RUNNING;
     }
 
     /**
@@ -59,7 +59,7 @@ export default class BehaviourTree {
      * @returns The current tree state.
      */
     getState() {
-        return this.#rootNode.getState();
+        return this.rootNode.getState();
     }
 
     /**
@@ -69,14 +69,14 @@ export default class BehaviourTree {
      */
     step() {
         // If the root node has already been stepped to completion then we need to reset it.
-        if (this.#rootNode.getState() === State.SUCCEEDED || this.#rootNode.getState() === State.FAILED) {
-            this.#rootNode.reset();
+        if (this.rootNode.getState() === State.SUCCEEDED || this.rootNode.getState() === State.FAILED) {
+            this.rootNode.reset();
         }
 
         try {
-            this.#rootNode.update(this.#agent);
+            this.rootNode.update(this.agent);
         } catch (exception) {
-            throw new Error(`error stepping tree: ${exception.message}`);
+            throw new Error(`error stepping tree: ${(exception as Error).message}`);
         }
     }
 
@@ -84,30 +84,30 @@ export default class BehaviourTree {
      * Resets the tree from the root node outwards to each nested node, giving each a state of READY.
      */
     reset() {
-        this.#rootNode.reset();
+        this.rootNode.reset();
     }
 
     /**
      * Gets the flattened details of every node in the tree.
      * @returns The flattened details of every node in the tree.
      */
-    getFlattenedNodeDetails() {
+    getFlattenedNodeDetails(): FlattenedTreeNode[] {
         // Create an empty flattened array of tree nodes.
-        const flattenedTreeNodes = [];
+        const flattenedTreeNodes: FlattenedTreeNode[] = [];
 
         /**
          * Helper function to process a node instance and push details into the flattened tree nodes array.
          * @param node The current node.
          * @param parentUid The UID of the node parent, or null if the node is the main root node.
          */
-        const processNode = (node, parentUid) => {
+        const processNode = (node: Node, parentUid: string | null) => {
             /**
              * Helper function to get details for all node decorators.
              * @param decorators The node decorators.
              * @returns The decorator details for a node.
              */
-            const getDecoratorDetails = (decorators) =>
-                decorators.length > 0 ? decorators.map((decorator) => decorator.getDetails()) : null;
+            const getDecoratorDetails = (decorators: Decorator[]): any[] | null =>
+                decorators.length > 0 ? decorators.map((decorator) => (decorator as any).getDetails()) : null;
 
             // Push the current node into the flattened nodes array.
             flattenedTreeNodes.push({
@@ -122,12 +122,12 @@ export default class BehaviourTree {
 
             // Process each of the nodes children if it is not a leaf node.
             if (!node.isLeafNode()) {
-                node.getChildren().forEach((child) => processNode(child, node.getUid()));
+                (node as Composite | Decorator).getChildren().forEach((child) => processNode(child, (node as Composite | Decorator).getUid()));
             }
         };
 
         // Convert the nested node structure into a flattened array of node details.
-        processNode(this.#rootNode, null);
+        processNode(this.rootNode, null);
 
         return flattenedTreeNodes;
     }
@@ -137,7 +137,7 @@ export default class BehaviourTree {
      * @param name The name of the function or subtree to register.
      * @param value The function or subtree definition to register.
      */
-    static register(name, value) {
+    static register(name: string, value: Function | string) {
         if (typeof value === "function") {
             // We are going to register a action/condition/guard/callback function.
             Lookup.setFunc(name, value);
@@ -150,7 +150,7 @@ export default class BehaviourTree {
                 rootASTNodes = buildRootASTNodes(value);
             } catch (exception) {
                 // There was an issue in trying to parse and build the tree definition.
-                throw new Error(`error registering definition: ${exception.message}`);
+                throw new Error(`error registering definition: ${(exception as Error).message}`);
             }
 
             // This function should only ever be called with a definition containing a single unnamed root node.
@@ -168,14 +168,14 @@ export default class BehaviourTree {
      * Unregisters the action/condition/guard/callback function or subtree with the given name.
      * @param name The name of the action/condition/guard/callback function or subtree to unregister.
      */
-    static unregister(name) {
+    static unregister(name: string): void {
         Lookup.remove(name);
     }
 
     /**
      * Unregister all registered action/condition/guard/callback functions and subtrees.
      */
-    static unregisterAll() {
+    static unregisterAll(): void {
         Lookup.empty();
     }
 
@@ -184,7 +184,7 @@ export default class BehaviourTree {
      * @param {string} definition The behaviour tree definition.
      * @returns The root behaviour tree node.
      */
-    static #createRootNode(definition) {
+    private static createRootNode(definition: string): Root {
         try {
             // Try to create the behaviour tree AST based on the definition provided, this could fail if the definition is invalid.
             const rootASTNodes = buildRootASTNodes(definition);
@@ -193,13 +193,13 @@ export default class BehaviourTree {
             const mainRootNodeKey = Symbol("__root__");
 
             // Create a mapping of root node names to root AST tokens. The main root node will have a key of Symbol("__root__").
-            const rootNodeMap = {};
+            const rootNodeMap: {[key: string | symbol]: AstNode<Root>} = {};
             for (const rootASTNode of rootASTNodes) {
-                rootNodeMap[rootASTNode.name === null ? mainRootNodeKey : rootASTNode.name] = rootASTNode;
+                rootNodeMap[rootASTNode.name === null ? mainRootNodeKey : rootASTNode.name!] = rootASTNode;
             }
 
             // Create a provider for named root nodes that are part of our definition or have been registered. Prioritising the former.
-            const namedRootNodeProvider = function (name) {
+            const namedRootNodeProvider = function (name: string) {
                 return rootNodeMap[name] ? rootNodeMap[name] : Lookup.getSubtree(name);
             };
 
@@ -207,24 +207,24 @@ export default class BehaviourTree {
             const rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(namedRootNodeProvider, []);
 
             // Set a guard path on every leaf of the tree to evaluate as part of its update.
-            BehaviourTree.#applyLeafNodeGuardPaths(rootNode);
+            BehaviourTree.applyLeafNodeGuardPaths(rootNode as any);
 
             // Return the root node.
             return rootNode;
         } catch (exception) {
             // There was an issue in trying to parse and build the tree definition.
-            throw new Error(`error parsing tree: ${exception.message}`);
+            throw new Error(`error parsing tree: ${(exception as Error).message}\n${(exception as Error).stack}`);
         }
     }
 
     /**
      * Applies a guard path to every leaf of the tree to evaluate as part of each update.
-     * @param {*} rootNode The main root tree node.
+     * @param rootNode The main root tree node.
      */
-    static #applyLeafNodeGuardPaths(rootNode) {
-        const nodePaths = [];
+    private static applyLeafNodeGuardPaths(rootNode: Root) {
+        const nodePaths: Node[][] = [];
 
-        const findLeafNodes = (path, node) => {
+        const findLeafNodes = (path: Node[], node: Node) => {
             // Add the current node to the path.
             path = path.concat(node);
 
@@ -232,7 +232,7 @@ export default class BehaviourTree {
             if (node.isLeafNode()) {
                 nodePaths.push(path);
             } else {
-                node.getChildren().forEach((child) => findLeafNodes(path, child));
+                (node as Composite | Decorator).getChildren().forEach((child) => findLeafNodes(path, child));
             }
         };
 

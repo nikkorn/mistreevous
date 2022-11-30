@@ -1,5 +1,6 @@
+import Node from "../node";
 import Decorator from "./decorator";
-import State from "../../State";
+import State from "../../state";
 
 /**
  * A RETRY node.
@@ -13,59 +14,61 @@ import State from "../../State";
  * @param maximumIterations The maximum number of iterations to repeat the child node.
  * @param child The child node.
  */
-export default function Retry(decorators, iterations, maximumIterations, child) {
-    Decorator.call(this, "retry", decorators, child);
+export default class Retry extends Decorator {
+    constructor(decorators: Decorator[] | null, private iterations: number, private maximumIterations: number, child: Node) {
+        super("retry", decorators, child);
+    }
 
     /**
      * The number of target iterations to make.
      */
-    let targetIterationCount = null;
+    private targetIterationCount: number | null = null;
 
     /**
      * The current iteration count.
      */
-    let currentIterationCount = 0;
+    private currentIterationCount: number = 0;
 
     /**
      * Update the node.
      * @param agent The agent.
      * @returns The result of the update.
      */
-    this.onUpdate = function (agent) {
+    onUpdate = (agent: any) => {
         // If this node is in the READY state then we need to reset the child and the target iteration count.
         if (this.is(State.READY)) {
             // Reset the child node.
-            child.reset();
+            this.child.reset();
 
             // Set the target iteration count.
-            this._setTargetIterationCount();
+            this.setTargetIterationCount();
         }
 
         // Do a check to see if we can iterate. If we can then this node will move into the 'RUNNING' state.
         // If we cannot iterate then we have hit our target iteration count, which means that the node has succeeded.
-        if (this._canIterate()) {
+        if (this.canIterate()) {
             // This node is in the running state and can do its initial iteration.
             this.setState(State.RUNNING);
 
             // We may have already completed an iteration, meaning that the child node will be in the FAILED state.
             // If this is the case then we will have to reset the child node now.
-            if (child.getState() === State.FAILED) {
-                child.reset();
+            if (this.child.getState() === State.FAILED) {
+                this.child.reset();
             }
 
             // Update the child of this node.
-            child.update(agent);
+            this.child.update(agent);
 
             // If the child moved into the SUCCEEDED state when we updated it then there is nothing left to do and this node has also succeeded.
             // If it has moved into the FAILED state then we have completed the current iteration.
-            if (child.getState() === State.SUCCEEDED) {
+            if (this.child.getState() === State.SUCCEEDED) {
                 // The child has succeeded, meaning that this node has succeeded.
                 this.setState(State.SUCCEEDED);
 
                 return;
-            } else if (child.getState() === State.FAILED) {
+            } else if (this.child.getState() === State.FAILED) {
                 // We have completed an iteration.
-                currentIterationCount += 1;
+                this.currentIterationCount += 1;
             }
         } else {
             // This node is in the 'FAILED' state as we cannot iterate any more.
@@ -76,9 +79,9 @@ export default function Retry(decorators, iterations, maximumIterations, child) 
     /**
      * Gets the name of the node.
      */
-    this.getName = () => {
-        if (iterations !== null) {
-            return `RETRY ${maximumIterations ? iterations + "x-" + maximumIterations + "x" : iterations + "x"}`;
+    getName = () => {
+        if (this.iterations !== null) {
+            return `RETRY ${this.maximumIterations ? this.iterations + "x-" + this.maximumIterations + "x" : this.iterations + "x"}`;
         }
 
         // Return the default retry node name.
@@ -88,25 +91,25 @@ export default function Retry(decorators, iterations, maximumIterations, child) 
     /**
      * Reset the state of the node.
      */
-    this.reset = () => {
+    reset = () => {
         // Reset the state of this node.
         this.setState(State.READY);
 
         // Reset the current iteration count.
-        currentIterationCount = 0;
+        this.currentIterationCount = 0;
 
         // Reset the child node.
-        child.reset();
+        this.child.reset();
     };
 
     /**
      * Gets whether an iteration can be made.
      * @returns Whether an iteration can be made.
      */
-    this._canIterate = () => {
-        if (targetIterationCount !== null) {
+    canIterate = () => {
+        if (this.targetIterationCount !== null) {
             // We can iterate as long as we have not reached our target iteration count.
-            return currentIterationCount < targetIterationCount;
+            return this.currentIterationCount < this.targetIterationCount;
         }
 
         // If neither an iteration count or a condition function were defined then we can iterate indefinitely.
@@ -116,18 +119,16 @@ export default function Retry(decorators, iterations, maximumIterations, child) 
     /**
      * Sets the target iteration count.
      */
-    this._setTargetIterationCount = () => {
+    setTargetIterationCount = () => {
         // Are we dealing with a finite number of iterations?
-        if (typeof iterations === "number") {
+        if (typeof this.iterations === "number") {
             // If we have maximumIterations defined then we will want a random iteration count bounded by iterations and maximumIterations.
-            targetIterationCount =
-                typeof maximumIterations === "number"
-                    ? Math.floor(Math.random() * (maximumIterations - iterations + 1) + iterations)
-                    : iterations;
+            this.targetIterationCount =
+                typeof this.maximumIterations === "number"
+                    ? Math.floor(Math.random() * (this.maximumIterations - this.iterations + 1) + this.iterations)
+                    : this.iterations;
         } else {
-            targetIterationCount = null;
+            this.targetIterationCount = null;
         }
     };
 }
-
-Retry.prototype = Object.create(Decorator.prototype);

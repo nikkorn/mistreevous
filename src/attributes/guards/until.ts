@@ -1,6 +1,5 @@
 import Guard from "./guard";
-// @ts-ignore
-import Lookup from "../../Lookup";
+import Lookup from "../../lookup";
 
 /**
  * An UNTIL guard which is satisfied as long as the given condition remains false.

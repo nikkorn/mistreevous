@@ -3,6 +3,7 @@ var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
@@ -16,30 +17,12 @@ var __copyProps = (to, from, except, desc) => {
   return to;
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var __accessCheck = (obj, member, msg) => {
-  if (!member.has(obj))
-    throw TypeError("Cannot " + msg);
-};
-var __privateGet = (obj, member, getter) => {
-  __accessCheck(obj, member, "read from private field");
-  return getter ? getter.call(obj) : member.get(obj);
-};
-var __privateAdd = (obj, member, value) => {
-  if (member.has(obj))
-    throw TypeError("Cannot add the same private member more than once");
-  member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
-};
-var __privateSet = (obj, member, value, setter) => {
-  __accessCheck(obj, member, "write to private field");
-  setter ? setter.call(obj, value) : member.set(obj, value);
+var __publicField = (obj, key, value) => {
+  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
 };
-var __privateMethod = (obj, member, method) => {
-  __accessCheck(obj, member, "access private method");
-  return method;
-};
 
-// src/index.js
+// src/index.ts
 var src_exports = {};
 __export(src_exports, {
   BehaviourTree: () => BehaviourTree,
@@ -72,7 +55,7 @@ var GuardPath = class {
   };
 };
 
-// src/State.js
+// src/state.ts
 var State = {
   READY: Symbol("mistreevous.ready"),
   RUNNING: Symbol("mistreevous.running"),
@@ -80,28 +63,31 @@ var State = {
   FAILED: Symbol("mistreevous.failed")
 };
 
-// src/nodes/node.js
-function Node(type, decorators, args) {
-  const uid = createNodeUid();
-  let state = State.READY;
-  let guardPath;
-  this.getState = () => state;
-  this.setState = (value) => state = value;
-  this.getUid = () => uid;
-  this.getType = () => type;
-  this.getDecorators = () => decorators || [];
-  this.getArguments = () => args || [];
-  this.getDecorator = (type2) => this.getDecorators().filter((decorator) => decorator.getType().toUpperCase() === type2.toUpperCase())[0] || null;
-  this.getGuardDecorators = () => this.getDecorators().filter((decorator) => decorator.isGuard());
-  this.setGuardPath = (value) => guardPath = value;
-  this.hasGuardPath = () => !!guardPath;
-  this.is = (value) => {
-    return state === value;
-  };
-  this.reset = () => {
-    this.setState(State.READY);
-  };
-  this.abort = (agent) => {
+// src/nodes/node.ts
+var Node = class {
+  constructor(type, decorators, args) {
+    this.type = type;
+    this.decorators = decorators;
+    this.args = args;
+  }
+  uid = createNodeUid();
+  state = State.READY;
+  guardPath;
+  getState = () => this.state;
+  setState = (value) => this.state = value;
+  getUid = () => this.uid;
+  getType = () => this.type;
+  getDecorators = () => this.decorators || [];
+  getArguments = () => this.args || [];
+  getDecorator(type) {
+    return this.getDecorators().filter((decorator) => decorator.getType().toUpperCase() === type.toUpperCase())[0] || null;
+  }
+  getGuardDecorators = () => this.getDecorators().filter((decorator) => decorator.isGuard());
+  setGuardPath = (value) => this.guardPath = value;
+  hasGuardPath = () => !!this.guardPath;
+  is = (value) => this.state === value;
+  reset = () => this.setState(State.READY);
+  abort = (agent) => {
     if (!this.is(State.RUNNING)) {
       return;
     }
@@ -111,12 +97,12 @@ function Node(type, decorators, args) {
       exitDecorator.callAgentFunction(agent, false, true);
     }
   };
-  this.update = (agent) => {
+  update = (agent) => {
     if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {
       return {};
     }
     try {
-      guardPath.evaluate(agent);
+      this.guardPath.evaluate(agent);
       if (this.is(State.READY)) {
         const entryDecorator = this.getDecorator("entry");
         if (entryDecorator) {
@@ -143,7 +129,7 @@ function Node(type, decorators, args) {
       }
     }
   };
-}
+};
 function createNodeUid() {
   var S4 = function() {
     return ((1 + Math.random()) * 65536 | 0).toString(16).substring(1);
@@ -151,21 +137,18 @@ function createNodeUid() {
   return S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
 }
 
-// src/nodes/leaf/leaf.js
-function Leaf(type, decorators, args) {
-  Node.call(this, type, decorators, args);
-  this.isLeafNode = () => true;
-}
-Leaf.prototype = Object.create(Node.prototype);
+// src/nodes/leaf/leaf.ts
+var Leaf = class extends Node {
+  isLeafNode = () => true;
+};
 
-// src/Lookup.js
-var _functionTable, _subtreeTable;
+// src/lookup.ts
 var Lookup = class {
   static getFunc(name) {
-    return __privateGet(this, _functionTable)[name];
+    return this.functionTable[name];
   }
   static setFunc(name, func) {
-    __privateGet(this, _functionTable)[name] = func;
+    this.functionTable[name] = func;
   }
   static getFuncInvoker(agent, name) {
     if (agent[name] && typeof agent[name] === "function") {
@@ -174,54 +157,56 @@ var Lookup = class {
         args.map((arg) => arg.value)
       );
     }
-    if (__privateGet(this, _functionTable)[name] && typeof __privateGet(this, _functionTable)[name] === "function") {
-      return (args) => __privateGet(this, _functionTable)[name](agent, ...args.map((arg) => arg.value));
+    if (this.functionTable[name] && typeof this.functionTable[name] === "function") {
+      return (args) => this.functionTable[name](agent, ...args.map((arg) => arg.value));
     }
     return null;
   }
   static getSubtree(name) {
-    return __privateGet(this, _subtreeTable)[name];
+    return this.subtreeTable[name];
   }
   static setSubtree(name, subtree) {
-    __privateGet(this, _subtreeTable)[name] = subtree;
+    this.subtreeTable[name] = subtree;
   }
   static remove(name) {
-    delete __privateGet(this, _functionTable)[name];
-    delete __privateGet(this, _subtreeTable)[name];
+    delete this.functionTable[name];
+    delete this.subtreeTable[name];
   }
   static empty() {
-    __privateSet(this, _functionTable, {});
-    __privateSet(this, _subtreeTable, {});
+    this.functionTable = {};
+    this.subtreeTable = {};
   }
 };
-_functionTable = new WeakMap();
-_subtreeTable = new WeakMap();
-__privateAdd(Lookup, _functionTable, {});
-__privateAdd(Lookup, _subtreeTable, {});
+__publicField(Lookup, "functionTable", {});
+__publicField(Lookup, "subtreeTable", {});
 
-// src/nodes/leaf/action.js
-function Action(decorators, actionName, actionArguments) {
-  Leaf.call(this, "action", decorators, actionArguments);
-  let isUsingUpdatePromise = false;
-  let updatePromiseStateResult = null;
-  this.onUpdate = function(agent) {
-    if (isUsingUpdatePromise) {
-      if (updatePromiseStateResult) {
-        this.setState(updatePromiseStateResult);
+// src/nodes/leaf/action.ts
+var Action = class extends Leaf {
+  constructor(decorators, actionName, actionArguments) {
+    super("action", decorators, actionArguments);
+    this.actionName = actionName;
+    this.actionArguments = actionArguments;
+  }
+  isUsingUpdatePromise = false;
+  updatePromiseStateResult = null;
+  onUpdate = (agent) => {
+    if (this.isUsingUpdatePromise) {
+      if (this.updatePromiseStateResult) {
+        this.setState(this.updatePromiseStateResult);
       }
       return;
     }
-    const actionFuncInvoker = Lookup.getFuncInvoker(agent, actionName);
+    const actionFuncInvoker = Lookup.getFuncInvoker(agent, this.actionName);
     if (actionFuncInvoker === null) {
       throw new Error(
-        `cannot update action node as the action '${actionName}' function is not defined on the agent and has not been registered`
+        `cannot update action node as the action '${this.actionName}' function is not defined on the agent and has not been registered`
       );
     }
-    const updateResult = actionFuncInvoker(actionArguments);
+    const updateResult = actionFuncInvoker(this.actionArguments);
     if (updateResult instanceof Promise) {
       updateResult.then(
         (result) => {
-          if (!isUsingUpdatePromise) {
+          if (!this.isUsingUpdatePromise) {
             return;
           }
           if (result !== State.SUCCEEDED && result !== State.FAILED) {
@@ -229,29 +214,29 @@ function Action(decorators, actionName, actionArguments) {
               "action node promise resolved with an invalid value, expected a State.SUCCEEDED or State.FAILED value to be returned"
             );
           }
-          updatePromiseStateResult = result;
+          this.updatePromiseStateResult = result;
         },
         (reason) => {
-          if (!isUsingUpdatePromise) {
+          if (!this.isUsingUpdatePromise) {
             return;
           }
           throw new Error(reason);
         }
       );
       this.setState(State.RUNNING);
-      isUsingUpdatePromise = true;
+      this.isUsingUpdatePromise = true;
     } else {
-      this._validateUpdateResult(updateResult);
+      this.validateUpdateResult(updateResult);
       this.setState(updateResult || State.RUNNING);
     }
   };
-  this.getName = () => actionName;
-  this.reset = () => {
+  getName = () => this.actionName;
+  reset = () => {
     this.setState(State.READY);
-    isUsingUpdatePromise = false;
-    updatePromiseStateResult = null;
+    this.isUsingUpdatePromise = false;
+    this.updatePromiseStateResult = null;
   };
-  this._validateUpdateResult = (result) => {
+  validateUpdateResult = (result) => {
     switch (result) {
       case State.SUCCEEDED:
       case State.FAILED:
@@ -259,198 +244,214 @@ function Action(decorators, actionName, actionArguments) {
         return;
       default:
         throw new Error(
-          `action '${actionName}' 'onUpdate' returned an invalid response, expected an optional State.SUCCEEDED or State.FAILED value to be returned`
+          `action '${this.actionName}' 'onUpdate' returned an invalid response, expected an optional State.SUCCEEDED or State.FAILED value to be returned`
         );
     }
   };
-}
-Action.prototype = Object.create(Leaf.prototype);
+};
 
-// src/nodes/leaf/condition.js
-function Condition(decorators, conditionName, conditionArguments) {
-  Leaf.call(this, "condition", decorators, conditionArguments);
-  this.onUpdate = function(agent) {
-    const conditionFuncInvoker = Lookup.getFuncInvoker(agent, conditionName);
+// src/nodes/leaf/condition.ts
+var Condition = class extends Leaf {
+  constructor(decorators, conditionName, conditionArguments) {
+    super("condition", decorators, conditionArguments);
+    this.conditionName = conditionName;
+    this.conditionArguments = conditionArguments;
+  }
+  onUpdate = (agent) => {
+    const conditionFuncInvoker = Lookup.getFuncInvoker(agent, this.conditionName);
     if (conditionFuncInvoker === null) {
       throw new Error(
-        `cannot update condition node as the condition '${conditionName}' function is not defined on the agent and has not been registered`
+        `cannot update condition node as the condition '${this.conditionName}' function is not defined on the agent and has not been registered`
       );
     }
-    this.setState(!!conditionFuncInvoker(conditionArguments) ? State.SUCCEEDED : State.FAILED);
+    this.setState(!!conditionFuncInvoker(this.conditionArguments) ? State.SUCCEEDED : State.FAILED);
   };
-  this.getName = () => conditionName;
-}
-Condition.prototype = Object.create(Leaf.prototype);
+  getName = () => this.conditionName;
+};
 
-// src/nodes/leaf/wait.js
-function Wait(decorators, duration, longestDuration) {
-  Leaf.call(this, "wait", decorators);
-  let initialUpdateTime;
-  let waitDuration;
-  this.onUpdate = function(agent) {
+// src/nodes/leaf/wait.ts
+var Wait = class extends Leaf {
+  constructor(decorators, duration, longestDuration) {
+    super("wait", decorators, []);
+    this.duration = duration;
+    this.longestDuration = longestDuration;
+  }
+  initialUpdateTime;
+  waitDuration;
+  onUpdate = (agent) => {
     if (this.is(State.READY)) {
-      initialUpdateTime = new Date().getTime();
-      waitDuration = longestDuration ? Math.floor(Math.random() * (longestDuration - duration + 1) + duration) : duration;
+      this.initialUpdateTime = new Date().getTime();
+      this.waitDuration = this.longestDuration ? Math.floor(Math.random() * (this.longestDuration - this.duration + 1) + this.duration) : this.duration;
       this.setState(State.RUNNING);
     }
-    if (new Date().getTime() >= initialUpdateTime + waitDuration) {
+    if (new Date().getTime() >= this.initialUpdateTime + this.waitDuration) {
       this.setState(State.SUCCEEDED);
     }
   };
-  this.getName = () => `WAIT ${longestDuration ? duration + "ms-" + longestDuration + "ms" : duration + "ms"}`;
-}
-Wait.prototype = Object.create(Leaf.prototype);
+  getName = () => `WAIT ${this.longestDuration ? this.duration + "ms-" + this.longestDuration + "ms" : this.duration + "ms"}`;
+};
 
-// src/nodes/decorator/decorator.js
-function Decorator(type, decorators, child) {
-  Node.call(this, type, decorators);
-  this.isLeafNode = () => false;
-  this.getChildren = () => [child];
-  this.reset = () => {
+// src/nodes/decorator/decorator.ts
+var Decorator = class extends Node {
+  constructor(type, decorators, child) {
+    super(type, decorators, []);
+    this.child = child;
+  }
+  isLeafNode = () => false;
+  getChildren = () => [this.child];
+  reset = () => {
     this.setState(State.READY);
-    child.reset();
+    this.child.reset();
   };
-  this.abort = (agent) => {
+  abort = (agent) => {
     if (!this.is(State.RUNNING)) {
       return;
     }
-    child.abort(agent);
+    this.child.abort(agent);
     this.reset();
     const exitDecorator = this.getDecorator("exit");
     if (exitDecorator) {
       exitDecorator.callAgentFunction(agent, false, true);
     }
   };
-}
-Decorator.prototype = Object.create(Node.prototype);
+};
 
-// src/nodes/decorator/root.js
-function Root(decorators, child) {
-  Decorator.call(this, "root", decorators, child);
-  this.onUpdate = function(agent) {
-    if (child.getState() === State.READY || child.getState() === State.RUNNING) {
-      child.update(agent);
+// src/nodes/decorator/root.ts
+var Root = class extends Decorator {
+  constructor(decorators, child) {
+    super("root", decorators, child);
+  }
+  onUpdate = (agent) => {
+    if (this.child.getState() === State.READY || this.child.getState() === State.RUNNING) {
+      this.child.update(agent);
     }
-    this.setState(child.getState());
+    this.setState(this.child.getState());
   };
-  this.getName = () => "ROOT";
-}
-Root.prototype = Object.create(Decorator.prototype);
+  getName = () => "ROOT";
+};
 
-// src/nodes/decorator/repeat.js
-function Repeat(decorators, iterations, maximumIterations, child) {
-  Decorator.call(this, "repeat", decorators, child);
-  let targetIterationCount = null;
-  let currentIterationCount = 0;
-  this.onUpdate = function(agent) {
+// src/nodes/decorator/repeat.ts
+var Repeat = class extends Decorator {
+  constructor(decorators, iterations, maximumIterations, child) {
+    super("repeat", decorators, child);
+    this.iterations = iterations;
+    this.maximumIterations = maximumIterations;
+  }
+  targetIterationCount = null;
+  currentIterationCount = 0;
+  onUpdate = (agent) => {
     if (this.is(State.READY)) {
-      child.reset();
-      this._setTargetIterationCount();
+      this.child.reset();
+      this.setTargetIterationCount();
     }
-    if (this._canIterate()) {
+    if (this.canIterate()) {
       this.setState(State.RUNNING);
-      if (child.getState() === State.SUCCEEDED) {
-        child.reset();
+      if (this.child.getState() === State.SUCCEEDED) {
+        this.child.reset();
       }
-      child.update(agent);
-      if (child.getState() === State.FAILED) {
+      this.child.update(agent);
+      if (this.child.getState() === State.FAILED) {
         this.setState(State.FAILED);
         return;
-      } else if (child.getState() === State.SUCCEEDED) {
-        currentIterationCount += 1;
+      } else if (this.child.getState() === State.SUCCEEDED) {
+        this.currentIterationCount += 1;
       }
     } else {
       this.setState(State.SUCCEEDED);
     }
   };
-  this.getName = () => {
-    if (iterations !== null) {
-      return `REPEAT ${maximumIterations ? iterations + "x-" + maximumIterations + "x" : iterations + "x"}`;
+  getName = () => {
+    if (this.iterations !== null) {
+      return `REPEAT ${this.maximumIterations ? this.iterations + "x-" + this.maximumIterations + "x" : this.iterations + "x"}`;
     }
     return "REPEAT";
   };
-  this.reset = () => {
+  reset = () => {
     this.setState(State.READY);
-    currentIterationCount = 0;
-    child.reset();
+    this.currentIterationCount = 0;
+    this.child.reset();
   };
-  this._canIterate = () => {
-    if (targetIterationCount !== null) {
-      return currentIterationCount < targetIterationCount;
+  canIterate = () => {
+    if (this.targetIterationCount !== null) {
+      return this.currentIterationCount < this.targetIterationCount;
     }
     return true;
   };
-  this._setTargetIterationCount = () => {
-    if (typeof iterations === "number") {
-      targetIterationCount = typeof maximumIterations === "number" ? Math.floor(Math.random() * (maximumIterations - iterations + 1) + iterations) : iterations;
+  setTargetIterationCount = () => {
+    if (typeof this.iterations === "number") {
+      this.targetIterationCount = typeof this.maximumIterations === "number" ? Math.floor(Math.random() * (this.maximumIterations - this.iterations + 1) + this.iterations) : this.iterations;
     } else {
-      targetIterationCount = null;
+      this.targetIterationCount = null;
     }
   };
-}
-Repeat.prototype = Object.create(Decorator.prototype);
+};
 
-// src/nodes/decorator/retry.js
-function Retry(decorators, iterations, maximumIterations, child) {
-  Decorator.call(this, "retry", decorators, child);
-  let targetIterationCount = null;
-  let currentIterationCount = 0;
-  this.onUpdate = function(agent) {
+// src/nodes/decorator/retry.ts
+var Retry = class extends Decorator {
+  constructor(decorators, iterations, maximumIterations, child) {
+    super("retry", decorators, child);
+    this.iterations = iterations;
+    this.maximumIterations = maximumIterations;
+  }
+  targetIterationCount = null;
+  currentIterationCount = 0;
+  onUpdate = (agent) => {
     if (this.is(State.READY)) {
-      child.reset();
-      this._setTargetIterationCount();
+      this.child.reset();
+      this.setTargetIterationCount();
     }
-    if (this._canIterate()) {
+    if (this.canIterate()) {
       this.setState(State.RUNNING);
-      if (child.getState() === State.FAILED) {
-        child.reset();
+      if (this.child.getState() === State.FAILED) {
+        this.child.reset();
       }
-      child.update(agent);
-      if (child.getState() === State.SUCCEEDED) {
+      this.child.update(agent);
+      if (this.child.getState() === State.SUCCEEDED) {
         this.setState(State.SUCCEEDED);
         return;
-      } else if (child.getState() === State.FAILED) {
-        currentIterationCount += 1;
+      } else if (this.child.getState() === State.FAILED) {
+        this.currentIterationCount += 1;
       }
     } else {
       this.setState(State.FAILED);
     }
   };
-  this.getName = () => {
-    if (iterations !== null) {
-      return `RETRY ${maximumIterations ? iterations + "x-" + maximumIterations + "x" : iterations + "x"}`;
+  getName = () => {
+    if (this.iterations !== null) {
+      return `RETRY ${this.maximumIterations ? this.iterations + "x-" + this.maximumIterations + "x" : this.iterations + "x"}`;
     }
     return "RETRY";
   };
-  this.reset = () => {
+  reset = () => {
     this.setState(State.READY);
-    currentIterationCount = 0;
-    child.reset();
+    this.currentIterationCount = 0;
+    this.child.reset();
   };
-  this._canIterate = () => {
-    if (targetIterationCount !== null) {
-      return currentIterationCount < targetIterationCount;
+  canIterate = () => {
+    if (this.targetIterationCount !== null) {
+      return this.currentIterationCount < this.targetIterationCount;
     }
     return true;
   };
-  this._setTargetIterationCount = () => {
-    if (typeof iterations === "number") {
-      targetIterationCount = typeof maximumIterations === "number" ? Math.floor(Math.random() * (maximumIterations - iterations + 1) + iterations) : iterations;
+  setTargetIterationCount = () => {
+    if (typeof this.iterations === "number") {
+      this.targetIterationCount = typeof this.maximumIterations === "number" ? Math.floor(Math.random() * (this.maximumIterations - this.iterations + 1) + this.iterations) : this.iterations;
     } else {
-      targetIterationCount = null;
+      this.targetIterationCount = null;
     }
   };
-}
-Retry.prototype = Object.create(Decorator.prototype);
+};
 
-// src/nodes/decorator/flip.js
-function Flip(decorators, child) {
-  Decorator.call(this, "flip", decorators, child);
-  this.onUpdate = function(agent) {
-    if (child.getState() === State.READY || child.getState() === State.RUNNING) {
-      child.update(agent);
+// src/nodes/decorator/flip.ts
+var Flip = class extends Decorator {
+  constructor(decorators, child) {
+    super("flip", decorators, child);
+  }
+  onUpdate = (agent) => {
+    if (this.child.getState() === State.READY || this.child.getState() === State.RUNNING) {
+      this.child.update(agent);
     }
-    switch (child.getState()) {
+    switch (this.child.getState()) {
       case State.RUNNING:
         this.setState(State.RUNNING);
         break;
@@ -464,18 +465,19 @@ function Flip(decorators, child) {
         this.setState(State.READY);
     }
   };
-  this.getName = () => "FLIP";
-}
-Flip.prototype = Object.create(Decorator.prototype);
+  getName = () => "FLIP";
+};
 
-// src/nodes/decorator/succeed.js
-function Succeed(decorators, child) {
-  Decorator.call(this, "succeed", decorators, child);
-  this.onUpdate = function(agent) {
-    if (child.getState() === State.READY || child.getState() === State.RUNNING) {
-      child.update(agent);
+// src/nodes/decorator/succeed.ts
+var Succeed = class extends Decorator {
+  constructor(decorators, child) {
+    super("succeed", decorators, child);
+  }
+  onUpdate = (agent) => {
+    if (this.child.getState() === State.READY || this.child.getState() === State.RUNNING) {
+      this.child.update(agent);
     }
-    switch (child.getState()) {
+    switch (this.child.getState()) {
       case State.RUNNING:
         this.setState(State.RUNNING);
         break;
@@ -487,18 +489,19 @@ function Succeed(decorators, child) {
         this.setState(State.READY);
     }
   };
-  this.getName = () => "SUCCEED";
-}
-Succeed.prototype = Object.create(Decorator.prototype);
+  getName = () => "SUCCEED";
+};
 
-// src/nodes/decorator/fail.js
-function Fail(decorators, child) {
-  Decorator.call(this, "fail", decorators, child);
-  this.onUpdate = function(agent) {
-    if (child.getState() === State.READY || child.getState() === State.RUNNING) {
-      child.update(agent);
+// src/nodes/decorator/fail.ts
+var Fail = class extends Decorator {
+  constructor(decorators, child) {
+    super("fail", decorators, child);
+  }
+  onUpdate = (agent) => {
+    if (this.child.getState() === State.READY || this.child.getState() === State.RUNNING) {
+      this.child.update(agent);
     }
-    switch (child.getState()) {
+    switch (this.child.getState()) {
       case State.RUNNING:
         this.setState(State.RUNNING);
         break;
@@ -510,20 +513,22 @@ function Fail(decorators, child) {
         this.setState(State.READY);
     }
   };
-  this.getName = () => "FAIL";
-}
-Fail.prototype = Object.create(Decorator.prototype);
+  getName = () => "FAIL";
+};
 
-// src/nodes/composite/composite.js
-function Composite(type, decorators, children) {
-  Node.call(this, type, decorators);
-  this.isLeafNode = () => false;
-  this.getChildren = () => children;
-  this.reset = () => {
+// src/nodes/composite/composite.ts
+var Composite = class extends Node {
+  constructor(type, decorators, children) {
+    super(type, decorators, []);
+    this.children = children;
+  }
+  isLeafNode = () => false;
+  getChildren = () => this.children;
+  reset = () => {
     this.setState(State.READY);
     this.getChildren().forEach((child) => child.reset());
   };
-  this.abort = (agent) => {
+  abort = (agent) => {
     if (!this.is(State.RUNNING)) {
       return;
     }
@@ -534,58 +539,62 @@ function Composite(type, decorators, children) {
       exitDecorator.callAgentFunction(agent, false, true);
     }
   };
-}
-Composite.prototype = Object.create(Node.prototype);
+};
 
-// src/nodes/composite/lotto.js
-function Lotto(decorators, tickets, children) {
-  Composite.call(this, "lotto", decorators, children);
-  let winningChild;
-  function LottoDraw() {
-    this.participants = [];
-    this.add = function(participant, tickets2) {
-      this.participants.push({ participant, tickets: tickets2 });
-      return this;
-    };
-    this.draw = function() {
-      if (!this.participants.length) {
-        throw new Error("cannot draw a lotto winner when there are no participants");
-      }
-      const pickable = [];
-      this.participants.forEach(({ participant, tickets: tickets2 }) => {
-        for (let ticketCount = 0; ticketCount < tickets2; ticketCount++) {
-          pickable.push(participant);
-        }
-      });
-      return this.getRandomItem(pickable);
-    };
-    this.getRandomItem = function(items) {
-      if (!items.length) {
-        return void 0;
-      }
-      return items[Math.floor(Math.random() * items.length)];
-    };
+// src/nodes/composite/lotto.ts
+var Lotto = class extends Composite {
+  constructor(decorators, tickets, children) {
+    super("lotto", decorators, children);
+    this.tickets = tickets;
   }
-  this.onUpdate = function(agent) {
+  winningChild;
+  onUpdate = (agent) => {
     if (this.is(State.READY)) {
       const lottoDraw = new LottoDraw();
-      children.forEach((child, index) => lottoDraw.add(child, tickets[index] || 1));
-      winningChild = lottoDraw.draw();
+      this.children.forEach((child, index) => lottoDraw.add(child, this.tickets[index] || 1));
+      this.winningChild = lottoDraw.draw();
     }
-    if (winningChild.getState() === State.READY || winningChild.getState() === State.RUNNING) {
-      winningChild.update(agent);
+    if (this.winningChild.getState() === State.READY || this.winningChild.getState() === State.RUNNING) {
+      this.winningChild.update(agent);
     }
-    this.setState(winningChild.getState());
+    this.setState(this.winningChild.getState());
   };
-  this.getName = () => tickets.length ? `LOTTO [${tickets.join(",")}]` : "LOTTO";
-}
-Lotto.prototype = Object.create(Composite.prototype);
+  getName = () => this.tickets.length ? `LOTTO [${this.tickets.join(",")}]` : "LOTTO";
+};
+var LottoDraw = class {
+  participants = [];
+  add = (participant, tickets) => {
+    this.participants.push({ participant, tickets });
+    return this;
+  };
+  draw = () => {
+    if (!this.participants.length) {
+      throw new Error("cannot draw a lotto winner when there are no participants");
+    }
+    const pickable = [];
+    this.participants.forEach(({ participant, tickets }) => {
+      for (let ticketCount = 0; ticketCount < tickets; ticketCount++) {
+        pickable.push(participant);
+      }
+    });
+    return this.getRandomItem(pickable);
+  };
+  getRandomItem = (items) => {
+    if (!items.length) {
+      return void 0;
+    }
+    return items[Math.floor(Math.random() * items.length)];
+  };
+};
 
-// src/nodes/composite/selector.js
-function Selector(decorators, children) {
-  Composite.call(this, "selector", decorators, children);
-  this.onUpdate = function(agent) {
-    for (const child of children) {
+// src/nodes/composite/selector.ts
+var Selector = class extends Composite {
+  constructor(decorators, children) {
+    super("selector", decorators, children);
+    this.children = children;
+  }
+  onUpdate = (agent) => {
+    for (const child of this.children) {
       if (child.getState() === State.READY || child.getState() === State.RUNNING) {
         child.update(agent);
       }
@@ -594,7 +603,7 @@ function Selector(decorators, children) {
         return;
       }
       if (child.getState() === State.FAILED) {
-        if (children.indexOf(child) === children.length - 1) {
+        if (this.children.indexOf(child) === this.children.length - 1) {
           this.setState(State.FAILED);
           return;
         } else {
@@ -608,20 +617,22 @@ function Selector(decorators, children) {
       throw new Error("child node was not in an expected state.");
     }
   };
-  this.getName = () => "SELECTOR";
-}
-Selector.prototype = Object.create(Composite.prototype);
+  getName = () => "SELECTOR";
+};
 
-// src/nodes/composite/sequence.js
-function Sequence(decorators, children) {
-  Composite.call(this, "sequence", decorators, children);
-  this.onUpdate = function(agent) {
-    for (const child of children) {
+// src/nodes/composite/sequence.ts
+var Sequence = class extends Composite {
+  constructor(decorators, children) {
+    super("sequence", decorators, children);
+    this.children = children;
+  }
+  onUpdate = (agent) => {
+    for (const child of this.children) {
       if (child.getState() === State.READY || child.getState() === State.RUNNING) {
         child.update(agent);
       }
       if (child.getState() === State.SUCCEEDED) {
-        if (children.indexOf(child) === children.length - 1) {
+        if (this.children.indexOf(child) === this.children.length - 1) {
           this.setState(State.SUCCEEDED);
           return;
         } else {
@@ -639,17 +650,18 @@ function Sequence(decorators, children) {
       throw new Error("child node was not in an expected state.");
     }
   };
-  this.getName = () => "SEQUENCE";
-}
-Sequence.prototype = Object.create(Composite.prototype);
+  getName = () => "SEQUENCE";
+};
 
-// src/nodes/composite/parallel.js
-function Parallel(decorators, children) {
-  Composite.call(this, "parallel", decorators, children);
-  this.onUpdate = function(agent) {
+// src/nodes/composite/parallel.ts
+var Parallel = class extends Composite {
+  constructor(decorators, children) {
+    super("parallel", decorators, children);
+  }
+  onUpdate = (agent) => {
     let succeededCount = 0;
     let hasChildFailed = false;
-    for (const child of children) {
+    for (const child of this.children) {
       if (child.getState() === State.READY || child.getState() === State.RUNNING) {
         child.update(agent);
       }
@@ -667,18 +679,17 @@ function Parallel(decorators, children) {
     }
     if (hasChildFailed) {
       this.setState(State.FAILED);
-      for (const child of children) {
+      for (const child of this.children) {
         if (child.getState() === State.RUNNING) {
           child.abort(agent);
         }
       }
     } else {
-      this.setState(succeededCount === children.length ? State.SUCCEEDED : State.RUNNING);
+      this.setState(succeededCount === this.children.length ? State.SUCCEEDED : State.RUNNING);
     }
   };
-  this.getName = () => "PARALLEL";
-}
-Parallel.prototype = Object.create(Composite.prototype);
+  getName = () => "PARALLEL";
+};
 
 // src/attributes/attribute.ts
 var Attribute = class {
@@ -836,7 +847,7 @@ var Step = class extends Callback {
   };
 };
 
-// src/rootASTNodesBuilder.js
+// src/rootAstNodesBuilder.ts
 var DecoratorFactories = {
   WHILE: (condition, decoratorArguments) => new While(condition, decoratorArguments),
   UNTIL: (condition, decoratorArguments) => new Until(condition, decoratorArguments),
@@ -850,7 +861,7 @@ var ASTNodeFactories = {
     decorators: [],
     name: null,
     children: [],
-    validate: function(depth) {
+    validate(depth) {
       if (depth > 1) {
         throw new Error("a root node cannot be the child of another node");
       }
@@ -858,7 +869,7 @@ var ASTNodeFactories = {
         throw new Error("a root node must have a single child");
       }
     },
-    createNodeInstance: function(namedRootNodeProvider, visitedBranches) {
+    createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Root(
         this.decorators,
         this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
@@ -868,12 +879,14 @@ var ASTNodeFactories = {
   BRANCH: () => ({
     type: "branch",
     branchName: "",
-    validate: function(depth) {
+    validate() {
     },
-    createNodeInstance: function(namedRootNodeProvider, visitedBranches) {
+    createNodeInstance(namedRootNodeProvider, visitedBranches) {
       const targetRootNode = namedRootNodeProvider(this.branchName);
       if (visitedBranches.indexOf(this.branchName) !== -1) {
-        throw new Error(`circular dependency found in branch node references for branch '${this.branchName}'`);
+        throw new Error(
+          `circular dependency found in branch node references for branch '${this.branchName}'`
+        );
       }
       if (targetRootNode) {
         return targetRootNode.createNodeInstance(namedRootNodeProvider, visitedBranches.concat(this.branchName)).getChildren()[0];
@@ -886,12 +899,12 @@ var ASTNodeFactories = {
     type: "selector",
     decorators: [],
     children: [],
-    validate: function(depth) {
+    validate() {
       if (this.children.length < 1) {
         throw new Error("a selector node must have at least a single child");
       }
     },
-    createNodeInstance: function(namedRootNodeProvider, visitedBranches) {
+    createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Selector(
         this.decorators,
         this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
@@ -902,12 +915,12 @@ var ASTNodeFactories = {
     type: "sequence",
     decorators: [],
     children: [],
-    validate: function(depth) {
+    validate() {
       if (this.children.length < 1) {
         throw new Error("a sequence node must have at least a single child");
       }
     },
-    createNodeInstance: function(namedRootNodeProvider, visitedBranches) {
+    createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Sequence(
         this.decorators,
         this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
@@ -918,12 +931,12 @@ var ASTNodeFactories = {
     type: "parallel",
     decorators: [],
     children: [],
-    validate: function(depth) {
+    validate() {
       if (this.children.length < 1) {
         throw new Error("a parallel node must have at least a single child");
       }
     },
-    createNodeInstance: function(namedRootNodeProvider, visitedBranches) {
+    createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Parallel(
         this.decorators,
         this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
@@ -935,12 +948,12 @@ var ASTNodeFactories = {
     decorators: [],
     children: [],
     tickets: [],
-    validate: function(depth) {
+    validate() {
       if (this.children.length < 1) {
         throw new Error("a lotto node must have at least a single child");
       }
     },
-    createNodeInstance: function(namedRootNodeProvider, visitedBranches) {
+    createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Lotto(
         this.decorators,
         this.tickets,
@@ -954,7 +967,7 @@ var ASTNodeFactories = {
     iterations: null,
     maximumIterations: null,
     children: [],
-    validate: function(depth) {
+    validate() {
       if (this.children.length !== 1) {
         throw new Error("a repeat node must have a single child");
       }
@@ -972,7 +985,7 @@ var ASTNodeFactories = {
         }
       }
     },
-    createNodeInstance: function(namedRootNodeProvider, visitedBranches) {
+    createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Repeat(
         this.decorators,
         this.iterations,
@@ -987,7 +1000,7 @@ var ASTNodeFactories = {
     iterations: null,
     maximumIterations: null,
     children: [],
-    validate: function(depth) {
+    validate() {
       if (this.children.length !== 1) {
         throw new Error("a retry node must have a single child");
       }
@@ -1005,7 +1018,7 @@ var ASTNodeFactories = {
         }
       }
     },
-    createNodeInstance: function(namedRootNodeProvider, visitedBranches) {
+    createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Retry(
         this.decorators,
         this.iterations,
@@ -1018,12 +1031,12 @@ var ASTNodeFactories = {
     type: "flip",
     decorators: [],
     children: [],
-    validate: function(depth) {
+    validate() {
       if (this.children.length !== 1) {
         throw new Error("a flip node must have a single child");
       }
     },
-    createNodeInstance: function(namedRootNodeProvider, visitedBranches) {
+    createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Flip(
         this.decorators,
         this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
@@ -1034,12 +1047,12 @@ var ASTNodeFactories = {
     type: "succeed",
     decorators: [],
     children: [],
-    validate: function(depth) {
+    validate() {
       if (this.children.length !== 1) {
         throw new Error("a succeed node must have a single child");
       }
     },
-    createNodeInstance: function(namedRootNodeProvider, visitedBranches) {
+    createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Succeed(
         this.decorators,
         this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
@@ -1050,12 +1063,12 @@ var ASTNodeFactories = {
     type: "fail",
     decorators: [],
     children: [],
-    validate: function(depth) {
+    validate() {
       if (this.children.length !== 1) {
         throw new Error("a fail node must have a single child");
       }
     },
-    createNodeInstance: function(namedRootNodeProvider, visitedBranches) {
+    createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Fail(
         this.decorators,
         this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
@@ -1067,7 +1080,7 @@ var ASTNodeFactories = {
     decorators: [],
     duration: null,
     longestDuration: null,
-    validate: function(depth) {
+    validate() {
       if (this.duration < 0) {
         throw new Error("a wait node must have a positive duration");
       }
@@ -1080,7 +1093,7 @@ var ASTNodeFactories = {
         }
       }
     },
-    createNodeInstance: function(namedRootNodeProvider, visitedBranches) {
+    createNodeInstance() {
       return new Wait(this.decorators, this.duration, this.longestDuration);
     }
   }),
@@ -1089,9 +1102,9 @@ var ASTNodeFactories = {
     decorators: [],
     actionName: "",
     actionArguments: [],
-    validate: function(depth) {
+    validate() {
     },
-    createNodeInstance: function(namedRootNodeProvider, visitedBranches) {
+    createNodeInstance() {
       return new Action(this.decorators, this.actionName, this.actionArguments);
     }
   }),
@@ -1100,9 +1113,9 @@ var ASTNodeFactories = {
     decorators: [],
     conditionName: "",
     conditionArguments: [],
-    validate: function(depth) {
+    validate() {
     },
-    createNodeInstance: function(namedRootNodeProvider, visitedBranches) {
+    createNodeInstance() {
       return new Condition(this.decorators, this.conditionName, this.conditionArguments);
     }
   })
@@ -1177,7 +1190,7 @@ function buildRootASTNodes(definition) {
           node.tickets = getArguments(
             tokens,
             placeholders,
-            (arg) => arg.type === "number" && arg.isInteger,
+            (arg) => arg.type === "number" && !!arg.isInteger,
             "lotto node ticket counts must be integer values"
           ).map((argument) => argument.value);
         }
@@ -1232,7 +1245,7 @@ function buildRootASTNodes(definition) {
         const durations = getArguments(
           tokens,
           placeholders,
-          (arg) => arg.type === "number" && arg.isInteger,
+          (arg) => arg.type === "number" && !!arg.isInteger,
           "wait node durations must be integer values"
         ).map((argument) => argument.value);
         if (durations.length === 1) {
@@ -1252,7 +1265,7 @@ function buildRootASTNodes(definition) {
           const iterationArguments = getArguments(
             tokens,
             placeholders,
-            (arg) => arg.type === "number" && arg.isInteger,
+            (arg) => arg.type === "number" && !!arg.isInteger,
             "repeat node iteration counts must be integer values"
           ).map((argument) => argument.value);
           if (iterationArguments.length === 1) {
@@ -1275,7 +1288,7 @@ function buildRootASTNodes(definition) {
           const iterationArguments = getArguments(
             tokens,
             placeholders,
-            (arg) => arg.type === "number" && arg.isInteger,
+            (arg) => arg.type === "number" && !!arg.isInteger,
             "retry node iteration counts must be integer values"
           ).map((argument) => argument.value);
           if (iterationArguments.length === 1) {
@@ -1325,7 +1338,7 @@ function buildRootASTNodes(definition) {
   validateASTNode(
     {
       children: stack[0],
-      validate: function(depth) {
+      validate(depth) {
         if (this.children.length === 0) {
           throw new Error("expected root node to have been defined");
         }
@@ -1362,7 +1375,7 @@ function popAndCheck(tokens, expected) {
     var tokenMatchesExpectation = [].concat(expected).some((item) => popped.toUpperCase() === item.toUpperCase());
     if (!tokenMatchesExpectation) {
       const expectationString = [].concat(expected).map((item) => "'" + item + "'").join(" or ");
-      throw new Error("unexpected token found. Expected " + expected + " but got '" + popped + "'");
+      throw new Error("unexpected token found. Expected " + expectationString + " but got '" + popped + "'");
     }
   }
   return popped;
@@ -1396,7 +1409,7 @@ function getArgumentDefinition(token, stringArgumentPlaceholders) {
     return {
       value: null,
       type: "null",
-      toString: function() {
+      toString() {
         return this.value;
       }
     };
@@ -1405,17 +1418,17 @@ function getArgumentDefinition(token, stringArgumentPlaceholders) {
     return {
       value: token === "true",
       type: "boolean",
-      toString: function() {
+      toString() {
         return this.value;
       }
     };
   }
   if (!isNaN(token)) {
     return {
-      value: parseFloat(token, 10),
-      isInteger: parseFloat(token, 10) === parseInt(token, 10),
+      value: parseFloat(token),
+      isInteger: parseFloat(token) === parseInt(token, 10),
       type: "number",
-      toString: function() {
+      toString() {
         return this.value;
       }
     };
@@ -1424,7 +1437,7 @@ function getArgumentDefinition(token, stringArgumentPlaceholders) {
     return {
       value: stringArgumentPlaceholders[token].replace('\\"', '"'),
       type: "string",
-      toString: function() {
+      toString() {
         return '"' + this.value + '"';
       }
     };
@@ -1432,7 +1445,7 @@ function getArgumentDefinition(token, stringArgumentPlaceholders) {
   return {
     value: token,
     type: "identifier",
-    toString: function() {
+    toString() {
       return this.value;
     }
   };
@@ -1485,43 +1498,37 @@ function parseTokensFromDefinition(definition) {
   return definition.replace(/\s+/g, " ").trim().split(" ");
 }
 
-// src/BehaviourTree.js
-var _agent, _rootNode, _createRootNode, createRootNode_fn, _applyLeafNodeGuardPaths, applyLeafNodeGuardPaths_fn;
-var _BehaviourTree = class {
+// src/behaviourTree.ts
+var BehaviourTree = class {
   constructor(definition, agent) {
-    __privateAdd(this, _agent, void 0);
-    __privateAdd(this, _rootNode, void 0);
-    var _a;
-    __privateSet(this, _agent, agent);
+    this.agent = agent;
     if (typeof definition !== "string") {
       throw new Error("the tree definition must be a string");
     }
     if (typeof agent !== "object" || agent === null) {
       throw new Error("the agent must be defined and not null");
     }
-    __privateSet(this, _rootNode, __privateMethod(_a = _BehaviourTree, _createRootNode, createRootNode_fn).call(_a, definition));
+    this.rootNode = BehaviourTree.createRootNode(definition);
   }
-  get rootNode() {
-    return __privateGet(this, _rootNode);
-  }
+  rootNode;
   isRunning() {
-    return __privateGet(this, _rootNode).getState() === State.RUNNING;
+    return this.rootNode.getState() === State.RUNNING;
   }
   getState() {
-    return __privateGet(this, _rootNode).getState();
+    return this.rootNode.getState();
   }
   step() {
-    if (__privateGet(this, _rootNode).getState() === State.SUCCEEDED || __privateGet(this, _rootNode).getState() === State.FAILED) {
-      __privateGet(this, _rootNode).reset();
+    if (this.rootNode.getState() === State.SUCCEEDED || this.rootNode.getState() === State.FAILED) {
+      this.rootNode.reset();
     }
     try {
-      __privateGet(this, _rootNode).update(__privateGet(this, _agent));
+      this.rootNode.update(this.agent);
     } catch (exception) {
       throw new Error(`error stepping tree: ${exception.message}`);
     }
   }
   reset() {
-    __privateGet(this, _rootNode).reset();
+    this.rootNode.reset();
   }
   getFlattenedNodeDetails() {
     const flattenedTreeNodes = [];
@@ -1540,7 +1547,7 @@ var _BehaviourTree = class {
         node.getChildren().forEach((child) => processNode(child, node.getUid()));
       }
     };
-    processNode(__privateGet(this, _rootNode), null);
+    processNode(this.rootNode, null);
     return flattenedTreeNodes;
   }
   static register(name, value) {
@@ -1567,57 +1574,50 @@ var _BehaviourTree = class {
   static unregisterAll() {
     Lookup.empty();
   }
-};
-var BehaviourTree = _BehaviourTree;
-_agent = new WeakMap();
-_rootNode = new WeakMap();
-_createRootNode = new WeakSet();
-createRootNode_fn = function(definition) {
-  var _a;
-  try {
-    const rootASTNodes = buildRootASTNodes(definition);
-    const mainRootNodeKey = Symbol("__root__");
-    const rootNodeMap = {};
-    for (const rootASTNode of rootASTNodes) {
-      rootNodeMap[rootASTNode.name === null ? mainRootNodeKey : rootASTNode.name] = rootASTNode;
+  static createRootNode(definition) {
+    try {
+      const rootASTNodes = buildRootASTNodes(definition);
+      const mainRootNodeKey = Symbol("__root__");
+      const rootNodeMap = {};
+      for (const rootASTNode of rootASTNodes) {
+        rootNodeMap[rootASTNode.name === null ? mainRootNodeKey : rootASTNode.name] = rootASTNode;
+      }
+      const namedRootNodeProvider = function(name) {
+        return rootNodeMap[name] ? rootNodeMap[name] : Lookup.getSubtree(name);
+      };
+      const rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(namedRootNodeProvider, []);
+      BehaviourTree.applyLeafNodeGuardPaths(rootNode);
+      return rootNode;
+    } catch (exception) {
+      throw new Error(`error parsing tree: ${exception.message}
+${exception.stack}`);
     }
-    const namedRootNodeProvider = function(name) {
-      return rootNodeMap[name] ? rootNodeMap[name] : Lookup.getSubtree(name);
+  }
+  static applyLeafNodeGuardPaths(rootNode) {
+    const nodePaths = [];
+    const findLeafNodes = (path, node) => {
+      path = path.concat(node);
+      if (node.isLeafNode()) {
+        nodePaths.push(path);
+      } else {
+        node.getChildren().forEach((child) => findLeafNodes(path, child));
+      }
     };
-    const rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(namedRootNodeProvider, []);
-    __privateMethod(_a = _BehaviourTree, _applyLeafNodeGuardPaths, applyLeafNodeGuardPaths_fn).call(_a, rootNode);
-    return rootNode;
-  } catch (exception) {
-    throw new Error(`error parsing tree: ${exception.message}`);
+    findLeafNodes([], rootNode);
+    nodePaths.forEach((path) => {
+      for (let depth = 0; depth < path.length; depth++) {
+        const currentNode = path[depth];
+        if (currentNode.hasGuardPath()) {
+          continue;
+        }
+        const guardPath = new GuardPath(
+          path.slice(0, depth + 1).map((node) => ({ node, guards: node.getGuardDecorators() })).filter((details) => details.guards.length > 0)
+        );
+        currentNode.setGuardPath(guardPath);
+      }
+    });
   }
 };
-_applyLeafNodeGuardPaths = new WeakSet();
-applyLeafNodeGuardPaths_fn = function(rootNode) {
-  const nodePaths = [];
-  const findLeafNodes = (path, node) => {
-    path = path.concat(node);
-    if (node.isLeafNode()) {
-      nodePaths.push(path);
-    } else {
-      node.getChildren().forEach((child) => findLeafNodes(path, child));
-    }
-  };
-  findLeafNodes([], rootNode);
-  nodePaths.forEach((path) => {
-    for (let depth = 0; depth < path.length; depth++) {
-      const currentNode = path[depth];
-      if (currentNode.hasGuardPath()) {
-        continue;
-      }
-      const guardPath = new GuardPath(
-        path.slice(0, depth + 1).map((node) => ({ node, guards: node.getGuardDecorators() })).filter((details) => details.guards.length > 0)
-      );
-      currentNode.setGuardPath(guardPath);
-    }
-  });
-};
-__privateAdd(BehaviourTree, _createRootNode);
-__privateAdd(BehaviourTree, _applyLeafNodeGuardPaths);
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   BehaviourTree,

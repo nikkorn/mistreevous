@@ -1,5 +1,7 @@
 import Composite from "./composite";
-import State from "../../State";
+import State from "../../state";
+import Decorator from "../decorator/decorator";
+import Node from "../node";
 
 /**
  * A PARALLEL node.
@@ -7,22 +9,24 @@ import State from "../../State";
  * @param decorators The node decorators.
  * @param children The child nodes.
  */
-export default function Parallel(decorators, children) {
-    Composite.call(this, "parallel", decorators, children);
+export default class Parallel extends Composite {
+    constructor(decorators: Decorator[] | null, children: Node[]) {
+        super("parallel", decorators, children);
+    }
 
     /**
      * Update the node and get whether the node state has changed.
      * @param agent The agent.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.onUpdate = function (agent) {
+    onUpdate = (agent: any) => {
         // Keep a count of the number of succeeded child nodes.
         let succeededCount = 0;
 
         let hasChildFailed = false;
 
         // Iterate over all of the children of this node.
-        for (const child of children) {
+        for (const child of this.children) {
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === State.READY || child.getState() === State.RUNNING) {
                 // Update the child of this node.
@@ -58,21 +62,19 @@ export default function Parallel(decorators, children) {
             this.setState(State.FAILED);
 
             // Abort every running child.
-            for (const child of children) {
+            for (const child of this.children) {
                 if (child.getState() === State.RUNNING) {
                     child.abort(agent);
                 }
             }
         } else {
             // If all children have succeeded then this node has also succeeded, otherwise it is still running.
-            this.setState(succeededCount === children.length ? State.SUCCEEDED : State.RUNNING);
+            this.setState(succeededCount === this.children.length ? State.SUCCEEDED : State.RUNNING);
         }
     };
 
     /**
      * Gets the name of the node.
      */
-    this.getName = () => "PARALLEL";
+    getName = () => "PARALLEL";
 }
-
-Parallel.prototype = Object.create(Composite.prototype);

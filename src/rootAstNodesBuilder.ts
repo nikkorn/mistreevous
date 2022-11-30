@@ -11,284 +11,323 @@ import Lotto from "./nodes/composite/lotto";
 import Selector from "./nodes/composite/selector";
 import Sequence from "./nodes/composite/sequence";
 import Parallel from "./nodes/composite/parallel";
+import Node from "./nodes/node";
 import While from "./attributes/guards/while";
 import Until from "./attributes/guards/until";
 import Entry from "./attributes/callbacks/entry";
 import Exit from "./attributes/callbacks/exit";
 import Step from "./attributes/callbacks/step";
+import Callback from "./attributes/callbacks/callback";
+import Guard from "./attributes/guards/guard";
 
 /**
  * The node decorator factories.
  */
-const DecoratorFactories = {
-    WHILE: (condition, decoratorArguments) => new While(condition, decoratorArguments),
-    UNTIL: (condition, decoratorArguments) => new Until(condition, decoratorArguments),
-    ENTRY: (functionName, decoratorArguments) => new Entry(functionName, decoratorArguments),
-    EXIT: (functionName, decoratorArguments) => new Exit(functionName, decoratorArguments),
-    STEP: (functionName, decoratorArguments) => new Step(functionName, decoratorArguments)
+const DecoratorFactories: {[key: string]: (functionName: string, decoratorArguments: any[]) => Callback | Guard } = {
+    WHILE: (condition: string, decoratorArguments: any[]) => new While(condition, decoratorArguments),
+    UNTIL: (condition: string, decoratorArguments: any[]) => new Until(condition, decoratorArguments),
+    ENTRY: (functionName: string, decoratorArguments: any[]) => new Entry(functionName, decoratorArguments),
+    EXIT: (functionName: string, decoratorArguments: any[]) => new Exit(functionName, decoratorArguments),
+    STEP: (functionName: string, decoratorArguments: any[]) => new Step(functionName, decoratorArguments)
 };
+
+type NamedRootNodeProvider = (name: string) => AstNode<Root>;
+type NodeInstanceCreator<T extends Node> = (namedRootNodeProvider: NamedRootNodeProvider, visitedBranches: any) => T;
+type Placeholders = { [key: string]: string };
+type ArgumentDefinition = {
+    value: string | number | boolean | null;
+    isInteger?: boolean;
+    type: string;
+    toString(): any;
+};
+// "definitionLevelNode"
+type Validatable = {
+    validate: (this: any, depth: number) => void;
+    // TODO: Also this one:
+    children?: AstNode<Node>[];
+}
+export type AstNode<T extends Node> = {
+    type: string;
+    decorators: any[];
+    createNodeInstance: NodeInstanceCreator<T>;
+    // TODO: Stuff from different kinds:
+    name?: null | string;
+    branchName?: "" | string;
+    tickets?: any[];
+    iterations?: number | null;
+    maximumIterations?: number | null;
+    duration?: number | null;
+    longestDuration?: number | null;
+    actionName?: string;
+    actionArguments?: any[];
+    conditionName?: string;
+    conditionArguments?: any[];
+} & Validatable;
 
 /**
  * The AST node factories.
  */
 const ASTNodeFactories = {
-    ROOT: () => ({
+    ROOT: (): AstNode<Root> => ({
         type: "root",
         decorators: [],
         name: null,
         children: [],
-        validate: function (depth) {
+        validate(depth: number) {
             // A root node cannot be the child of another node.
             if (depth > 1) {
                 throw new Error("a root node cannot be the child of another node");
             }
 
             // A root node must have a single child node.
-            if (this.children.length !== 1) {
+            if (this.children!.length !== 1) {
                 throw new Error("a root node must have a single child");
             }
         },
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
+        createNodeInstance(namedRootNodeProvider, visitedBranches) {
             return new Root(
                 this.decorators,
-                this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
+                this.children![0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
             );
         }
     }),
-    BRANCH: () => ({
-        type: "branch",
-        branchName: "",
-        validate: function (depth) {},
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            // Try to find the root node with a matching branch name.
-            const targetRootNode = namedRootNodeProvider(this.branchName);
+    BRANCH: (): AstNode<Node> =>
+        ({
+            type: "branch",
+            branchName: "",
+            validate() {},
+            createNodeInstance(namedRootNodeProvider: NamedRootNodeProvider, visitedBranches: any) {
+                // Try to find the root node with a matching branch name.
+                const targetRootNode = namedRootNodeProvider(this.branchName);
 
-            // If we have already visited this branch then we have a circular dependency.
-            if (visitedBranches.indexOf(this.branchName) !== -1) {
-                throw new Error(`circular dependency found in branch node references for branch '${this.branchName}'`);
-            }
+                // If we have already visited this branch then we have a circular dependency.
+                if (visitedBranches.indexOf(this.branchName) !== -1) {
+                    throw new Error(
+                        `circular dependency found in branch node references for branch '${this.branchName}'`
+                    );
+                }
 
-            // If we have a target root node, then the node instance we want will be the first and only child of the referenced root node.
-            if (targetRootNode) {
-                return targetRootNode
-                    .createNodeInstance(namedRootNodeProvider, visitedBranches.concat(this.branchName))
-                    .getChildren()[0];
-            } else {
-                throw new Error(`branch references root node '${this.branchName}' which has not been defined`);
+                // If we have a target root node, then the node instance we want will be the first and only child of the referenced root node.
+                if (targetRootNode) {
+                    return targetRootNode
+                        .createNodeInstance(namedRootNodeProvider, visitedBranches.concat(this.branchName))
+                        .getChildren()[0];
+                } else {
+                    throw new Error(`branch references root node '${this.branchName}' which has not been defined`);
+                }
             }
-        }
-    }),
-    SELECTOR: () => ({
+        } as any),
+    SELECTOR: (): AstNode<Selector> => ({
         type: "selector",
         decorators: [],
         children: [],
-        validate: function (depth) {
+        validate() {
             // A selector node must have at least a single node.
-            if (this.children.length < 1) {
+            if (this.children!.length < 1) {
                 throw new Error("a selector node must have at least a single child");
             }
         },
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
+        createNodeInstance(namedRootNodeProvider, visitedBranches) {
             return new Selector(
                 this.decorators,
-                this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
+                this.children!.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
             );
         }
     }),
-    SEQUENCE: () => ({
+    SEQUENCE: (): AstNode<Sequence> => ({
         type: "sequence",
         decorators: [],
         children: [],
-        validate: function (depth) {
+        validate() {
             // A sequence node must have at least a single node.
-            if (this.children.length < 1) {
+            if (this.children!.length < 1) {
                 throw new Error("a sequence node must have at least a single child");
             }
         },
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
+        createNodeInstance(namedRootNodeProvider, visitedBranches) {
             return new Sequence(
                 this.decorators,
-                this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
+                this.children!.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
             );
         }
     }),
-    PARALLEL: () => ({
+    PARALLEL: (): AstNode<Parallel> => ({
         type: "parallel",
         decorators: [],
         children: [],
-        validate: function (depth) {
+        validate() {
             // A parallel node must have at least a single node.
-            if (this.children.length < 1) {
+            if (this.children!.length < 1) {
                 throw new Error("a parallel node must have at least a single child");
             }
         },
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
+        createNodeInstance(namedRootNodeProvider, visitedBranches) {
             return new Parallel(
                 this.decorators,
-                this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
+                this.children!.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
             );
         }
     }),
-    LOTTO: () => ({
+    LOTTO: (): AstNode<Lotto> => ({
         type: "lotto",
         decorators: [],
         children: [],
         tickets: [],
-        validate: function (depth) {
+        validate() {
             // A lotto node must have at least a single node.
-            if (this.children.length < 1) {
+            if (this.children!.length < 1) {
                 throw new Error("a lotto node must have at least a single child");
             }
         },
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
+        createNodeInstance(namedRootNodeProvider, visitedBranches) {
             return new Lotto(
                 this.decorators,
-                this.tickets,
-                this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
+                this.tickets!,
+                this.children!.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
             );
         }
     }),
-    REPEAT: () => ({
+    REPEAT: (): AstNode<Repeat> => ({
         type: "repeat",
         decorators: [],
         iterations: null,
         maximumIterations: null,
         children: [],
-        validate: function (depth) {
+        validate() {
             // A repeat node must have a single node.
-            if (this.children.length !== 1) {
+            if (this.children!.length !== 1) {
                 throw new Error("a repeat node must have a single child");
             }
 
             // A repeat node must have a positive number of iterations if defined.
-            if (this.iterations !== null && this.iterations < 0) {
+            if (this.iterations !== null && this.iterations! < 0) {
                 throw new Error("a repeat node must have a positive number of iterations if defined");
             }
 
             // There is validation to carry out if a longest duration was defined.
             if (this.maximumIterations !== null) {
                 // A repeat node must have a positive maximum iterations count if defined.
-                if (this.maximumIterations < 0) {
+                if (this.maximumIterations! < 0) {
                     throw new Error("a repeat node must have a positive maximum iterations count if defined");
                 }
 
                 // A repeat node must not have an iteration count that exceeds the maximum iteration count.
-                if (this.iterations > this.maximumIterations) {
+                if (this.iterations! > this.maximumIterations!) {
                     throw new Error(
                         "a repeat node must not have an iteration count that exceeds the maximum iteration count"
                     );
                 }
             }
         },
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
+        createNodeInstance(namedRootNodeProvider, visitedBranches) {
             return new Repeat(
                 this.decorators,
-                this.iterations,
-                this.maximumIterations,
-                this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
+                this.iterations!,
+                this.maximumIterations!,
+                this.children![0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
             );
         }
     }),
-    RETRY: () => ({
+    RETRY: (): AstNode<Retry> => ({
         type: "retry",
         decorators: [],
         iterations: null,
         maximumIterations: null,
         children: [],
-        validate: function (depth) {
+        validate() {
             // A retry node must have a single node.
-            if (this.children.length !== 1) {
+            if (this.children!.length !== 1) {
                 throw new Error("a retry node must have a single child");
             }
 
             // A retry node must have a positive number of iterations if defined.
-            if (this.iterations !== null && this.iterations < 0) {
+            if (this.iterations !== null && this.iterations! < 0) {
                 throw new Error("a retry node must have a positive number of iterations if defined");
             }
 
             // There is validation to carry out if a longest duration was defined.
             if (this.maximumIterations !== null) {
                 // A retry node must have a positive maximum iterations count if defined.
-                if (this.maximumIterations < 0) {
+                if (this.maximumIterations! < 0) {
                     throw new Error("a retry node must have a positive maximum iterations count if defined");
                 }
 
                 // A retry node must not have an iteration count that exceeds the maximum iteration count.
-                if (this.iterations > this.maximumIterations) {
+                if (this.iterations! > this.maximumIterations!) {
                     throw new Error(
                         "a retry node must not have an iteration count that exceeds the maximum iteration count"
                     );
                 }
             }
         },
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
+        createNodeInstance(namedRootNodeProvider, visitedBranches) {
             return new Retry(
                 this.decorators,
-                this.iterations,
-                this.maximumIterations,
-                this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
+                this.iterations!,
+                this.maximumIterations!,
+                this.children![0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
             );
         }
     }),
-    FLIP: () => ({
+    FLIP: (): AstNode<Flip> => ({
         type: "flip",
         decorators: [],
         children: [],
-        validate: function (depth) {
+        validate() {
             // A flip node must have a single node.
-            if (this.children.length !== 1) {
+            if (this.children!.length !== 1) {
                 throw new Error("a flip node must have a single child");
             }
         },
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
+        createNodeInstance(namedRootNodeProvider, visitedBranches) {
             return new Flip(
                 this.decorators,
-                this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
+                this.children![0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
             );
         }
     }),
-    SUCCEED: () => ({
+    SUCCEED: (): AstNode<Succeed> => ({
         type: "succeed",
         decorators: [],
         children: [],
-        validate: function (depth) {
+        validate() {
             // A succeed node must have a single node.
-            if (this.children.length !== 1) {
+            if (this.children!.length !== 1) {
                 throw new Error("a succeed node must have a single child");
             }
         },
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
+        createNodeInstance(namedRootNodeProvider, visitedBranches) {
             return new Succeed(
                 this.decorators,
-                this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
+                this.children![0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
             );
         }
     }),
-    FAIL: () => ({
+    FAIL: (): AstNode<Fail> => ({
         type: "fail",
         decorators: [],
         children: [],
-        validate: function (depth) {
+        validate() {
             // A fail node must have a single node.
-            if (this.children.length !== 1) {
+            if (this.children!.length !== 1) {
                 throw new Error("a fail node must have a single child");
             }
         },
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
+        createNodeInstance(namedRootNodeProvider, visitedBranches) {
             return new Fail(
                 this.decorators,
-                this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
+                this.children![0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
             );
         }
     }),
-    WAIT: () => ({
+    WAIT: (): AstNode<Wait> => ({
         type: "wait",
         decorators: [],
         duration: null,
         longestDuration: null,
-        validate: function (depth) {
+        validate() {
             // A wait node must have a positive duration.
-            if (this.duration < 0) {
+            if (this.duration! < 0) {
                 throw new Error("a wait node must have a positive duration");
             }
 
@@ -300,33 +339,33 @@ const ASTNodeFactories = {
                 }
 
                 // A wait node must not have a duration that exceeds the longest duration.
-                if (this.duration > this.longestDuration) {
+                if (this.duration! > this.longestDuration) {
                     throw new Error("a wait node must not have a shortest duration that exceeds the longest duration");
                 }
             }
         },
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new Wait(this.decorators, this.duration, this.longestDuration);
+        createNodeInstance() {
+            return new Wait(this.decorators, this.duration!, this.longestDuration!);
         }
     }),
-    ACTION: () => ({
+    ACTION: (): AstNode<Action> => ({
         type: "action",
         decorators: [],
         actionName: "",
         actionArguments: [],
-        validate: function (depth) {},
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new Action(this.decorators, this.actionName, this.actionArguments);
+        validate() {},
+        createNodeInstance() {
+            return new Action(this.decorators, this.actionName!, this.actionArguments!);
         }
     }),
-    CONDITION: () => ({
+    CONDITION: (): AstNode<Condition> => ({
         type: "condition",
         decorators: [],
         conditionName: "",
         conditionArguments: [],
-        validate: function (depth) {},
-        createNodeInstance: function (namedRootNodeProvider, visitedBranches) {
-            return new Condition(this.decorators, this.conditionName, this.conditionArguments);
+        validate() {},
+        createNodeInstance() {
+            return new Condition(this.decorators, this.conditionName!, this.conditionArguments!);
         }
     })
 };
@@ -336,7 +375,7 @@ const ASTNodeFactories = {
  * @param definition The definition to parse the AST nodes from.
  * @returns The base definition AST nodes.
  */
-export default function buildRootASTNodes(definition) {
+export default function buildRootASTNodes(definition: string): AstNode<Root>[] {
     // Swap out any node/decorator argument string literals with a placeholder and get a mapping of placeholders to original values as well as the processed definition.
     const { placeholders, processedDefinition } = substituteStringLiterals(definition);
 
@@ -354,7 +393,7 @@ export default function buildRootASTNodes(definition) {
     }
 
     // Create a stack of node children arrays, starting with a definition scope.
-    const stack = [[]];
+    const stack: AstNode<Node>[][] = [[]];
 
     // We should keep processing the raw tokens until we run out of them.
     while (tokens.length) {
@@ -364,7 +403,7 @@ export default function buildRootASTNodes(definition) {
         let node;
 
         // How we create the next AST token depends on the current raw token value.
-        switch (token.toUpperCase()) {
+        switch (token!.toUpperCase()) {
             case "ROOT":
                 // Create a ROOT AST node.
                 node = ASTNodeFactories.ROOT();
@@ -379,7 +418,7 @@ export default function buildRootASTNodes(definition) {
                     // We should have only a single argument that is not an empty string for a root node, which is the root name identifier.
                     if (rootArguments.length === 1 && rootArguments[0].type === "identifier") {
                         // The root name will be the first and only node argument.
-                        node.name = rootArguments[0].value;
+                        node.name = rootArguments[0].value as string;
                     } else {
                         throw new Error("expected single root name argument");
                     }
@@ -391,7 +430,7 @@ export default function buildRootASTNodes(definition) {
                 popAndCheck(tokens, "{");
 
                 // The new scope is that of the new ROOT nodes children.
-                stack.push(node.children);
+                stack.push(node.children!);
                 break;
 
             case "BRANCH":
@@ -412,7 +451,7 @@ export default function buildRootASTNodes(definition) {
                 // We should have only a single identifer argument for a branch node, which is the branch name.
                 if (branchArguments.length === 1 && branchArguments[0].type === "identifier") {
                     // The branch name will be the first and only node argument.
-                    node.branchName = branchArguments[0].value;
+                    node.branchName = branchArguments[0].value as string;
                 } else {
                     throw new Error("expected single branch name argument");
                 }
@@ -431,7 +470,7 @@ export default function buildRootASTNodes(definition) {
                 popAndCheck(tokens, "{");
 
                 // The new scope is that of the new SELECTOR nodes children.
-                stack.push(node.children);
+                stack.push(node.children!);
                 break;
 
             case "SEQUENCE":
@@ -447,7 +486,7 @@ export default function buildRootASTNodes(definition) {
                 popAndCheck(tokens, "{");
 
                 // The new scope is that of the new SEQUENCE nodes children.
-                stack.push(node.children);
+                stack.push(node.children!);
                 break;
 
             case "PARALLEL":
@@ -463,7 +502,7 @@ export default function buildRootASTNodes(definition) {
                 popAndCheck(tokens, "{");
 
                 // The new scope is that of the new PARALLEL nodes children.
-                stack.push(node.children);
+                stack.push(node.children!);
                 break;
 
             case "LOTTO":
@@ -479,7 +518,7 @@ export default function buildRootASTNodes(definition) {
                     node.tickets = getArguments(
                         tokens,
                         placeholders,
-                        (arg) => arg.type === "number" && arg.isInteger,
+                        (arg) => arg.type === "number" && !!arg.isInteger,
                         "lotto node ticket counts must be integer values"
                     ).map((argument) => argument.value);
                 }
@@ -490,7 +529,7 @@ export default function buildRootASTNodes(definition) {
                 popAndCheck(tokens, "{");
 
                 // The new scope is that of the new LOTTO nodes children.
-                stack.push(node.children);
+                stack.push(node.children!);
                 break;
 
             case "CONDITION":
@@ -511,7 +550,7 @@ export default function buildRootASTNodes(definition) {
                 // We should have at least a single identifier argument for a condition node, which is the condition function name.
                 if (conditionArguments.length && conditionArguments[0].type === "identifier") {
                     // The condition function name will be the first node argument.
-                    node.conditionName = conditionArguments.shift().value;
+                    node.conditionName = conditionArguments.shift()!.value as string;
                 } else {
                     throw new Error("expected condition name identifier argument");
                 }
@@ -547,7 +586,7 @@ export default function buildRootASTNodes(definition) {
                 popAndCheck(tokens, "{");
 
                 // The new scope is that of the new FLIP nodes children.
-                stack.push(node.children);
+                stack.push(node.children!);
                 break;
 
             case "SUCCEED":
@@ -563,7 +602,7 @@ export default function buildRootASTNodes(definition) {
                 popAndCheck(tokens, "{");
 
                 // The new scope is that of the new Succeed nodes children.
-                stack.push(node.children);
+                stack.push(node.children!);
                 break;
 
             case "FAIL":
@@ -579,7 +618,7 @@ export default function buildRootASTNodes(definition) {
                 popAndCheck(tokens, "{");
 
                 // The new scope is that of the new Fail nodes children.
-                stack.push(node.children);
+                stack.push(node.children!);
                 break;
 
             case "WAIT":
@@ -593,18 +632,18 @@ export default function buildRootASTNodes(definition) {
                 const durations = getArguments(
                     tokens,
                     placeholders,
-                    (arg) => arg.type === "number" && arg.isInteger,
+                    (arg) => arg.type === "number" && !!arg.isInteger,
                     "wait node durations must be integer values"
                 ).map((argument) => argument.value);
 
                 // We should have got one or two durations.
                 if (durations.length === 1) {
                     // A static duration was defined.
-                    node.duration = durations[0];
+                    node.duration = durations[0] as number;
                 } else if (durations.length === 2) {
                     // A shortest and longest duration was defined.
-                    node.duration = durations[0];
-                    node.longestDuration = durations[1];
+                    node.duration = durations[0] as number;
+                    node.longestDuration = durations[1] as number;
                 } else {
                     // An incorrect number of durations was defined.
                     throw new Error("invalid number of wait node duration arguments defined");
@@ -627,18 +666,18 @@ export default function buildRootASTNodes(definition) {
                     const iterationArguments = getArguments(
                         tokens,
                         placeholders,
-                        (arg) => arg.type === "number" && arg.isInteger,
+                        (arg) => arg.type === "number" && !!arg.isInteger,
                         "repeat node iteration counts must be integer values"
                     ).map((argument) => argument.value);
 
                     // We should have got one or two iteration counts.
                     if (iterationArguments.length === 1) {
                         // A static iteration count was defined.
-                        node.iterations = iterationArguments[0];
+                        node.iterations = iterationArguments[0] as number;
                     } else if (iterationArguments.length === 2) {
                         // A minimum and maximum iteration count was defined.
-                        node.iterations = iterationArguments[0];
-                        node.maximumIterations = iterationArguments[1];
+                        node.iterations = iterationArguments[0] as number;
+                        node.maximumIterations = iterationArguments[1] as number;
                     } else {
                         // An incorrect number of iteration counts was defined.
                         throw new Error("invalid number of repeat node iteration count arguments defined");
@@ -651,7 +690,7 @@ export default function buildRootASTNodes(definition) {
                 popAndCheck(tokens, "{");
 
                 // The new scope is that of the new REPEAT nodes children.
-                stack.push(node.children);
+                stack.push(node.children!);
                 break;
 
             case "RETRY":
@@ -667,18 +706,18 @@ export default function buildRootASTNodes(definition) {
                     const iterationArguments = getArguments(
                         tokens,
                         placeholders,
-                        (arg) => arg.type === "number" && arg.isInteger,
+                        (arg) => arg.type === "number" && !!arg.isInteger,
                         "retry node iteration counts must be integer values"
                     ).map((argument) => argument.value);
 
                     // We should have got one or two iteration counts.
                     if (iterationArguments.length === 1) {
                         // A static iteration count was defined.
-                        node.iterations = iterationArguments[0];
+                        node.iterations = iterationArguments[0] as number;
                     } else if (iterationArguments.length === 2) {
                         // A minimum and maximum iteration count was defined.
-                        node.iterations = iterationArguments[0];
-                        node.maximumIterations = iterationArguments[1];
+                        node.iterations = iterationArguments[0] as number;
+                        node.maximumIterations = iterationArguments[1] as number;
                     } else {
                         // An incorrect number of iteration counts was defined.
                         throw new Error("invalid number of retry node iteration count arguments defined");
@@ -691,7 +730,7 @@ export default function buildRootASTNodes(definition) {
                 popAndCheck(tokens, "{");
 
                 // The new scope is that of the new RETRY nodes children.
-                stack.push(node.children);
+                stack.push(node.children!);
                 break;
 
             case "ACTION":
@@ -712,7 +751,7 @@ export default function buildRootASTNodes(definition) {
                 // We should have at least one identifer argument for an action node, which is the action name.
                 if (actionArguments.length && actionArguments[0].type === "identifier") {
                     // The action name will be the first and only node argument.
-                    node.actionName = actionArguments.shift().value;
+                    node.actionName = actionArguments.shift()!.value as string;
                 } else {
                     throw new Error("expected action name identifier argument");
                 }
@@ -746,7 +785,7 @@ export default function buildRootASTNodes(definition) {
     }
 
     // A function to recursively validate each of the nodes in the AST.
-    const validateASTNode = (node, depth) => {
+    const validateASTNode = (node: Validatable, depth: number): void => {
         // Validate the node.
         node.validate(depth);
 
@@ -758,7 +797,7 @@ export default function buildRootASTNodes(definition) {
     validateASTNode(
         {
             children: stack[0],
-            validate: function (depth) {
+            validate(depth) {
                 // We must have at least one node defined as the definition scope, which should be a root node.
                 if (this.children.length === 0) {
                     throw new Error("expected root node to have been defined");
@@ -773,7 +812,7 @@ export default function buildRootASTNodes(definition) {
 
                 // Exactly one root node must not have a name defined. This will be the main root, others will have to be referenced via branch nodes.
                 if (
-                    this.children.filter(function (definitionLevelNode) {
+                    this.children.filter(function (definitionLevelNode: AstNode<Node>) {
                         return definitionLevelNode.name === null;
                     }).length !== 1
                 ) {
@@ -795,7 +834,7 @@ export default function buildRootASTNodes(definition) {
     );
 
     // Return the root AST nodes.
-    return stack[0];
+    return stack[0] as AstNode<Root>[];
 }
 
 /**
@@ -804,7 +843,7 @@ export default function buildRootASTNodes(definition) {
  * @param expected An optional string or array or items, one of which must match the next popped token.
  * @returns The popped token.
  */
-function popAndCheck(tokens, expected) {
+function popAndCheck(tokens: string[], expected: string | string[]) {
     // Get and remove the next token.
     const popped = tokens.shift();
 
@@ -816,15 +855,15 @@ function popAndCheck(tokens, expected) {
     // Do we have an expected token/tokens array?
     if (expected !== undefined) {
         // Check whether the popped token matches at least one of our expected items.
-        var tokenMatchesExpectation = [].concat(expected).some((item) => popped.toUpperCase() === item.toUpperCase());
+        var tokenMatchesExpectation = ([] as string[]).concat(expected).some((item) => popped.toUpperCase() === item.toUpperCase());
 
         // Throw an error if the popped token didn't match any of our expected items.
         if (!tokenMatchesExpectation) {
-            const expectationString = []
+            const expectationString = ([] as string[])
                 .concat(expected)
                 .map((item) => "'" + item + "'")
                 .join(" or ");
-            throw new Error("unexpected token found. Expected " + expected + " but got '" + popped + "'");
+            throw new Error("unexpected token found. Expected " + expectationString + " but got '" + popped + "'");
         }
     }
 
@@ -840,13 +879,18 @@ function popAndCheck(tokens, expected) {
  * @param validationFailedMessage  The exception message to throw if argument validation fails.
  * @returns The argument definition list.
  */
-function getArguments(tokens, stringArgumentPlaceholders, argumentValidator, validationFailedMessage) {
+function getArguments(
+    tokens: string[],
+    stringArgumentPlaceholders: Placeholders,
+    argumentValidator?: (arg: ArgumentDefinition) => boolean,
+    validationFailedMessage?: string
+) {
     // Any lists of arguments will always be wrapped in '[]' for node arguments or '()' for decorator arguments.
     // We are looking for a '[' or '(' opener that wraps the argument tokens and the relevant closer.
     const closer = popAndCheck(tokens, ["[", "("]) === "[" ? "]" : ")";
 
     const argumentListTokens = [];
-    const argumentList = [];
+    const argumentList: ArgumentDefinition[] = [];
 
     // Grab all tokens between the '[' and ']' or '(' and ')'.
     while (tokens.length && tokens[0] !== closer) {
@@ -862,7 +906,7 @@ function getArguments(tokens, stringArgumentPlaceholders, argumentValidator, val
         // If the current token should be an actual argument then validate it,otherwise it should be a ',' token.
         if (shouldBeArgumentToken) {
             // Get the argument definition.
-            const argumentDefinition = getArgumentDefinition(token, stringArgumentPlaceholders);
+            const argumentDefinition = getArgumentDefinition(token!, stringArgumentPlaceholders);
 
             // Try to validate the argument.
             if (argumentValidator && !argumentValidator(argumentDefinition)) {
@@ -892,13 +936,13 @@ function getArguments(tokens, stringArgumentPlaceholders, argumentValidator, val
  * @param stringArgumentPlaceholders The mapping of string literal node argument placeholders to original values.
  * @returns An argument value definition.
  */
-function getArgumentDefinition(token, stringArgumentPlaceholders) {
+function getArgumentDefinition(token: string, stringArgumentPlaceholders: Placeholders): ArgumentDefinition {
     // Check whether the token represents a null value.
     if (token === "null") {
         return {
             value: null,
             type: "null",
-            toString: function () {
+            toString() {
                 return this.value;
             }
         };
@@ -909,19 +953,19 @@ function getArgumentDefinition(token, stringArgumentPlaceholders) {
         return {
             value: token === "true",
             type: "boolean",
-            toString: function () {
+            toString() {
                 return this.value;
             }
         };
     }
 
     // Check whether the token represents a number value.
-    if (!isNaN(token)) {
+    if (!isNaN(token as any)) {
         return {
-            value: parseFloat(token, 10),
-            isInteger: parseFloat(token, 10) === parseInt(token, 10),
+            value: parseFloat(token),
+            isInteger: parseFloat(token) === parseInt(token, 10),
             type: "number",
-            toString: function () {
+            toString() {
                 return this.value;
             }
         };
@@ -932,7 +976,7 @@ function getArgumentDefinition(token, stringArgumentPlaceholders) {
         return {
             value: stringArgumentPlaceholders[token].replace('\\"', '"'),
             type: "string",
-            toString: function () {
+            toString() {
                 return '"' + this.value + '"';
             }
         };
@@ -942,7 +986,7 @@ function getArgumentDefinition(token, stringArgumentPlaceholders) {
     return {
         value: token,
         type: "identifier",
-        toString: function () {
+        toString() {
             return this.value;
         }
     };
@@ -954,7 +998,7 @@ function getArgumentDefinition(token, stringArgumentPlaceholders) {
  * @param stringArgumentPlaceholders The mapping of string literal node argument placeholders to original values.
  * @returns An array od decorators defined by any directly following tokens.
  */
-function getDecorators(tokens, stringArgumentPlaceholders) {
+function getDecorators(tokens: string[], stringArgumentPlaceholders: Placeholders) {
     // Create an array to hold any decorators found.
     const decorators = [];
 
@@ -972,7 +1016,7 @@ function getDecorators(tokens, stringArgumentPlaceholders) {
         }
 
         // Add the current decorator type to our array of found decorators.
-        decoratorsFound.push(tokens.shift().toUpperCase());
+        decoratorsFound.push(tokens.shift()!.toUpperCase());
 
         // Grab any decorator arguments.
         const decoratorArguments = getArguments(tokens, stringArgumentPlaceholders);
@@ -983,7 +1027,7 @@ function getDecorators(tokens, stringArgumentPlaceholders) {
         }
 
         // Grab the first decorator which is an identifier that will reference an agent function.
-        const decoratorFunctionName = decoratorArguments.shift();
+        const decoratorFunctionName = decoratorArguments.shift()!;
 
         // Any remaining decorator arguments must have a type of string, number, boolean or null.
         decoratorArguments
@@ -995,7 +1039,7 @@ function getDecorators(tokens, stringArgumentPlaceholders) {
             });
 
         // Create the decorator and add it to the array of decorators found.
-        decorators.push(decoratorFactory(decoratorFunctionName, decoratorArguments));
+        decorators.push(decoratorFactory(decoratorFunctionName as any, decoratorArguments));
 
         // Try to get the next decorator name token, as there could be multiple.
         decoratorFactory = DecoratorFactories[(tokens[0] || "").toUpperCase()];
@@ -1009,9 +1053,12 @@ function getDecorators(tokens, stringArgumentPlaceholders) {
  * @param definition The definition.
  * @returns An object containing a mapping of placeholders to original string values as well as the processed definition string.
  */
-function substituteStringLiterals(definition) {
+function substituteStringLiterals(definition: string): {
+    placeholders: { [key: string]: string };
+    processedDefinition: string;
+} {
     // Create an object to hold the mapping of placeholders to original string values.
-    const placeholders = {};
+    const placeholders: Placeholders = {};
 
     // Replace any string literals wrapped with double quotes in our definition with placeholders to be processed later.
     const processedDefinition = definition.replace(/\"(\\.|[^"\\])*\"/g, (match) => {
@@ -1035,7 +1082,7 @@ function substituteStringLiterals(definition) {
  * @param definition The definition.
  * @returns An array of tokens parsed from the definition.
  */
-function parseTokensFromDefinition(definition) {
+function parseTokensFromDefinition(definition: string): string[] {
     // Add some space around various important characters so that they can be plucked out easier as individual tokens.
     definition = definition.replace(/\(/g, " ( ");
     definition = definition.replace(/\)/g, " ) ");

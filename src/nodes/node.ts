@@ -1,5 +1,8 @@
+import GuardPath from "../attributes/guards/guardPath";
 import GuardUnsatisifedException from "../attributes/guards/guardUnsatisifedException";
-import State from "../State";
+import State from "../state";
+import Decorator from "./decorator/decorator";
+import Leaf from "./leaf/leaf";
 
 /**
  * A base node.
@@ -7,88 +10,92 @@ import State from "../State";
  * @param decorators The node decorators.
  * @param args The node argument definitions.
  */
-export default function Node(type, decorators, args) {
+export default abstract class Node {
+    constructor(private type: string, private decorators: Decorator[] | null, private args: any[]) {}
     /**
      * The node uid.
      */
-    const uid = createNodeUid();
+    private readonly uid: string = createNodeUid();
     /**
      * The node state.
      */
-    let state = State.READY;
+    private state: any = State.READY;
     /**
      * The guard path to evaluate as part of a node update.
      */
-    let guardPath;
+    private guardPath: GuardPath | undefined;
+
+    abstract onUpdate: (agent: any) => void;
+    abstract getName: () => string;
+    abstract isLeafNode: () => this is Leaf;
 
     /**
      * Gets/Sets the state of the node.
      */
-    this.getState = () => state;
-    this.setState = (value) => (state = value);
+    getState = (): any => this.state;
+    setState = (value: any): any => (this.state = value);
 
     /**
      * Gets the unique id of the node.
      */
-    this.getUid = () => uid;
+    getUid = () => this.uid;
 
     /**
      * Gets the type of the node.
      */
-    this.getType = () => type;
+    getType = () => this.type;
 
     /**
      * Gets the node decorators.
      */
-    this.getDecorators = () => decorators || [];
+    getDecorators = () => this.decorators || [];
 
     /**
      * Gets the node arguments.
      */
-    this.getArguments = () => args || [];
+    getArguments = () => this.args || [];
 
     /**
      * Gets the node decorator with the specified type, or null if it does not exist.
      */
-    this.getDecorator = (type) =>
-        this.getDecorators().filter((decorator) => decorator.getType().toUpperCase() === type.toUpperCase())[0] || null;
+    // getDecorator(type: "entry"): Entry;
+    // getDecorator(type: "exit"): Exit;
+    // getDecorator(type: "step"): Step;
+    getDecorator(type: string): Decorator {
+        return this.getDecorators().filter((decorator) => decorator.getType().toUpperCase() === type.toUpperCase())[0] || null;
+    }
 
     /**
      * Gets the node decorators.
      */
-    this.getGuardDecorators = () => this.getDecorators().filter((decorator) => decorator.isGuard());
+    getGuardDecorators = () => this.getDecorators().filter((decorator) => (decorator as any).isGuard());
 
     /**
      * Sets the guard path to evaluate as part of a node update.
      */
-    this.setGuardPath = (value) => (guardPath = value);
+    setGuardPath = (value: GuardPath) => (this.guardPath = value);
 
     /**
      * Gets whether a guard path is assigned to this node.
      */
-    this.hasGuardPath = () => !!guardPath;
+    hasGuardPath = () => !!this.guardPath;
 
     /**
      * Gets whether this node is in the specified state.
      * @param value The value to compare to the node state.
      */
-    this.is = (value) => {
-        return state === value;
-    };
+    is = (value: any) => this.state === value;
 
     /**
      * Reset the state of the node.
      */
-    this.reset = () => {
-        // Reset the state of this node.
-        this.setState(State.READY);
-    };
+    reset = () => this.setState(State.READY);
 
     /**
      * Abort the running of this node.
      * @param agent The agent.
      */
-    this.abort = (agent) => {
+    abort = (agent: any) => {
         // There is nothing to do if this node is not in the running state.
         if (!this.is(State.RUNNING)) {
             return;
@@ -102,7 +109,7 @@ export default function Node(type, decorators, args) {
 
         // Call the exit decorator function if it exists.
         if (exitDecorator) {
-            exitDecorator.callAgentFunction(agent, false, true);
+            (exitDecorator as any).callAgentFunction(agent, false, true);
         }
     };
 
@@ -111,7 +118,7 @@ export default function Node(type, decorators, args) {
      * @param agent The agent.
      * @returns The result of the update.
      */
-    this.update = (agent) => {
+    update = (agent: any) => {
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
         if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {
             // We have not changed state.
@@ -120,7 +127,7 @@ export default function Node(type, decorators, args) {
 
         try {
             // Evaluate all of the guard path conditions for the current tree path.
-            guardPath.evaluate(agent);
+            this.guardPath!.evaluate(agent);
 
             // If this node is in the READY state then call the ENTRY decorator for this node if it exists.
             if (this.is(State.READY)) {
@@ -128,7 +135,7 @@ export default function Node(type, decorators, args) {
 
                 // Call the entry decorator function if it exists.
                 if (entryDecorator) {
-                    entryDecorator.callAgentFunction(agent);
+                    (entryDecorator as any).callAgentFunction(agent);
                 }
             }
 
@@ -137,7 +144,7 @@ export default function Node(type, decorators, args) {
 
             // Call the step decorator function if it exists.
             if (stepDecorator) {
-                stepDecorator.callAgentFunction(agent);
+                (stepDecorator as any).callAgentFunction(agent);
             }
 
             // Do the actual update.
@@ -149,7 +156,7 @@ export default function Node(type, decorators, args) {
 
                 // Call the exit decorator function if it exists.
                 if (exitDecorator) {
-                    exitDecorator.callAgentFunction(agent, this.is(State.SUCCEEDED), false);
+                    (exitDecorator as any).callAgentFunction(agent, this.is(State.SUCCEEDED), false);
                 }
             }
         } catch (error) {
@@ -171,7 +178,7 @@ export default function Node(type, decorators, args) {
  * Create a randomly generated node uid.
  * @returns A randomly generated node uid.
  */
-function createNodeUid() {
+function createNodeUid(): string {
     var S4 = function () {
         return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
     };

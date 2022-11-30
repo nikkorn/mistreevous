@@ -10,4 +10,6 @@ export default abstract class Callback extends Attribute {
      * Gets whether this attribute is a guard.
      */
     isGuard = () => false;
+
+    abstract callAgentFunction: (agent: any, isSuccess: boolean, isAborted: boolean) => void;
 }

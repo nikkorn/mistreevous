@@ -1,48 +1,51 @@
 import Node from "../node";
-import State from "../../State";
+import State from "../../state";
+import Decorator from "../decorator/decorator";
 
 /**
- * A decorator node that wraps a single child node.
+ * A composite node that wraps child nodes.
  * @param type The node type.
  * @param decorators The node decorators.
- * @param child The child node.
+ * @param children The child nodes.
  */
-export default function Decorator(type, decorators, child) {
-    Node.call(this, type, decorators);
+export default abstract class Composite extends Node {
+    constructor(type: string, decorators: Decorator[] | null, protected children: Node[]) {
+        super(type, decorators, []);
+    }
 
     /**
      * Gets whether this node is a leaf node.
      */
-    this.isLeafNode = () => false;
+    isLeafNode = () => false;
 
     /**
      * Gets the children of this node.
      */
-    this.getChildren = () => [child];
+    getChildren = () => this.children;
 
     /**
      * Reset the state of the node.
      */
-    this.reset = () => {
+    reset = () => {
         // Reset the state of this node.
         this.setState(State.READY);
 
-        // Reset the state of the child node.
-        child.reset();
+        // Reset the state of any child nodes.
+        this.getChildren().forEach((child) => child.reset());
     };
 
     /**
      * Abort the running of this node.
      * @param agent The agent.
      */
-    this.abort = (agent) => {
+    abort = (agent: any) => {
         // There is nothing to do if this node is not in the running state.
         if (!this.is(State.RUNNING)) {
             return;
         }
 
-        // Abort the child node.
-        child.abort(agent);
+        // Abort any child nodes.
+        this.getChildren().forEach((child) => child.abort(agent));
 
         // Reset the state of this node.
         this.reset();
@@ -52,9 +55,7 @@ export default function Decorator(type, decorators, child) {
 
         // Call the exit decorator function if it exists.
         if (exitDecorator) {
-            exitDecorator.callAgentFunction(agent, false, true);
+            (exitDecorator as any).callAgentFunction(agent, false, true);
         }
     };
 }
-
-Decorator.prototype = Object.create(Node.prototype);

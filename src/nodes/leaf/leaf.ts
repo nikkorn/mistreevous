@@ -6,13 +6,9 @@ import Node from "../node";
  * @param decorators The node decorators.
  * @param args The node argument definitions.
  */
-export default function Leaf(type, decorators, args) {
-    Node.call(this, type, decorators, args);
-
+export default abstract class Leaf extends Node {
     /**
      * Gets whether this node is a leaf node.
      */
-    this.isLeafNode = () => true;
+    isLeafNode = () => true;
 }
-
-Leaf.prototype = Object.create(Node.prototype);

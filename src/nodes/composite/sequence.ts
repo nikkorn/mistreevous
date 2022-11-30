@@ -1,5 +1,7 @@
 import Composite from "./composite";
-import State from "../../State";
+import Node from "../node";
+import State from "../../state";
+import Decorator from "../decorator/decorator";
 
 /**
  * A SEQUENCE node.
@@ -7,17 +9,19 @@ import State from "../../State";
  * @param decorators The node decorators.
  * @param children The child nodes.
  */
-export default function Sequence(decorators, children) {
-    Composite.call(this, "sequence", decorators, children);
+export default class Sequence extends Composite {
+    constructor(decorators: Decorator[] | null, protected children: Node[]) {
+        super("sequence", decorators, children);
+    }
 
     /**
      * Update the node and get whether the node state has changed.
      * @param agent The agent.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    this.onUpdate = function (agent) {
+    onUpdate = (agent: any) => {
         // Iterate over all of the children of this node.
-        for (const child of children) {
+        for (const child of this.children) {
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === State.READY || child.getState() === State.RUNNING) {
                 // Update the child of this node.
@@ -28,7 +32,7 @@ export default function Sequence(decorators, children) {
             if (child.getState() === State.SUCCEEDED) {
                 // Find out if the current child is the last one in the sequence.
                 // If it is then this sequence node has also succeeded.
-                if (children.indexOf(child) === children.length - 1) {
+                if (this.children.indexOf(child) === this.children.length - 1) {
                     // This node is a 'SUCCEEDED' node.
                     this.setState(State.SUCCEEDED);
 
@@ -66,7 +70,5 @@ export default function Sequence(decorators, children) {
     /**
      * Gets the name of the node.
      */
-    this.getName = () => "SEQUENCE";
+    getName = () => "SEQUENCE";
 }
-
-Sequence.prototype = Object.create(Composite.prototype);
