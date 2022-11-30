@@ -1,5 +1,5 @@
 /**
- * Enumeration of node states.
+ * Enumeration of node state types.
  */
 const State = {
     READY: Symbol("mistreevous.ready"),

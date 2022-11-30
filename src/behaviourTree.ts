@@ -18,7 +18,7 @@ type FlattenedTreeNode = {
 }
 
 /**
- * The behaviour tree.
+ * A representation of a behaviour tree.
  */
 export default class BehaviourTree {
     /**
@@ -27,7 +27,7 @@ export default class BehaviourTree {
     public readonly rootNode: Root;
 
     /**
-     * Constructor for the BehaviourTree class.
+     * Creates a new instance of the BehaviourTree class.
      * @param definition The behaviour tree definition.
      * @param agent The agent instance that this behaviour tree is modelling behaviour for.
      */
@@ -47,8 +47,8 @@ export default class BehaviourTree {
     }
 
     /**
-     * Gets whether the tree is in the running state.
-     * @returns Whether the tree is in the running state.
+     * Gets whether the tree is in the RUNNING state.
+     * @returns true if the tree is in the RUNNING state, otherwise false.
      */
     isRunning() {
         return this.rootNode.getState() === State.RUNNING;
@@ -64,7 +64,10 @@ export default class BehaviourTree {
 
     /**
      * Step the tree.
-     * This carries out a node update that traverses the tree from the root node outwards to any child nodes, skipping those that are already in a resolved state of SUCCEEDED or FAILED.
+     * Carries out a node update that traverses the tree from the root node outwards to any child nodes, skipping those that are already in a resolved state of SUCCEEDED or FAILED.
+     * After being updated, leaf nodes will have a state of SUCCEEDED, FAILED or RUNNING. Leaf nodes that are left in the RUNNING state as part of a tree step will be revisited each
+     * subsequent step until they move into a resolved state of either SUCCEEDED or FAILED, after which execution will move through the tree to the next node with a state of READY.
+     *
      * Calling this method when the tree is already in a resolved state of SUCCEEDED or FAILED will cause it to be reset before tree traversal begins.
      */
     step() {
@@ -165,8 +168,8 @@ export default class BehaviourTree {
     }
 
     /**
-     * Unregisters the action/condition/guard/callback function or subtree with the given name.
-     * @param name The name of the action/condition/guard/callback function or subtree to unregister.
+     * Unregisters the registered action/condition/guard/callback function or subtree with the given name.
+     * @param name The name of the registered action/condition/guard/callback function or subtree to unregister.
      */
     static unregister(name: string): void {
         Lookup.remove(name);
