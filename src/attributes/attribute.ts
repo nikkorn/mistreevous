@@ -1,3 +1,5 @@
+import Guard from "./guards/guard";
+
 /**
  * A base node attribute.
  */
@@ -7,6 +9,7 @@ export default abstract class Attribute {
      * @param args The array of attribute argument definitions.
      */
     constructor(protected type: string, protected args: any[]) {}
+
     /**
      * Gets the type of the attribute.
      */
@@ -24,4 +27,9 @@ export default abstract class Attribute {
         type: this.getType(),
         arguments: this.getArguments()
     });
+
+    /**
+     * Gets whether this attribute is a guard.
+     */
+    abstract isGuard: () => this is Guard;
 }

@@ -1,4 +1,9 @@
 import { Agent } from "../agent";
+import Attribute from "../attributes/attribute";
+import Entry from "../attributes/callbacks/entry";
+import Exit from "../attributes/callbacks/exit";
+import Step from "../attributes/callbacks/step";
+import Guard from "../attributes/guards/guard";
 import GuardPath from "../attributes/guards/guardPath";
 import GuardUnsatisifedException from "../attributes/guards/guardUnsatisifedException";
 import State from "../state";
@@ -11,10 +16,10 @@ import Leaf from "./leaf/leaf";
 export default abstract class Node {
     /**
      * @param type The node type.
-     * @param decorators The node decorators.
+     * @param attributes The node attributes.
      * @param args The node argument definitions.
      */
-    constructor(private type: string, private decorators: Decorator[] | null, private args: any[]) {}
+    constructor(private type: string, private attributes: Attribute[] | null, private args: any[]) {}
     /**
      * The node uid.
      */
@@ -62,9 +67,9 @@ export default abstract class Node {
     getType = () => this.type;
 
     /**
-     * Gets the node decorators.
+     * Gets the node attributes.
      */
-    getDecorators = () => this.decorators || [];
+    getAttributes = () => this.attributes || [];
 
     /**
      * Gets the node arguments.
@@ -72,19 +77,19 @@ export default abstract class Node {
     getArguments = () => this.args || [];
 
     /**
-     * Gets the node decorator with the specified type, or null if it does not exist.
+     * Gets the node attribute with the specified type, or null if it does not exist.
      */
-    // getDecorator(type: "entry"): Entry;
-    // getDecorator(type: "exit"): Exit;
-    // getDecorator(type: "step"): Step;
-    getDecorator(type: string): Decorator {
-        return this.getDecorators().filter((decorator) => decorator.getType().toUpperCase() === type.toUpperCase())[0] || null;
+    getAttribute(type: "entry" | "ENTRY"): Entry;
+    getAttribute(type: "exit" | "EXIT"): Exit;
+    getAttribute(type: "step" | "STEP"): Step;
+    getAttribute(type: string): Attribute {
+        return this.getAttributes().filter((decorator) => decorator.getType().toUpperCase() === type.toUpperCase())[0] || null;
     }
 
     /**
-     * Gets the node decorators.
+     * Gets the node attributes.
      */
-    getGuardDecorators = () => this.getDecorators().filter((decorator) => (decorator as any).isGuard());
+    getGuardAttributes = (): Guard[] => this.getAttributes().filter((decorator) => decorator.isGuard()) as Guard[];
 
     /**
      * Sets the guard path to evaluate as part of a node update.
@@ -120,13 +125,7 @@ export default abstract class Node {
         // Reset the state of this node.
         this.reset();
 
-        // Try to get the exit decorator for this node.
-        const exitDecorator = this.getDecorator("exit");
-
-        // Call the exit decorator function if it exists.
-        if (exitDecorator) {
-            (exitDecorator as any).callAgentFunction(agent, false, true);
-        }
+        this.getAttribute("exit")?.callAgentFunction(agent, false, true);
     };
 
     /**
@@ -145,35 +144,19 @@ export default abstract class Node {
             // Evaluate all of the guard path conditions for the current tree path.
             this.guardPath!.evaluate(agent);
 
-            // If this node is in the READY state then call the ENTRY decorator for this node if it exists.
+            // If this node is in the READY state then call the ENTRY for this node if it exists.
             if (this.is(State.READY)) {
-                const entryDecorator = this.getDecorator("entry");
-
-                // Call the entry decorator function if it exists.
-                if (entryDecorator) {
-                    (entryDecorator as any).callAgentFunction(agent);
-                }
+                this.getAttribute("entry")?.callAgentFunction(agent);
             }
 
-            // Try to get the step decorator for this node.
-            const stepDecorator = this.getDecorator("step");
-
-            // Call the step decorator function if it exists.
-            if (stepDecorator) {
-                (stepDecorator as any).callAgentFunction(agent);
-            }
+            this.getAttribute("step")?.callAgentFunction(agent);
 
             // Do the actual update.
             this.onUpdate(agent);
 
-            // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT decorator for this node if it exists.
+            // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT for this node if it exists.
             if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {
-                const exitDecorator = this.getDecorator("exit");
-
-                // Call the exit decorator function if it exists.
-                if (exitDecorator) {
-                    (exitDecorator as any).callAgentFunction(agent, this.is(State.SUCCEEDED), false);
-                }
+                this.getAttribute("exit")?.callAgentFunction(agent, this.is(State.SUCCEEDED), false);
             }
         } catch (error) {
             // If the error is a GuardUnsatisfiedException then we need to determine if this node is the source.

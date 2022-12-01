@@ -1,8 +1,8 @@
 import Leaf from "./leaf";
 import State from "../../state";
 import Lookup, { Args } from "../../lookup";
-import Decorator from "../decorator/decorator";
 import { Agent } from "../../agent";
+import Attribute from "../../attributes/attribute";
 
 /**
  * A Condition leaf node.
@@ -10,12 +10,12 @@ import { Agent } from "../../agent";
  */
 export default class Condition extends Leaf {
     /**
-     * @param decorators The node decorators.
+     * @param attributes The node attributes.
      * @param conditionName The name of the condition function.
      * @param conditionArguments The array of condition argument definitions.
      */
-    constructor(decorators: Decorator[] | null, private conditionName: string, private conditionArguments: Args) {
-        super("condition", decorators, conditionArguments);
+    constructor(attributes: Attribute[] | null, private conditionName: string, private conditionArguments: Args) {
+        super("condition", attributes, conditionArguments);
     }
 
     /**

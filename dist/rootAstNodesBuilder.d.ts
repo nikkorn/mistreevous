@@ -8,7 +8,7 @@ type Validatable = {
 };
 export type AstNode<T extends Node> = {
     type: string;
-    decorators: any[];
+    attributes: any[];
     createNodeInstance: NodeInstanceCreator<T>;
     name?: null | string;
     branchName?: "" | string;

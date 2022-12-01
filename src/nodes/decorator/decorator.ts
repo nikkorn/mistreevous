@@ -1,6 +1,7 @@
 import Node from "../node";
 import State from "../../state";
 import { Agent } from "../../agent";
+import Attribute from "../../attributes/attribute";
 
 /**
  * A decorator node that wraps a single child node.
@@ -8,11 +9,11 @@ import { Agent } from "../../agent";
 export default abstract class Decorator extends Node {
     /**
      * @param type The node type.
-     * @param decorators The node decorators.
+     * @param attributes The node attributes.
      * @param child The child node.
      */
-    constructor(type: string, decorators: Decorator[] | null, protected child: Node) {
-        super(type, decorators, []);
+    constructor(type: string, attributes: Attribute[] | null, protected child: Node) {
+        super(type, attributes, []);
     }
 
     /**
@@ -52,12 +53,6 @@ export default abstract class Decorator extends Node {
         // Reset the state of this node.
         this.reset();
 
-        // Try to get the exit decorator for this node.
-        const exitDecorator = this.getDecorator("exit");
-
-        // Call the exit decorator function if it exists.
-        if (exitDecorator) {
-            (exitDecorator as any).callAgentFunction(agent, false, true);
-        }
+        this.getAttribute("exit")?.callAgentFunction(agent, false, true);
     };
 }

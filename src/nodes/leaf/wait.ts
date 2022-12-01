@@ -1,6 +1,6 @@
 import Leaf from "./leaf";
 import State from "../../state";
-import Decorator from "../decorator/decorator";
+import Attribute from "../../attributes/attribute";
 
 /**
  * A WAIT node.
@@ -8,12 +8,12 @@ import Decorator from "../decorator/decorator";
  */
 export default class Wait extends Leaf {
     /**
-     * @param decorators The node decorators.
+     * @param attributes The node attributes.
      * @param duration The duration that this node will wait to succeed in milliseconds, or the earliest if longestDuration is defined.
      * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
      */
-    constructor(decorators: Decorator[] | null, private duration: number, private longestDuration: number) {
-        super("wait", decorators, []);
+    constructor(attributes: Attribute[] | null, private duration: number, private longestDuration: number) {
+        super("wait", attributes, []);
     }
 
     /**

@@ -1,5 +1,6 @@
 import Node from "../node";
 import { Agent } from "../../agent";
+import Attribute from "../../attributes/attribute";
 /**
  * A decorator node that wraps a single child node.
  */
@@ -7,10 +8,10 @@ export default abstract class Decorator extends Node {
     protected child: Node;
     /**
      * @param type The node type.
-     * @param decorators The node decorators.
+     * @param attributes The node attributes.
      * @param child The child node.
      */
-    constructor(type: string, decorators: Decorator[] | null, child: Node);
+    constructor(type: string, attributes: Attribute[] | null, child: Node);
     /**
      * Gets whether this node is a leaf node.
      */

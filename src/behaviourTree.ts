@@ -1,4 +1,4 @@
-import GuardPath from "./attributes/guards/guardPath";
+import GuardPath, { GuardPathPart } from "./attributes/guards/guardPath";
 import buildRootASTNodes, { AstNode } from "./rootAstNodesBuilder";
 import State from "./state";
 import Lookup from "./lookup";
@@ -7,6 +7,7 @@ import Root from "./nodes/decorator/root";
 import Composite from "./nodes/composite/composite";
 import Decorator from "./nodes/decorator/decorator";
 import { Agent, GlobalActionFunction } from "./agent";
+import Attribute from "./attributes/attribute";
 
 type FlattenedTreeNode = {
     id: string,
@@ -105,12 +106,12 @@ export default class BehaviourTree {
          */
         const processNode = (node: Node, parentUid: string | null) => {
             /**
-             * Helper function to get details for all node decorators.
-             * @param decorators The node decorators.
-             * @returns The decorator details for a node.
+             * Helper function to get details for all node attributes.
+             * @param attributes The node attributes.
+             * @returns The attribute details for a node.
              */
-            const getDecoratorDetails = (decorators: Decorator[]): any[] | null =>
-                decorators.length > 0 ? decorators.map((decorator) => (decorator as any).getDetails()) : null;
+            const getAttributeDetails = (attributes: Attribute[]): any[] | null =>
+                attributes.length > 0 ? attributes.map((attribute) => attribute.getDetails()) : null;
 
             // Push the current node into the flattened nodes array.
             flattenedTreeNodes.push({
@@ -118,7 +119,7 @@ export default class BehaviourTree {
                 type: node.getType(),
                 caption: node.getName(),
                 state: node.getState(),
-                decorators: getDecoratorDetails(node.getDecorators()),
+                decorators: getAttributeDetails(node.getAttributes()),
                 arguments: node.getArguments(),
                 parentId: parentUid
             });
@@ -257,7 +258,7 @@ export default class BehaviourTree {
                 const guardPath = new GuardPath(
                     path
                         .slice(0, depth + 1)
-                        .map((node) => ({ node, guards: node.getGuardDecorators() }))
+                        .map<GuardPathPart>((node) => ({ node, guards: node.getGuardAttributes() }))
                         .filter((details) => details.guards.length > 0)
                 );
 

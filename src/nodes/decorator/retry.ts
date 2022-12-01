@@ -2,6 +2,7 @@ import Node from "../node";
 import Decorator from "./decorator";
 import State from "../../state";
 import { Agent } from "../../agent";
+import Attribute from "../../attributes/attribute";
 
 /**
  * A RETRY node.
@@ -14,13 +15,13 @@ import { Agent } from "../../agent";
 export default class Retry extends Decorator {
     // TODO: Similar to repeat - improve overloads.
     /**
-     * @param decorators The node decorators.
+     * @param attributes The node attributes.
      * @param iterations The number of iterations to repeat the child node, or the minimum number of iterations if maximumIterations is defined.
      * @param maximumIterations The maximum number of iterations to repeat the child node.
      * @param child The child node.
      */
-    constructor(decorators: Decorator[] | null, private iterations: number | null, private maximumIterations: number | null, child: Node) {
-        super("retry", decorators, child);
+    constructor(attributes: Attribute[] | null, private iterations: number | null, private maximumIterations: number | null, child: Node) {
+        super("retry", attributes, child);
     }
 
     /**

@@ -8,7 +8,7 @@ export default abstract class Guard extends Attribute {
     /**
      * Gets whether this attribute is a guard.
      */
-    isGuard = () => true;
+    isGuard = (): this is Guard => true;
 
     /**
      * Gets whether the guard is satisfied.

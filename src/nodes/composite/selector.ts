@@ -1,8 +1,8 @@
 import Composite from "./composite";
 import Node from "../node";
 import State from "../../state";
-import Decorator from "../decorator/decorator";
 import { Agent } from "../../agent";
+import Attribute from "../../attributes/attribute";
 
 /**
  * A SELECTOR node.
@@ -10,11 +10,11 @@ import { Agent } from "../../agent";
  */
 export default class Selector extends Composite {
     /**
-     * @param decorators The node decorators.
+     * @param attributes The node attributes.
      * @param children The child nodes.
      */
-    constructor(decorators: Decorator[] | null, protected children: Node[]) {
-        super("selector", decorators, children);
+    constructor(attributes: Attribute[] | null, protected children: Node[]) {
+        super("selector", attributes, children);
     }
 
     /**

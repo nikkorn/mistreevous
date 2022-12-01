@@ -1,7 +1,7 @@
 import Node from "../node";
 import Composite from "./composite";
-import Decorator from "../decorator/decorator";
 import { Agent } from "../../agent";
+import Attribute from "../../attributes/attribute";
 /**
  * A LOTTO node.
  * A winning child is picked on the initial update of this node, based on ticket weighting.
@@ -10,11 +10,11 @@ import { Agent } from "../../agent";
 export default class Lotto extends Composite {
     private tickets;
     /**
-     * @param decorators The node decorators.
+     * @param attributes The node attributes.
      * @param tickets The child node tickets
      * @param children The child nodes.
      */
-    constructor(decorators: Decorator[] | null, tickets: any[], children: Node[]);
+    constructor(attributes: Attribute[] | null, tickets: any[], children: Node[]);
     /**
      * The winning child node.
      */

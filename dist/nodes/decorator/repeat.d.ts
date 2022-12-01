@@ -1,6 +1,7 @@
 import Node from "../node";
 import Decorator from "./decorator";
 import { Agent } from "../../agent";
+import Attribute from "../../attributes/attribute";
 /**
  * A REPEAT node.
  * The node has a single child which can have:
@@ -12,9 +13,9 @@ import { Agent } from "../../agent";
 export default class Repeat extends Decorator {
     private iterations;
     private maximumIterations;
-    constructor(decorators: Decorator[] | null, iterations: null, maximumIterations: null, child: Node);
-    constructor(decorators: Decorator[] | null, iterations: number, maximumIterations: null, child: Node);
-    constructor(decorators: Decorator[] | null, iterations: number, maximumIterations: number, child: Node);
+    constructor(attributes: Attribute[] | null, iterations: null, maximumIterations: null, child: Node);
+    constructor(attributes: Attribute[] | null, iterations: number, maximumIterations: null, child: Node);
+    constructor(attributes: Attribute[] | null, iterations: number, maximumIterations: number, child: Node);
     /**
      * The number of target iterations to make.
      */

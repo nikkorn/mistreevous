@@ -14,11 +14,6 @@ export default class Timeout extends Guard {
     }
 
     /**
-     * Gets whether the decorator is a guard.
-     */
-    isGuard = () => true;
-
-    /**
      * Gets whether the guard is satisfied.
      * @param agent The agent.
      * @returns Whether the guard is satisfied.

@@ -1,3 +1,4 @@
+import Guard from "./guards/guard";
 /**
  * A base node attribute.
  */
@@ -24,4 +25,8 @@ export default abstract class Attribute {
         type: string;
         arguments: any[];
     };
+    /**
+     * Gets whether this attribute is a guard.
+     */
+    abstract isGuard: () => this is Guard;
 }

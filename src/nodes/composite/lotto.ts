@@ -1,8 +1,8 @@
 import Node from "../node";
 import Composite from "./composite";
 import State from "../../state";
-import Decorator from "../decorator/decorator";
 import { Agent } from "../../agent";
+import Attribute from "../../attributes/attribute";
 
 /**
  * A LOTTO node.
@@ -11,12 +11,12 @@ import { Agent } from "../../agent";
  */
 export default class Lotto extends Composite {
     /**
-     * @param decorators The node decorators.
+     * @param attributes The node attributes.
      * @param tickets The child node tickets
      * @param children The child nodes.
      */
-    constructor(decorators: Decorator[] | null, private tickets: any[], children: Node[]) {
-        super("lotto", decorators, children);
+    constructor(attributes: Attribute[] | null, private tickets: any[], children: Node[]) {
+        super("lotto", attributes, children);
     }
 
     /**

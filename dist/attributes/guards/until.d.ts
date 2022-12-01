@@ -11,10 +11,6 @@ export default class Until extends Guard {
      */
     constructor(condition: string, args: any[]);
     /**
-     * Gets whether the decorator is a guard.
-     */
-    isGuard: () => boolean;
-    /**
      * Gets the condition of the guard.
      */
     getCondition: () => string;

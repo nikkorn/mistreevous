@@ -2,6 +2,7 @@ import Node from "../node";
 import Decorator from "./decorator";
 import State from "../../state";
 import { Agent } from "../../agent";
+import Attribute from "../../attributes/attribute";
 
 /**
  * A REPEAT node.
@@ -13,17 +14,17 @@ import { Agent } from "../../agent";
  */
 export default class Repeat extends Decorator {
     // TODO: These can have better parameters (names/types). Probs ripple out.
-    constructor(decorators: Decorator[] | null, iterations: null, maximumIterations: null, child: Node);
-    constructor(decorators: Decorator[] | null, iterations: number, maximumIterations: null, child: Node);
-    constructor(decorators: Decorator[] | null, iterations: number, maximumIterations: number, child: Node);
+    constructor(attributes: Attribute[] | null, iterations: null, maximumIterations: null, child: Node);
+    constructor(attributes: Attribute[] | null, iterations: number, maximumIterations: null, child: Node);
+    constructor(attributes: Attribute[] | null, iterations: number, maximumIterations: number, child: Node);
     /**
-     * @param decorators The node decorators.
+     * @param attributes The node attributes.
      * @param iterations The number of iterations to repeat the child node, or the minimum number of iterations if maximumIterations is defined.
      * @param maximumIterations The maximum number of iterations to repeat the child node.
      * @param child The child node.
      */
-    constructor(decorators: Decorator[] | null, private iterations: number | null, private maximumIterations: number | null, child: Node) {
-        super("repeat", decorators, child);
+    constructor(attributes: Attribute[] | null, private iterations: number | null, private maximumIterations: number | null, child: Node) {
+        super("repeat", attributes, child);
     }
 
     /**

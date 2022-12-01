@@ -65,9 +65,9 @@ var State = {
 
 // src/nodes/node.ts
 var Node = class {
-  constructor(type, decorators, args) {
+  constructor(type, attributes, args) {
     this.type = type;
-    this.decorators = decorators;
+    this.attributes = attributes;
     this.args = args;
   }
   uid = createNodeUid();
@@ -77,12 +77,12 @@ var Node = class {
   setState = (value) => this.state = value;
   getUid = () => this.uid;
   getType = () => this.type;
-  getDecorators = () => this.decorators || [];
+  getAttributes = () => this.attributes || [];
   getArguments = () => this.args || [];
-  getDecorator(type) {
-    return this.getDecorators().filter((decorator) => decorator.getType().toUpperCase() === type.toUpperCase())[0] || null;
+  getAttribute(type) {
+    return this.getAttributes().filter((decorator) => decorator.getType().toUpperCase() === type.toUpperCase())[0] || null;
   }
-  getGuardDecorators = () => this.getDecorators().filter((decorator) => decorator.isGuard());
+  getGuardAttributes = () => this.getAttributes().filter((decorator) => decorator.isGuard());
   setGuardPath = (value) => this.guardPath = value;
   hasGuardPath = () => !!this.guardPath;
   is = (value) => this.state === value;
@@ -92,10 +92,7 @@ var Node = class {
       return;
     }
     this.reset();
-    const exitDecorator = this.getDecorator("exit");
-    if (exitDecorator) {
-      exitDecorator.callAgentFunction(agent, false, true);
-    }
+    this.getAttribute("exit")?.callAgentFunction(agent, false, true);
   };
   update = (agent) => {
     if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {
@@ -104,21 +101,12 @@ var Node = class {
     try {
       this.guardPath.evaluate(agent);
       if (this.is(State.READY)) {
-        const entryDecorator = this.getDecorator("entry");
-        if (entryDecorator) {
-          entryDecorator.callAgentFunction(agent);
-        }
+        this.getAttribute("entry")?.callAgentFunction(agent);
       }
-      const stepDecorator = this.getDecorator("step");
-      if (stepDecorator) {
-        stepDecorator.callAgentFunction(agent);
-      }
+      this.getAttribute("step")?.callAgentFunction(agent);
       this.onUpdate(agent);
       if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {
-        const exitDecorator = this.getDecorator("exit");
-        if (exitDecorator) {
-          exitDecorator.callAgentFunction(agent, this.is(State.SUCCEEDED), false);
-        }
+        this.getAttribute("exit")?.callAgentFunction(agent, this.is(State.SUCCEEDED), false);
       }
     } catch (error) {
       if (error instanceof GuardUnsatisifedException && error.isSourceNode(this)) {
@@ -182,8 +170,8 @@ __publicField(Lookup, "subtreeTable", {});
 
 // src/nodes/leaf/action.ts
 var Action = class extends Leaf {
-  constructor(decorators, actionName, actionArguments) {
-    super("action", decorators, actionArguments);
+  constructor(attributes, actionName, actionArguments) {
+    super("action", attributes, actionArguments);
     this.actionName = actionName;
     this.actionArguments = actionArguments;
   }
@@ -252,8 +240,8 @@ var Action = class extends Leaf {
 
 // src/nodes/leaf/condition.ts
 var Condition = class extends Leaf {
-  constructor(decorators, conditionName, conditionArguments) {
-    super("condition", decorators, conditionArguments);
+  constructor(attributes, conditionName, conditionArguments) {
+    super("condition", attributes, conditionArguments);
     this.conditionName = conditionName;
     this.conditionArguments = conditionArguments;
   }
@@ -271,8 +259,8 @@ var Condition = class extends Leaf {
 
 // src/nodes/leaf/wait.ts
 var Wait = class extends Leaf {
-  constructor(decorators, duration, longestDuration) {
-    super("wait", decorators, []);
+  constructor(attributes, duration, longestDuration) {
+    super("wait", attributes, []);
     this.duration = duration;
     this.longestDuration = longestDuration;
   }
@@ -293,8 +281,8 @@ var Wait = class extends Leaf {
 
 // src/nodes/decorator/decorator.ts
 var Decorator = class extends Node {
-  constructor(type, decorators, child) {
-    super(type, decorators, []);
+  constructor(type, attributes, child) {
+    super(type, attributes, []);
     this.child = child;
   }
   isLeafNode = () => false;
@@ -309,17 +297,14 @@ var Decorator = class extends Node {
     }
     this.child.abort(agent);
     this.reset();
-    const exitDecorator = this.getDecorator("exit");
-    if (exitDecorator) {
-      exitDecorator.callAgentFunction(agent, false, true);
-    }
+    this.getAttribute("exit")?.callAgentFunction(agent, false, true);
   };
 };
 
 // src/nodes/decorator/root.ts
 var Root = class extends Decorator {
-  constructor(decorators, child) {
-    super("root", decorators, child);
+  constructor(attributes, child) {
+    super("root", attributes, child);
   }
   onUpdate = (agent) => {
     if (this.child.getState() === State.READY || this.child.getState() === State.RUNNING) {
@@ -332,8 +317,8 @@ var Root = class extends Decorator {
 
 // src/nodes/decorator/repeat.ts
 var Repeat = class extends Decorator {
-  constructor(decorators, iterations, maximumIterations, child) {
-    super("repeat", decorators, child);
+  constructor(attributes, iterations, maximumIterations, child) {
+    super("repeat", attributes, child);
     this.iterations = iterations;
     this.maximumIterations = maximumIterations;
   }
@@ -388,8 +373,8 @@ var Repeat = class extends Decorator {
 
 // src/nodes/decorator/retry.ts
 var Retry = class extends Decorator {
-  constructor(decorators, iterations, maximumIterations, child) {
-    super("retry", decorators, child);
+  constructor(attributes, iterations, maximumIterations, child) {
+    super("retry", attributes, child);
     this.iterations = iterations;
     this.maximumIterations = maximumIterations;
   }
@@ -444,8 +429,8 @@ var Retry = class extends Decorator {
 
 // src/nodes/decorator/flip.ts
 var Flip = class extends Decorator {
-  constructor(decorators, child) {
-    super("flip", decorators, child);
+  constructor(attributes, child) {
+    super("flip", attributes, child);
   }
   onUpdate = (agent) => {
     if (this.child.getState() === State.READY || this.child.getState() === State.RUNNING) {
@@ -470,8 +455,8 @@ var Flip = class extends Decorator {
 
 // src/nodes/decorator/succeed.ts
 var Succeed = class extends Decorator {
-  constructor(decorators, child) {
-    super("succeed", decorators, child);
+  constructor(attributes, child) {
+    super("succeed", attributes, child);
   }
   onUpdate = (agent) => {
     if (this.child.getState() === State.READY || this.child.getState() === State.RUNNING) {
@@ -494,8 +479,8 @@ var Succeed = class extends Decorator {
 
 // src/nodes/decorator/fail.ts
 var Fail = class extends Decorator {
-  constructor(decorators, child) {
-    super("fail", decorators, child);
+  constructor(attributes, child) {
+    super("fail", attributes, child);
   }
   onUpdate = (agent) => {
     if (this.child.getState() === State.READY || this.child.getState() === State.RUNNING) {
@@ -518,8 +503,8 @@ var Fail = class extends Decorator {
 
 // src/nodes/composite/composite.ts
 var Composite = class extends Node {
-  constructor(type, decorators, children) {
-    super(type, decorators, []);
+  constructor(type, attributes, children) {
+    super(type, attributes, []);
     this.children = children;
   }
   isLeafNode = () => false;
@@ -534,17 +519,14 @@ var Composite = class extends Node {
     }
     this.getChildren().forEach((child) => child.abort(agent));
     this.reset();
-    const exitDecorator = this.getDecorator("exit");
-    if (exitDecorator) {
-      exitDecorator.callAgentFunction(agent, false, true);
-    }
+    this.getAttribute("exit")?.callAgentFunction(agent, false, true);
   };
 };
 
 // src/nodes/composite/lotto.ts
 var Lotto = class extends Composite {
-  constructor(decorators, tickets, children) {
-    super("lotto", decorators, children);
+  constructor(attributes, tickets, children) {
+    super("lotto", attributes, children);
     this.tickets = tickets;
   }
   winningChild;
@@ -589,8 +571,8 @@ var LottoDraw = class {
 
 // src/nodes/composite/selector.ts
 var Selector = class extends Composite {
-  constructor(decorators, children) {
-    super("selector", decorators, children);
+  constructor(attributes, children) {
+    super("selector", attributes, children);
     this.children = children;
   }
   onUpdate = (agent) => {
@@ -622,8 +604,8 @@ var Selector = class extends Composite {
 
 // src/nodes/composite/sequence.ts
 var Sequence = class extends Composite {
-  constructor(decorators, children) {
-    super("sequence", decorators, children);
+  constructor(attributes, children) {
+    super("sequence", attributes, children);
     this.children = children;
   }
   onUpdate = (agent) => {
@@ -655,8 +637,8 @@ var Sequence = class extends Composite {
 
 // src/nodes/composite/parallel.ts
 var Parallel = class extends Composite {
-  constructor(decorators, children) {
-    super("parallel", decorators, children);
+  constructor(attributes, children) {
+    super("parallel", attributes, children);
   }
   onUpdate = (agent) => {
     let succeededCount = 0;
@@ -716,7 +698,6 @@ var While = class extends Guard {
     super("while", args);
     this.condition = condition;
   }
-  isGuard = () => true;
   getCondition = () => this.condition;
   getDetails = () => {
     return {
@@ -743,7 +724,6 @@ var Until = class extends Guard {
     super("until", args);
     this.condition = condition;
   }
-  isGuard = () => true;
   getCondition = () => this.condition;
   getDetails = () => {
     return {
@@ -848,17 +828,17 @@ var Step = class extends Callback {
 };
 
 // src/rootAstNodesBuilder.ts
-var DecoratorFactories = {
-  WHILE: (condition, decoratorArguments) => new While(condition, decoratorArguments),
-  UNTIL: (condition, decoratorArguments) => new Until(condition, decoratorArguments),
-  ENTRY: (functionName, decoratorArguments) => new Entry(functionName, decoratorArguments),
-  EXIT: (functionName, decoratorArguments) => new Exit(functionName, decoratorArguments),
-  STEP: (functionName, decoratorArguments) => new Step(functionName, decoratorArguments)
+var AttributeFactories = {
+  WHILE: (condition, attributeArguments) => new While(condition, attributeArguments),
+  UNTIL: (condition, attributeArguments) => new Until(condition, attributeArguments),
+  ENTRY: (functionName, attributeArguments) => new Entry(functionName, attributeArguments),
+  EXIT: (functionName, attributeArguments) => new Exit(functionName, attributeArguments),
+  STEP: (functionName, attributeArguments) => new Step(functionName, attributeArguments)
 };
 var ASTNodeFactories = {
   ROOT: () => ({
     type: "root",
-    decorators: [],
+    attributes: [],
     name: null,
     children: [],
     validate(depth) {
@@ -871,7 +851,7 @@ var ASTNodeFactories = {
     },
     createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Root(
-        this.decorators,
+        this.attributes,
         this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
       );
     }
@@ -897,7 +877,7 @@ var ASTNodeFactories = {
   }),
   SELECTOR: () => ({
     type: "selector",
-    decorators: [],
+    attributes: [],
     children: [],
     validate() {
       if (this.children.length < 1) {
@@ -906,14 +886,14 @@ var ASTNodeFactories = {
     },
     createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Selector(
-        this.decorators,
+        this.attributes,
         this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
       );
     }
   }),
   SEQUENCE: () => ({
     type: "sequence",
-    decorators: [],
+    attributes: [],
     children: [],
     validate() {
       if (this.children.length < 1) {
@@ -922,14 +902,14 @@ var ASTNodeFactories = {
     },
     createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Sequence(
-        this.decorators,
+        this.attributes,
         this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
       );
     }
   }),
   PARALLEL: () => ({
     type: "parallel",
-    decorators: [],
+    attributes: [],
     children: [],
     validate() {
       if (this.children.length < 1) {
@@ -938,14 +918,14 @@ var ASTNodeFactories = {
     },
     createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Parallel(
-        this.decorators,
+        this.attributes,
         this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
       );
     }
   }),
   LOTTO: () => ({
     type: "lotto",
-    decorators: [],
+    attributes: [],
     children: [],
     tickets: [],
     validate() {
@@ -955,7 +935,7 @@ var ASTNodeFactories = {
     },
     createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Lotto(
-        this.decorators,
+        this.attributes,
         this.tickets,
         this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
       );
@@ -963,7 +943,7 @@ var ASTNodeFactories = {
   }),
   REPEAT: () => ({
     type: "repeat",
-    decorators: [],
+    attributes: [],
     iterations: null,
     maximumIterations: null,
     children: [],
@@ -987,7 +967,7 @@ var ASTNodeFactories = {
     },
     createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Repeat(
-        this.decorators,
+        this.attributes,
         this.iterations,
         this.maximumIterations,
         this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
@@ -996,7 +976,7 @@ var ASTNodeFactories = {
   }),
   RETRY: () => ({
     type: "retry",
-    decorators: [],
+    attributes: [],
     iterations: null,
     maximumIterations: null,
     children: [],
@@ -1020,7 +1000,7 @@ var ASTNodeFactories = {
     },
     createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Retry(
-        this.decorators,
+        this.attributes,
         this.iterations,
         this.maximumIterations,
         this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
@@ -1029,7 +1009,7 @@ var ASTNodeFactories = {
   }),
   FLIP: () => ({
     type: "flip",
-    decorators: [],
+    attributes: [],
     children: [],
     validate() {
       if (this.children.length !== 1) {
@@ -1038,14 +1018,14 @@ var ASTNodeFactories = {
     },
     createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Flip(
-        this.decorators,
+        this.attributes,
         this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
       );
     }
   }),
   SUCCEED: () => ({
     type: "succeed",
-    decorators: [],
+    attributes: [],
     children: [],
     validate() {
       if (this.children.length !== 1) {
@@ -1054,14 +1034,14 @@ var ASTNodeFactories = {
     },
     createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Succeed(
-        this.decorators,
+        this.attributes,
         this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
       );
     }
   }),
   FAIL: () => ({
     type: "fail",
-    decorators: [],
+    attributes: [],
     children: [],
     validate() {
       if (this.children.length !== 1) {
@@ -1070,14 +1050,14 @@ var ASTNodeFactories = {
     },
     createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Fail(
-        this.decorators,
+        this.attributes,
         this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
       );
     }
   }),
   WAIT: () => ({
     type: "wait",
-    decorators: [],
+    attributes: [],
     duration: null,
     longestDuration: null,
     validate() {
@@ -1094,29 +1074,29 @@ var ASTNodeFactories = {
       }
     },
     createNodeInstance() {
-      return new Wait(this.decorators, this.duration, this.longestDuration);
+      return new Wait(this.attributes, this.duration, this.longestDuration);
     }
   }),
   ACTION: () => ({
     type: "action",
-    decorators: [],
+    attributes: [],
     actionName: "",
     actionArguments: [],
     validate() {
     },
     createNodeInstance() {
-      return new Action(this.decorators, this.actionName, this.actionArguments);
+      return new Action(this.attributes, this.actionName, this.actionArguments);
     }
   }),
   CONDITION: () => ({
     type: "condition",
-    decorators: [],
+    attributes: [],
     conditionName: "",
     conditionArguments: [],
     validate() {
     },
     createNodeInstance() {
-      return new Condition(this.decorators, this.conditionName, this.conditionArguments);
+      return new Condition(this.attributes, this.conditionName, this.conditionArguments);
     }
   })
 };
@@ -1145,7 +1125,7 @@ function buildRootASTNodes(definition) {
             throw new Error("expected single root name argument");
           }
         }
-        node.decorators = getDecorators(tokens, placeholders);
+        node.attributes = getAttributes(tokens, placeholders);
         popAndCheck(tokens, "{");
         stack.push(node.children);
         break;
@@ -1165,21 +1145,21 @@ function buildRootASTNodes(definition) {
       case "SELECTOR":
         node = ASTNodeFactories.SELECTOR();
         stack[stack.length - 1].push(node);
-        node.decorators = getDecorators(tokens, placeholders);
+        node.attributes = getAttributes(tokens, placeholders);
         popAndCheck(tokens, "{");
         stack.push(node.children);
         break;
       case "SEQUENCE":
         node = ASTNodeFactories.SEQUENCE();
         stack[stack.length - 1].push(node);
-        node.decorators = getDecorators(tokens, placeholders);
+        node.attributes = getAttributes(tokens, placeholders);
         popAndCheck(tokens, "{");
         stack.push(node.children);
         break;
       case "PARALLEL":
         node = ASTNodeFactories.PARALLEL();
         stack[stack.length - 1].push(node);
-        node.decorators = getDecorators(tokens, placeholders);
+        node.attributes = getAttributes(tokens, placeholders);
         popAndCheck(tokens, "{");
         stack.push(node.children);
         break;
@@ -1194,7 +1174,7 @@ function buildRootASTNodes(definition) {
             "lotto node ticket counts must be integer values"
           ).map((argument) => argument.value);
         }
-        node.decorators = getDecorators(tokens, placeholders);
+        node.attributes = getAttributes(tokens, placeholders);
         popAndCheck(tokens, "{");
         stack.push(node.children);
         break;
@@ -1216,26 +1196,26 @@ function buildRootASTNodes(definition) {
           );
         });
         node.conditionArguments = conditionArguments;
-        node.decorators = getDecorators(tokens, placeholders);
+        node.attributes = getAttributes(tokens, placeholders);
         break;
       case "FLIP":
         node = ASTNodeFactories.FLIP();
         stack[stack.length - 1].push(node);
-        node.decorators = getDecorators(tokens, placeholders);
+        node.attributes = getAttributes(tokens, placeholders);
         popAndCheck(tokens, "{");
         stack.push(node.children);
         break;
       case "SUCCEED":
         node = ASTNodeFactories.SUCCEED();
         stack[stack.length - 1].push(node);
-        node.decorators = getDecorators(tokens, placeholders);
+        node.attributes = getAttributes(tokens, placeholders);
         popAndCheck(tokens, "{");
         stack.push(node.children);
         break;
       case "FAIL":
         node = ASTNodeFactories.FAIL();
         stack[stack.length - 1].push(node);
-        node.decorators = getDecorators(tokens, placeholders);
+        node.attributes = getAttributes(tokens, placeholders);
         popAndCheck(tokens, "{");
         stack.push(node.children);
         break;
@@ -1256,7 +1236,7 @@ function buildRootASTNodes(definition) {
         } else {
           throw new Error("invalid number of wait node duration arguments defined");
         }
-        node.decorators = getDecorators(tokens, placeholders);
+        node.attributes = getAttributes(tokens, placeholders);
         break;
       case "REPEAT":
         node = ASTNodeFactories.REPEAT();
@@ -1277,7 +1257,7 @@ function buildRootASTNodes(definition) {
             throw new Error("invalid number of repeat node iteration count arguments defined");
           }
         }
-        node.decorators = getDecorators(tokens, placeholders);
+        node.attributes = getAttributes(tokens, placeholders);
         popAndCheck(tokens, "{");
         stack.push(node.children);
         break;
@@ -1300,7 +1280,7 @@ function buildRootASTNodes(definition) {
             throw new Error("invalid number of retry node iteration count arguments defined");
           }
         }
-        node.decorators = getDecorators(tokens, placeholders);
+        node.attributes = getAttributes(tokens, placeholders);
         popAndCheck(tokens, "{");
         stack.push(node.children);
         break;
@@ -1322,7 +1302,7 @@ function buildRootASTNodes(definition) {
           );
         });
         node.actionArguments = actionArguments;
-        node.decorators = getDecorators(tokens, placeholders);
+        node.attributes = getAttributes(tokens, placeholders);
         break;
       case "}":
         stack.pop();
@@ -1450,29 +1430,29 @@ function getArgumentDefinition(token, stringArgumentPlaceholders) {
     }
   };
 }
-function getDecorators(tokens, stringArgumentPlaceholders) {
-  const decorators = [];
-  const decoratorsFound = [];
-  let decoratorFactory = DecoratorFactories[(tokens[0] || "").toUpperCase()];
-  while (decoratorFactory) {
-    if (decoratorsFound.indexOf(tokens[0].toUpperCase()) !== -1) {
-      throw new Error(`duplicate decorator '${tokens[0].toUpperCase()}' found for node`);
+function getAttributes(tokens, stringArgumentPlaceholders) {
+  const attributes = [];
+  const attributesFound = [];
+  let attributeFactory = AttributeFactories[(tokens[0] || "").toUpperCase()];
+  while (attributeFactory) {
+    if (attributesFound.indexOf(tokens[0].toUpperCase()) !== -1) {
+      throw new Error(`duplicate attribute '${tokens[0].toUpperCase()}' found for node`);
     }
-    decoratorsFound.push(tokens.shift().toUpperCase());
-    const decoratorArguments = getArguments(tokens, stringArgumentPlaceholders);
-    if (decoratorArguments.length === 0 || decoratorArguments[0].type !== "identifier") {
-      throw new Error("expected agent function name identifier argument for decorator");
+    attributesFound.push(tokens.shift().toUpperCase());
+    const attributeArguments = getArguments(tokens, stringArgumentPlaceholders);
+    if (attributeArguments.length === 0 || attributeArguments[0].type !== "identifier") {
+      throw new Error("expected agent function name identifier argument for attribute");
     }
-    const decoratorFunctionName = decoratorArguments.shift();
-    decoratorArguments.filter((arg) => arg.type === "identifier").forEach((arg) => {
+    const attributeFunctionName = attributeArguments.shift();
+    attributeArguments.filter((arg) => arg.type === "identifier").forEach((arg) => {
       throw new Error(
-        "invalid decorator argument value '" + arg.value + "', must be string, number, boolean or null"
+        "invalid attribute argument value '" + arg.value + "', must be string, number, boolean or null"
       );
     });
-    decorators.push(decoratorFactory(decoratorFunctionName, decoratorArguments));
-    decoratorFactory = DecoratorFactories[(tokens[0] || "").toUpperCase()];
+    attributes.push(attributeFactory(attributeFunctionName, attributeArguments));
+    attributeFactory = AttributeFactories[(tokens[0] || "").toUpperCase()];
   }
-  return decorators;
+  return attributes;
 }
 function substituteStringLiterals(definition) {
   const placeholders = {};
@@ -1533,13 +1513,13 @@ var BehaviourTree = class {
   getFlattenedNodeDetails() {
     const flattenedTreeNodes = [];
     const processNode = (node, parentUid) => {
-      const getDecoratorDetails = (decorators) => decorators.length > 0 ? decorators.map((decorator) => decorator.getDetails()) : null;
+      const getAttributeDetails = (attributes) => attributes.length > 0 ? attributes.map((attribute) => attribute.getDetails()) : null;
       flattenedTreeNodes.push({
         id: node.getUid(),
         type: node.getType(),
         caption: node.getName(),
         state: node.getState(),
-        decorators: getDecoratorDetails(node.getDecorators()),
+        decorators: getAttributeDetails(node.getAttributes()),
         arguments: node.getArguments(),
         parentId: parentUid
       });
@@ -1611,7 +1591,7 @@ ${exception.stack}`);
           continue;
         }
         const guardPath = new GuardPath(
-          path.slice(0, depth + 1).map((node) => ({ node, guards: node.getGuardDecorators() })).filter((details) => details.guards.length > 0)
+          path.slice(0, depth + 1).map((node) => ({ node, guards: node.getGuardAttributes() })).filter((details) => details.guards.length > 0)
         );
         currentNode.setGuardPath(guardPath);
       }

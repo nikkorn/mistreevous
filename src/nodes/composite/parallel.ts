@@ -1,8 +1,8 @@
 import Composite from "./composite";
 import State from "../../state";
-import Decorator from "../decorator/decorator";
 import Node from "../node";
 import { Agent } from "../../agent";
+import Attribute from "../../attributes/attribute";
 
 /**
  * A PARALLEL node.
@@ -10,11 +10,11 @@ import { Agent } from "../../agent";
  */
 export default class Parallel extends Composite {
     /**
-     * @param decorators The node decorators.
+     * @param attributes The node attributes.
      * @param children The child nodes.
      */
-    constructor(decorators: Decorator[] | null, children: Node[]) {
-        super("parallel", decorators, children);
+    constructor(attributes: Attribute[] | null, children: Node[]) {
+        super("parallel", attributes, children);
     }
 
     /**

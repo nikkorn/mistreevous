@@ -1,20 +1,24 @@
 import { Agent } from "../agent";
+import Attribute from "../attributes/attribute";
+import Entry from "../attributes/callbacks/entry";
+import Exit from "../attributes/callbacks/exit";
+import Step from "../attributes/callbacks/step";
+import Guard from "../attributes/guards/guard";
 import GuardPath from "../attributes/guards/guardPath";
-import Decorator from "./decorator/decorator";
 import Leaf from "./leaf/leaf";
 /**
  * A base node.
  */
 export default abstract class Node {
     private type;
-    private decorators;
+    private attributes;
     private args;
     /**
      * @param type The node type.
-     * @param decorators The node decorators.
+     * @param attributes The node attributes.
      * @param args The node argument definitions.
      */
-    constructor(type: string, decorators: Decorator[] | null, args: any[]);
+    constructor(type: string, attributes: Attribute[] | null, args: any[]);
     /**
      * The node uid.
      */
@@ -27,8 +31,19 @@ export default abstract class Node {
      * The guard path to evaluate as part of a node update.
      */
     private guardPath;
+    /**
+     * Update the node and get whether the node state has changed.
+     * @param agent The agent.
+     * @returns Whether the state of this node has changed as part of the update.
+     */
     abstract onUpdate: (agent: Agent) => void;
+    /**
+     * Gets the name of the node.
+     */
     abstract getName: () => string;
+    /**
+     * Gets whether this node is a leaf node.
+     */
     abstract isLeafNode: () => this is Leaf;
     /**
      * Gets/Sets the state of the node.
@@ -44,21 +59,23 @@ export default abstract class Node {
      */
     getType: () => string;
     /**
-     * Gets the node decorators.
+     * Gets the node attributes.
      */
-    getDecorators: () => Decorator[];
+    getAttributes: () => Attribute[];
     /**
      * Gets the node arguments.
      */
     getArguments: () => any[];
     /**
-     * Gets the node decorator with the specified type, or null if it does not exist.
+     * Gets the node attribute with the specified type, or null if it does not exist.
      */
-    getDecorator(type: string): Decorator;
+    getAttribute(type: "entry" | "ENTRY"): Entry;
+    getAttribute(type: "exit" | "EXIT"): Exit;
+    getAttribute(type: "step" | "STEP"): Step;
     /**
-     * Gets the node decorators.
+     * Gets the node attributes.
      */
-    getGuardDecorators: () => Decorator[];
+    getGuardAttributes: () => Guard[];
     /**
      * Sets the guard path to evaluate as part of a node update.
      */

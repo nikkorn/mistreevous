@@ -1,7 +1,7 @@
 import Node from "../node";
 import State from "../../state";
-import Decorator from "../decorator/decorator";
 import { Agent } from "../../agent";
+import Attribute from "../../attributes/attribute";
 
 /**
  * A composite node that wraps child nodes.
@@ -9,11 +9,11 @@ import { Agent } from "../../agent";
 export default abstract class Composite extends Node {
     /**
      * @param type The node type.
-     * @param decorators The node decorators.
+     * @param attributes The node attributes.
      * @param children The child nodes.
      */
-    constructor(type: string, decorators: Decorator[] | null, protected children: Node[]) {
-        super(type, decorators, []);
+    constructor(type: string, attributes: Attribute[] | null, protected children: Node[]) {
+        super(type, attributes, []);
     }
 
     /**
@@ -53,12 +53,6 @@ export default abstract class Composite extends Node {
         // Reset the state of this node.
         this.reset();
 
-        // Try to get the exit decorator for this node.
-        const exitDecorator = this.getDecorator("exit");
-
-        // Call the exit decorator function if it exists.
-        if (exitDecorator) {
-            (exitDecorator as any).callAgentFunction(agent, false, true);
-        }
+        this.getAttribute("exit")?.callAgentFunction(agent, false, true);
     };
 }

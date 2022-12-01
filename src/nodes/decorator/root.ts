@@ -2,6 +2,7 @@ import Node from "../node";
 import Decorator from "./decorator";
 import State from "../../state";
 import { Agent } from "../../agent";
+import Attribute from "../../attributes/attribute";
 
 /**
  * A Root node.
@@ -9,11 +10,11 @@ import { Agent } from "../../agent";
  */
 export default class Root extends Decorator {
     /**
-     * @param decorators The node decorators.
+     * @param attributes The node attributes.
      * @param child The child node.
      */
-    constructor(decorators: Decorator[] | null, child: Node) {
-        super("root", decorators, child);
+    constructor(attributes: Attribute[] | null, child: Node) {
+        super("root", attributes, child);
     }
 
     /**

@@ -1,6 +1,6 @@
 import Node from "../node";
-import Decorator from "../decorator/decorator";
 import { Agent } from "../../agent";
+import Attribute from "../../attributes/attribute";
 /**
  * A composite node that wraps child nodes.
  */
@@ -8,10 +8,10 @@ export default abstract class Composite extends Node {
     protected children: Node[];
     /**
      * @param type The node type.
-     * @param decorators The node decorators.
+     * @param attributes The node attributes.
      * @param children The child nodes.
      */
-    constructor(type: string, decorators: Decorator[] | null, children: Node[]);
+    constructor(type: string, attributes: Attribute[] | null, children: Node[]);
     /**
      * Gets whether this node is a leaf node.
      */

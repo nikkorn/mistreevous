@@ -15,11 +15,6 @@ export default class While extends Guard {
     }
 
     /**
-     * Gets whether the decorator is a guard.
-     */
-    isGuard = () => true;
-
-    /**
      * Gets the condition of the guard.
      */
     getCondition = () => this.condition;

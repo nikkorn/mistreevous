@@ -1,5 +1,12 @@
 import { Agent } from "../../agent";
+import Guard from "./guard";
+import Node from "../../nodes/node";
 import GuardUnsatisifedException from "./guardUnsatisifedException";
+
+export type GuardPathPart = {
+    node: Node;
+    guards: Guard[];
+};
 
 /**
  * Represents a path of node guards along a root-to-leaf tree path.
@@ -8,7 +15,7 @@ export default class GuardPath {
     /**
      * @param nodes An array of objects defining a node instance -> guard link, ordered by node depth.
      */
-    constructor(private nodes: any[]) {}
+    constructor(private nodes: GuardPathPart[]) {}
 
     /**
      * Evaluate guard conditions for all guards in the tree path, moving outwards from the root.
