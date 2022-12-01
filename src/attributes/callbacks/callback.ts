@@ -10,5 +10,9 @@ export default abstract class Callback extends Attribute {
      */
     isGuard = () => false;
 
+    /**
+     * Attempt to call the agent function that this callback refers to.
+     * @param agent The agent.
+     */
     abstract callAgentFunction: (agent: Agent, isSuccess: boolean, isAborted: boolean) => void;
 }

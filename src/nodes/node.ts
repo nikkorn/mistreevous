@@ -28,8 +28,21 @@ export default abstract class Node {
      */
     private guardPath: GuardPath | undefined;
 
+    /**
+     * Update the node and get whether the node state has changed.
+     * @param agent The agent.
+     * @returns Whether the state of this node has changed as part of the update.
+     */
     abstract onUpdate: (agent: Agent) => void;
+
+    /**
+     * Gets the name of the node.
+     */
     abstract getName: () => string;
+
+    /**
+     * Gets whether this node is a leaf node.
+     */
     abstract isLeafNode: () => this is Leaf;
 
     /**
