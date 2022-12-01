@@ -797,14 +797,14 @@ export default function buildRootASTNodes(definition: string): AstNode<Root>[] {
     validateASTNode(
         {
             children: stack[0],
-            validate(depth) {
+            validate() {
                 // We must have at least one node defined as the definition scope, which should be a root node.
-                if (this.children.length === 0) {
+                if ((this as {children: AstNode<Node>[]}).children.length === 0) {
                     throw new Error("expected root node to have been defined");
                 }
 
                 // Each node at the base of the definition scope MUST be a root node.
-                for (const definitionLevelNode of this.children) {
+                for (const definitionLevelNode of (this as {children: AstNode<Node>[]}).children) {
                     if (definitionLevelNode.type !== "root") {
                         throw new Error("expected root node at base of definition");
                     }
@@ -812,7 +812,7 @@ export default function buildRootASTNodes(definition: string): AstNode<Root>[] {
 
                 // Exactly one root node must not have a name defined. This will be the main root, others will have to be referenced via branch nodes.
                 if (
-                    this.children.filter(function (definitionLevelNode: AstNode<Node>) {
+                    (this as {children: AstNode<Node>[]}).children.filter(function (definitionLevelNode: AstNode<Node>) {
                         return definitionLevelNode.name === null;
                     }).length !== 1
                 ) {
@@ -820,12 +820,12 @@ export default function buildRootASTNodes(definition: string): AstNode<Root>[] {
                 }
 
                 // No two named root nodes can have matching names.
-                const rootNodeNames = [];
-                for (const definitionLevelNode of this.children) {
-                    if (rootNodeNames.indexOf(definitionLevelNode.name) !== -1) {
+                const rootNodeNames: string[] = [];
+                for (const definitionLevelNode of (this as {children: AstNode<Node>[]}).children) {
+                    if (rootNodeNames.indexOf(definitionLevelNode.name!) !== -1) {
                         throw new Error(`multiple root nodes found with duplicate name '${definitionLevelNode.name}'`);
                     } else {
-                        rootNodeNames.push(definitionLevelNode.name);
+                        rootNodeNames.push(definitionLevelNode.name!);
                     }
                 }
             }
@@ -889,13 +889,13 @@ function getArguments(
     // We are looking for a '[' or '(' opener that wraps the argument tokens and the relevant closer.
     const closer = popAndCheck(tokens, ["[", "("]) === "[" ? "]" : ")";
 
-    const argumentListTokens = [];
+    const argumentListTokens: string[] = [];
     const argumentList: ArgumentDefinition[] = [];
 
     // Grab all tokens between the '[' and ']' or '(' and ')'.
     while (tokens.length && tokens[0] !== closer) {
         // The next token is part of our arguments list.
-        argumentListTokens.push(tokens.shift());
+        argumentListTokens.push(tokens.shift()!);
     }
 
     // Validate the order of the argument tokens. Each token must either be a ',' or a single argument that satisfies the validator.
@@ -1000,10 +1000,10 @@ function getArgumentDefinition(token: string, stringArgumentPlaceholders: Placeh
  */
 function getDecorators(tokens: string[], stringArgumentPlaceholders: Placeholders) {
     // Create an array to hold any decorators found.
-    const decorators = [];
+    const decorators: (Callback | Guard)[] = [];
 
     // Keep track of names of decorators that we have found on the token stack, as we cannot have duplicates.
-    const decoratorsFound = [];
+    const decoratorsFound: string[] = [];
 
     // Try to get the decorator factory for the next token.
     let decoratorFactory = DecoratorFactories[(tokens[0] || "").toUpperCase()];

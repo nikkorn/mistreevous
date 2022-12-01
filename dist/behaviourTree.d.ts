@@ -1,4 +1,5 @@
 import Root from "./nodes/decorator/root";
+import { Agent, GlobalActionFunction } from "./agent";
 type FlattenedTreeNode = {
     id: string;
     type: string;
@@ -18,11 +19,10 @@ export default class BehaviourTree {
      */
     readonly rootNode: Root;
     /**
-     * Creates a new instance of the BehaviourTree class.
      * @param definition The behaviour tree definition.
      * @param agent The agent instance that this behaviour tree is modelling behaviour for.
      */
-    constructor(definition: string, agent: any);
+    constructor(definition: string, agent: Agent);
     /**
      * Gets whether the tree is in the RUNNING state.
      * @returns true if the tree is in the RUNNING state, otherwise false.
@@ -56,7 +56,7 @@ export default class BehaviourTree {
      * @param name The name of the function or subtree to register.
      * @param value The function or subtree definition to register.
      */
-    static register(name: string, value: Function | string): void;
+    static register(name: string, value: GlobalActionFunction | string): void;
     /**
      * Unregisters the registered action/condition/guard/callback function or subtree with the given name.
      * @param name The name of the registered action/condition/guard/callback function or subtree to unregister.

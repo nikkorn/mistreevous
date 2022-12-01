@@ -1,3 +1,4 @@
+import { Agent } from "../agent";
 import GuardPath from "../attributes/guards/guardPath";
 import GuardUnsatisifedException from "../attributes/guards/guardUnsatisifedException";
 import State from "../state";
@@ -6,11 +7,13 @@ import Leaf from "./leaf/leaf";
 
 /**
  * A base node.
- * @param type The node type.
- * @param decorators The node decorators.
- * @param args The node argument definitions.
  */
 export default abstract class Node {
+    /**
+     * @param type The node type.
+     * @param decorators The node decorators.
+     * @param args The node argument definitions.
+     */
     constructor(private type: string, private decorators: Decorator[] | null, private args: any[]) {}
     /**
      * The node uid.
@@ -25,7 +28,7 @@ export default abstract class Node {
      */
     private guardPath: GuardPath | undefined;
 
-    abstract onUpdate: (agent: any) => void;
+    abstract onUpdate: (agent: Agent) => void;
     abstract getName: () => string;
     abstract isLeafNode: () => this is Leaf;
 
@@ -95,7 +98,7 @@ export default abstract class Node {
      * Abort the running of this node.
      * @param agent The agent.
      */
-    abort = (agent: any) => {
+    abort = (agent: Agent) => {
         // There is nothing to do if this node is not in the running state.
         if (!this.is(State.RUNNING)) {
             return;
@@ -118,7 +121,7 @@ export default abstract class Node {
      * @param agent The agent.
      * @returns The result of the update.
      */
-    update = (agent: any) => {
+    update = (agent: Agent) => {
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
         if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {
             // We have not changed state.

@@ -1,11 +1,14 @@
 import Guard from "./guard";
+import { Agent } from "../../agent";
 /**
  * An UNTIL guard which is satisfied as long as the given condition remains false.
- * @param condition The name of the condition function that determines whether the guard is satisfied.
- * @param args The array of decorator argument definitions.
  */
 export default class Until extends Guard {
     private condition;
+    /**
+     * @param condition The name of the condition function that determines whether the guard is satisfied.
+     * @param args The array of decorator argument definitions.
+     */
     constructor(condition: string, args: any[]);
     /**
      * Gets whether the decorator is a guard.
@@ -29,5 +32,5 @@ export default class Until extends Guard {
      * @param agent The agent.
      * @returns Whether the guard is satisfied.
      */
-    isSatisfied: (agent: any) => boolean;
+    isSatisfied: (agent: Agent) => boolean;
 }

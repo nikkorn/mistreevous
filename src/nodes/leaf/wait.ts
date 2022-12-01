@@ -4,12 +4,14 @@ import Decorator from "../decorator/decorator";
 
 /**
  * A WAIT node.
- * The state of this node will change to SUCCEEDED after a duration of time.
- * @param decorators The node decorators.
- * @param duration The duration that this node will wait to succeed in milliseconds, or the earliest if longestDuration is defined.
- * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
+ * The state of this node will change to SUCCEEDED after a duration of time
  */
 export default class Wait extends Leaf {
+    /**
+     * @param decorators The node decorators.
+     * @param duration The duration that this node will wait to succeed in milliseconds, or the earliest if longestDuration is defined.
+     * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
+     */
     constructor(decorators: Decorator[] | null, private duration: number, private longestDuration: number) {
         super("wait", decorators, []);
     }
@@ -26,10 +28,9 @@ export default class Wait extends Leaf {
 
     /**
      * Update the node.
-     * @param agent The agent.
      * @returns The result of the update.
      */
-    onUpdate = (agent: any) => {
+    onUpdate = () => {
         // If this node is in the READY state then we need to set the initial update time.
         if (this.is(State.READY)) {
             // Set the initial update time.

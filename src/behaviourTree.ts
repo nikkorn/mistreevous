@@ -6,6 +6,7 @@ import Node from "./nodes/node";
 import Root from "./nodes/decorator/root";
 import Composite from "./nodes/composite/composite";
 import Decorator from "./nodes/decorator/decorator";
+import { Agent, GlobalActionFunction } from "./agent";
 
 type FlattenedTreeNode = {
     id: string,
@@ -27,11 +28,10 @@ export default class BehaviourTree {
     public readonly rootNode: Root;
 
     /**
-     * Creates a new instance of the BehaviourTree class.
      * @param definition The behaviour tree definition.
      * @param agent The agent instance that this behaviour tree is modelling behaviour for.
      */
-    constructor(definition: string, private agent: any) {
+    constructor(definition: string, private agent: Agent) {
         // The tree definition must be defined and a valid string.
         if (typeof definition !== "string") {
             throw new Error("the tree definition must be a string");
@@ -140,7 +140,7 @@ export default class BehaviourTree {
      * @param name The name of the function or subtree to register.
      * @param value The function or subtree definition to register.
      */
-    static register(name: string, value: Function | string) {
+    static register(name: string, value: GlobalActionFunction | string) {
         if (typeof value === "function") {
             // We are going to register a action/condition/guard/callback function.
             Lookup.setFunc(name, value);

@@ -1,13 +1,16 @@
 import Node from "../node";
 import State from "../../state";
+import { Agent } from "../../agent";
 
 /**
  * A decorator node that wraps a single child node.
- * @param type The node type.
- * @param decorators The node decorators.
- * @param child The child node.
  */
 export default abstract class Decorator extends Node {
+    /**
+     * @param type The node type.
+     * @param decorators The node decorators.
+     * @param child The child node.
+     */
     constructor(type: string, decorators: Decorator[] | null, protected child: Node) {
         super(type, decorators, []);
     }
@@ -37,7 +40,7 @@ export default abstract class Decorator extends Node {
      * Abort the running of this node.
      * @param agent The agent.
      */
-    abort = (agent: any) => {
+    abort = (agent: Agent) => {
         // There is nothing to do if this node is not in the running state.
         if (!this.is(State.RUNNING)) {
             return;

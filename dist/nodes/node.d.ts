@@ -1,16 +1,19 @@
+import { Agent } from "../agent";
 import GuardPath from "../attributes/guards/guardPath";
 import Decorator from "./decorator/decorator";
 import Leaf from "./leaf/leaf";
 /**
  * A base node.
- * @param type The node type.
- * @param decorators The node decorators.
- * @param args The node argument definitions.
  */
 export default abstract class Node {
     private type;
     private decorators;
     private args;
+    /**
+     * @param type The node type.
+     * @param decorators The node decorators.
+     * @param args The node argument definitions.
+     */
     constructor(type: string, decorators: Decorator[] | null, args: any[]);
     /**
      * The node uid.
@@ -24,7 +27,7 @@ export default abstract class Node {
      * The guard path to evaluate as part of a node update.
      */
     private guardPath;
-    abstract onUpdate: (agent: any) => void;
+    abstract onUpdate: (agent: Agent) => void;
     abstract getName: () => string;
     abstract isLeafNode: () => this is Leaf;
     /**
@@ -77,11 +80,11 @@ export default abstract class Node {
      * Abort the running of this node.
      * @param agent The agent.
      */
-    abort: (agent: any) => void;
+    abort: (agent: Agent) => void;
     /**
      * Update the node.
      * @param agent The agent.
      * @returns The result of the update.
      */
-    update: (agent: any) => {} | undefined;
+    update: (agent: Agent) => {} | undefined;
 }

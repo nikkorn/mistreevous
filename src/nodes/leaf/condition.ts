@@ -2,15 +2,18 @@ import Leaf from "./leaf";
 import State from "../../state";
 import Lookup, { Args } from "../../lookup";
 import Decorator from "../decorator/decorator";
+import { Agent } from "../../agent";
 
 /**
  * A Condition leaf node.
  * This will succeed or fail immediately based on an agent predicate, without moving to the 'RUNNING' state.
- * @param decorators The node decorators.
- * @param conditionName The name of the condition function.
- * @param conditionArguments The array of condition argument definitions.
  */
 export default class Condition extends Leaf {
+    /**
+     * @param decorators The node decorators.
+     * @param conditionName The name of the condition function.
+     * @param conditionArguments The array of condition argument definitions.
+     */
     constructor(decorators: Decorator[] | null, private conditionName: string, private conditionArguments: Args) {
         super("condition", decorators, conditionArguments);
     }
@@ -20,7 +23,7 @@ export default class Condition extends Leaf {
      * @param agent The agent.
      * @returns The result of the update.
      */
-    onUpdate = (agent: any) => {
+    onUpdate = (agent: Agent) => {
         // Attempt to get the invoker for the condition function.
         const conditionFuncInvoker = Lookup.getFuncInvoker(agent, this.conditionName);
 

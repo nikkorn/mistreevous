@@ -1,14 +1,17 @@
 import Node from "../node";
 import Decorator from "./decorator";
 import State from "../../state";
+import { Agent } from "../../agent";
 
 /**
  * A Fail node.
  * This node wraps a single child and will always move to the 'FAILED' state when the child moves to a 'SUCCEEDED' or 'FAILED' state.
- * @param decorators The node decorators.
- * @param child The child node.
  */
 export default class Fail extends Decorator {
+    /**
+     * @param decorators The node decorators.
+     * @param child The child node.
+     */
     constructor(decorators: Decorator[] | null, child: Node) {
         super("fail", decorators, child);
     }
@@ -18,7 +21,7 @@ export default class Fail extends Decorator {
      * @param agent The agent.
      * @returns The result of the update.
      */
-    onUpdate = (agent: any) => {
+    onUpdate = (agent: Agent) => {
         // If the child has never been updated or is running then we will need to update it now.
         if (this.child.getState() === State.READY || this.child.getState() === State.RUNNING) {
             this.child.update(agent);

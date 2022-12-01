@@ -1,16 +1,19 @@
 import Leaf from "./leaf";
 import { Args } from "../../lookup";
 import Decorator from "../decorator/decorator";
+import { Agent } from "../../agent";
 /**
  * An Action leaf node.
  * This represents an immediate or ongoing state of behaviour.
- * @param decorators The node decorators.
- * @param actionName The action name.
- * @param actionArguments The array of action argument definitions.
  */
 export default class Action extends Leaf {
     private actionName;
     private actionArguments;
+    /**
+     * @param decorators The node decorators.
+     * @param actionName The action name.
+     * @param actionArguments The array of action argument definitions.
+     */
     constructor(decorators: Decorator[] | null, actionName: string, actionArguments: Args);
     /**
      * Whether there is a pending update promise.
@@ -25,7 +28,7 @@ export default class Action extends Leaf {
      * @param agent The agent.
      * @returns The result of the update.
      */
-    onUpdate: (agent: any) => void;
+    onUpdate: (agent: Agent) => void;
     /**
      * Gets the name of the node.
      */

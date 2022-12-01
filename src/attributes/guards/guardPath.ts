@@ -1,10 +1,13 @@
+import { Agent } from "../../agent";
 import GuardUnsatisifedException from "./guardUnsatisifedException";
 
 /**
  * Represents a path of node guards along a root-to-leaf tree path.
- * @param nodes An array of objects defining a node instance -> guard link, ordered by node depth.
  */
 export default class GuardPath {
+    /**
+     * @param nodes An array of objects defining a node instance -> guard link, ordered by node depth.
+     */
     constructor(private nodes: any[]) {}
 
     /**
@@ -12,7 +15,7 @@ export default class GuardPath {
      * @param agent The agent, required for guard evaluation.
      * @returns An evaluation results object.
      */
-    evaluate = (agent: any) => {
+    evaluate = (agent: Agent) => {
         // We need to evaluate guard conditions for nodes up the tree, moving outwards from the root.
         for (const details of this.nodes) {
             // There can be multiple guards per node.

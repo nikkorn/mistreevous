@@ -278,7 +278,7 @@ var Wait = class extends Leaf {
   }
   initialUpdateTime;
   waitDuration;
-  onUpdate = (agent) => {
+  onUpdate = () => {
     if (this.is(State.READY)) {
       this.initialUpdateTime = new Date().getTime();
       this.waitDuration = this.longestDuration ? Math.floor(Math.random() * (this.longestDuration - this.duration + 1) + this.duration) : this.duration;
@@ -1338,7 +1338,7 @@ function buildRootASTNodes(definition) {
   validateASTNode(
     {
       children: stack[0],
-      validate(depth) {
+      validate() {
         if (this.children.length === 0) {
           throw new Error("expected root node to have been defined");
         }

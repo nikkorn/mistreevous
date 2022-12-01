@@ -2,15 +2,18 @@ import Leaf from "./leaf";
 import State from "../../state";
 import Lookup, { Args } from "../../lookup";
 import Decorator from "../decorator/decorator";
+import { Agent } from "../../agent";
 
 /**
  * An Action leaf node.
  * This represents an immediate or ongoing state of behaviour.
- * @param decorators The node decorators.
- * @param actionName The action name.
- * @param actionArguments The array of action argument definitions.
  */
 export default class Action extends Leaf {
+    /**
+     * @param decorators The node decorators.
+     * @param actionName The action name.
+     * @param actionArguments The array of action argument definitions.
+     */
     constructor(decorators: Decorator[] | null, private actionName: string, private actionArguments: Args) {
         super("action", decorators, actionArguments);
     }
@@ -23,14 +26,14 @@ export default class Action extends Leaf {
     /**
      * The finished state result of an update promise.
      */
-    private updatePromiseStateResult = null;
+    private updatePromiseStateResult: typeof State.SUCCEEDED | typeof State.FAILED | null = null;
 
     /**
      * Update the node.
      * @param agent The agent.
      * @returns The result of the update.
      */
-    onUpdate = (agent: any) => {
+    onUpdate = (agent: Agent) => {
         // If the result of this action depends on an update promise then there is nothing to do until
         // it resolves, unless there has been a value set as a result of the update promise resolving.
         if (this.isUsingUpdatePromise) {
@@ -44,7 +47,7 @@ export default class Action extends Leaf {
         }
 
         // Attempt to get the invoker for the action function.
-        const actionFuncInvoker = Lookup.getFuncInvoker<Promise<any> | any>(agent, this.actionName);
+        const actionFuncInvoker = Lookup.getFuncInvoker(agent, this.actionName);
 
         // The action function should be defined.
         if (actionFuncInvoker === null) {

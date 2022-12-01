@@ -1,12 +1,15 @@
 import Callback from "./callback";
 import Lookup from "../../lookup";
+import { Agent } from "../../agent";
 
 /**
  * A STEP callback which defines an agent function to call when the associated node is updated.
- * @param functionName The name of the agent function to call.
- * @param args The array of callback argument definitions.
  */
 export default class Step extends Callback {
+    /**
+     * @param functionName The name of the agent function to call.
+     * @param args The array of callback argument definitions.
+     */
     constructor(private functionName: string, args: any[]) {
         super("exit", args);
     }
@@ -32,7 +35,7 @@ export default class Step extends Callback {
      * Attempt to call the agent function that this callback refers to.
      * @param agent The agent.
      */
-    callAgentFunction = (agent: any) => {
+    callAgentFunction = (agent: Agent) => {
         // Attempt to get the invoker for the callback function.
         const callbackFuncInvoker = Lookup.getFuncInvoker(agent, this.functionName);
 

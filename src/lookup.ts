@@ -1,6 +1,8 @@
-export type Arg = {value: any};
+import { ActionResult, Agent, GlobalFunction } from "./agent";
+
+export type Arg = { value: any };
 export type Args = Arg[];
-export type InvokerFunction<T> = (args: Args) => T;
+export type InvokerFunction = (args: Args) => ActionResult | boolean;
 
 /**
  * A singleton used to store and lookup registered functions and subtrees.
@@ -9,18 +11,18 @@ export default class Lookup {
     /**
      * The object holding any registered functions keyed on function name.
      */
-    private static functionTable: {[key: string]: Function} = {};
+    private static functionTable: { [key: string]: GlobalFunction } = {};
     /**
      * The object holding any registered sub-trees keyed on tree name.
      */
-    private static subtreeTable: {[key: string]: any} = {};
+    private static subtreeTable: { [key: string]: any } = {};
 
     /**
      * Gets the function with the specified name.
      * @param name The name of the function.
      * @returns The function with the specified name.
      */
-    public static getFunc(name: string): Function {
+    public static getFunc(name: string): GlobalFunction {
         return this.functionTable[name];
     }
 
@@ -29,7 +31,7 @@ export default class Lookup {
      * @param name The name of the function.
      * @param func The function.
      */
-    public static setFunc(name: string, func: Function): void {
+    public static setFunc(name: string, func: GlobalFunction): void {
         this.functionTable[name] = func;
     }
 
@@ -41,14 +43,13 @@ export default class Lookup {
      * @param name The function name.
      * @returns The function invoker for the specified agent and function name.
      */
-    static getFuncInvoker<T>(agent: any, name: string): InvokerFunction<T> | null {
+    static getFuncInvoker(agent: Agent, name: string): InvokerFunction | null {
         // Check whether the agent contains the specified function.
         if (agent[name] && typeof agent[name] === "function") {
-            return (args: Args) =>
-                agent[name].apply(
-                    agent,
-                    args.map((arg) => arg.value)
-                );
+            return (args: Args) => (agent[name] as Function).apply(
+                agent,
+                args.map((arg) => arg.value)
+            );
         }
 
         // The agent does not contain the specified function but it may have been registered at some point.

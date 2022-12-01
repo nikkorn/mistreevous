@@ -1,6 +1,7 @@
 import Node from "../node";
 import Decorator from "./decorator";
 import State from "../../state";
+import { Agent } from "../../agent";
 
 /**
  * A REPEAT node.
@@ -9,13 +10,19 @@ import State from "../../state";
  * -- An infinite repeat loop if neither an iteration count or a condition function is defined.
  * The REPEAT node will stop and have a 'FAILED' state if its child is ever in a 'FAILED' state after an update.
  * The REPEAT node will attempt to move on to the next iteration if its child is ever in a 'SUCCEEDED' state.
- * @param decorators The node decorators.
- * @param iterations The number of iterations to repeat the child node, or the minimum number of iterations if maximumIterations is defined.
- * @param maximumIterations The maximum number of iterations to repeat the child node.
- * @param child The child node.
  */
 export default class Repeat extends Decorator {
-    constructor(decorators: Decorator[] | null, private iterations: number, private maximumIterations: number, child: Node) {
+    // TODO: These can have better parameters (names/types). Probs ripple out.
+    constructor(decorators: Decorator[] | null, iterations: null, maximumIterations: null, child: Node);
+    constructor(decorators: Decorator[] | null, iterations: number, maximumIterations: null, child: Node);
+    constructor(decorators: Decorator[] | null, iterations: number, maximumIterations: number, child: Node);
+    /**
+     * @param decorators The node decorators.
+     * @param iterations The number of iterations to repeat the child node, or the minimum number of iterations if maximumIterations is defined.
+     * @param maximumIterations The maximum number of iterations to repeat the child node.
+     * @param child The child node.
+     */
+    constructor(decorators: Decorator[] | null, private iterations: number | null, private maximumIterations: number | null, child: Node) {
         super("repeat", decorators, child);
     }
 
@@ -34,7 +41,7 @@ export default class Repeat extends Decorator {
      * @param agent The agent.
      * @returns The result of the update.
      */
-    onUpdate = (agent: any) => {
+    onUpdate = (agent: Agent) => {
         // If this node is in the READY state then we need to reset the child and the target iteration count.
         if (this.is(State.READY)) {
             // Reset the child node.

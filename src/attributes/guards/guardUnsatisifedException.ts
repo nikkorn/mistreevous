@@ -1,8 +1,10 @@
 /**
  * An exception thrown when evaluating node guard path conditions and a conditions fails.
- * @param source The node at which a guard condition failed.
  */
 export default class GuardUnsatisifedException extends Error {
+    /**
+     * @param source The node at which a guard condition failed.
+     */
     constructor(private source: any) {
         super("A guard path condition has failed");
     }

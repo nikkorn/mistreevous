@@ -1,11 +1,14 @@
 import Callback from "./callback";
+import { Agent } from "../../agent";
 /**
  * A STEP callback which defines an agent function to call when the associated node is updated.
- * @param functionName The name of the agent function to call.
- * @param args The array of callback argument definitions.
  */
 export default class Step extends Callback {
     private functionName;
+    /**
+     * @param functionName The name of the agent function to call.
+     * @param args The array of callback argument definitions.
+     */
     constructor(functionName: string, args: any[]);
     /**
      * Gets the function name.
@@ -24,5 +27,5 @@ export default class Step extends Callback {
      * Attempt to call the agent function that this callback refers to.
      * @param agent The agent.
      */
-    callAgentFunction: (agent: any) => void;
+    callAgentFunction: (agent: Agent) => void;
 }

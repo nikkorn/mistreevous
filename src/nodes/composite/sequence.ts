@@ -2,14 +2,17 @@ import Composite from "./composite";
 import Node from "../node";
 import State from "../../state";
 import Decorator from "../decorator/decorator";
+import { Agent } from "../../agent";
 
 /**
  * A SEQUENCE node.
  * The child nodes are executed in sequence until one fails or all succeed.
- * @param decorators The node decorators.
- * @param children The child nodes.
  */
 export default class Sequence extends Composite {
+    /**
+     * @param decorators The node decorators.
+     * @param children The child nodes.
+     */
     constructor(decorators: Decorator[] | null, protected children: Node[]) {
         super("sequence", decorators, children);
     }
@@ -19,7 +22,7 @@ export default class Sequence extends Composite {
      * @param agent The agent.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    onUpdate = (agent: any) => {
+    onUpdate = (agent: Agent) => {
         // Iterate over all of the children of this node.
         for (const child of this.children) {
             // If the child has never been updated or is running then we will need to update it now.

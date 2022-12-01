@@ -1,9 +1,11 @@
 /**
  * A base node attribute.
- * @param type The node attribute type.
- * @param args The array of attribute argument definitions.
  */
 export default abstract class Attribute {
+    /**
+     * @param type The node attribute type.
+     * @param args The array of attribute argument definitions.
+     */
     constructor(protected type: string, protected args: any[]) {}
     /**
      * Gets the type of the attribute.

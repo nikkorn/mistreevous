@@ -2,14 +2,17 @@ import Composite from "./composite";
 import State from "../../state";
 import Decorator from "../decorator/decorator";
 import Node from "../node";
+import { Agent } from "../../agent";
 
 /**
  * A PARALLEL node.
  * The child nodes are executed concurrently until one fails or all succeed.
- * @param decorators The node decorators.
- * @param children The child nodes.
  */
 export default class Parallel extends Composite {
+    /**
+     * @param decorators The node decorators.
+     * @param children The child nodes.
+     */
     constructor(decorators: Decorator[] | null, children: Node[]) {
         super("parallel", decorators, children);
     }
@@ -19,7 +22,7 @@ export default class Parallel extends Composite {
      * @param agent The agent.
      * @returns Whether the state of this node has changed as part of the update.
      */
-    onUpdate = (agent: any) => {
+    onUpdate = (agent: Agent) => {
         // Keep a count of the number of succeeded child nodes.
         let succeededCount = 0;
 

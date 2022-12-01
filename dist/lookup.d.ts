@@ -1,8 +1,9 @@
+import { ActionResult, Agent, GlobalFunction } from "./agent";
 export type Arg = {
     value: any;
 };
 export type Args = Arg[];
-export type InvokerFunction<T> = (args: Args) => T;
+export type InvokerFunction = (args: Args) => ActionResult | boolean;
 /**
  * A singleton used to store and lookup registered functions and subtrees.
  */
@@ -20,13 +21,13 @@ export default class Lookup {
      * @param name The name of the function.
      * @returns The function with the specified name.
      */
-    static getFunc(name: string): Function;
+    static getFunc(name: string): GlobalFunction;
     /**
      * Sets the function with the specified name for later lookup.
      * @param name The name of the function.
      * @param func The function.
      */
-    static setFunc(name: string, func: Function): void;
+    static setFunc(name: string, func: GlobalFunction): void;
     /**
      * Gets the function invoker for the specified agent and function name.
      * If a function with the specified name exists on the agent object then it will
@@ -35,7 +36,7 @@ export default class Lookup {
      * @param name The function name.
      * @returns The function invoker for the specified agent and function name.
      */
-    static getFuncInvoker<T>(agent: any, name: string): InvokerFunction<T> | null;
+    static getFuncInvoker(agent: Agent, name: string): InvokerFunction | null;
     /**
      * Gets the subtree with the specified name.
      * @param name The name of the subtree.
