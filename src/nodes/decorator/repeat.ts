@@ -13,10 +13,6 @@ import Attribute from "../../attributes/attribute";
  * The REPEAT node will attempt to move on to the next iteration if its child is ever in a 'SUCCEEDED' state.
  */
 export default class Repeat extends Decorator {
-    // TODO: These can have better parameters (names/types). Probs ripple out.
-    constructor(attributes: Attribute[] | null, iterations: null, maximumIterations: null, child: Node);
-    constructor(attributes: Attribute[] | null, iterations: number, maximumIterations: null, child: Node);
-    constructor(attributes: Attribute[] | null, iterations: number, maximumIterations: number, child: Node);
     /**
      * @param attributes The node attributes.
      * @param iterations The number of iterations to repeat the child node, or the minimum number of iterations if maximumIterations is defined.

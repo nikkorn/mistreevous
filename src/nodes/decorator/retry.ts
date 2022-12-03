@@ -13,7 +13,6 @@ import Attribute from "../../attributes/attribute";
  * The RETRY node will attempt to move on to the next iteration if its child is ever in a 'FAILED' state.
  */
 export default class Retry extends Decorator {
-    // TODO: Similar to repeat - improve overloads.
     /**
      * @param attributes The node attributes.
      * @param iterations The number of iterations to repeat the child node, or the minimum number of iterations if maximumIterations is defined.

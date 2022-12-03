@@ -13,9 +13,13 @@ import Attribute from "../../attributes/attribute";
 export default class Repeat extends Decorator {
     private iterations;
     private maximumIterations;
-    constructor(attributes: Attribute[] | null, iterations: null, maximumIterations: null, child: Node);
-    constructor(attributes: Attribute[] | null, iterations: number, maximumIterations: null, child: Node);
-    constructor(attributes: Attribute[] | null, iterations: number, maximumIterations: number, child: Node);
+    /**
+     * @param attributes The node attributes.
+     * @param iterations The number of iterations to repeat the child node, or the minimum number of iterations if maximumIterations is defined.
+     * @param maximumIterations The maximum number of iterations to repeat the child node.
+     * @param child The child node.
+     */
+    constructor(attributes: Attribute[] | null, iterations: number | null, maximumIterations: number | null, child: Node);
     /**
      * The number of target iterations to make.
      */
