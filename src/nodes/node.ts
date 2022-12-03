@@ -6,8 +6,8 @@ import Step from "../attributes/callbacks/step";
 import Guard from "../attributes/guards/guard";
 import GuardPath from "../attributes/guards/guardPath";
 import GuardUnsatisifedException from "../attributes/guards/guardUnsatisifedException";
+import { AnyArgument } from "../rootAstNodesBuilder";
 import State from "../state";
-import Decorator from "./decorator/decorator";
 import Leaf from "./leaf/leaf";
 
 /**
@@ -19,7 +19,7 @@ export default abstract class Node {
      * @param attributes The node attributes.
      * @param args The node argument definitions.
      */
-    constructor(private type: string, private attributes: Attribute[] | null, private args: any[]) {}
+    constructor(private type: string, private attributes: Attribute[] | null, private args: AnyArgument[]) {}
     /**
      * The node uid.
      */

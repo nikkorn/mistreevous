@@ -1,8 +1,9 @@
 import Leaf from "./leaf";
 import State from "../../state";
-import Lookup, { Args } from "../../lookup";
+import Lookup from "../../lookup";
 import { Agent } from "../../agent";
 import Attribute from "../../attributes/attribute";
+import { AnyArgument } from "../../rootAstNodesBuilder";
 
 /**
  * An Action leaf node.
@@ -14,7 +15,7 @@ export default class Action extends Leaf {
      * @param actionName The action name.
      * @param actionArguments The array of action argument definitions.
      */
-    constructor(attributes: Attribute[] | null, private actionName: string, private actionArguments: Args) {
+    constructor(attributes: Attribute[] | null, private actionName: string, private actionArguments: AnyArgument[]) {
         super("action", attributes, actionArguments);
     }
 

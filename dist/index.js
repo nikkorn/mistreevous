@@ -139,8 +139,9 @@ var Lookup = class {
     this.functionTable[name] = func;
   }
   static getFuncInvoker(agent, name) {
-    if (agent[name] && typeof agent[name] === "function") {
-      return (args) => agent[name].apply(
+    const foundOnAgent = agent[name];
+    if (foundOnAgent && typeof foundOnAgent === "function") {
+      return (args) => foundOnAgent.apply(
         agent,
         args.map((arg) => arg.value)
       );
@@ -797,7 +798,7 @@ var Exit = class extends Callback {
         `cannot call exit function '${this.functionName}' as is not defined on the agent and has not been registered`
       );
     }
-    callbackFuncInvoker([{ value: { succeeded: isSuccess, aborted: isAborted } }].concat(this.args));
+    callbackFuncInvoker([{ value: { succeeded: isSuccess, aborted: isAborted } }, ...this.args]);
   };
 };
 
@@ -1562,10 +1563,10 @@ var BehaviourTree = class {
       for (const rootASTNode of rootASTNodes) {
         rootNodeMap[rootASTNode.name === null ? mainRootNodeKey : rootASTNode.name] = rootASTNode;
       }
-      const namedRootNodeProvider = function(name) {
-        return rootNodeMap[name] ? rootNodeMap[name] : Lookup.getSubtree(name);
-      };
-      const rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(namedRootNodeProvider, []);
+      const rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(
+        (name) => rootNodeMap[name] ? rootNodeMap[name] : Lookup.getSubtree(name),
+        []
+      );
       BehaviourTree.applyLeafNodeGuardPaths(rootNode);
       return rootNode;
     } catch (exception) {

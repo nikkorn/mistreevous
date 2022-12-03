@@ -1,6 +1,7 @@
 import Callback from "./callback";
-import Lookup from "../../lookup";
+import Lookup, { AnyExitArgument } from "../../lookup";
 import { Agent } from "../../agent";
+import { AnyArgument } from "../../rootAstNodesBuilder";
 
 /**
  * An EXIT callback which defines an agent function to call when the associated node is updated and moves to a finished state or is aborted.
@@ -10,7 +11,7 @@ export default class Exit extends Callback {
      * @param functionName The name of the agent function to call.
      * @param args The array of callback argument definitions.
      */
-    constructor(private functionName: string, args: any[]) {
+    constructor(private functionName: string, args: AnyArgument[]) {
         super("exit", args);
     }
 
@@ -48,7 +49,7 @@ export default class Exit extends Callback {
             );
         }
 
-        // Call the callback function.
-        callbackFuncInvoker([{ value: { succeeded: isSuccess, aborted: isAborted } }].concat(this.args));
+        // Call the callback function
+        callbackFuncInvoker(([{ value: { succeeded: isSuccess, aborted: isAborted } }, ...this.args]));
     };
 }

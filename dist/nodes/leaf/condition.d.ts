@@ -1,7 +1,7 @@
 import Leaf from "./leaf";
-import { Args } from "../../lookup";
 import { Agent } from "../../agent";
 import Attribute from "../../attributes/attribute";
+import { AnyArgument } from "../../rootAstNodesBuilder";
 /**
  * A Condition leaf node.
  * This will succeed or fail immediately based on an agent predicate, without moving to the 'RUNNING' state.
@@ -14,7 +14,7 @@ export default class Condition extends Leaf {
      * @param conditionName The name of the condition function.
      * @param conditionArguments The array of condition argument definitions.
      */
-    constructor(attributes: Attribute[] | null, conditionName: string, conditionArguments: Args);
+    constructor(attributes: Attribute[] | null, conditionName: string, conditionArguments: AnyArgument[]);
     /**
      * Update the node.
      * @param agent The agent.

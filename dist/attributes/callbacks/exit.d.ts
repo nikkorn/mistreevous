@@ -1,5 +1,6 @@
 import Callback from "./callback";
 import { Agent } from "../../agent";
+import { AnyArgument } from "../../rootAstNodesBuilder";
 /**
  * An EXIT callback which defines an agent function to call when the associated node is updated and moves to a finished state or is aborted.
  */
@@ -9,7 +10,7 @@ export default class Exit extends Callback {
      * @param functionName The name of the agent function to call.
      * @param args The array of callback argument definitions.
      */
-    constructor(functionName: string, args: any[]);
+    constructor(functionName: string, args: AnyArgument[]);
     /**
      * Gets the function name.
      */
@@ -21,7 +22,7 @@ export default class Exit extends Callback {
         type: string;
         isGuard: boolean;
         functionName: string;
-        arguments: any[];
+        arguments: AnyArgument[];
     };
     /**
      * Attempt to call the agent function that this callback refers to.

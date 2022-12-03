@@ -1,9 +1,11 @@
-import { ActionResult, Agent, GlobalFunction } from "./agent";
-export type Arg = {
-    value: any;
+import { ActionResult, Agent, ExitFunctionArg, GlobalFunction } from "./agent";
+import Root from "./nodes/decorator/root";
+import { AnyArgument, AstNode } from "./rootAstNodesBuilder";
+type ExitResultArg = {
+    value: ExitFunctionArg;
 };
-export type Args = Arg[];
-export type InvokerFunction = (args: Args) => ActionResult | boolean;
+export type AnyExitArgument = AnyArgument | ExitResultArg;
+export type InvokerFunction = (args: AnyExitArgument[]) => ActionResult | boolean;
 /**
  * A singleton used to store and lookup registered functions and subtrees.
  */
@@ -42,13 +44,13 @@ export default class Lookup {
      * @param name The name of the subtree.
      * @returns The subtree with the specified name.
      */
-    static getSubtree(name: string): any;
+    static getSubtree(name: string): AstNode<Root>;
     /**
      * Sets the subtree with the specified name for later lookup.
      * @param name The name of the subtree.
      * @param subtree The subtree.
      */
-    static setSubtree(name: string, subtree: any): void;
+    static setSubtree(name: string, subtree: AstNode<Root>): void;
     /**
      * Removes the registered function or subtree with the specified name.
      * @param name The name of the registered function or subtree.
@@ -59,3 +61,4 @@ export default class Lookup {
      */
     static empty(): void;
 }
+export {};

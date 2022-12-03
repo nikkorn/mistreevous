@@ -21,7 +21,7 @@ import Callback from "./attributes/callbacks/callback";
 import Guard from "./attributes/guards/guard";
 import Attribute from "./attributes/attribute";
 
-type Argument<T> = {
+export type Argument<T> = {
     value: T;
     type: string;
     toString(this: Argument<T>): T;
@@ -42,17 +42,17 @@ type StringPlaceholderArgument = Argument<string> & {
 type IdentifierArgument = Argument<string> & {
     type: "identifier";
 };
-type AnyArgument = NullArgument | BooleanArgument | NumberArgument | StringPlaceholderArgument | IdentifierArgument;
+export type AnyArgument = NullArgument | BooleanArgument | NumberArgument | StringPlaceholderArgument | IdentifierArgument;
 
 /**
  * The node attribute factories.
  */
 const AttributeFactories: { [key: string]: (functionName: string, attributeArguments: any[]) => Callback | Guard } = {
-    WHILE: (condition: string, attributeArguments: any[]) => new While(condition, attributeArguments),
-    UNTIL: (condition: string, attributeArguments: any[]) => new Until(condition, attributeArguments),
-    ENTRY: (functionName: string, attributeArguments: any[]) => new Entry(functionName, attributeArguments),
-    EXIT: (functionName: string, attributeArguments: any[]) => new Exit(functionName, attributeArguments),
-    STEP: (functionName: string, attributeArguments: any[]) => new Step(functionName, attributeArguments)
+    WHILE: (condition: string, attributeArguments: AnyArgument[]) => new While(condition, attributeArguments),
+    UNTIL: (condition: string, attributeArguments: AnyArgument[]) => new Until(condition, attributeArguments),
+    ENTRY: (functionName: string, attributeArguments: AnyArgument[]) => new Entry(functionName, attributeArguments),
+    EXIT: (functionName: string, attributeArguments: AnyArgument[]) => new Exit(functionName, attributeArguments),
+    STEP: (functionName: string, attributeArguments: AnyArgument[]) => new Step(functionName, attributeArguments)
 };
 
 type NamedRootNodeProvider = (name: string) => AstNode<Root>;

@@ -1,3 +1,4 @@
+import { AnyArgument } from "../rootAstNodesBuilder";
 import Guard from "./guards/guard";
 
 /**
@@ -8,7 +9,7 @@ export default abstract class Attribute {
      * @param type The node attribute type.
      * @param args The array of attribute argument definitions.
      */
-    constructor(protected type: string, protected args: any[]) {}
+    constructor(protected type: string, protected args: AnyArgument[]) {}
 
     /**
      * Gets the type of the attribute.

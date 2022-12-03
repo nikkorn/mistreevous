@@ -1,5 +1,27 @@
 import Root from "./nodes/decorator/root";
 import Node from "./nodes/node";
+export type Argument<T> = {
+    value: T;
+    type: string;
+    toString(this: Argument<T>): T;
+};
+type NullArgument = Argument<null> & {
+    type: "null";
+};
+type BooleanArgument = Argument<boolean> & {
+    type: "boolean";
+};
+type NumberArgument = Argument<number> & {
+    type: "number";
+    isInteger: boolean;
+};
+type StringPlaceholderArgument = Argument<string> & {
+    type: "string";
+};
+type IdentifierArgument = Argument<string> & {
+    type: "identifier";
+};
+export type AnyArgument = NullArgument | BooleanArgument | NumberArgument | StringPlaceholderArgument | IdentifierArgument;
 type NamedRootNodeProvider = (name: string) => AstNode<Root>;
 type NodeInstanceCreator<T extends Node> = (namedRootNodeProvider: NamedRootNodeProvider, visitedBranches: any) => T;
 type Validatable = {

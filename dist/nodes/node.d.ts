@@ -5,6 +5,7 @@ import Exit from "../attributes/callbacks/exit";
 import Step from "../attributes/callbacks/step";
 import Guard from "../attributes/guards/guard";
 import GuardPath from "../attributes/guards/guardPath";
+import { AnyArgument } from "../rootAstNodesBuilder";
 import Leaf from "./leaf/leaf";
 /**
  * A base node.
@@ -18,7 +19,7 @@ export default abstract class Node {
      * @param attributes The node attributes.
      * @param args The node argument definitions.
      */
-    constructor(type: string, attributes: Attribute[] | null, args: any[]);
+    constructor(type: string, attributes: Attribute[] | null, args: AnyArgument[]);
     /**
      * The node uid.
      */
@@ -65,7 +66,7 @@ export default abstract class Node {
     /**
      * Gets the node arguments.
      */
-    getArguments: () => any[];
+    getArguments: () => AnyArgument[];
     /**
      * Gets the node attribute with the specified type, or null if it does not exist.
      */

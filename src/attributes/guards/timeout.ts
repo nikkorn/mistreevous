@@ -1,4 +1,5 @@
 import { Agent } from "../../agent";
+import { AnyArgument } from "../../rootAstNodesBuilder";
 import Guard from "./guard";
 
 /**
@@ -9,7 +10,7 @@ export default class Timeout extends Guard {
      * @param duration The duration of the timeout.
      * @param args The array of decorator argument definitions.
      */
-    constructor(private duration: number, args: any[]) {
+    constructor(private duration: number, args: AnyArgument[]) {
         super("timeout", args);
     }
 

@@ -1,7 +1,7 @@
 import Leaf from "./leaf";
-import { Args } from "../../lookup";
 import { Agent } from "../../agent";
 import Attribute from "../../attributes/attribute";
+import { AnyArgument } from "../../rootAstNodesBuilder";
 /**
  * An Action leaf node.
  * This represents an immediate or ongoing state of behaviour.
@@ -14,7 +14,7 @@ export default class Action extends Leaf {
      * @param actionName The action name.
      * @param actionArguments The array of action argument definitions.
      */
-    constructor(attributes: Attribute[] | null, actionName: string, actionArguments: Args);
+    constructor(attributes: Attribute[] | null, actionName: string, actionArguments: AnyArgument[]);
     /**
      * Whether there is a pending update promise.
      */

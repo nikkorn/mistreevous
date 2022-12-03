@@ -1,6 +1,7 @@
 import Guard from "./guard";
 import Lookup from "../../lookup";
 import { Agent } from "../../agent";
+import { AnyArgument } from "../../rootAstNodesBuilder";
 
 /**
  * A WHILE guard which is satisfied as long as the given condition remains true.
@@ -10,7 +11,7 @@ export default class While extends Guard {
      * @param condition The name of the condition function that determines whether the guard is satisfied.
      * @param args The array of decorator argument definitions.
      */
-    constructor(private condition: string, args: any[]) {
+    constructor(private condition: string, args: AnyArgument[]) {
         super("while", args);
     }
 

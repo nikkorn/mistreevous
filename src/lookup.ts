@@ -1,10 +1,13 @@
-import { ActionResult, Agent, GlobalFunction } from "./agent";
+import { ActionResult, Agent, ExitFunctionArg, FunctionArg, GlobalFunction } from "./agent";
 import Root from "./nodes/decorator/root";
-import { AstNode } from "./rootAstNodesBuilder";
+import { AnyArgument, AstNode } from "./rootAstNodesBuilder";
 
-export type Arg = { value: any };
-export type Args = Arg[];
-export type InvokerFunction = (args: Args) => ActionResult | boolean;
+// Exit callbacks receive their own special type of argument.
+// There's probably stricter ways to represent this but it feels overly complex right now.
+type ExitResultArg = { value: ExitFunctionArg };
+export type AnyExitArgument = AnyArgument | ExitResultArg;
+
+export type InvokerFunction = (args: AnyExitArgument[]) => ActionResult | boolean;
 
 /**
  * A singleton used to store and lookup registered functions and subtrees.
@@ -47,8 +50,10 @@ export default class Lookup {
      */
     static getFuncInvoker(agent: Agent, name: string): InvokerFunction | null {
         // Check whether the agent contains the specified function.
-        if (agent[name] && typeof agent[name] === "function") {
-            return (args: Args) => (agent[name] as Function).apply(
+        const foundOnAgent = agent[name];
+        if (foundOnAgent && typeof foundOnAgent === "function") {
+            // Dirty cast to Function :(
+            return (args: AnyExitArgument[]): boolean | ActionResult => (foundOnAgent as Function).apply(
                 agent,
                 args.map((arg) => arg.value)
             );
@@ -56,7 +61,7 @@ export default class Lookup {
 
         // The agent does not contain the specified function but it may have been registered at some point.
         if (this.functionTable[name] && typeof this.functionTable[name] === "function") {
-            return (args: Args) => this.functionTable[name](agent, ...args.map((arg) => arg.value));
+            return (args: AnyExitArgument[]) => this.functionTable[name](agent, ...args.map((arg) => arg.value));
         }
 
         // We have no function to invoke.

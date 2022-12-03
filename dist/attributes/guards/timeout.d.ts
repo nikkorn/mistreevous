@@ -1,4 +1,5 @@
 import { Agent } from "../../agent";
+import { AnyArgument } from "../../rootAstNodesBuilder";
 import Guard from "./guard";
 /**
  * A TIMEOUT guard which is satisfied as long as the given condition remains false.
@@ -9,7 +10,7 @@ export default class Timeout extends Guard {
      * @param duration The duration of the timeout.
      * @param args The array of decorator argument definitions.
      */
-    constructor(duration: number, args: any[]);
+    constructor(duration: number, args: AnyArgument[]);
     /**
      * Gets whether the guard is satisfied.
      * @param agent The agent.
