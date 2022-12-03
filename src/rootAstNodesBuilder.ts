@@ -21,10 +21,33 @@ import Callback from "./attributes/callbacks/callback";
 import Guard from "./attributes/guards/guard";
 import Attribute from "./attributes/attribute";
 
+type Argument<T> = {
+    value: T;
+    type: string;
+    toString(this: Argument<T>): T;
+};
+type NullArgument = Argument<null> & {
+    type: "null";
+};
+type BooleanArgument = Argument<boolean> & {
+    type: "boolean";
+};
+type NumberArgument = Argument<number> & {
+    type: "number";
+    isInteger: boolean;
+};
+type StringPlaceholderArgument = Argument<string> & {
+    type: "string";
+};
+type IdentifierArgument = Argument<string> & {
+    type: "identifier";
+};
+type AnyArgument = NullArgument | BooleanArgument | NumberArgument | StringPlaceholderArgument | IdentifierArgument;
+
 /**
  * The node attribute factories.
  */
-const AttributeFactories: {[key: string]: (functionName: string, attributeArguments: any[]) => Callback | Guard } = {
+const AttributeFactories: { [key: string]: (functionName: string, attributeArguments: any[]) => Callback | Guard } = {
     WHILE: (condition: string, attributeArguments: any[]) => new While(condition, attributeArguments),
     UNTIL: (condition: string, attributeArguments: any[]) => new Until(condition, attributeArguments),
     ENTRY: (functionName: string, attributeArguments: any[]) => new Entry(functionName, attributeArguments),
@@ -35,18 +58,12 @@ const AttributeFactories: {[key: string]: (functionName: string, attributeArgume
 type NamedRootNodeProvider = (name: string) => AstNode<Root>;
 type NodeInstanceCreator<T extends Node> = (namedRootNodeProvider: NamedRootNodeProvider, visitedBranches: any) => T;
 type Placeholders = { [key: string]: string };
-type ArgumentDefinition = {
-    value: string | number | boolean | null;
-    isInteger?: boolean;
-    type: string;
-    toString(): any;
-};
 // "definitionLevelNode"
 type Validatable = {
     validate: (this: any, depth: number) => void;
     // TODO: Also this one:
     children?: AstNode<Node>[];
-}
+};
 export type AstNode<T extends Node> = {
     type: string;
     attributes: any[];
@@ -800,12 +817,12 @@ export default function buildRootASTNodes(definition: string): AstNode<Root>[] {
             children: stack[0],
             validate() {
                 // We must have at least one node defined as the definition scope, which should be a root node.
-                if ((this as {children: AstNode<Node>[]}).children.length === 0) {
+                if ((this as { children: AstNode<Node>[] }).children.length === 0) {
                     throw new Error("expected root node to have been defined");
                 }
 
                 // Each node at the base of the definition scope MUST be a root node.
-                for (const definitionLevelNode of (this as {children: AstNode<Node>[]}).children) {
+                for (const definitionLevelNode of (this as { children: AstNode<Node>[] }).children) {
                     if (definitionLevelNode.type !== "root") {
                         throw new Error("expected root node at base of definition");
                     }
@@ -813,7 +830,9 @@ export default function buildRootASTNodes(definition: string): AstNode<Root>[] {
 
                 // Exactly one root node must not have a name defined. This will be the main root, others will have to be referenced via branch nodes.
                 if (
-                    (this as {children: AstNode<Node>[]}).children.filter(function (definitionLevelNode: AstNode<Node>) {
+                    (this as { children: AstNode<Node>[] }).children.filter(function (
+                        definitionLevelNode: AstNode<Node>
+                    ) {
                         return definitionLevelNode.name === null;
                     }).length !== 1
                 ) {
@@ -822,7 +841,7 @@ export default function buildRootASTNodes(definition: string): AstNode<Root>[] {
 
                 // No two named root nodes can have matching names.
                 const rootNodeNames: string[] = [];
-                for (const definitionLevelNode of (this as {children: AstNode<Node>[]}).children) {
+                for (const definitionLevelNode of (this as { children: AstNode<Node>[] }).children) {
                     if (rootNodeNames.indexOf(definitionLevelNode.name!) !== -1) {
                         throw new Error(`multiple root nodes found with duplicate name '${definitionLevelNode.name}'`);
                     } else {
@@ -856,7 +875,9 @@ function popAndCheck(tokens: string[], expected: string | string[]) {
     // Do we have an expected token/tokens array?
     if (expected !== undefined) {
         // Check whether the popped token matches at least one of our expected items.
-        var tokenMatchesExpectation = ([] as string[]).concat(expected).some((item) => popped.toUpperCase() === item.toUpperCase());
+        var tokenMatchesExpectation = ([] as string[])
+            .concat(expected)
+            .some((item) => popped.toUpperCase() === item.toUpperCase());
 
         // Throw an error if the popped token didn't match any of our expected items.
         if (!tokenMatchesExpectation) {
@@ -883,7 +904,7 @@ function popAndCheck(tokens: string[], expected: string | string[]) {
 function getArguments(
     tokens: string[],
     stringArgumentPlaceholders: Placeholders,
-    argumentValidator?: (arg: ArgumentDefinition) => boolean,
+    argumentValidator?: (arg: AnyArgument) => boolean,
     validationFailedMessage?: string
 ) {
     // Any lists of arguments will always be wrapped in '[]' for node arguments or '()' for attribute arguments.
@@ -891,7 +912,7 @@ function getArguments(
     const closer = popAndCheck(tokens, ["[", "("]) === "[" ? "]" : ")";
 
     const argumentListTokens: string[] = [];
-    const argumentList: ArgumentDefinition[] = [];
+    const argumentList: AnyArgument[] = [];
 
     // Grab all tokens between the '[' and ']' or '(' and ')'.
     while (tokens.length && tokens[0] !== closer) {
@@ -937,7 +958,7 @@ function getArguments(
  * @param stringArgumentPlaceholders The mapping of string literal node argument placeholders to original values.
  * @returns An argument value definition.
  */
-function getArgumentDefinition(token: string, stringArgumentPlaceholders: Placeholders): ArgumentDefinition {
+function getArgumentDefinition(token: string, stringArgumentPlaceholders: Placeholders): AnyArgument {
     // Check whether the token represents a null value.
     if (token === "null") {
         return {
@@ -946,7 +967,7 @@ function getArgumentDefinition(token: string, stringArgumentPlaceholders: Placeh
             toString() {
                 return this.value;
             }
-        };
+        } as NullArgument;
     }
 
     // Check whether the token represents a boolean value.
@@ -957,7 +978,7 @@ function getArgumentDefinition(token: string, stringArgumentPlaceholders: Placeh
             toString() {
                 return this.value;
             }
-        };
+        } as BooleanArgument;
     }
 
     // Check whether the token represents a number value.
@@ -969,7 +990,7 @@ function getArgumentDefinition(token: string, stringArgumentPlaceholders: Placeh
             toString() {
                 return this.value;
             }
-        };
+        } as NumberArgument;
     }
 
     // Check whether the token is a placeholder (e.g. @@0@@) representing a string literal.
@@ -980,7 +1001,7 @@ function getArgumentDefinition(token: string, stringArgumentPlaceholders: Placeh
             toString() {
                 return '"' + this.value + '"';
             }
-        };
+        } as StringPlaceholderArgument;
     }
 
     // The only remaining option is that the argument value is an identifier.
@@ -990,7 +1011,7 @@ function getArgumentDefinition(token: string, stringArgumentPlaceholders: Placeh
         toString() {
             return this.value;
         }
-    };
+    } as IdentifierArgument;
 }
 
 /**
