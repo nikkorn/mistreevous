@@ -1,4 +1,6 @@
 import { ActionResult, Agent, GlobalFunction } from "./agent";
+import Root from "./nodes/decorator/root";
+import { AstNode } from "./rootAstNodesBuilder";
 
 export type Arg = { value: any };
 export type Args = Arg[];
@@ -15,7 +17,7 @@ export default class Lookup {
     /**
      * The object holding any registered sub-trees keyed on tree name.
      */
-    private static subtreeTable: { [key: string]: any } = {};
+    private static subtreeTable: { [key: string]: AstNode<Root> } = {};
 
     /**
      * Gets the function with the specified name.
@@ -66,7 +68,7 @@ export default class Lookup {
      * @param name The name of the subtree.
      * @returns The subtree with the specified name.
      */
-    static getSubtree(name: string) {
+    static getSubtree(name: string): AstNode<Root> {
         return this.subtreeTable[name];
     }
 
@@ -75,7 +77,7 @@ export default class Lookup {
      * @param name The name of the subtree.
      * @param subtree The subtree.
      */
-    static setSubtree(name: string, subtree: any) {
+    static setSubtree(name: string, subtree: AstNode<Root>) {
         this.subtreeTable[name] = subtree;
     }
 

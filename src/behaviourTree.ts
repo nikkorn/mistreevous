@@ -10,14 +10,14 @@ import { Agent, GlobalActionFunction } from "./agent";
 import Attribute from "./attributes/attribute";
 
 type FlattenedTreeNode = {
-    id: string,
-    type: string,
-    caption: string,
-    state: any,
-    decorators: any[] | null,
-    arguments: any[],
-    parentId: string | null
-}
+    id: string;
+    type: string;
+    caption: string;
+    state: any;
+    decorators: any[] | null;
+    arguments: any[];
+    parentId: string | null;
+};
 
 /**
  * A representation of a behaviour tree.
@@ -126,7 +126,9 @@ export default class BehaviourTree {
 
             // Process each of the nodes children if it is not a leaf node.
             if (!node.isLeafNode()) {
-                (node as Composite | Decorator).getChildren().forEach((child) => processNode(child, (node as Composite | Decorator).getUid()));
+                (node as Composite | Decorator)
+                    .getChildren()
+                    .forEach((child) => processNode(child, (node as Composite | Decorator).getUid()));
             }
         };
 
@@ -197,21 +199,21 @@ export default class BehaviourTree {
             const mainRootNodeKey = Symbol("__root__");
 
             // Create a mapping of root node names to root AST tokens. The main root node will have a key of Symbol("__root__").
-            const rootNodeMap: {[key: string | symbol]: AstNode<Root>} = {};
+            const rootNodeMap: { [key: string | symbol]: AstNode<Root> } = {};
             for (const rootASTNode of rootASTNodes) {
                 rootNodeMap[rootASTNode.name === null ? mainRootNodeKey : rootASTNode.name!] = rootASTNode;
             }
 
-            // Create a provider for named root nodes that are part of our definition or have been registered. Prioritising the former.
-            const namedRootNodeProvider = function (name: string) {
-                return rootNodeMap[name] ? rootNodeMap[name] : Lookup.getSubtree(name);
-            };
-
+            
             // Convert the AST to our actual tree and get the root node.
-            const rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(namedRootNodeProvider, []);
+            const rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(
+                // Create a provider for named root nodes that are part of our definition or have been registered. Prioritising the former.
+                (name: string): AstNode<Root> => (rootNodeMap[name] ? rootNodeMap[name] : Lookup.getSubtree(name)),
+                []
+            );
 
             // Set a guard path on every leaf of the tree to evaluate as part of its update.
-            BehaviourTree.applyLeafNodeGuardPaths(rootNode as any);
+            BehaviourTree.applyLeafNodeGuardPaths(rootNode);
 
             // Return the root node.
             return rootNode;
