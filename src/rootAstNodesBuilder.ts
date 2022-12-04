@@ -62,7 +62,11 @@ const AttributeFactories: {
 };
 
 type NamedRootNodeProvider = (name: string) => AstNode<Root>;
-type NodeInstanceCreator<T extends Node> = (namedRootNodeProvider: NamedRootNodeProvider, visitedBranches: any) => T;
+type NodeInstanceCreator<T extends Node> = (
+    this: AstNode<T>,
+    namedRootNodeProvider: NamedRootNodeProvider,
+    visitedBranches: any
+) => T;
 type Placeholders = { [key: string]: string };
 // "definitionLevelNode"
 type Validatable = {
@@ -72,7 +76,7 @@ type Validatable = {
 };
 export type AstNode<T extends Node> = {
     type: string;
-    attributes: any[];
+    attributes: Attribute[] | null;
     createNodeInstance: NodeInstanceCreator<T>;
     // TODO: Stuff from different kinds:
     name?: null | string;
@@ -399,7 +403,7 @@ const ASTNodeFactories = {
  * @param definition The definition to parse the AST nodes from.
  * @returns The base definition AST nodes.
  */
-export default function buildRootASTNodes(definition: string): AstNode<Root>[] {
+export default function buildRootASTNodes(definition: string): [AstNode<Root>, ...AstNode<Node>[]] {
     // Swap out any node/attribute argument string literals with a placeholder and get a mapping of placeholders to original values as well as the processed definition.
     const { placeholders, processedDefinition } = substituteStringLiterals(definition);
 
@@ -424,7 +428,7 @@ export default function buildRootASTNodes(definition: string): AstNode<Root>[] {
         // Grab the next token.
         const token = tokens.shift();
 
-        let node;
+        let node: AstNode<any>;
 
         // How we create the next AST token depends on the current raw token value.
         switch (token!.toUpperCase()) {
@@ -860,7 +864,8 @@ export default function buildRootASTNodes(definition: string): AstNode<Root>[] {
     );
 
     // Return the root AST nodes.
-    return stack[0] as AstNode<Root>[];
+    // In practice the first element of the first stack frame will be a root node.
+    return stack[0] as [AstNode<Root>, ...AstNode<Node>[]];
 }
 
 /**
@@ -1042,7 +1047,7 @@ function getAttributes(tokens: string[], stringArgumentPlaceholders: Placeholder
         }
 
         // Grab the first attribute which is an identifier that will reference an agent function.
-        const attributeFunctionName = attributeArguments.shift()!;
+        const attributeFunctionName = attributeArguments.shift()! as IdentifierArgument;
 
         // Any remaining attribute arguments must have a type of string, number, boolean or null.
         attributeArguments
@@ -1054,7 +1059,8 @@ function getAttributes(tokens: string[], stringArgumentPlaceholders: Placeholder
             });
 
         // Create the attribute and add it to the array of attributes found.
-        attributes.push(attributeFactory(attributeFunctionName as any, attributeArguments));
+        // TODO: Is this a bug?
+        attributes.push(attributeFactory(attributeFunctionName as any as string, attributeArguments));
 
         // Try to get the next attribute name token, as there could be multiple.
         attributeFactory = AttributeFactories[(tokens[0] || "").toUpperCase()];

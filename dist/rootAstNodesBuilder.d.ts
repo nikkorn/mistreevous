@@ -1,5 +1,6 @@
 import Root from "./nodes/decorator/root";
 import Node from "./nodes/node";
+import Attribute from "./attributes/attribute";
 export type Argument<T> = {
     value: T;
     type: string;
@@ -29,7 +30,7 @@ type Validatable = {
 };
 export type AstNode<T extends Node> = {
     type: string;
-    attributes: any[];
+    attributes: Attribute[] | null;
     createNodeInstance: NodeInstanceCreator<T>;
     name?: null | string;
     branchName?: "" | string;
