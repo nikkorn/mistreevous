@@ -74,7 +74,9 @@ var Node = class {
   state = State.READY;
   guardPath;
   getState = () => this.state;
-  setState = (value) => this.state = value;
+  setState = (value) => {
+    this.state = value;
+  };
   getUid = () => this.uid;
   getType = () => this.type;
   getAttributes = () => this.attributes || [];
@@ -1389,46 +1391,31 @@ function getArgumentDefinition(token, stringArgumentPlaceholders) {
   if (token === "null") {
     return {
       value: null,
-      type: "null",
-      toString() {
-        return this.value;
-      }
+      type: "null"
     };
   }
   if (token === "true" || token === "false") {
     return {
       value: token === "true",
-      type: "boolean",
-      toString() {
-        return this.value;
-      }
+      type: "boolean"
     };
   }
   if (!isNaN(token)) {
     return {
       value: parseFloat(token),
       isInteger: parseFloat(token) === parseInt(token, 10),
-      type: "number",
-      toString() {
-        return this.value;
-      }
+      type: "number"
     };
   }
   if (token.match(/^@@\d+@@$/g)) {
     return {
       value: stringArgumentPlaceholders[token].replace('\\"', '"'),
-      type: "string",
-      toString() {
-        return '"' + this.value + '"';
-      }
+      type: "string"
     };
   }
   return {
     value: token,
-    type: "identifier",
-    toString() {
-      return this.value;
-    }
+    type: "identifier"
   };
 }
 function getAttributes(tokens, stringArgumentPlaceholders) {
@@ -1520,7 +1507,7 @@ var BehaviourTree = class {
         type: node.getType(),
         caption: node.getName(),
         state: node.getState(),
-        decorators: getAttributeDetails(node.getAttributes()),
+        attributes: getAttributeDetails(node.getAttributes()),
         arguments: node.getArguments(),
         parentId: parentUid
       });

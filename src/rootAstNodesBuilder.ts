@@ -23,8 +23,7 @@ import Attribute from "./attributes/attribute";
 
 export type Argument<T> = {
     value: T;
-    type: string;
-    toString(this: Argument<T>): T;
+    type: string; // Used for validation.
 };
 type NullArgument = Argument<null> & {
     type: "null";
@@ -34,7 +33,7 @@ type BooleanArgument = Argument<boolean> & {
 };
 type NumberArgument = Argument<number> & {
     type: "number";
-    isInteger: boolean;
+    isInteger: boolean; // Used for validation.
 };
 type StringPlaceholderArgument = Argument<string> & {
     type: "string";
@@ -42,12 +41,19 @@ type StringPlaceholderArgument = Argument<string> & {
 type IdentifierArgument = Argument<string> & {
     type: "identifier";
 };
-export type AnyArgument = NullArgument | BooleanArgument | NumberArgument | StringPlaceholderArgument | IdentifierArgument;
+export type AnyArgument =
+    | NullArgument
+    | BooleanArgument
+    | NumberArgument
+    | StringPlaceholderArgument
+    | IdentifierArgument;
 
 /**
  * The node attribute factories.
  */
-const AttributeFactories: { [key: string]: (functionName: string, attributeArguments: any[]) => Callback | Guard } = {
+const AttributeFactories: {
+    [key: string]: (functionName: string, attributeArguments: AnyArgument[]) => Callback | Guard;
+} = {
     WHILE: (condition: string, attributeArguments: AnyArgument[]) => new While(condition, attributeArguments),
     UNTIL: (condition: string, attributeArguments: AnyArgument[]) => new Until(condition, attributeArguments),
     ENTRY: (functionName: string, attributeArguments: AnyArgument[]) => new Entry(functionName, attributeArguments),
@@ -71,7 +77,7 @@ export type AstNode<T extends Node> = {
     // TODO: Stuff from different kinds:
     name?: null | string;
     branchName?: "" | string;
-    tickets?: any[];
+    tickets?: number[];
     iterations?: number | null;
     maximumIterations?: number | null;
     duration?: number | null;
@@ -538,7 +544,7 @@ export default function buildRootASTNodes(definition: string): AstNode<Root>[] {
                         placeholders,
                         (arg) => arg.type === "number" && !!arg.isInteger,
                         "lotto node ticket counts must be integer values"
-                    ).map((argument) => argument.value);
+                    ).map((argument) => argument.value as number);
                 }
 
                 // Try to pick any attributes off of the token stack.
@@ -963,10 +969,7 @@ function getArgumentDefinition(token: string, stringArgumentPlaceholders: Placeh
     if (token === "null") {
         return {
             value: null,
-            type: "null",
-            toString() {
-                return this.value;
-            }
+            type: "null"
         } as NullArgument;
     }
 
@@ -974,22 +977,18 @@ function getArgumentDefinition(token: string, stringArgumentPlaceholders: Placeh
     if (token === "true" || token === "false") {
         return {
             value: token === "true",
-            type: "boolean",
-            toString() {
-                return this.value;
-            }
+            type: "boolean"
         } as BooleanArgument;
     }
 
     // Check whether the token represents a number value.
+    // TODO: Relies on broken isNaN - see MDN.
+    // if (!Number.isNaN(token)) {
     if (!isNaN(token as any)) {
         return {
             value: parseFloat(token),
             isInteger: parseFloat(token) === parseInt(token, 10),
-            type: "number",
-            toString() {
-                return this.value;
-            }
+            type: "number"
         } as NumberArgument;
     }
 
@@ -997,20 +996,14 @@ function getArgumentDefinition(token: string, stringArgumentPlaceholders: Placeh
     if (token.match(/^@@\d+@@$/g)) {
         return {
             value: stringArgumentPlaceholders[token].replace('\\"', '"'),
-            type: "string",
-            toString() {
-                return '"' + this.value + '"';
-            }
+            type: "string"
         } as StringPlaceholderArgument;
     }
 
     // The only remaining option is that the argument value is an identifier.
     return {
         value: token,
-        type: "identifier",
-        toString() {
-            return this.value;
-        }
+        type: "identifier"
     } as IdentifierArgument;
 }
 

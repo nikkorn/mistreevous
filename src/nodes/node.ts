@@ -7,7 +7,7 @@ import Guard from "../attributes/guards/guard";
 import GuardPath from "../attributes/guards/guardPath";
 import GuardUnsatisifedException from "../attributes/guards/guardUnsatisifedException";
 import { AnyArgument } from "../rootAstNodesBuilder";
-import State from "../state";
+import State, { AnyState } from "../state";
 import Leaf from "./leaf/leaf";
 
 /**
@@ -27,7 +27,7 @@ export default abstract class Node {
     /**
      * The node state.
      */
-    private state: any = State.READY;
+    private state: AnyState = State.READY;
     /**
      * The guard path to evaluate as part of a node update.
      */
@@ -53,8 +53,8 @@ export default abstract class Node {
     /**
      * Gets/Sets the state of the node.
      */
-    getState = (): any => this.state;
-    setState = (value: any): any => (this.state = value);
+    getState = (): AnyState => this.state;
+    setState = (value: AnyState): void => { this.state = value };
 
     /**
      * Gets the unique id of the node.
@@ -105,7 +105,7 @@ export default abstract class Node {
      * Gets whether this node is in the specified state.
      * @param value The value to compare to the node state.
      */
-    is = (value: any) => this.state === value;
+    is = (value: AnyState) => this.state === value;
 
     /**
      * Reset the state of the node.

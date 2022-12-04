@@ -1,21 +1,22 @@
 import GuardPath, { GuardPathPart } from "./attributes/guards/guardPath";
-import buildRootASTNodes, { AstNode } from "./rootAstNodesBuilder";
-import State from "./state";
+import buildRootASTNodes, { AnyArgument, AstNode } from "./rootAstNodesBuilder";
+import State, { AnyState } from "./state";
 import Lookup from "./lookup";
 import Node from "./nodes/node";
 import Root from "./nodes/decorator/root";
 import Composite from "./nodes/composite/composite";
 import Decorator from "./nodes/decorator/decorator";
-import { Agent, GlobalActionFunction } from "./agent";
-import Attribute from "./attributes/attribute";
+import { Agent, GlobalFunction } from "./agent";
+import Attribute, { AttributeDetails } from "./attributes/attribute";
 
+// Purely for outside inspection of the tree.
 type FlattenedTreeNode = {
     id: string;
     type: string;
     caption: string;
-    state: any;
-    decorators: any[] | null;
-    arguments: any[];
+    state: AnyState;
+    attributes: AttributeDetails[] | null;
+    arguments: AnyArgument[];
     parentId: string | null;
 };
 
@@ -110,7 +111,7 @@ export default class BehaviourTree {
              * @param attributes The node attributes.
              * @returns The attribute details for a node.
              */
-            const getAttributeDetails = (attributes: Attribute[]): any[] | null =>
+            const getAttributeDetails = (attributes: Attribute[]) =>
                 attributes.length > 0 ? attributes.map((attribute) => attribute.getDetails()) : null;
 
             // Push the current node into the flattened nodes array.
@@ -119,7 +120,7 @@ export default class BehaviourTree {
                 type: node.getType(),
                 caption: node.getName(),
                 state: node.getState(),
-                decorators: getAttributeDetails(node.getAttributes()),
+                attributes: getAttributeDetails(node.getAttributes()),
                 arguments: node.getArguments(),
                 parentId: parentUid
             });
@@ -143,7 +144,7 @@ export default class BehaviourTree {
      * @param name The name of the function or subtree to register.
      * @param value The function or subtree definition to register.
      */
-    static register(name: string, value: GlobalActionFunction | string) {
+    static register(name: string, value: GlobalFunction | string) {
         if (typeof value === "function") {
             // We are going to register a action/condition/guard/callback function.
             Lookup.setFunc(name, value);

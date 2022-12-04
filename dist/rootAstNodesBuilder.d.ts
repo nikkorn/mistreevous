@@ -3,7 +3,6 @@ import Node from "./nodes/node";
 export type Argument<T> = {
     value: T;
     type: string;
-    toString(this: Argument<T>): T;
 };
 type NullArgument = Argument<null> & {
     type: "null";
@@ -34,7 +33,7 @@ export type AstNode<T extends Node> = {
     createNodeInstance: NodeInstanceCreator<T>;
     name?: null | string;
     branchName?: "" | string;
-    tickets?: any[];
+    tickets?: number[];
     iterations?: number | null;
     maximumIterations?: number | null;
     duration?: number | null;

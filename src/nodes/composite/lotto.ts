@@ -15,14 +15,14 @@ export default class Lotto extends Composite {
      * @param tickets The child node tickets
      * @param children The child nodes.
      */
-    constructor(attributes: Attribute[] | null, private tickets: any[], children: Node[]) {
+    constructor(attributes: Attribute[] | null, private tickets: number[], children: Node[]) {
         super("lotto", attributes, children);
     }
 
     /**
      * The winning child node.
      */
-    private winningChild: any;
+    private winningChild: Node | undefined;
 
     /**
      * Update the node and get whether the node state has changed.
@@ -43,19 +43,22 @@ export default class Lotto extends Composite {
         }
 
         // If the winning child has never been updated or is running then we will need to update it now.
-        if (this.winningChild.getState() === State.READY || this.winningChild.getState() === State.RUNNING) {
-            this.winningChild.update(agent);
+        if (this.winningChild!.getState() === State.READY || this.winningChild!.getState() === State.RUNNING) {
+            this.winningChild!.update(agent);
         }
 
         // The state of the lotto node is the state of its winning child.
-        this.setState(this.winningChild.getState());
+        // Note: We're dirty casting away undefined like this ignores the fact lotto.draw() can return undefined...
+        this.setState(this.winningChild!.getState());
     };
 
     /**
      * Gets the name of the node.
      */
-    getName = () => (this.tickets.length ? `LOTTO [${this.tickets.join(",")}]` : "LOTTO")
+    getName = () => (this.tickets.length ? `LOTTO [${this.tickets.join(",")}]` : "LOTTO");
 }
+
+type Participant = { participant: Node; tickets: number };
 
 /**
  * Represents a lotto draw.
@@ -64,14 +67,14 @@ class LottoDraw {
     /**
      * The participants
      */
-    private readonly participants: { participant: any, tickets: any }[] = [];
+    private readonly participants: Participant[] = [];
 
     /**
      * Add a participant.
      * @param participant The participant.
      * @param tickets The number of tickets held by the participant.
      */
-    add = (participant: any, tickets: any) => {
+    add = (participant: Node, tickets: number) => {
         this.participants.push({ participant, tickets });
         return this;
     };
@@ -86,7 +89,7 @@ class LottoDraw {
             throw new Error("cannot draw a lotto winner when there are no participants");
         }
 
-        const pickable: any[] = [];
+        const pickable: Node[] = [];
 
         this.participants.forEach(({ participant, tickets }) => {
             for (let ticketCount = 0; ticketCount < tickets; ticketCount++) {
@@ -102,7 +105,7 @@ class LottoDraw {
      * @param items Th array of items.
      * @returns The randomly picked item.
      */
-    getRandomItem = (items: any[]) => {
+    getRandomItem = <T>(items: T[]): T | undefined => {
         // We cant pick a random item from an empty array.
         if (!items.length) {
             return undefined;

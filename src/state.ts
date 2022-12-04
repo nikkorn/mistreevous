@@ -9,3 +9,7 @@ const State = {
 };
 
 export { State as default };
+
+export type CompleteState = typeof State.SUCCEEDED | typeof State.FAILED;
+// TODO: Nicer as an enum...
+export type AnyState = typeof State.READY | typeof State.RUNNING | CompleteState;

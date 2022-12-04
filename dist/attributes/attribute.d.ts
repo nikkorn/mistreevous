@@ -1,5 +1,9 @@
 import { AnyArgument } from "../rootAstNodesBuilder";
 import Guard from "./guards/guard";
+export type AttributeDetails = {
+    type: string;
+    arguments: AnyArgument[];
+};
 /**
  * A base node attribute.
  */
@@ -22,10 +26,7 @@ export default abstract class Attribute {
     /**
      * Gets the attribute details.
      */
-    getDetails: () => {
-        type: string;
-        arguments: AnyArgument[];
-    };
+    getDetails: () => AttributeDetails;
     /**
      * Gets whether this attribute is a guard.
      */

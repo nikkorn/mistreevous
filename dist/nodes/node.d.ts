@@ -6,6 +6,7 @@ import Step from "../attributes/callbacks/step";
 import Guard from "../attributes/guards/guard";
 import GuardPath from "../attributes/guards/guardPath";
 import { AnyArgument } from "../rootAstNodesBuilder";
+import { AnyState } from "../state";
 import Leaf from "./leaf/leaf";
 /**
  * A base node.
@@ -49,8 +50,8 @@ export default abstract class Node {
     /**
      * Gets/Sets the state of the node.
      */
-    getState: () => any;
-    setState: (value: any) => any;
+    getState: () => AnyState;
+    setState: (value: AnyState) => void;
     /**
      * Gets the unique id of the node.
      */
@@ -89,11 +90,11 @@ export default abstract class Node {
      * Gets whether this node is in the specified state.
      * @param value The value to compare to the node state.
      */
-    is: (value: any) => boolean;
+    is: (value: AnyState) => boolean;
     /**
      * Reset the state of the node.
      */
-    reset: () => any;
+    reset: () => void;
     /**
      * Abort the running of this node.
      * @param agent The agent.

@@ -1,5 +1,5 @@
 import Leaf from "./leaf";
-import State from "../../state";
+import State, { CompleteState } from "../../state";
 import Lookup from "../../lookup";
 import { Agent } from "../../agent";
 import Attribute from "../../attributes/attribute";
@@ -27,7 +27,7 @@ export default class Action extends Leaf {
     /**
      * The finished state result of an update promise.
      */
-    private updatePromiseStateResult: typeof State.SUCCEEDED | typeof State.FAILED | null = null;
+    private updatePromiseStateResult: CompleteState | null = null;
 
     /**
      * Update the node.
@@ -61,7 +61,7 @@ export default class Action extends Leaf {
         // - The finished state of this action node.
         // - A promise to return a finished node state.
         // - Undefined if the node should remain in the running state.
-        const updateResult = actionFuncInvoker(this.actionArguments);
+        const updateResult = actionFuncInvoker(this.actionArguments) as CompleteState | Promise<CompleteState>;
 
         if (updateResult instanceof Promise) {
             updateResult.then(
@@ -127,7 +127,7 @@ export default class Action extends Leaf {
      * Validate the result of an update function call.
      * @param result The result of an update function call.
      */
-    private validateUpdateResult = (result: any) => {
+    private validateUpdateResult = (result: CompleteState | boolean) => {
         switch (result) {
             case State.SUCCEEDED:
             case State.FAILED:

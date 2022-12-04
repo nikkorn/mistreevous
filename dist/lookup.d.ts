@@ -5,7 +5,7 @@ type ExitResultArg = {
     value: ExitFunctionArg;
 };
 export type AnyExitArgument = AnyArgument | ExitResultArg;
-export type InvokerFunction = (args: AnyExitArgument[]) => ActionResult | boolean;
+export type InvokerFunction = (args: AnyExitArgument[]) => ActionResult;
 /**
  * A singleton used to store and lookup registered functions and subtrees.
  */

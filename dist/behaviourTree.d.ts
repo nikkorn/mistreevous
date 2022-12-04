@@ -1,12 +1,15 @@
+import { AnyArgument } from "./rootAstNodesBuilder";
+import { AnyState } from "./state";
 import Root from "./nodes/decorator/root";
-import { Agent, GlobalActionFunction } from "./agent";
+import { Agent, GlobalFunction } from "./agent";
+import { AttributeDetails } from "./attributes/attribute";
 type FlattenedTreeNode = {
     id: string;
     type: string;
     caption: string;
-    state: any;
-    decorators: any[] | null;
-    arguments: any[];
+    state: AnyState;
+    attributes: AttributeDetails[] | null;
+    arguments: AnyArgument[];
     parentId: string | null;
 };
 /**
@@ -32,7 +35,7 @@ export default class BehaviourTree {
      * Gets the current tree state of SUCCEEDED, FAILED, READY or RUNNING.
      * @returns The current tree state.
      */
-    getState(): any;
+    getState(): symbol;
     /**
      * Step the tree.
      * Carries out a node update that traverses the tree from the root node outwards to any child nodes, skipping those that are already in a resolved state of SUCCEEDED or FAILED.
@@ -56,7 +59,7 @@ export default class BehaviourTree {
      * @param name The name of the function or subtree to register.
      * @param value The function or subtree definition to register.
      */
-    static register(name: string, value: GlobalActionFunction | string): void;
+    static register(name: string, value: GlobalFunction | string): void;
     /**
      * Unregisters the registered action/condition/guard/callback function or subtree with the given name.
      * @param name The name of the registered action/condition/guard/callback function or subtree to unregister.

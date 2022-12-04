@@ -7,7 +7,7 @@ import { AnyArgument, AstNode } from "./rootAstNodesBuilder";
 type ExitResultArg = { value: ExitFunctionArg };
 export type AnyExitArgument = AnyArgument | ExitResultArg;
 
-export type InvokerFunction = (args: AnyExitArgument[]) => ActionResult | boolean;
+export type InvokerFunction = (args: AnyExitArgument[]) => ActionResult;
 
 /**
  * A singleton used to store and lookup registered functions and subtrees.
@@ -52,8 +52,7 @@ export default class Lookup {
         // Check whether the agent contains the specified function.
         const foundOnAgent = agent[name];
         if (foundOnAgent && typeof foundOnAgent === "function") {
-            // Dirty cast to Function :(
-            return (args: AnyExitArgument[]): boolean | ActionResult => (foundOnAgent as Function).apply(
+            return (args: AnyExitArgument[]): boolean | ActionResult => foundOnAgent.apply(
                 agent,
                 args.map((arg) => arg.value)
             );
