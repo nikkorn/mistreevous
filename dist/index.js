@@ -56,12 +56,13 @@ var GuardPath = class {
 };
 
 // src/state.ts
-var State = {
-  READY: Symbol("mistreevous.ready"),
-  RUNNING: Symbol("mistreevous.running"),
-  SUCCEEDED: Symbol("mistreevous.succeeded"),
-  FAILED: Symbol("mistreevous.failed")
-};
+var State = /* @__PURE__ */ ((State2) => {
+  State2["READY"] = "mistreevous.ready";
+  State2["RUNNING"] = "mistreevous.running";
+  State2["SUCCEEDED"] = "mistreevous.succeeded";
+  State2["FAILED"] = "mistreevous.failed";
+  return State2;
+})(State || {});
 
 // src/nodes/node.ts
 var Node = class {
@@ -71,7 +72,7 @@ var Node = class {
     this.args = args;
   }
   uid = createNodeUid();
-  state = State.READY;
+  state = "mistreevous.ready" /* READY */;
   guardPath;
   getState = () => this.state;
   setState = (value) => {
@@ -79,8 +80,8 @@ var Node = class {
   };
   getUid = () => this.uid;
   getType = () => this.type;
-  getAttributes = () => this.attributes || [];
-  getArguments = () => this.args || [];
+  getAttributes = () => this.attributes;
+  getArguments = () => this.args;
   getAttribute(type) {
     return this.getAttributes().filter((decorator) => decorator.getType().toUpperCase() === type.toUpperCase())[0] || null;
   }
@@ -88,32 +89,32 @@ var Node = class {
   setGuardPath = (value) => this.guardPath = value;
   hasGuardPath = () => !!this.guardPath;
   is = (value) => this.state === value;
-  reset = () => this.setState(State.READY);
+  reset = () => this.setState("mistreevous.ready" /* READY */);
   abort = (agent) => {
-    if (!this.is(State.RUNNING)) {
+    if (!this.is("mistreevous.running" /* RUNNING */)) {
       return;
     }
     this.reset();
     this.getAttribute("exit")?.callAgentFunction(agent, false, true);
   };
   update = (agent) => {
-    if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {
+    if (this.is("mistreevous.succeeded" /* SUCCEEDED */) || this.is("mistreevous.failed" /* FAILED */)) {
       return {};
     }
     try {
       this.guardPath.evaluate(agent);
-      if (this.is(State.READY)) {
+      if (this.is("mistreevous.ready" /* READY */)) {
         this.getAttribute("entry")?.callAgentFunction(agent);
       }
       this.getAttribute("step")?.callAgentFunction(agent);
       this.onUpdate(agent);
-      if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {
-        this.getAttribute("exit")?.callAgentFunction(agent, this.is(State.SUCCEEDED), false);
+      if (this.is("mistreevous.succeeded" /* SUCCEEDED */) || this.is("mistreevous.failed" /* FAILED */)) {
+        this.getAttribute("exit")?.callAgentFunction(agent, this.is("mistreevous.succeeded" /* SUCCEEDED */), false);
       }
     } catch (error) {
       if (error instanceof GuardUnsatisifedException && error.isSourceNode(this)) {
         this.abort(agent);
-        this.setState(State.FAILED);
+        this.setState("mistreevous.failed" /* FAILED */);
       } else {
         throw error;
       }
@@ -200,7 +201,7 @@ var Action = class extends Leaf {
           if (!this.isUsingUpdatePromise) {
             return;
           }
-          if (result !== State.SUCCEEDED && result !== State.FAILED) {
+          if (result !== "mistreevous.succeeded" /* SUCCEEDED */ && result !== "mistreevous.failed" /* FAILED */) {
             throw new Error(
               "action node promise resolved with an invalid value, expected a State.SUCCEEDED or State.FAILED value to be returned"
             );
@@ -214,23 +215,23 @@ var Action = class extends Leaf {
           throw new Error(reason);
         }
       );
-      this.setState(State.RUNNING);
+      this.setState("mistreevous.running" /* RUNNING */);
       this.isUsingUpdatePromise = true;
     } else {
       this.validateUpdateResult(updateResult);
-      this.setState(updateResult || State.RUNNING);
+      this.setState(updateResult || "mistreevous.running" /* RUNNING */);
     }
   };
   getName = () => this.actionName;
   reset = () => {
-    this.setState(State.READY);
+    this.setState("mistreevous.ready" /* READY */);
     this.isUsingUpdatePromise = false;
     this.updatePromiseStateResult = null;
   };
   validateUpdateResult = (result) => {
     switch (result) {
-      case State.SUCCEEDED:
-      case State.FAILED:
+      case "mistreevous.succeeded" /* SUCCEEDED */:
+      case "mistreevous.failed" /* FAILED */:
       case void 0:
         return;
       default:
@@ -255,7 +256,7 @@ var Condition = class extends Leaf {
         `cannot update condition node as the condition '${this.conditionName}' function is not defined on the agent and has not been registered`
       );
     }
-    this.setState(!!conditionFuncInvoker(this.conditionArguments) ? State.SUCCEEDED : State.FAILED);
+    this.setState(!!conditionFuncInvoker(this.conditionArguments) ? "mistreevous.succeeded" /* SUCCEEDED */ : "mistreevous.failed" /* FAILED */);
   };
   getName = () => this.conditionName;
 };
@@ -270,13 +271,13 @@ var Wait = class extends Leaf {
   initialUpdateTime;
   waitDuration;
   onUpdate = () => {
-    if (this.is(State.READY)) {
+    if (this.is("mistreevous.ready" /* READY */)) {
       this.initialUpdateTime = new Date().getTime();
       this.waitDuration = this.longestDuration ? Math.floor(Math.random() * (this.longestDuration - this.duration + 1) + this.duration) : this.duration;
-      this.setState(State.RUNNING);
+      this.setState("mistreevous.running" /* RUNNING */);
     }
     if (new Date().getTime() >= this.initialUpdateTime + this.waitDuration) {
-      this.setState(State.SUCCEEDED);
+      this.setState("mistreevous.succeeded" /* SUCCEEDED */);
     }
   };
   getName = () => `WAIT ${this.longestDuration ? this.duration + "ms-" + this.longestDuration + "ms" : this.duration + "ms"}`;
@@ -291,11 +292,11 @@ var Decorator = class extends Node {
   isLeafNode = () => false;
   getChildren = () => [this.child];
   reset = () => {
-    this.setState(State.READY);
+    this.setState("mistreevous.ready" /* READY */);
     this.child.reset();
   };
   abort = (agent) => {
-    if (!this.is(State.RUNNING)) {
+    if (!this.is("mistreevous.running" /* RUNNING */)) {
       return;
     }
     this.child.abort(agent);
@@ -310,7 +311,7 @@ var Root = class extends Decorator {
     super("root", attributes, child);
   }
   onUpdate = (agent) => {
-    if (this.child.getState() === State.READY || this.child.getState() === State.RUNNING) {
+    if (this.child.getState() === "mistreevous.ready" /* READY */ || this.child.getState() === "mistreevous.running" /* RUNNING */) {
       this.child.update(agent);
     }
     this.setState(this.child.getState());
@@ -328,24 +329,24 @@ var Repeat = class extends Decorator {
   targetIterationCount = null;
   currentIterationCount = 0;
   onUpdate = (agent) => {
-    if (this.is(State.READY)) {
+    if (this.is("mistreevous.ready" /* READY */)) {
       this.child.reset();
       this.setTargetIterationCount();
     }
     if (this.canIterate()) {
-      this.setState(State.RUNNING);
-      if (this.child.getState() === State.SUCCEEDED) {
+      this.setState("mistreevous.running" /* RUNNING */);
+      if (this.child.getState() === "mistreevous.succeeded" /* SUCCEEDED */) {
         this.child.reset();
       }
       this.child.update(agent);
-      if (this.child.getState() === State.FAILED) {
-        this.setState(State.FAILED);
+      if (this.child.getState() === "mistreevous.failed" /* FAILED */) {
+        this.setState("mistreevous.failed" /* FAILED */);
         return;
-      } else if (this.child.getState() === State.SUCCEEDED) {
+      } else if (this.child.getState() === "mistreevous.succeeded" /* SUCCEEDED */) {
         this.currentIterationCount += 1;
       }
     } else {
-      this.setState(State.SUCCEEDED);
+      this.setState("mistreevous.succeeded" /* SUCCEEDED */);
     }
   };
   getName = () => {
@@ -355,7 +356,7 @@ var Repeat = class extends Decorator {
     return "REPEAT";
   };
   reset = () => {
-    this.setState(State.READY);
+    this.setState("mistreevous.ready" /* READY */);
     this.currentIterationCount = 0;
     this.child.reset();
   };
@@ -384,24 +385,24 @@ var Retry = class extends Decorator {
   targetIterationCount = null;
   currentIterationCount = 0;
   onUpdate = (agent) => {
-    if (this.is(State.READY)) {
+    if (this.is("mistreevous.ready" /* READY */)) {
       this.child.reset();
       this.setTargetIterationCount();
     }
     if (this.canIterate()) {
-      this.setState(State.RUNNING);
-      if (this.child.getState() === State.FAILED) {
+      this.setState("mistreevous.running" /* RUNNING */);
+      if (this.child.getState() === "mistreevous.failed" /* FAILED */) {
         this.child.reset();
       }
       this.child.update(agent);
-      if (this.child.getState() === State.SUCCEEDED) {
-        this.setState(State.SUCCEEDED);
+      if (this.child.getState() === "mistreevous.succeeded" /* SUCCEEDED */) {
+        this.setState("mistreevous.succeeded" /* SUCCEEDED */);
         return;
-      } else if (this.child.getState() === State.FAILED) {
+      } else if (this.child.getState() === "mistreevous.failed" /* FAILED */) {
         this.currentIterationCount += 1;
       }
     } else {
-      this.setState(State.FAILED);
+      this.setState("mistreevous.failed" /* FAILED */);
     }
   };
   getName = () => {
@@ -411,7 +412,7 @@ var Retry = class extends Decorator {
     return "RETRY";
   };
   reset = () => {
-    this.setState(State.READY);
+    this.setState("mistreevous.ready" /* READY */);
     this.currentIterationCount = 0;
     this.child.reset();
   };
@@ -436,21 +437,21 @@ var Flip = class extends Decorator {
     super("flip", attributes, child);
   }
   onUpdate = (agent) => {
-    if (this.child.getState() === State.READY || this.child.getState() === State.RUNNING) {
+    if (this.child.getState() === "mistreevous.ready" /* READY */ || this.child.getState() === "mistreevous.running" /* RUNNING */) {
       this.child.update(agent);
     }
     switch (this.child.getState()) {
-      case State.RUNNING:
-        this.setState(State.RUNNING);
+      case "mistreevous.running" /* RUNNING */:
+        this.setState("mistreevous.running" /* RUNNING */);
         break;
-      case State.SUCCEEDED:
-        this.setState(State.FAILED);
+      case "mistreevous.succeeded" /* SUCCEEDED */:
+        this.setState("mistreevous.failed" /* FAILED */);
         break;
-      case State.FAILED:
-        this.setState(State.SUCCEEDED);
+      case "mistreevous.failed" /* FAILED */:
+        this.setState("mistreevous.succeeded" /* SUCCEEDED */);
         break;
       default:
-        this.setState(State.READY);
+        this.setState("mistreevous.ready" /* READY */);
     }
   };
   getName = () => "FLIP";
@@ -462,19 +463,19 @@ var Succeed = class extends Decorator {
     super("succeed", attributes, child);
   }
   onUpdate = (agent) => {
-    if (this.child.getState() === State.READY || this.child.getState() === State.RUNNING) {
+    if (this.child.getState() === "mistreevous.ready" /* READY */ || this.child.getState() === "mistreevous.running" /* RUNNING */) {
       this.child.update(agent);
     }
     switch (this.child.getState()) {
-      case State.RUNNING:
-        this.setState(State.RUNNING);
+      case "mistreevous.running" /* RUNNING */:
+        this.setState("mistreevous.running" /* RUNNING */);
         break;
-      case State.SUCCEEDED:
-      case State.FAILED:
-        this.setState(State.SUCCEEDED);
+      case "mistreevous.succeeded" /* SUCCEEDED */:
+      case "mistreevous.failed" /* FAILED */:
+        this.setState("mistreevous.succeeded" /* SUCCEEDED */);
         break;
       default:
-        this.setState(State.READY);
+        this.setState("mistreevous.ready" /* READY */);
     }
   };
   getName = () => "SUCCEED";
@@ -486,19 +487,19 @@ var Fail = class extends Decorator {
     super("fail", attributes, child);
   }
   onUpdate = (agent) => {
-    if (this.child.getState() === State.READY || this.child.getState() === State.RUNNING) {
+    if (this.child.getState() === "mistreevous.ready" /* READY */ || this.child.getState() === "mistreevous.running" /* RUNNING */) {
       this.child.update(agent);
     }
     switch (this.child.getState()) {
-      case State.RUNNING:
-        this.setState(State.RUNNING);
+      case "mistreevous.running" /* RUNNING */:
+        this.setState("mistreevous.running" /* RUNNING */);
         break;
-      case State.SUCCEEDED:
-      case State.FAILED:
-        this.setState(State.FAILED);
+      case "mistreevous.succeeded" /* SUCCEEDED */:
+      case "mistreevous.failed" /* FAILED */:
+        this.setState("mistreevous.failed" /* FAILED */);
         break;
       default:
-        this.setState(State.READY);
+        this.setState("mistreevous.ready" /* READY */);
     }
   };
   getName = () => "FAIL";
@@ -513,11 +514,11 @@ var Composite = class extends Node {
   isLeafNode = () => false;
   getChildren = () => this.children;
   reset = () => {
-    this.setState(State.READY);
+    this.setState("mistreevous.ready" /* READY */);
     this.getChildren().forEach((child) => child.reset());
   };
   abort = (agent) => {
-    if (!this.is(State.RUNNING)) {
+    if (!this.is("mistreevous.running" /* RUNNING */)) {
       return;
     }
     this.getChildren().forEach((child) => child.abort(agent));
@@ -534,12 +535,12 @@ var Lotto = class extends Composite {
   }
   winningChild;
   onUpdate = (agent) => {
-    if (this.is(State.READY)) {
+    if (this.is("mistreevous.ready" /* READY */)) {
       const lottoDraw = new LottoDraw();
       this.children.forEach((child, index) => lottoDraw.add(child, this.tickets[index] || 1));
       this.winningChild = lottoDraw.draw();
     }
-    if (this.winningChild.getState() === State.READY || this.winningChild.getState() === State.RUNNING) {
+    if (this.winningChild.getState() === "mistreevous.ready" /* READY */ || this.winningChild.getState() === "mistreevous.running" /* RUNNING */) {
       this.winningChild.update(agent);
     }
     this.setState(this.winningChild.getState());
@@ -580,23 +581,23 @@ var Selector = class extends Composite {
   }
   onUpdate = (agent) => {
     for (const child of this.children) {
-      if (child.getState() === State.READY || child.getState() === State.RUNNING) {
+      if (child.getState() === "mistreevous.ready" /* READY */ || child.getState() === "mistreevous.running" /* RUNNING */) {
         child.update(agent);
       }
-      if (child.getState() === State.SUCCEEDED) {
-        this.setState(State.SUCCEEDED);
+      if (child.getState() === "mistreevous.succeeded" /* SUCCEEDED */) {
+        this.setState("mistreevous.succeeded" /* SUCCEEDED */);
         return;
       }
-      if (child.getState() === State.FAILED) {
+      if (child.getState() === "mistreevous.failed" /* FAILED */) {
         if (this.children.indexOf(child) === this.children.length - 1) {
-          this.setState(State.FAILED);
+          this.setState("mistreevous.failed" /* FAILED */);
           return;
         } else {
           continue;
         }
       }
-      if (child.getState() === State.RUNNING) {
-        this.setState(State.RUNNING);
+      if (child.getState() === "mistreevous.running" /* RUNNING */) {
+        this.setState("mistreevous.running" /* RUNNING */);
         return;
       }
       throw new Error("child node was not in an expected state.");
@@ -613,23 +614,23 @@ var Sequence = class extends Composite {
   }
   onUpdate = (agent) => {
     for (const child of this.children) {
-      if (child.getState() === State.READY || child.getState() === State.RUNNING) {
+      if (child.getState() === "mistreevous.ready" /* READY */ || child.getState() === "mistreevous.running" /* RUNNING */) {
         child.update(agent);
       }
-      if (child.getState() === State.SUCCEEDED) {
+      if (child.getState() === "mistreevous.succeeded" /* SUCCEEDED */) {
         if (this.children.indexOf(child) === this.children.length - 1) {
-          this.setState(State.SUCCEEDED);
+          this.setState("mistreevous.succeeded" /* SUCCEEDED */);
           return;
         } else {
           continue;
         }
       }
-      if (child.getState() === State.FAILED) {
-        this.setState(State.FAILED);
+      if (child.getState() === "mistreevous.failed" /* FAILED */) {
+        this.setState("mistreevous.failed" /* FAILED */);
         return;
       }
-      if (child.getState() === State.RUNNING) {
-        this.setState(State.RUNNING);
+      if (child.getState() === "mistreevous.running" /* RUNNING */) {
+        this.setState("mistreevous.running" /* RUNNING */);
         return;
       }
       throw new Error("child node was not in an expected state.");
@@ -647,30 +648,30 @@ var Parallel = class extends Composite {
     let succeededCount = 0;
     let hasChildFailed = false;
     for (const child of this.children) {
-      if (child.getState() === State.READY || child.getState() === State.RUNNING) {
+      if (child.getState() === "mistreevous.ready" /* READY */ || child.getState() === "mistreevous.running" /* RUNNING */) {
         child.update(agent);
       }
-      if (child.getState() === State.SUCCEEDED) {
+      if (child.getState() === "mistreevous.succeeded" /* SUCCEEDED */) {
         succeededCount++;
         continue;
       }
-      if (child.getState() === State.FAILED) {
+      if (child.getState() === "mistreevous.failed" /* FAILED */) {
         hasChildFailed = true;
         break;
       }
-      if (child.getState() !== State.RUNNING) {
+      if (child.getState() !== "mistreevous.running" /* RUNNING */) {
         throw new Error("child node was not in an expected state.");
       }
     }
     if (hasChildFailed) {
-      this.setState(State.FAILED);
+      this.setState("mistreevous.failed" /* FAILED */);
       for (const child of this.children) {
-        if (child.getState() === State.RUNNING) {
+        if (child.getState() === "mistreevous.running" /* RUNNING */) {
           child.abort(agent);
         }
       }
     } else {
-      this.setState(succeededCount === this.children.length ? State.SUCCEEDED : State.RUNNING);
+      this.setState(succeededCount === this.children.length ? "mistreevous.succeeded" /* SUCCEEDED */ : "mistreevous.running" /* RUNNING */);
     }
   };
   getName = () => "PARALLEL";
@@ -1497,13 +1498,13 @@ var BehaviourTree = class {
   }
   rootNode;
   isRunning() {
-    return this.rootNode.getState() === State.RUNNING;
+    return this.rootNode.getState() === "mistreevous.running" /* RUNNING */;
   }
   getState() {
     return this.rootNode.getState();
   }
   step() {
-    if (this.rootNode.getState() === State.SUCCEEDED || this.rootNode.getState() === State.FAILED) {
+    if (this.rootNode.getState() === "mistreevous.succeeded" /* SUCCEEDED */ || this.rootNode.getState() === "mistreevous.failed" /* FAILED */) {
       this.rootNode.reset();
     }
     try {

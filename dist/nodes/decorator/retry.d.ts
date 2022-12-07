@@ -19,7 +19,7 @@ export default class Retry extends Decorator {
      * @param maximumIterations The maximum number of iterations to repeat the child node.
      * @param child The child node.
      */
-    constructor(attributes: Attribute[] | null, iterations: number | null, maximumIterations: number | null, child: Node);
+    constructor(attributes: Attribute[], iterations: number | null, maximumIterations: number | null, child: Node);
     /**
      * The number of target iterations to make.
      */

@@ -64,13 +64,10 @@ const AttributeFactories: {
     STEP: (functionName: string, attributeArguments: AnyArgument[]) => new Step(functionName, attributeArguments)
 };
 
-type NamedRootNodeProvider = (name: string) => RootAstNode;
 type NodeInstanceCreator<T extends Node> = (
-    namedRootNodeProvider: NamedRootNodeProvider,
+    namedRootNodeProvider: (name: string) => RootAstNode,
     visitedBranches: string[]
 ) => T;
-type Placeholders = { [key: string]: string };
-// "definitionLevelNode"
 
 type Validatable = {
     children?: AstNode<Node>[];
@@ -95,7 +92,7 @@ export type BranchAstNode = AstNode<Node> & {
 export type CompositeAstNode = AstNode<Composite> & {
     type: "lotto" | "parallel" | "selector" | "sequence";
     createNodeInstance: NodeInstanceCreator<Composite>;
-    attributes: Attribute[] | null;
+    attributes: Attribute[];
     children: AstNode<Node>[];
 };
 export type LottoAstNode = CompositeAstNode &
@@ -108,7 +105,7 @@ export type LottoAstNode = CompositeAstNode &
 export type DecoratorAstNode = AstNode<Decorator> & {
     type: "fail" | "flip" | "repeat" | "retry" | "root" | "succeed";
     createNodeInstance: NodeInstanceCreator<Decorator>;
-    attributes: Attribute[] | null; // TODO Should these be nullable?
+    attributes: Attribute[];
     children: AstNode<Node>[];
 };
 export type RootAstNode = DecoratorAstNode &
@@ -128,7 +125,7 @@ export type IterableAstNode = DecoratorAstNode &
 export type LeafAstNode = AstNode<Leaf> & {
     type: "action" | "condition" | "wait";
     createNodeInstance: NodeInstanceCreator<Leaf>;
-    attributes: Attribute[] | null; // TODO Should these be nullable?
+    attributes: Attribute[];
 };
 export type ActionAstNode = LeafAstNode &
     AstNode<Action> & {
@@ -993,6 +990,8 @@ function popAndCheck(tokens: string[], expected: string | string[]) {
     // Return the popped token.
     return popped;
 }
+
+type Placeholders = { [key: string]: string };
 
 /**
  * Pull an argument definition list off of the token stack.

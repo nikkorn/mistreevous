@@ -15,7 +15,7 @@ export default class Action extends Leaf {
      * @param actionName The action name.
      * @param actionArguments The array of action argument definitions.
      */
-    constructor(attributes: Attribute[] | null, private actionName: string, private actionArguments: AnyArgument[]) {
+    constructor(attributes: Attribute[], private actionName: string, private actionArguments: AnyArgument[]) {
         super("action", attributes, actionArguments);
     }
 

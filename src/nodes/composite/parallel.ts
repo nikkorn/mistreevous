@@ -13,7 +13,7 @@ export default class Parallel extends Composite {
      * @param attributes The node attributes.
      * @param children The child nodes.
      */
-    constructor(attributes: Attribute[] | null, children: Node[]) {
+    constructor(attributes: Attribute[], children: Node[]) {
         super("parallel", attributes, children);
     }
 

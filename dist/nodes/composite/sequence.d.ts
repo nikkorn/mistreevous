@@ -12,7 +12,7 @@ export default class Sequence extends Composite {
      * @param attributes The node attributes.
      * @param children The child nodes.
      */
-    constructor(attributes: Attribute[] | null, children: Node[]);
+    constructor(attributes: Attribute[], children: Node[]);
     /**
      * Update the node and get whether the node state has changed.
      * @param agent The agent.

@@ -11,7 +11,7 @@ export default abstract class Composite extends Node {
      * @param attributes The node attributes.
      * @param children The child nodes.
      */
-    constructor(type: string, attributes: Attribute[] | null, children: Node[]);
+    constructor(type: string, attributes: Attribute[], children: Node[]);
     /**
      * Gets whether this node is a leaf node.
      */

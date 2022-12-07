@@ -52,7 +52,7 @@ export type BranchAstNode = AstNode<Node> & {
 export type CompositeAstNode = AstNode<Composite> & {
     type: "lotto" | "parallel" | "selector" | "sequence";
     createNodeInstance: NodeInstanceCreator<Composite>;
-    attributes: Attribute[] | null;
+    attributes: Attribute[];
     children: AstNode<Node>[];
 };
 export type LottoAstNode = CompositeAstNode & AstNode<Lotto> & {
@@ -63,7 +63,7 @@ export type LottoAstNode = CompositeAstNode & AstNode<Lotto> & {
 export type DecoratorAstNode = AstNode<Decorator> & {
     type: "fail" | "flip" | "repeat" | "retry" | "root" | "succeed";
     createNodeInstance: NodeInstanceCreator<Decorator>;
-    attributes: Attribute[] | null;
+    attributes: Attribute[];
     children: AstNode<Node>[];
 };
 export type RootAstNode = DecoratorAstNode & AstNode<Root> & {
@@ -80,7 +80,7 @@ export type IterableAstNode = DecoratorAstNode & AstNode<Repeat | Retry> & {
 export type LeafAstNode = AstNode<Leaf> & {
     type: "action" | "condition" | "wait";
     createNodeInstance: NodeInstanceCreator<Leaf>;
-    attributes: Attribute[] | null;
+    attributes: Attribute[];
 };
 export type ActionAstNode = LeafAstNode & AstNode<Action> & {
     type: "action";

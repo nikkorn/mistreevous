@@ -14,7 +14,7 @@ export default class Condition extends Leaf {
      * @param conditionName The name of the condition function.
      * @param conditionArguments The array of condition argument definitions.
      */
-    constructor(attributes: Attribute[] | null, conditionName: string, conditionArguments: AnyArgument[]);
+    constructor(attributes: Attribute[], conditionName: string, conditionArguments: AnyArgument[]);
     /**
      * Update the node.
      * @param agent The agent.

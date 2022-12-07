@@ -11,7 +11,7 @@ export default abstract class Decorator extends Node {
      * @param attributes The node attributes.
      * @param child The child node.
      */
-    constructor(type: string, attributes: Attribute[] | null, child: Node);
+    constructor(type: string, attributes: Attribute[], child: Node);
     /**
      * Gets whether this node is a leaf node.
      */

@@ -35,7 +35,7 @@ export default class BehaviourTree {
      * Gets the current tree state of SUCCEEDED, FAILED, READY or RUNNING.
      * @returns The current tree state.
      */
-    getState(): symbol;
+    getState(): AnyState;
     /**
      * Step the tree.
      * Carries out a node update that traverses the tree from the root node outwards to any child nodes, skipping those that are already in a resolved state of SUCCEEDED or FAILED.

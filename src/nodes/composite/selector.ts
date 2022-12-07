@@ -13,7 +13,7 @@ export default class Selector extends Composite {
      * @param attributes The node attributes.
      * @param children The child nodes.
      */
-    constructor(attributes: Attribute[] | null, protected children: Node[]) {
+    constructor(attributes: Attribute[], protected children: Node[]) {
         super("selector", attributes, children);
     }
 

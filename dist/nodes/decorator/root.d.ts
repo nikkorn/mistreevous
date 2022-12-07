@@ -11,7 +11,7 @@ export default class Root extends Decorator {
      * @param attributes The node attributes.
      * @param child The child node.
      */
-    constructor(attributes: Attribute[] | null, child: Node);
+    constructor(attributes: Attribute[], child: Node);
     /**
      * Update the node and get whether the node state has changed.
      * @param agent The agent.

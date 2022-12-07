@@ -14,7 +14,7 @@ export default class Action extends Leaf {
      * @param actionName The action name.
      * @param actionArguments The array of action argument definitions.
      */
-    constructor(attributes: Attribute[] | null, actionName: string, actionArguments: AnyArgument[]);
+    constructor(attributes: Attribute[], actionName: string, actionArguments: AnyArgument[]);
     /**
      * Whether there is a pending update promise.
      */

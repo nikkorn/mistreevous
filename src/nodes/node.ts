@@ -19,7 +19,7 @@ export default abstract class Node {
      * @param attributes The node attributes.
      * @param args The node argument definitions.
      */
-    constructor(private type: string, private attributes: Attribute[] | null, private args: AnyArgument[]) {}
+    constructor(private type: string, private attributes: Attribute[], private args: AnyArgument[]) {}
     /**
      * The node uid.
      */
@@ -69,12 +69,12 @@ export default abstract class Node {
     /**
      * Gets the node attributes.
      */
-    getAttributes = () => this.attributes || [];
+    getAttributes = () => this.attributes;
 
     /**
      * Gets the node arguments.
      */
-    getArguments = () => this.args || [];
+    getArguments = () => this.args;
 
     /**
      * Gets the node attribute with the specified type, or null if it does not exist.

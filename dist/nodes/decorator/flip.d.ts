@@ -11,7 +11,7 @@ export default class Flip extends Decorator {
      * @param attributes The node attributes.
      * @param child The child node.
      */
-    constructor(attributes: Attribute[] | null, child: Node);
+    constructor(attributes: Attribute[], child: Node);
     /**
      * Update the node.
      * @param agent The agent.

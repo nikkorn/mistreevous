@@ -20,7 +20,7 @@ export default abstract class Node {
      * @param attributes The node attributes.
      * @param args The node argument definitions.
      */
-    constructor(type: string, attributes: Attribute[] | null, args: AnyArgument[]);
+    constructor(type: string, attributes: Attribute[], args: AnyArgument[]);
     /**
      * The node uid.
      */

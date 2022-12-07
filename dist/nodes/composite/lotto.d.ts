@@ -14,7 +14,7 @@ export default class Lotto extends Composite {
      * @param tickets The child node tickets
      * @param children The child nodes.
      */
-    constructor(attributes: Attribute[] | null, tickets: number[], children: Node[]);
+    constructor(attributes: Attribute[], tickets: number[], children: Node[]);
     /**
      * The winning child node.
      */

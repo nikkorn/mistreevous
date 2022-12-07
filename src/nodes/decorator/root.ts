@@ -13,7 +13,7 @@ export default class Root extends Decorator {
      * @param attributes The node attributes.
      * @param child The child node.
      */
-    constructor(attributes: Attribute[] | null, child: Node) {
+    constructor(attributes: Attribute[], child: Node) {
         super("root", attributes, child);
     }
 

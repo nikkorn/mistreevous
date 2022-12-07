@@ -13,7 +13,7 @@ export default class Sequence extends Composite {
      * @param attributes The node attributes.
      * @param children The child nodes.
      */
-    constructor(attributes: Attribute[] | null, protected children: Node[]) {
+    constructor(attributes: Attribute[], protected children: Node[]) {
         super("sequence", attributes, children);
     }
 

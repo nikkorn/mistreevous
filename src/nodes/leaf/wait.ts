@@ -12,7 +12,7 @@ export default class Wait extends Leaf {
      * @param duration The duration that this node will wait to succeed in milliseconds, or the earliest if longestDuration is defined.
      * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
      */
-    constructor(attributes: Attribute[] | null, private duration: number, private longestDuration: number) {
+    constructor(attributes: Attribute[], private duration: number, private longestDuration: number) {
         super("wait", attributes, []);
     }
 
