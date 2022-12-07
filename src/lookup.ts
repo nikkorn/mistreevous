@@ -1,6 +1,5 @@
 import { ActionResult, Agent, ExitFunctionArg, FunctionArg, GlobalFunction } from "./agent";
-import Root from "./nodes/decorator/root";
-import { AnyArgument, AstNode } from "./rootAstNodesBuilder";
+import { AnyArgument, RootAstNode } from "./rootAstNodesBuilder";
 
 // Exit callbacks receive their own special type of argument.
 // There's probably stricter ways to represent this but it feels overly complex right now.
@@ -20,7 +19,7 @@ export default class Lookup {
     /**
      * The object holding any registered sub-trees keyed on tree name.
      */
-    private static subtreeTable: { [key: string]: AstNode<Root> } = {};
+    private static subtreeTable: { [key: string]: RootAstNode } = {};
 
     /**
      * Gets the function with the specified name.
@@ -72,7 +71,7 @@ export default class Lookup {
      * @param name The name of the subtree.
      * @returns The subtree with the specified name.
      */
-    static getSubtree(name: string): AstNode<Root> {
+    static getSubtree(name: string): RootAstNode {
         return this.subtreeTable[name];
     }
 
@@ -81,7 +80,7 @@ export default class Lookup {
      * @param name The name of the subtree.
      * @param subtree The subtree.
      */
-    static setSubtree(name: string, subtree: AstNode<Root>) {
+    static setSubtree(name: string, subtree: RootAstNode) {
         this.subtreeTable[name] = subtree;
     }
 

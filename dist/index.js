@@ -867,9 +867,7 @@ var ASTNodeFactories = {
     createNodeInstance(namedRootNodeProvider, visitedBranches) {
       const targetRootNode = namedRootNodeProvider(this.branchName);
       if (visitedBranches.indexOf(this.branchName) !== -1) {
-        throw new Error(
-          `circular dependency found in branch node references for branch '${this.branchName}'`
-        );
+        throw new Error(`circular dependency found in branch node references for branch '${this.branchName}'`);
       }
       if (targetRootNode) {
         return targetRootNode.createNodeInstance(namedRootNodeProvider, visitedBranches.concat(this.branchName)).getChildren()[0];
@@ -1113,13 +1111,14 @@ function buildRootASTNodes(definition) {
     throw new Error("scope character mismatch");
   }
   const stack = [[]];
+  const rootScope = stack[0];
   while (tokens.length) {
     const token = tokens.shift();
-    let node;
+    const currentScope = stack[stack.length - 1];
     switch (token.toUpperCase()) {
-      case "ROOT":
-        node = ASTNodeFactories.ROOT();
-        stack[stack.length - 1].push(node);
+      case "ROOT": {
+        const node = ASTNodeFactories.ROOT();
+        rootScope.push(node);
         if (tokens[0] === "[") {
           const rootArguments = getArguments(tokens, placeholders);
           if (rootArguments.length === 1 && rootArguments[0].type === "identifier") {
@@ -1132,9 +1131,10 @@ function buildRootASTNodes(definition) {
         popAndCheck(tokens, "{");
         stack.push(node.children);
         break;
-      case "BRANCH":
-        node = ASTNodeFactories.BRANCH();
-        stack[stack.length - 1].push(node);
+      }
+      case "BRANCH": {
+        const node = ASTNodeFactories.BRANCH();
+        currentScope.push(node);
         if (tokens[0] !== "[") {
           throw new Error("expected single branch name argument");
         }
@@ -1145,30 +1145,34 @@ function buildRootASTNodes(definition) {
           throw new Error("expected single branch name argument");
         }
         break;
-      case "SELECTOR":
-        node = ASTNodeFactories.SELECTOR();
-        stack[stack.length - 1].push(node);
+      }
+      case "SELECTOR": {
+        const node = ASTNodeFactories.SELECTOR();
+        currentScope.push(node);
         node.attributes = getAttributes(tokens, placeholders);
         popAndCheck(tokens, "{");
         stack.push(node.children);
         break;
-      case "SEQUENCE":
-        node = ASTNodeFactories.SEQUENCE();
-        stack[stack.length - 1].push(node);
+      }
+      case "SEQUENCE": {
+        const node = ASTNodeFactories.SEQUENCE();
+        currentScope.push(node);
         node.attributes = getAttributes(tokens, placeholders);
         popAndCheck(tokens, "{");
         stack.push(node.children);
         break;
-      case "PARALLEL":
-        node = ASTNodeFactories.PARALLEL();
-        stack[stack.length - 1].push(node);
+      }
+      case "PARALLEL": {
+        const node = ASTNodeFactories.PARALLEL();
+        currentScope.push(node);
         node.attributes = getAttributes(tokens, placeholders);
         popAndCheck(tokens, "{");
         stack.push(node.children);
         break;
-      case "LOTTO":
-        node = ASTNodeFactories.LOTTO();
-        stack[stack.length - 1].push(node);
+      }
+      case "LOTTO": {
+        const node = ASTNodeFactories.LOTTO();
+        currentScope.push(node);
         if (tokens[0] === "[") {
           node.tickets = getArguments(
             tokens,
@@ -1181,9 +1185,10 @@ function buildRootASTNodes(definition) {
         popAndCheck(tokens, "{");
         stack.push(node.children);
         break;
-      case "CONDITION":
-        node = ASTNodeFactories.CONDITION();
-        stack[stack.length - 1].push(node);
+      }
+      case "CONDITION": {
+        const node = ASTNodeFactories.CONDITION();
+        currentScope.push(node);
         if (tokens[0] !== "[") {
           throw new Error("expected condition name identifier argument");
         }
@@ -1201,30 +1206,34 @@ function buildRootASTNodes(definition) {
         node.conditionArguments = conditionArguments;
         node.attributes = getAttributes(tokens, placeholders);
         break;
-      case "FLIP":
-        node = ASTNodeFactories.FLIP();
-        stack[stack.length - 1].push(node);
+      }
+      case "FLIP": {
+        const node = ASTNodeFactories.FLIP();
+        currentScope.push(node);
         node.attributes = getAttributes(tokens, placeholders);
         popAndCheck(tokens, "{");
         stack.push(node.children);
         break;
-      case "SUCCEED":
-        node = ASTNodeFactories.SUCCEED();
-        stack[stack.length - 1].push(node);
+      }
+      case "SUCCEED": {
+        const node = ASTNodeFactories.SUCCEED();
+        currentScope.push(node);
         node.attributes = getAttributes(tokens, placeholders);
         popAndCheck(tokens, "{");
         stack.push(node.children);
         break;
-      case "FAIL":
-        node = ASTNodeFactories.FAIL();
-        stack[stack.length - 1].push(node);
+      }
+      case "FAIL": {
+        const node = ASTNodeFactories.FAIL();
+        currentScope.push(node);
         node.attributes = getAttributes(tokens, placeholders);
         popAndCheck(tokens, "{");
         stack.push(node.children);
         break;
-      case "WAIT":
-        node = ASTNodeFactories.WAIT();
-        stack[stack.length - 1].push(node);
+      }
+      case "WAIT": {
+        const node = ASTNodeFactories.WAIT();
+        currentScope.push(node);
         const durations = getArguments(
           tokens,
           placeholders,
@@ -1241,9 +1250,10 @@ function buildRootASTNodes(definition) {
         }
         node.attributes = getAttributes(tokens, placeholders);
         break;
-      case "REPEAT":
-        node = ASTNodeFactories.REPEAT();
-        stack[stack.length - 1].push(node);
+      }
+      case "REPEAT": {
+        const node = ASTNodeFactories.REPEAT();
+        currentScope.push(node);
         if (tokens[0] === "[") {
           const iterationArguments = getArguments(
             tokens,
@@ -1264,9 +1274,10 @@ function buildRootASTNodes(definition) {
         popAndCheck(tokens, "{");
         stack.push(node.children);
         break;
-      case "RETRY":
-        node = ASTNodeFactories.RETRY();
-        stack[stack.length - 1].push(node);
+      }
+      case "RETRY": {
+        const node = ASTNodeFactories.RETRY();
+        currentScope.push(node);
         if (tokens[0] === "[") {
           const iterationArguments = getArguments(
             tokens,
@@ -1287,9 +1298,10 @@ function buildRootASTNodes(definition) {
         popAndCheck(tokens, "{");
         stack.push(node.children);
         break;
-      case "ACTION":
-        node = ASTNodeFactories.ACTION();
-        stack[stack.length - 1].push(node);
+      }
+      case "ACTION": {
+        const node = ASTNodeFactories.ACTION();
+        currentScope.push(node);
         if (tokens[0] !== "[") {
           throw new Error("expected action name identifier argument");
         }
@@ -1307,11 +1319,14 @@ function buildRootASTNodes(definition) {
         node.actionArguments = actionArguments;
         node.attributes = getAttributes(tokens, placeholders);
         break;
-      case "}":
+      }
+      case "}": {
         stack.pop();
         break;
-      default:
+      }
+      default: {
         throw new Error("unexpected token: " + token);
+      }
     }
   }
   const validateASTNode = (node, depth) => {
@@ -1330,15 +1345,17 @@ function buildRootASTNodes(definition) {
             throw new Error("expected root node at base of definition");
           }
         }
-        if (this.children.filter(function(definitionLevelNode) {
-          return definitionLevelNode.name === null;
-        }).length !== 1) {
+        if (this.children.filter(
+          (definitionLevelNode) => definitionLevelNode.name === null
+        ).length !== 1) {
           throw new Error("expected single unnamed root node at base of definition to act as main root");
         }
         const rootNodeNames = [];
         for (const definitionLevelNode of this.children) {
           if (rootNodeNames.indexOf(definitionLevelNode.name) !== -1) {
-            throw new Error(`multiple root nodes found with duplicate name '${definitionLevelNode.name}'`);
+            throw new Error(
+              `multiple root nodes found with duplicate name '${definitionLevelNode.name}'`
+            );
           } else {
             rootNodeNames.push(definitionLevelNode.name);
           }

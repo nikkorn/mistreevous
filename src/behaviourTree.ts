@@ -1,5 +1,5 @@
 import GuardPath, { GuardPathPart } from "./attributes/guards/guardPath";
-import buildRootASTNodes, { AnyArgument, AstNode } from "./rootAstNodesBuilder";
+import buildRootASTNodes, { AnyArgument, RootAstNode } from "./rootAstNodesBuilder";
 import State, { AnyState } from "./state";
 import Lookup from "./lookup";
 import Node from "./nodes/node";
@@ -150,7 +150,7 @@ export default class BehaviourTree {
             Lookup.setFunc(name, value);
         } else if (typeof value === "string") {
             // We are going to register a subtree.
-            let rootASTNodes;
+            let rootASTNodes: RootAstNode[];
 
             try {
                 // Try to create the behaviour tree AST based on the definition provided, this could fail if the definition is invalid.
@@ -200,16 +200,15 @@ export default class BehaviourTree {
             const mainRootNodeKey = Symbol("__root__");
 
             // Create a mapping of root node names to root AST tokens. The main root node will have a key of Symbol("__root__").
-            const rootNodeMap: { [key: string | symbol]: AstNode<Root> } = {};
+            const rootNodeMap: { [key: string | symbol]: RootAstNode } = {};
             for (const rootASTNode of rootASTNodes) {
                 rootNodeMap[rootASTNode.name === null ? mainRootNodeKey : rootASTNode.name!] = rootASTNode;
             }
-
             
             // Convert the AST to our actual tree and get the root node.
             const rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(
                 // Create a provider for named root nodes that are part of our definition or have been registered. Prioritising the former.
-                (name: string): AstNode<Root> => (rootNodeMap[name] ? rootNodeMap[name] : Lookup.getSubtree(name)),
+                (name: string): RootAstNode => (rootNodeMap[name] ? rootNodeMap[name] : Lookup.getSubtree(name)),
                 []
             );
 

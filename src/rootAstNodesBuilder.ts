@@ -20,6 +20,9 @@ import Step from "./attributes/callbacks/step";
 import Callback from "./attributes/callbacks/callback";
 import Guard from "./attributes/guards/guard";
 import Attribute from "./attributes/attribute";
+import Composite from "./nodes/composite/composite";
+import Decorator from "./nodes/decorator/decorator";
+import Leaf from "./nodes/leaf/leaf";
 
 export type Argument<T> = {
     value: T;
@@ -61,42 +64,112 @@ const AttributeFactories: {
     STEP: (functionName: string, attributeArguments: AnyArgument[]) => new Step(functionName, attributeArguments)
 };
 
-type NamedRootNodeProvider = (name: string) => AstNode<Root>;
+type NamedRootNodeProvider = (name: string) => RootAstNode;
 type NodeInstanceCreator<T extends Node> = (
-    this: AstNode<T>,
     namedRootNodeProvider: NamedRootNodeProvider,
-    visitedBranches: any
+    visitedBranches: string[]
 ) => T;
 type Placeholders = { [key: string]: string };
 // "definitionLevelNode"
+
 type Validatable = {
-    validate: (this: any, depth: number) => void;
-    // TODO: Also this one:
     children?: AstNode<Node>[];
+    validate: (depth: number) => void;
 };
-export type AstNode<T extends Node> = {
+
+export type AstNode<T extends Node> = Validatable & {
     type: string;
-    attributes: Attribute[] | null;
     createNodeInstance: NodeInstanceCreator<T>;
-    // TODO: Stuff from different kinds:
-    name?: null | string;
-    branchName?: "" | string;
-    tickets?: number[];
-    iterations?: number | null;
-    maximumIterations?: number | null;
-    duration?: number | null;
-    longestDuration?: number | null;
-    actionName?: string;
-    actionArguments?: any[];
-    conditionName?: string;
-    conditionArguments?: any[];
-} & Validatable;
+};
+
+export type InitialAstNode = AstNode<Node> & {
+    createNodeInstance: NodeInstanceCreator<Node>;
+};
+
+export type BranchAstNode = AstNode<Node> & {
+    type: "branch";
+    branchName: "" | string;
+    createNodeInstance: NodeInstanceCreator<Node>;
+};
+
+export type CompositeAstNode = AstNode<Composite> & {
+    type: "lotto" | "parallel" | "selector" | "sequence";
+    createNodeInstance: NodeInstanceCreator<Composite>;
+    attributes: Attribute[] | null;
+    children: AstNode<Node>[];
+};
+export type LottoAstNode = CompositeAstNode &
+    AstNode<Lotto> & {
+        type: "lotto";
+        createNodeInstance: NodeInstanceCreator<Lotto>;
+        tickets: number[];
+    };
+
+export type DecoratorAstNode = AstNode<Decorator> & {
+    type: "fail" | "flip" | "repeat" | "retry" | "root" | "succeed";
+    createNodeInstance: NodeInstanceCreator<Decorator>;
+    attributes: Attribute[] | null; // TODO Should these be nullable?
+    children: AstNode<Node>[];
+};
+export type RootAstNode = DecoratorAstNode &
+    AstNode<Root> & {
+        type: "root";
+        createNodeInstance: NodeInstanceCreator<Root>;
+        name: null | string;
+    };
+export type IterableAstNode = DecoratorAstNode &
+    AstNode<Repeat | Retry> & {
+        type: "repeat" | "retry";
+        createNodeInstance: NodeInstanceCreator<Repeat | Retry>;
+        iterations: null | number;
+        maximumIterations: null | number;
+    };
+
+export type LeafAstNode = AstNode<Leaf> & {
+    type: "action" | "condition" | "wait";
+    createNodeInstance: NodeInstanceCreator<Leaf>;
+    attributes: Attribute[] | null; // TODO Should these be nullable?
+};
+export type ActionAstNode = LeafAstNode &
+    AstNode<Action> & {
+        type: "action";
+        createNodeInstance: NodeInstanceCreator<Leaf>;
+        actionName: string;
+        actionArguments: any[];
+    };
+export type ConditionAstNode = LeafAstNode &
+    AstNode<Condition> & {
+        type: "condition";
+        createNodeInstance: NodeInstanceCreator<Condition>;
+        conditionName: string;
+        conditionArguments: any[];
+    };
+export type WaitAstNode = LeafAstNode &
+    AstNode<Wait> & {
+        type: "wait";
+        createNodeInstance: NodeInstanceCreator<Wait>;
+        duration: number | null;
+        longestDuration: number | null;
+    };
+
+export type AnyAstNode =
+    | InitialAstNode
+    | BranchAstNode
+    | CompositeAstNode
+    | LottoAstNode
+    | DecoratorAstNode
+    | RootAstNode
+    | IterableAstNode
+    | LeafAstNode
+    | ActionAstNode
+    | ConditionAstNode
+    | WaitAstNode;
 
 /**
  * The AST node factories.
  */
 const ASTNodeFactories = {
-    ROOT: (): AstNode<Root> => ({
+    ROOT: (): RootAstNode => ({
         type: "root",
         attributes: [],
         name: null,
@@ -108,7 +181,7 @@ const ASTNodeFactories = {
             }
 
             // A root node must have a single child node.
-            if (this.children!.length !== 1) {
+            if (this.children.length !== 1) {
                 throw new Error("a root node must have a single child");
             }
         },
@@ -119,84 +192,81 @@ const ASTNodeFactories = {
             );
         }
     }),
-    BRANCH: (): AstNode<Node> =>
-        ({
-            type: "branch",
-            branchName: "",
-            validate() {},
-            createNodeInstance(namedRootNodeProvider: NamedRootNodeProvider, visitedBranches: any) {
-                // Try to find the root node with a matching branch name.
-                const targetRootNode = namedRootNodeProvider(this.branchName);
+    BRANCH: (): BranchAstNode => ({
+        type: "branch",
+        branchName: "",
+        validate() {},
+        createNodeInstance(namedRootNodeProvider, visitedBranches) {
+            // Try to find the root node with a matching branch name.
+            const targetRootNode = namedRootNodeProvider(this.branchName);
 
-                // If we have already visited this branch then we have a circular dependency.
-                if (visitedBranches.indexOf(this.branchName) !== -1) {
-                    throw new Error(
-                        `circular dependency found in branch node references for branch '${this.branchName}'`
-                    );
-                }
-
-                // If we have a target root node, then the node instance we want will be the first and only child of the referenced root node.
-                if (targetRootNode) {
-                    return targetRootNode
-                        .createNodeInstance(namedRootNodeProvider, visitedBranches.concat(this.branchName))
-                        .getChildren()[0];
-                } else {
-                    throw new Error(`branch references root node '${this.branchName}' which has not been defined`);
-                }
+            // If we have already visited this branch then we have a circular dependency.
+            if (visitedBranches.indexOf(this.branchName) !== -1) {
+                throw new Error(`circular dependency found in branch node references for branch '${this.branchName}'`);
             }
-        } as any),
-    SELECTOR: (): AstNode<Selector> => ({
+
+            // If we have a target root node, then the node instance we want will be the first and only child of the referenced root node.
+            if (targetRootNode) {
+                return targetRootNode
+                    .createNodeInstance(namedRootNodeProvider, visitedBranches.concat(this.branchName))
+                    .getChildren()[0];
+            } else {
+                throw new Error(`branch references root node '${this.branchName}' which has not been defined`);
+            }
+        }
+    }),
+    SELECTOR: (): CompositeAstNode => ({
         type: "selector",
         attributes: [],
         children: [],
         validate() {
             // A selector node must have at least a single node.
-            if (this.children!.length < 1) {
+            if (this.children.length < 1) {
                 throw new Error("a selector node must have at least a single child");
             }
         },
         createNodeInstance(namedRootNodeProvider, visitedBranches) {
             return new Selector(
                 this.attributes,
-                this.children!.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
+                this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
             );
         }
     }),
-    SEQUENCE: (): AstNode<Sequence> => ({
+    SEQUENCE: (): CompositeAstNode => ({
         type: "sequence",
         attributes: [],
         children: [],
         validate() {
             // A sequence node must have at least a single node.
-            if (this.children!.length < 1) {
+            if (this.children.length < 1) {
                 throw new Error("a sequence node must have at least a single child");
             }
         },
         createNodeInstance(namedRootNodeProvider, visitedBranches) {
             return new Sequence(
                 this.attributes,
-                this.children!.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
+                this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
             );
         }
     }),
-    PARALLEL: (): AstNode<Parallel> => ({
+    PARALLEL: (): CompositeAstNode => ({
         type: "parallel",
         attributes: [],
         children: [],
         validate() {
             // A parallel node must have at least a single node.
-            if (this.children!.length < 1) {
+            if (this.children.length < 1) {
                 throw new Error("a parallel node must have at least a single child");
             }
         },
         createNodeInstance(namedRootNodeProvider, visitedBranches) {
             return new Parallel(
                 this.attributes,
-                this.children!.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
+                this.children.map((child) => child.createNodeInstance(namedRootNodeProvider, visitedBranches.slice()))
             );
         }
     }),
-    LOTTO: (): AstNode<Lotto> => ({
+    LOTTO: (): LottoAstNode => ({
         type: "lotto",
         attributes: [],
         children: [],
@@ -215,7 +285,7 @@ const ASTNodeFactories = {
             );
         }
     }),
-    REPEAT: (): AstNode<Repeat> => ({
+    REPEAT: (): IterableAstNode => ({
         type: "repeat",
         attributes: [],
         iterations: null,
@@ -256,7 +326,7 @@ const ASTNodeFactories = {
             );
         }
     }),
-    RETRY: (): AstNode<Retry> => ({
+    RETRY: (): IterableAstNode => ({
         type: "retry",
         attributes: [],
         iterations: null,
@@ -297,7 +367,7 @@ const ASTNodeFactories = {
             );
         }
     }),
-    FLIP: (): AstNode<Flip> => ({
+    FLIP: (): DecoratorAstNode => ({
         type: "flip",
         attributes: [],
         children: [],
@@ -314,7 +384,7 @@ const ASTNodeFactories = {
             );
         }
     }),
-    SUCCEED: (): AstNode<Succeed> => ({
+    SUCCEED: (): DecoratorAstNode => ({
         type: "succeed",
         attributes: [],
         children: [],
@@ -331,7 +401,7 @@ const ASTNodeFactories = {
             );
         }
     }),
-    FAIL: (): AstNode<Fail> => ({
+    FAIL: (): DecoratorAstNode => ({
         type: "fail",
         attributes: [],
         children: [],
@@ -348,7 +418,7 @@ const ASTNodeFactories = {
             );
         }
     }),
-    WAIT: (): AstNode<Wait> => ({
+    WAIT: (): WaitAstNode => ({
         type: "wait",
         attributes: [],
         duration: null,
@@ -376,7 +446,7 @@ const ASTNodeFactories = {
             return new Wait(this.attributes, this.duration!, this.longestDuration!);
         }
     }),
-    ACTION: (): AstNode<Action> => ({
+    ACTION: (): ActionAstNode => ({
         type: "action",
         attributes: [],
         actionName: "",
@@ -386,7 +456,7 @@ const ASTNodeFactories = {
             return new Action(this.attributes, this.actionName!, this.actionArguments!);
         }
     }),
-    CONDITION: (): AstNode<Condition> => ({
+    CONDITION: (): ConditionAstNode => ({
         type: "condition",
         attributes: [],
         conditionName: "",
@@ -398,12 +468,14 @@ const ASTNodeFactories = {
     })
 };
 
+type OtherAstNodes = AstNode<Node>[];
+
 /**
  * Create an array of root AST nodes based on the given definition.
  * @param definition The definition to parse the AST nodes from.
  * @returns The base definition AST nodes.
  */
-export default function buildRootASTNodes(definition: string): [AstNode<Root>, ...AstNode<Node>[]] {
+export default function buildRootASTNodes(definition: string): RootAstNode[] {
     // Swap out any node/attribute argument string literals with a placeholder and get a mapping of placeholders to original values as well as the processed definition.
     const { placeholders, processedDefinition } = substituteStringLiterals(definition);
 
@@ -421,23 +493,24 @@ export default function buildRootASTNodes(definition: string): [AstNode<Root>, .
     }
 
     // Create a stack of node children arrays, starting with a definition scope.
-    const stack: AstNode<Node>[][] = [[]];
+    const stack: [RootAstNode[], ...OtherAstNodes[]] = [[]];
+    const rootScope = stack[0];
 
     // We should keep processing the raw tokens until we run out of them.
     while (tokens.length) {
         // Grab the next token.
         const token = tokens.shift();
 
-        let node: AstNode<any>;
+        const currentScope = (stack[stack.length - 1] as OtherAstNodes);
 
         // How we create the next AST token depends on the current raw token value.
         switch (token!.toUpperCase()) {
-            case "ROOT":
+            case "ROOT": {
                 // Create a ROOT AST node.
-                node = ASTNodeFactories.ROOT();
+                const node = ASTNodeFactories.ROOT();
 
                 // Push the ROOT node into the current scope.
-                stack[stack.length - 1].push(node);
+                rootScope.push(node);
 
                 // We may have a root node name defined as an argument.
                 if (tokens[0] === "[") {
@@ -460,13 +533,14 @@ export default function buildRootASTNodes(definition: string): [AstNode<Root>, .
                 // The new scope is that of the new ROOT nodes children.
                 stack.push(node.children!);
                 break;
+            }
 
-            case "BRANCH":
+            case "BRANCH": {
                 // Create a BRANCH AST node.
-                node = ASTNodeFactories.BRANCH();
+                const node = ASTNodeFactories.BRANCH();
 
                 // Push the BRANCH node into the current scope.
-                stack[stack.length - 1].push(node);
+                currentScope.push(node);
 
                 // We must have arguments defined, as we require a branch name argument.
                 if (tokens[0] !== "[") {
@@ -484,13 +558,14 @@ export default function buildRootASTNodes(definition: string): [AstNode<Root>, .
                     throw new Error("expected single branch name argument");
                 }
                 break;
+            }
 
-            case "SELECTOR":
+            case "SELECTOR": {
                 // Create a SELECTOR AST node.
-                node = ASTNodeFactories.SELECTOR();
+                const node = ASTNodeFactories.SELECTOR();
 
                 // Push the SELECTOR node into the current scope.
-                stack[stack.length - 1].push(node);
+                currentScope.push(node);
 
                 // Try to pick any attributes off of the token stack.
                 node.attributes = getAttributes(tokens, placeholders);
@@ -500,13 +575,14 @@ export default function buildRootASTNodes(definition: string): [AstNode<Root>, .
                 // The new scope is that of the new SELECTOR nodes children.
                 stack.push(node.children!);
                 break;
+            }
 
-            case "SEQUENCE":
+            case "SEQUENCE": {
                 // Create a SEQUENCE AST node.
-                node = ASTNodeFactories.SEQUENCE();
+                const node = ASTNodeFactories.SEQUENCE();
 
                 // Push the SEQUENCE node into the current scope.
-                stack[stack.length - 1].push(node);
+                currentScope.push(node);
 
                 // Try to pick any attributes off of the token stack.
                 node.attributes = getAttributes(tokens, placeholders);
@@ -516,13 +592,14 @@ export default function buildRootASTNodes(definition: string): [AstNode<Root>, .
                 // The new scope is that of the new SEQUENCE nodes children.
                 stack.push(node.children!);
                 break;
+            }
 
-            case "PARALLEL":
+            case "PARALLEL": {
                 // Create a PARALLEL AST node.
-                node = ASTNodeFactories.PARALLEL();
+                const node = ASTNodeFactories.PARALLEL();
 
                 // Push the PARALLEL node into the current scope.
-                stack[stack.length - 1].push(node);
+                currentScope.push(node);
 
                 // Try to pick any attributes off of the token stack.
                 node.attributes = getAttributes(tokens, placeholders);
@@ -532,13 +609,14 @@ export default function buildRootASTNodes(definition: string): [AstNode<Root>, .
                 // The new scope is that of the new PARALLEL nodes children.
                 stack.push(node.children!);
                 break;
+            }
 
-            case "LOTTO":
+            case "LOTTO": {
                 // Create a LOTTO AST node.
-                node = ASTNodeFactories.LOTTO();
+                const node = ASTNodeFactories.LOTTO();
 
                 // Push the LOTTO node into the current scope.
-                stack[stack.length - 1].push(node);
+                currentScope.push(node);
 
                 // If the next token is a '[' character then some ticket counts have been defined as arguments.
                 if (tokens[0] === "[") {
@@ -559,13 +637,14 @@ export default function buildRootASTNodes(definition: string): [AstNode<Root>, .
                 // The new scope is that of the new LOTTO nodes children.
                 stack.push(node.children!);
                 break;
+            }
 
-            case "CONDITION":
+            case "CONDITION": {
                 // Create a CONDITION AST node.
-                node = ASTNodeFactories.CONDITION();
+                const node = ASTNodeFactories.CONDITION();
 
                 // Push the CONDITION node into the current scope.
-                stack[stack.length - 1].push(node);
+                currentScope.push(node);
 
                 // We must have arguments defined, as we require a condition function name argument.
                 if (tokens[0] !== "[") {
@@ -600,13 +679,14 @@ export default function buildRootASTNodes(definition: string): [AstNode<Root>, .
                 // Try to pick any attributes off of the token stack.
                 node.attributes = getAttributes(tokens, placeholders);
                 break;
+            }
 
-            case "FLIP":
+            case "FLIP": {
                 // Create a FLIP AST node.
-                node = ASTNodeFactories.FLIP();
+                const node = ASTNodeFactories.FLIP();
 
                 // Push the Flip node into the current scope.
-                stack[stack.length - 1].push(node);
+                currentScope.push(node);
 
                 // Try to pick any attributes off of the token stack.
                 node.attributes = getAttributes(tokens, placeholders);
@@ -616,13 +696,14 @@ export default function buildRootASTNodes(definition: string): [AstNode<Root>, .
                 // The new scope is that of the new FLIP nodes children.
                 stack.push(node.children!);
                 break;
+            }
 
-            case "SUCCEED":
+            case "SUCCEED": {
                 // Create a SUCCEED AST node.
-                node = ASTNodeFactories.SUCCEED();
+                const node = ASTNodeFactories.SUCCEED();
 
                 // Push the Succeed node into the current scope.
-                stack[stack.length - 1].push(node);
+                currentScope.push(node);
 
                 // Try to pick any attributes off of the token stack.
                 node.attributes = getAttributes(tokens, placeholders);
@@ -632,13 +713,14 @@ export default function buildRootASTNodes(definition: string): [AstNode<Root>, .
                 // The new scope is that of the new Succeed nodes children.
                 stack.push(node.children!);
                 break;
+            }
 
-            case "FAIL":
+            case "FAIL": {
                 // Create a FAIL AST node.
-                node = ASTNodeFactories.FAIL();
+                const node = ASTNodeFactories.FAIL();
 
                 // Push the Fail node into the current scope.
-                stack[stack.length - 1].push(node);
+                currentScope.push(node);
 
                 // Try to pick any attributes off of the token stack.
                 node.attributes = getAttributes(tokens, placeholders);
@@ -648,13 +730,14 @@ export default function buildRootASTNodes(definition: string): [AstNode<Root>, .
                 // The new scope is that of the new Fail nodes children.
                 stack.push(node.children!);
                 break;
+            }
 
-            case "WAIT":
+            case "WAIT": {
                 // Create a WAIT AST node.
-                node = ASTNodeFactories.WAIT();
+                const node = ASTNodeFactories.WAIT();
 
                 // Push the WAIT node into the current scope.
-                stack[stack.length - 1].push(node);
+                currentScope.push(node);
 
                 // Get the duration and potential longest duration of the wait.
                 const durations = getArguments(
@@ -680,13 +763,14 @@ export default function buildRootASTNodes(definition: string): [AstNode<Root>, .
                 // Try to pick any attributes off of the token stack.
                 node.attributes = getAttributes(tokens, placeholders);
                 break;
+            }
 
-            case "REPEAT":
+            case "REPEAT": {
                 // Create a REPEAT AST node.
-                node = ASTNodeFactories.REPEAT();
+                const node = ASTNodeFactories.REPEAT();
 
                 // Push the REPEAT node into the current scope.
-                stack[stack.length - 1].push(node);
+                currentScope.push(node);
 
                 // Check for iteration counts ([])
                 if (tokens[0] === "[") {
@@ -720,13 +804,14 @@ export default function buildRootASTNodes(definition: string): [AstNode<Root>, .
                 // The new scope is that of the new REPEAT nodes children.
                 stack.push(node.children!);
                 break;
+            }
 
-            case "RETRY":
+            case "RETRY": {
                 // Create a RETRY AST node.
-                node = ASTNodeFactories.RETRY();
+                const node = ASTNodeFactories.RETRY();
 
                 // Push the RETRY node into the current scope.
-                stack[stack.length - 1].push(node);
+                currentScope.push(node);
 
                 // Check for iteration counts ([])
                 if (tokens[0] === "[") {
@@ -760,13 +845,14 @@ export default function buildRootASTNodes(definition: string): [AstNode<Root>, .
                 // The new scope is that of the new RETRY nodes children.
                 stack.push(node.children!);
                 break;
+            }
 
-            case "ACTION":
+            case "ACTION": {
                 // Create a ACTION AST node.
-                node = ASTNodeFactories.ACTION();
+                const node = ASTNodeFactories.ACTION();
 
                 // Push the ACTION node into the current scope.
-                stack[stack.length - 1].push(node);
+                currentScope.push(node);
 
                 // We must have arguments defined, as we require an action name argument.
                 if (tokens[0] !== "[") {
@@ -801,14 +887,17 @@ export default function buildRootASTNodes(definition: string): [AstNode<Root>, .
                 // Try to pick any attributes off of the token stack.
                 node.attributes = getAttributes(tokens, placeholders);
                 break;
+            }
 
-            case "}":
+            case "}": {
                 // The '}' character closes the current scope.
                 stack.pop();
                 break;
+            }
 
-            default:
+            default: {
                 throw new Error("unexpected token: " + token);
+            }
         }
     }
 
@@ -824,15 +913,15 @@ export default function buildRootASTNodes(definition: string): [AstNode<Root>, .
     // Start node validation from the definition root.
     validateASTNode(
         {
-            children: stack[0],
-            validate() {
+            children: stack[0] as RootAstNode[],
+            validate(this: { children: RootAstNode[] }) {
                 // We must have at least one node defined as the definition scope, which should be a root node.
-                if ((this as { children: AstNode<Node>[] }).children.length === 0) {
+                if (this.children.length === 0) {
                     throw new Error("expected root node to have been defined");
                 }
 
                 // Each node at the base of the definition scope MUST be a root node.
-                for (const definitionLevelNode of (this as { children: AstNode<Node>[] }).children) {
+                for (const definitionLevelNode of this.children) {
                     if (definitionLevelNode.type !== "root") {
                         throw new Error("expected root node at base of definition");
                     }
@@ -840,20 +929,22 @@ export default function buildRootASTNodes(definition: string): [AstNode<Root>, .
 
                 // Exactly one root node must not have a name defined. This will be the main root, others will have to be referenced via branch nodes.
                 if (
-                    (this as { children: AstNode<Node>[] }).children.filter(function (
-                        definitionLevelNode: AstNode<Node>
-                    ) {
-                        return definitionLevelNode.name === null;
-                    }).length !== 1
+                    this.children.filter(
+                        (definitionLevelNode) => definitionLevelNode.name === null
+                    ).length !== 1
                 ) {
                     throw new Error("expected single unnamed root node at base of definition to act as main root");
                 }
 
                 // No two named root nodes can have matching names.
                 const rootNodeNames: string[] = [];
-                for (const definitionLevelNode of (this as { children: AstNode<Node>[] }).children) {
+                for (const definitionLevelNode of this.children) {
                     if (rootNodeNames.indexOf(definitionLevelNode.name!) !== -1) {
-                        throw new Error(`multiple root nodes found with duplicate name '${definitionLevelNode.name}'`);
+                        throw new Error(
+                            `multiple root nodes found with duplicate name '${
+                                definitionLevelNode.name
+                            }'`
+                        );
                     } else {
                         rootNodeNames.push(definitionLevelNode.name!);
                     }
@@ -864,8 +955,7 @@ export default function buildRootASTNodes(definition: string): [AstNode<Root>, .
     );
 
     // Return the root AST nodes.
-    // In practice the first element of the first stack frame will be a root node.
-    return stack[0] as [AstNode<Root>, ...AstNode<Node>[]];
+    return stack[0];
 }
 
 /**

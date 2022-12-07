@@ -1,6 +1,5 @@
 import { ActionResult, Agent, ExitFunctionArg, GlobalFunction } from "./agent";
-import Root from "./nodes/decorator/root";
-import { AnyArgument, AstNode } from "./rootAstNodesBuilder";
+import { AnyArgument, RootAstNode } from "./rootAstNodesBuilder";
 type ExitResultArg = {
     value: ExitFunctionArg;
 };
@@ -44,13 +43,13 @@ export default class Lookup {
      * @param name The name of the subtree.
      * @returns The subtree with the specified name.
      */
-    static getSubtree(name: string): AstNode<Root>;
+    static getSubtree(name: string): RootAstNode;
     /**
      * Sets the subtree with the specified name for later lookup.
      * @param name The name of the subtree.
      * @param subtree The subtree.
      */
-    static setSubtree(name: string, subtree: AstNode<Root>): void;
+    static setSubtree(name: string, subtree: RootAstNode): void;
     /**
      * Removes the registered function or subtree with the specified name.
      * @param name The name of the registered function or subtree.
