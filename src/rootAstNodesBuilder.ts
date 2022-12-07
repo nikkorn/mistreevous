@@ -135,14 +135,14 @@ export type ActionAstNode = LeafAstNode &
         type: "action";
         createNodeInstance: NodeInstanceCreator<Leaf>;
         actionName: string;
-        actionArguments: any[];
+        actionArguments: AnyArgument[];
     };
 export type ConditionAstNode = LeafAstNode &
     AstNode<Condition> & {
         type: "condition";
         createNodeInstance: NodeInstanceCreator<Condition>;
         conditionName: string;
-        conditionArguments: any[];
+        conditionArguments: AnyArgument[];
     };
 export type WaitAstNode = LeafAstNode &
     AstNode<Wait> & {
@@ -1149,7 +1149,7 @@ function getAttributes(tokens: string[], stringArgumentPlaceholders: Placeholder
             });
 
         // Create the attribute and add it to the array of attributes found.
-        // TODO: Is this a bug?
+        // TODO: Is this a bug? Passing an IdentifierArgument as a string.
         attributes.push(attributeFactory(attributeFunctionName as any as string, attributeArguments));
 
         // Try to get the next attribute name token, as there could be multiple.

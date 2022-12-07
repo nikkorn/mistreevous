@@ -86,13 +86,13 @@ export type ActionAstNode = LeafAstNode & AstNode<Action> & {
     type: "action";
     createNodeInstance: NodeInstanceCreator<Leaf>;
     actionName: string;
-    actionArguments: any[];
+    actionArguments: AnyArgument[];
 };
 export type ConditionAstNode = LeafAstNode & AstNode<Condition> & {
     type: "condition";
     createNodeInstance: NodeInstanceCreator<Condition>;
     conditionName: string;
-    conditionArguments: any[];
+    conditionArguments: AnyArgument[];
 };
 export type WaitAstNode = LeafAstNode & AstNode<Wait> & {
     type: "wait";
