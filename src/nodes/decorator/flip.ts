@@ -14,7 +14,7 @@ export default class Flip extends Decorator {
      * @param child The child node.
      */
     constructor(attributes: Attribute[], child: Node) {
-        super("flip", attributes, child)
+        super("flip", attributes, child);
     }
 
     /**

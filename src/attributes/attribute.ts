@@ -4,7 +4,7 @@ import Guard from "./guards/guard";
 export type AttributeDetails = {
     type: string;
     arguments: AnyArgument[];
-}
+};
 
 /**
  * A base node attribute.

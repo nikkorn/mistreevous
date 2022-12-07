@@ -19,7 +19,12 @@ export default class Repeat extends Decorator {
      * @param maximumIterations The maximum number of iterations to repeat the child node.
      * @param child The child node.
      */
-    constructor(attributes: Attribute[], private iterations: number | null, private maximumIterations: number | null, child: Node) {
+    constructor(
+        attributes: Attribute[],
+        private iterations: number | null,
+        private maximumIterations: number | null,
+        child: Node
+    ) {
         super("repeat", attributes, child);
     }
 
@@ -85,7 +90,9 @@ export default class Repeat extends Decorator {
      */
     getName = () => {
         if (this.iterations !== null) {
-            return `REPEAT ${this.maximumIterations ? this.iterations + "x-" + this.maximumIterations + "x" : this.iterations + "x"}`;
+            return `REPEAT ${
+                this.maximumIterations ? this.iterations + "x-" + this.maximumIterations + "x" : this.iterations + "x"
+            }`;
         }
 
         // Return the default repeat node name.

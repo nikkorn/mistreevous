@@ -51,10 +51,11 @@ export default class Lookup {
         // Check whether the agent contains the specified function.
         const foundOnAgent = agent[name];
         if (foundOnAgent && typeof foundOnAgent === "function") {
-            return (args: AnyExitArgument[]): boolean | ActionResult => foundOnAgent.apply(
-                agent,
-                args.map((arg) => arg.value)
-            );
+            return (args: AnyExitArgument[]): boolean | ActionResult =>
+                foundOnAgent.apply(
+                    agent,
+                    args.map((arg) => arg.value)
+                );
         }
 
         // The agent does not contain the specified function but it may have been registered at some point.

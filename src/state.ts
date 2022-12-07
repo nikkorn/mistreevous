@@ -6,7 +6,7 @@ export const enum State {
     RUNNING = "mistreevous.running",
     SUCCEEDED = "mistreevous.succeeded",
     FAILED = "mistreevous.failed"
-};
+}
 
 export { State as default };
 

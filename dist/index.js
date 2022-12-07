@@ -1346,17 +1346,13 @@ function buildRootASTNodes(definition) {
             throw new Error("expected root node at base of definition");
           }
         }
-        if (this.children.filter(
-          (definitionLevelNode) => definitionLevelNode.name === null
-        ).length !== 1) {
+        if (this.children.filter((definitionLevelNode) => definitionLevelNode.name === null).length !== 1) {
           throw new Error("expected single unnamed root node at base of definition to act as main root");
         }
         const rootNodeNames = [];
         for (const definitionLevelNode of this.children) {
           if (rootNodeNames.indexOf(definitionLevelNode.name) !== -1) {
-            throw new Error(
-              `multiple root nodes found with duplicate name '${definitionLevelNode.name}'`
-            );
+            throw new Error(`multiple root nodes found with duplicate name '${definitionLevelNode.name}'`);
           } else {
             rootNodeNames.push(definitionLevelNode.name);
           }

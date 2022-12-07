@@ -498,7 +498,7 @@ export default function buildRootASTNodes(definition: string): RootAstNode[] {
         // Grab the next token.
         const token = tokens.shift();
 
-        const currentScope = (stack[stack.length - 1] as OtherAstNodes);
+        const currentScope = stack[stack.length - 1] as OtherAstNodes;
 
         // How we create the next AST token depends on the current raw token value.
         switch (token!.toUpperCase()) {
@@ -925,11 +925,7 @@ export default function buildRootASTNodes(definition: string): RootAstNode[] {
                 }
 
                 // Exactly one root node must not have a name defined. This will be the main root, others will have to be referenced via branch nodes.
-                if (
-                    this.children.filter(
-                        (definitionLevelNode) => definitionLevelNode.name === null
-                    ).length !== 1
-                ) {
+                if (this.children.filter((definitionLevelNode) => definitionLevelNode.name === null).length !== 1) {
                     throw new Error("expected single unnamed root node at base of definition to act as main root");
                 }
 
@@ -937,11 +933,7 @@ export default function buildRootASTNodes(definition: string): RootAstNode[] {
                 const rootNodeNames: string[] = [];
                 for (const definitionLevelNode of this.children) {
                     if (rootNodeNames.indexOf(definitionLevelNode.name!) !== -1) {
-                        throw new Error(
-                            `multiple root nodes found with duplicate name '${
-                                definitionLevelNode.name
-                            }'`
-                        );
+                        throw new Error(`multiple root nodes found with duplicate name '${definitionLevelNode.name}'`);
                     } else {
                         rootNodeNames.push(definitionLevelNode.name!);
                     }

@@ -15,5 +15,5 @@ export default abstract class Guard extends Attribute {
      * @param agent The agent.
      * @returns Whether the guard is satisfied.
      */
-    abstract isSatisfied(agent: Agent): boolean
+    abstract isSatisfied(agent: Agent): boolean;
 }

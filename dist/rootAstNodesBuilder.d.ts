@@ -31,8 +31,7 @@ type IdentifierArgument = Argument<string> & {
     type: "identifier";
 };
 export type AnyArgument = NullArgument | BooleanArgument | NumberArgument | StringPlaceholderArgument | IdentifierArgument;
-type NamedRootNodeProvider = (name: string) => RootAstNode;
-type NodeInstanceCreator<T extends Node> = (namedRootNodeProvider: NamedRootNodeProvider, visitedBranches: string[]) => T;
+type NodeInstanceCreator<T extends Node> = (namedRootNodeProvider: (name: string) => RootAstNode, visitedBranches: string[]) => T;
 type Validatable = {
     children?: AstNode<Node>[];
     validate: (depth: number) => void;

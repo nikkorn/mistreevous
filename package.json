@@ -19,8 +19,8 @@
   "scripts": {
     "build": "npm-run-all build:esbuild build:typecheck",
     "watch": "npm run build:esbuild -- --watch",
-    "test": "npm-run-all build test:unit-test",
-    "build:format": "prettier --write \"src/**/*.js\"",
+    "test": "npm-run-all build:format build test:unit-test",
+    "build:format": "prettier --write \"src/**/*.ts\"",
     "build:esbuild": "esbuild ./src/index.js --bundle --sourcemap --outdir=dist --platform=node",
     "build:typecheck": "tsc --emitDeclarationOnly",
     "test:unit-test": "mocha \"test/**/*.js\""

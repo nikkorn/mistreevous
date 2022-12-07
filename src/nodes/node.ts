@@ -54,7 +54,9 @@ export default abstract class Node {
      * Gets/Sets the state of the node.
      */
     getState = (): AnyState => this.state;
-    setState = (value: AnyState): void => { this.state = value };
+    setState = (value: AnyState): void => {
+        this.state = value;
+    };
 
     /**
      * Gets the unique id of the node.
@@ -83,7 +85,10 @@ export default abstract class Node {
     getAttribute(type: "exit" | "EXIT"): Exit;
     getAttribute(type: "step" | "STEP"): Step;
     getAttribute(type: string): Attribute {
-        return this.getAttributes().filter((decorator) => decorator.getType().toUpperCase() === type.toUpperCase())[0] || null;
+        return (
+            this.getAttributes().filter((decorator) => decorator.getType().toUpperCase() === type.toUpperCase())[0] ||
+            null
+        );
     }
 
     /**

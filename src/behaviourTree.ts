@@ -204,7 +204,7 @@ export default class BehaviourTree {
             for (const rootASTNode of rootASTNodes) {
                 rootNodeMap[rootASTNode.name === null ? mainRootNodeKey : rootASTNode.name!] = rootASTNode;
             }
-            
+
             // Convert the AST to our actual tree and get the root node.
             const rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(
                 // Create a provider for named root nodes that are part of our definition or have been registered. Prioritising the former.

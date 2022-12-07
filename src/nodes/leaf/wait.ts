@@ -56,5 +56,6 @@ export default class Wait extends Leaf {
     /**
      * Gets the name of the node.
      */
-    getName = () => `WAIT ${this.longestDuration ? this.duration + "ms-" + this.longestDuration + "ms" : this.duration + "ms"}`;
+    getName = () =>
+        `WAIT ${this.longestDuration ? this.duration + "ms-" + this.longestDuration + "ms" : this.duration + "ms"}`;
 }
