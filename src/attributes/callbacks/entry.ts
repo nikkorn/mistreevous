@@ -1,14 +1,17 @@
 import Callback from "./callback";
-// @ts-ignore
-import Lookup from "../../Lookup";
+import Lookup from "../../lookup";
+import { Agent } from "../../agent";
+import { AnyArgument } from "../../rootAstNodesBuilder";
 
 /**
  * An ENTRY callback which defines an agent function to call when the associated node is updated and moves out of running state.
- * @param functionName The name of the agent function to call.
- * @param args The array of callback argument definitions.
  */
 export default class Entry extends Callback {
-    constructor(private functionName: string, args: any[]) {
+    /**
+     * @param functionName The name of the agent function to call.
+     * @param args The array of callback argument definitions.
+     */
+    constructor(private functionName: string, args: AnyArgument[]) {
         super("entry", args);
     }
 
@@ -33,7 +36,7 @@ export default class Entry extends Callback {
      * Attempt to call the agent function that this callback refers to.
      * @param agent The agent.
      */
-    callAgentFunction = (agent: any) => {
+    callAgentFunction = (agent: Agent) => {
         // Attempt to get the invoker for the callback function.
         const callbackFuncInvoker = Lookup.getFuncInvoker(agent, this.functionName);
 

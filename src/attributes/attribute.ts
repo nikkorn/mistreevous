@@ -1,10 +1,21 @@
+import { AnyArgument } from "../rootAstNodesBuilder";
+import Guard from "./guards/guard";
+
+export type AttributeDetails = {
+    type: string;
+    arguments: AnyArgument[];
+};
+
 /**
  * A base node attribute.
- * @param type The node attribute type.
- * @param args The array of attribute argument definitions.
  */
 export default abstract class Attribute {
-    constructor(protected type: string, protected args: any[]) {}
+    /**
+     * @param type The node attribute type.
+     * @param args The array of attribute argument definitions.
+     */
+    constructor(protected type: string, protected args: AnyArgument[]) {}
+
     /**
      * Gets the type of the attribute.
      */
@@ -18,8 +29,13 @@ export default abstract class Attribute {
     /**
      * Gets the attribute details.
      */
-    getDetails = () => ({
+    getDetails = (): AttributeDetails => ({
         type: this.getType(),
         arguments: this.getArguments()
     });
+
+    /**
+     * Gets whether this attribute is a guard.
+     */
+    abstract isGuard: () => this is Guard;
 }

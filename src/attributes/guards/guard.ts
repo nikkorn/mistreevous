@@ -1,15 +1,19 @@
+import { Agent } from "../../agent";
 import Attribute from "../attribute";
 
 /**
  * A base node guard attribute.
- * @param type The node guard attribute type.
- * @param args The array of attribute argument definitions.
  */
 export default abstract class Guard extends Attribute {
     /**
      * Gets whether this attribute is a guard.
      */
-    isGuard = () => true;
+    isGuard = (): this is Guard => true;
 
-    abstract isSatisfied(agent: any): boolean
+    /**
+     * Gets whether the guard is satisfied.
+     * @param agent The agent.
+     * @returns Whether the guard is satisfied.
+     */
+    abstract isSatisfied(agent: Agent): boolean;
 }

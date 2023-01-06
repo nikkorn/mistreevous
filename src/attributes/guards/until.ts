@@ -1,21 +1,19 @@
 import Guard from "./guard";
-// @ts-ignore
-import Lookup from "../../Lookup";
+import Lookup from "../../lookup";
+import { Agent } from "../../agent";
+import { AnyArgument } from "../../rootAstNodesBuilder";
 
 /**
  * An UNTIL guard which is satisfied as long as the given condition remains false.
- * @param condition The name of the condition function that determines whether the guard is satisfied.
- * @param args The array of decorator argument definitions.
  */
 export default class Until extends Guard {
-    constructor(private condition: string, args: any[]) {
+    /**
+     * @param condition The name of the condition function that determines whether the guard is satisfied.
+     * @param args The array of decorator argument definitions.
+     */
+    constructor(private condition: string, args: AnyArgument[]) {
         super("until", args);
     }
-
-    /**
-     * Gets whether the decorator is a guard.
-     */
-    isGuard = () => true;
 
     /**
      * Gets the condition of the guard.
@@ -39,7 +37,7 @@ export default class Until extends Guard {
      * @param agent The agent.
      * @returns Whether the guard is satisfied.
      */
-    isSatisfied = (agent: any) => {
+    isSatisfied = (agent: Agent) => {
         // Attempt to get the invoker for the condition function.
         const conditionFuncInvoker = Lookup.getFuncInvoker(agent, this.condition);
 
