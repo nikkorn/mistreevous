@@ -31,75 +31,62 @@ type IdentifierArgument = Argument<string> & {
     type: "identifier";
 };
 export type AnyArgument = NullArgument | BooleanArgument | NumberArgument | StringPlaceholderArgument | IdentifierArgument;
-type NodeInstanceCreator<T extends Node> = (namedRootNodeProvider: (name: string) => RootAstNode, visitedBranches: string[]) => T;
 type Validatable = {
     children?: AstNode<Node>[];
     validate: (depth: number) => void;
 };
+type NodeInstanceCreator<T extends Node> = (namedRootNodeProvider: (name: string) => RootAstNode, visitedBranches: string[]) => T;
 export type AstNode<T extends Node> = Validatable & {
     type: string;
     createNodeInstance: NodeInstanceCreator<T>;
 };
-export type InitialAstNode = AstNode<Node> & {
-    createNodeInstance: NodeInstanceCreator<Node>;
+export type LeafAstNode<T extends Leaf = Leaf> = AstNode<T> & {
+    type: "action" | "condition" | "wait";
+    attributes: Attribute[];
+};
+export type CompositeAstNode<T extends Composite = Composite> = AstNode<T> & {
+    type: "lotto" | "parallel" | "selector" | "sequence";
+    attributes: Attribute[];
+    children: AstNode<Node>[];
+};
+export type DecoratorAstNode<T extends Decorator = Decorator> = AstNode<T> & {
+    type: "fail" | "flip" | "repeat" | "retry" | "root" | "succeed";
+    attributes: Attribute[];
+    children: AstNode<Node>[];
 };
 export type BranchAstNode = AstNode<Node> & {
     type: "branch";
     branchName: "" | string;
-    createNodeInstance: NodeInstanceCreator<Node>;
 };
-export type CompositeAstNode = AstNode<Composite> & {
-    type: "lotto" | "parallel" | "selector" | "sequence";
-    createNodeInstance: NodeInstanceCreator<Composite>;
-    attributes: Attribute[];
-    children: AstNode<Node>[];
-};
-export type LottoAstNode = CompositeAstNode & AstNode<Lotto> & {
+export type LottoAstNode = CompositeAstNode<Lotto> & {
     type: "lotto";
-    createNodeInstance: NodeInstanceCreator<Lotto>;
     tickets: number[];
 };
-export type DecoratorAstNode = AstNode<Decorator> & {
-    type: "fail" | "flip" | "repeat" | "retry" | "root" | "succeed";
-    createNodeInstance: NodeInstanceCreator<Decorator>;
-    attributes: Attribute[];
-    children: AstNode<Node>[];
-};
-export type RootAstNode = DecoratorAstNode & AstNode<Root> & {
+export type RootAstNode = DecoratorAstNode<Root> & {
     type: "root";
-    createNodeInstance: NodeInstanceCreator<Root>;
     name: null | string;
 };
-export type IterableAstNode = DecoratorAstNode & AstNode<Repeat | Retry> & {
+export type IterableAstNode = DecoratorAstNode<Repeat | Retry> & {
     type: "repeat" | "retry";
-    createNodeInstance: NodeInstanceCreator<Repeat | Retry>;
     iterations: null | number;
     maximumIterations: null | number;
 };
-export type LeafAstNode = AstNode<Leaf> & {
-    type: "action" | "condition" | "wait";
-    createNodeInstance: NodeInstanceCreator<Leaf>;
-    attributes: Attribute[];
-};
-export type ActionAstNode = LeafAstNode & AstNode<Action> & {
+export type ActionAstNode = LeafAstNode<Action> & {
     type: "action";
-    createNodeInstance: NodeInstanceCreator<Leaf>;
     actionName: string;
     actionArguments: AnyArgument[];
 };
-export type ConditionAstNode = LeafAstNode & AstNode<Condition> & {
+export type ConditionAstNode = LeafAstNode<Condition> & {
     type: "condition";
-    createNodeInstance: NodeInstanceCreator<Condition>;
     conditionName: string;
     conditionArguments: AnyArgument[];
 };
-export type WaitAstNode = LeafAstNode & AstNode<Wait> & {
+export type WaitAstNode = LeafAstNode<Wait> & {
     type: "wait";
-    createNodeInstance: NodeInstanceCreator<Wait>;
     duration: number | null;
     longestDuration: number | null;
 };
-export type AnyAstNode = InitialAstNode | BranchAstNode | CompositeAstNode | LottoAstNode | DecoratorAstNode | RootAstNode | IterableAstNode | LeafAstNode | ActionAstNode | ConditionAstNode | WaitAstNode;
+export type AnyAstNode = BranchAstNode | CompositeAstNode | LottoAstNode | DecoratorAstNode | RootAstNode | IterableAstNode | LeafAstNode | ActionAstNode | ConditionAstNode | WaitAstNode;
 /**
  * Create an array of root AST nodes based on the given definition.
  * @param definition The definition to parse the AST nodes from.

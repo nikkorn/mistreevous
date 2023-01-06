@@ -2,6 +2,7 @@ import Node from "../node";
 import Composite from "./composite";
 import { Agent } from "../../agent";
 import Attribute from "../../attributes/attribute";
+import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
 /**
  * A LOTTO node.
  * A winning child is picked on the initial update of this node, based on ticket weighting.
@@ -20,11 +21,11 @@ export default class Lotto extends Composite {
      */
     private winningChild;
     /**
-     * Update the node and get whether the node state has changed.
+     * Called when the node is being updated.
      * @param agent The agent.
-     * @returns Whether the state of this node has changed as part of the update.
+     * @param options The behaviour tree options object.
      */
-    onUpdate: (agent: Agent) => void;
+    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void;
     /**
      * Gets the name of the node.
      */

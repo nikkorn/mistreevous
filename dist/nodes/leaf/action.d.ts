@@ -2,6 +2,7 @@ import Leaf from "./leaf";
 import { Agent } from "../../agent";
 import Attribute from "../../attributes/attribute";
 import { AnyArgument } from "../../rootAstNodesBuilder";
+import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
 /**
  * An Action leaf node.
  * This represents an immediate or ongoing state of behaviour.
@@ -24,11 +25,11 @@ export default class Action extends Leaf {
      */
     private updatePromiseStateResult;
     /**
-     * Update the node.
+     * Called when the node is being updated.
      * @param agent The agent.
-     * @returns The result of the update.
+     * @param options The behaviour tree options object.
      */
-    onUpdate: (agent: Agent) => void;
+    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void;
     /**
      * Gets the name of the node.
      */

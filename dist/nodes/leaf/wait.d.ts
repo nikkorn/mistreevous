@@ -1,5 +1,7 @@
 import Leaf from "./leaf";
 import Attribute from "../../attributes/attribute";
+import { Agent } from "../../agent";
+import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
 /**
  * A WAIT node.
  * The state of this node will change to SUCCEEDED after a duration of time
@@ -22,10 +24,11 @@ export default class Wait extends Leaf {
      */
     private waitDuration;
     /**
-     * Update the node.
-     * @returns The result of the update.
+     * Called when the node is being updated.
+     * @param agent The agent.
+     * @param options The behaviour tree options object.
      */
-    onUpdate: () => void;
+    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void;
     /**
      * Gets the name of the node.
      */

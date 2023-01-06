@@ -3,6 +3,7 @@ import { AnyState } from "./state";
 import Root from "./nodes/decorator/root";
 import { Agent, GlobalFunction } from "./agent";
 import { AttributeDetails } from "./attributes/attribute";
+import { BehaviourTreeOptions } from "./behaviourTreeOptions";
 type FlattenedTreeNode = {
     id: string;
     type: string;
@@ -17,15 +18,18 @@ type FlattenedTreeNode = {
  */
 export default class BehaviourTree {
     private agent;
+    private options;
     /**
      * The main root tree node.
      */
     readonly rootNode: Root;
     /**
+     * Creates a new instance of the BehaviourTree class.
      * @param definition The behaviour tree definition.
      * @param agent The agent instance that this behaviour tree is modelling behaviour for.
+     * @param options The behaviour tree options object.
      */
-    constructor(definition: string, agent: Agent);
+    constructor(definition: string, agent: Agent, options?: BehaviourTreeOptions);
     /**
      * Gets whether the tree is in the RUNNING state.
      * @returns true if the tree is in the RUNNING state, otherwise false.

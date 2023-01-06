@@ -2,6 +2,7 @@ import Node from "../node";
 import Decorator from "./decorator";
 import { Agent } from "../../agent";
 import Attribute from "../../attributes/attribute";
+import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
 /**
  * A REPEAT node.
  * The node has a single child which can have:
@@ -29,11 +30,11 @@ export default class Repeat extends Decorator {
      */
     private currentIterationCount;
     /**
-     * Update the node.
+     * Called when the node is being updated.
      * @param agent The agent.
-     * @returns The result of the update.
+     * @param options The behaviour tree options object.
      */
-    onUpdate: (agent: Agent) => void;
+    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void;
     /**
      * Gets the name of the node.
      */

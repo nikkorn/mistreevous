@@ -2,6 +2,7 @@ import Leaf from "./leaf";
 import { Agent } from "../../agent";
 import Attribute from "../../attributes/attribute";
 import { AnyArgument } from "../../rootAstNodesBuilder";
+import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
 /**
  * A Condition leaf node.
  * This will succeed or fail immediately based on an agent predicate, without moving to the 'RUNNING' state.
@@ -16,11 +17,11 @@ export default class Condition extends Leaf {
      */
     constructor(attributes: Attribute[], conditionName: string, conditionArguments: AnyArgument[]);
     /**
-     * Update the node.
+     * Called when the node is being updated.
      * @param agent The agent.
-     * @returns The result of the update.
+     * @param options The behaviour tree options object.
      */
-    onUpdate: (agent: Agent) => void;
+    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void;
     /**
      * Gets the name of the node.
      */
