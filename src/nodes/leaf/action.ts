@@ -105,7 +105,7 @@ export default class Action extends Leaf {
             // Set the state of this node, this may be undefined, which just means that the node is still in the 'RUNNING' state.
             this.setState(updateResult || State.RUNNING);
         }
-    };
+    }
 
     /**
      * Gets the name of the node.

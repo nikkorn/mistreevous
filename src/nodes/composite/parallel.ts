@@ -75,7 +75,7 @@ export default class Parallel extends Composite {
             // If all children have succeeded then this node has also succeeded, otherwise it is still running.
             this.setState(succeededCount === this.children.length ? State.SUCCEEDED : State.RUNNING);
         }
-    };
+    }
 
     /**
      * Gets the name of the node.

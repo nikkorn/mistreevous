@@ -84,7 +84,7 @@ export default class Retry extends Decorator {
             // This node is in the 'FAILED' state as we cannot iterate any more.
             this.setState(State.FAILED);
         }
-    };
+    }
 
     /**
      * Gets the name of the node.

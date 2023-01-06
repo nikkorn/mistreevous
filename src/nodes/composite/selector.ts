@@ -69,7 +69,7 @@ export default class Selector extends Composite {
             // The child node was not in an expected state.
             throw new Error("child node was not in an expected state.");
         }
-    };
+    }
 
     /**
      * Gets the name of the node.

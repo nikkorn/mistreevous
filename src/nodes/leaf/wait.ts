@@ -54,7 +54,7 @@ export default class Wait extends Leaf {
             // We have finished waiting!
             this.setState(State.SUCCEEDED);
         }
-    };
+    }
 
     /**
      * Gets the name of the node.

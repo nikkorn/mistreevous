@@ -51,7 +51,7 @@ export default class Lotto extends Composite {
         // The state of the lotto node is the state of its winning child.
         // Note: We're dirty casting away undefined like this ignores the fact lotto.draw() can return undefined...
         this.setState(this.winningChild!.getState());
-    };
+    }
 
     /**
      * Gets the name of the node.

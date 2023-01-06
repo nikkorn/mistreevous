@@ -32,7 +32,7 @@ export default class Root extends Decorator {
 
         // The state of the root node is the state of its child.
         this.setState(this.child.getState());
-    };
+    }
 
     /**
      * Gets the name of the node.

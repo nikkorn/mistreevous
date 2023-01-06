@@ -84,7 +84,7 @@ export default class Repeat extends Decorator {
             // This node is in the 'SUCCEEDED' state as we cannot iterate any more.
             this.setState(State.SUCCEEDED);
         }
-    };
+    }
 
     /**
      * Gets the name of the node.

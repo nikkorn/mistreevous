@@ -43,7 +43,7 @@ export default class Succeed extends Decorator {
             default:
                 this.setState(State.READY);
         }
-    };
+    }
 
     /**
      * Gets the name of the node.

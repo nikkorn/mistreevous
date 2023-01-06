@@ -137,7 +137,7 @@ export default abstract class Node {
         this.reset();
 
         this.getAttribute("exit")?.callAgentFunction(agent, false, true);
-    };
+    }
 
     /**
      * Update the node.
@@ -181,7 +181,7 @@ export default abstract class Node {
                 throw error;
             }
         }
-    };
+    }
 }
 
 /**

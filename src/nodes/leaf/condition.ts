@@ -38,7 +38,7 @@ export default class Condition extends Leaf {
 
         // Call the condition function to determine the state of this node.
         this.setState(!!conditionFuncInvoker(this.conditionArguments) ? State.SUCCEEDED : State.FAILED);
-    };
+    }
 
     /**
      * Gets the name of the node.

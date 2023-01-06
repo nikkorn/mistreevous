@@ -46,7 +46,7 @@ export default class Flip extends Decorator {
             default:
                 this.setState(State.READY);
         }
-    };
+    }
 
     /**
      * Gets the name of the node.
