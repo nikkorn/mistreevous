@@ -1,6 +1,8 @@
 import Leaf from "./leaf";
 import State from "../../state";
 import Attribute from "../../attributes/attribute";
+import { Agent } from "../../agent";
+import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
 
 /**
  * A WAIT node.
@@ -27,10 +29,11 @@ export default class Wait extends Leaf {
     private waitDuration: number | undefined;
 
     /**
-     * Update the node.
-     * @returns The result of the update.
+     * Called when the node is being updated.
+     * @param agent The agent.
+     * @param options The behaviour tree options object.
      */
-    onUpdate = () => {
+    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void {
         // If this node is in the READY state then we need to set the initial update time.
         if (this.is(State.READY)) {
             // Set the initial update time.

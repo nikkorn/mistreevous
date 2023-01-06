@@ -4,6 +4,7 @@ import Lookup from "../../lookup";
 import { Agent } from "../../agent";
 import Attribute from "../../attributes/attribute";
 import { AnyArgument } from "../../rootAstNodesBuilder";
+import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
 
 /**
  * An Action leaf node.
@@ -30,11 +31,11 @@ export default class Action extends Leaf {
     private updatePromiseStateResult: CompleteState | null = null;
 
     /**
-     * Update the node.
+     * Called when the node is being updated.
      * @param agent The agent.
-     * @returns The result of the update.
+     * @param options The behaviour tree options object.
      */
-    onUpdate = (agent: Agent) => {
+    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void {
         // If the result of this action depends on an update promise then there is nothing to do until
         // it resolves, unless there has been a value set as a result of the update promise resolving.
         if (this.isUsingUpdatePromise) {

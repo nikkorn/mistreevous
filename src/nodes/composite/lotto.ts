@@ -3,6 +3,7 @@ import Composite from "./composite";
 import State from "../../state";
 import { Agent } from "../../agent";
 import Attribute from "../../attributes/attribute";
+import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
 
 /**
  * A LOTTO node.
@@ -25,11 +26,11 @@ export default class Lotto extends Composite {
     private winningChild: Node | undefined;
 
     /**
-     * Update the node and get whether the node state has changed.
+     * Called when the node is being updated.
      * @param agent The agent.
-     * @returns Whether the state of this node has changed as part of the update.
+     * @param options The behaviour tree options object.
      */
-    onUpdate = (agent: Agent) => {
+    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void {
         // If this node is in the READY state then we need to pick a winning child node.
         if (this.is(State.READY)) {
             // Create a lotto draw.
@@ -44,7 +45,7 @@ export default class Lotto extends Composite {
 
         // If the winning child has never been updated or is running then we will need to update it now.
         if (this.winningChild!.getState() === State.READY || this.winningChild!.getState() === State.RUNNING) {
-            this.winningChild!.update(agent);
+            this.winningChild!.update(agent, options);
         }
 
         // The state of the lotto node is the state of its winning child.

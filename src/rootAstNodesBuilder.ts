@@ -95,12 +95,12 @@ export type CompositeAstNode = AstNode<Composite> & {
     attributes: Attribute[];
     children: AstNode<Node>[];
 };
-export type LottoAstNode = CompositeAstNode &
-    AstNode<Lotto> & {
-        type: "lotto";
-        createNodeInstance: NodeInstanceCreator<Lotto>;
-        tickets: number[];
-    };
+
+export type LottoAstNode = CompositeAstNode & AstNode<Lotto> & {
+    type: "lotto";
+    createNodeInstance: NodeInstanceCreator<Lotto>;
+    tickets: number[];
+};
 
 export type DecoratorAstNode = AstNode<Decorator> & {
     type: "fail" | "flip" | "repeat" | "retry" | "root" | "succeed";
@@ -108,46 +108,46 @@ export type DecoratorAstNode = AstNode<Decorator> & {
     attributes: Attribute[];
     children: AstNode<Node>[];
 };
-export type RootAstNode = DecoratorAstNode &
-    AstNode<Root> & {
-        type: "root";
-        createNodeInstance: NodeInstanceCreator<Root>;
-        name: null | string;
-    };
-export type IterableAstNode = DecoratorAstNode &
-    AstNode<Repeat | Retry> & {
-        type: "repeat" | "retry";
-        createNodeInstance: NodeInstanceCreator<Repeat | Retry>;
-        iterations: null | number;
-        maximumIterations: null | number;
-    };
+
+export type RootAstNode = DecoratorAstNode & AstNode<Root> & {
+    type: "root";
+    createNodeInstance: NodeInstanceCreator<Root>;
+    name: null | string;
+};
+
+export type IterableAstNode = DecoratorAstNode & AstNode<Repeat | Retry> & {
+    type: "repeat" | "retry";
+    createNodeInstance: NodeInstanceCreator<Repeat | Retry>;
+    iterations: null | number;
+    maximumIterations: null | number;
+};
 
 export type LeafAstNode = AstNode<Leaf> & {
     type: "action" | "condition" | "wait";
     createNodeInstance: NodeInstanceCreator<Leaf>;
     attributes: Attribute[];
 };
-export type ActionAstNode = LeafAstNode &
-    AstNode<Action> & {
-        type: "action";
-        createNodeInstance: NodeInstanceCreator<Leaf>;
-        actionName: string;
-        actionArguments: AnyArgument[];
-    };
-export type ConditionAstNode = LeafAstNode &
-    AstNode<Condition> & {
-        type: "condition";
-        createNodeInstance: NodeInstanceCreator<Condition>;
-        conditionName: string;
-        conditionArguments: AnyArgument[];
-    };
-export type WaitAstNode = LeafAstNode &
-    AstNode<Wait> & {
-        type: "wait";
-        createNodeInstance: NodeInstanceCreator<Wait>;
-        duration: number | null;
-        longestDuration: number | null;
-    };
+
+export type ActionAstNode = LeafAstNode & AstNode<Action> & {
+    type: "action";
+    createNodeInstance: NodeInstanceCreator<Leaf>;
+    actionName: string;
+    actionArguments: AnyArgument[];
+};
+
+export type ConditionAstNode = LeafAstNode & AstNode<Condition> & {
+    type: "condition";
+    createNodeInstance: NodeInstanceCreator<Condition>;
+    conditionName: string;
+    conditionArguments: AnyArgument[];
+};
+
+export type WaitAstNode = LeafAstNode & AstNode<Wait> & {
+    type: "wait";
+    createNodeInstance: NodeInstanceCreator<Wait>;
+    duration: number | null;
+    longestDuration: number | null;
+};
 
 export type AnyAstNode =
     | InitialAstNode

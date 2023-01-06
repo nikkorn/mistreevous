@@ -6,6 +6,7 @@ import Step from "../attributes/callbacks/step";
 import Guard from "../attributes/guards/guard";
 import GuardPath from "../attributes/guards/guardPath";
 import GuardUnsatisifedException from "../attributes/guards/guardUnsatisifedException";
+import { BehaviourTreeOptions } from "../behaviourTreeOptions";
 import { AnyArgument } from "../rootAstNodesBuilder";
 import State, { AnyState } from "../state";
 import Leaf from "./leaf/leaf";
@@ -14,12 +15,6 @@ import Leaf from "./leaf/leaf";
  * A base node.
  */
 export default abstract class Node {
-    /**
-     * @param type The node type.
-     * @param attributes The node attributes.
-     * @param args The node argument definitions.
-     */
-    constructor(private type: string, private attributes: Attribute[], private args: AnyArgument[]) {}
     /**
      * The node uid.
      */
@@ -34,21 +29,28 @@ export default abstract class Node {
     private guardPath: GuardPath | undefined;
 
     /**
-     * Update the node and get whether the node state has changed.
-     * @param agent The agent.
-     * @returns Whether the state of this node has changed as part of the update.
+     * @param type The node type.
+     * @param attributes The node attributes.
+     * @param args The node argument definitions.
      */
-    abstract onUpdate: (agent: Agent) => void;
+    constructor(private type: string, private attributes: Attribute[], private args: AnyArgument[]) {}
+
+    /**
+     * Called when the node is being updated.
+     * @param agent The agent.
+     * @param options The behaviour tree options object.
+     */
+    protected abstract onUpdate(agent: Agent, options: BehaviourTreeOptions): void;
 
     /**
      * Gets the name of the node.
      */
-    abstract getName: () => string;
+    public abstract getName(): string;
 
     /**
      * Gets whether this node is a leaf node.
      */
-    abstract isLeafNode: () => this is Leaf;
+    public abstract isLeafNode: () => this is Leaf;
 
     /**
      * Gets/Sets the state of the node.
@@ -110,18 +112,22 @@ export default abstract class Node {
      * Gets whether this node is in the specified state.
      * @param value The value to compare to the node state.
      */
-    is = (value: AnyState) => this.state === value;
+    public is(value: AnyState): boolean {
+        return this.state === value;
+    }
 
     /**
      * Reset the state of the node.
      */
-    reset = () => this.setState(State.READY);
+    public reset(): void {
+        this.setState(State.READY);
+    }
 
     /**
      * Abort the running of this node.
      * @param agent The agent.
      */
-    abort = (agent: Agent) => {
+    public abort(agent: Agent): void {
         // There is nothing to do if this node is not in the running state.
         if (!this.is(State.RUNNING)) {
             return;
@@ -136,13 +142,13 @@ export default abstract class Node {
     /**
      * Update the node.
      * @param agent The agent.
+     * @param options The behaviour tree options object.
      * @returns The result of the update.
      */
-    update = (agent: Agent) => {
+    public update(agent: Agent, options: BehaviourTreeOptions): void {
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
         if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {
-            // We have not changed state.
-            return {};
+            return;
         }
 
         try {
@@ -157,7 +163,7 @@ export default abstract class Node {
             this.getAttribute("step")?.callAgentFunction(agent);
 
             // Do the actual update.
-            this.onUpdate(agent);
+            this.onUpdate(agent, options);
 
             // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT for this node if it exists.
             if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {

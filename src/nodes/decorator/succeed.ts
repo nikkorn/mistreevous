@@ -3,6 +3,7 @@ import Decorator from "./decorator";
 import State from "../../state";
 import { Agent } from "../../agent";
 import Attribute from "../../attributes/attribute";
+import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
 
 /**
  * A Succeed node.
@@ -18,14 +19,14 @@ export default class Succeed extends Decorator {
     }
 
     /**
-     * Update the node.
+     * Called when the node is being updated.
      * @param agent The agent.
-     * @returns The result of the update.
+     * @param options The behaviour tree options object.
      */
-    onUpdate = (agent: Agent) => {
+    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void {
         // If the child has never been updated or is running then we will need to update it now.
         if (this.child.getState() === State.READY || this.child.getState() === State.RUNNING) {
-            this.child.update(agent);
+            this.child.update(agent, options);
         }
 
         // The state of this node will depend in the state of its child.

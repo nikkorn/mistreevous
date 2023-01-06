@@ -8,6 +8,7 @@ import Composite from "./nodes/composite/composite";
 import Decorator from "./nodes/decorator/decorator";
 import { Agent, GlobalFunction } from "./agent";
 import Attribute, { AttributeDetails } from "./attributes/attribute";
+import { BehaviourTreeOptions } from "./behaviourTreeOptions";
 
 // Purely for outside inspection of the tree.
 type FlattenedTreeNode = {
@@ -30,10 +31,12 @@ export default class BehaviourTree {
     public readonly rootNode: Root;
 
     /**
+     * Creates a new instance of the BehaviourTree class.
      * @param definition The behaviour tree definition.
      * @param agent The agent instance that this behaviour tree is modelling behaviour for.
+     * @param options The behaviour tree options object.
      */
-    constructor(definition: string, private agent: Agent) {
+    constructor(definition: string, private agent: Agent, private options: BehaviourTreeOptions = {}) {
         // The tree definition must be defined and a valid string.
         if (typeof definition !== "string") {
             throw new Error("the tree definition must be a string");
@@ -79,7 +82,7 @@ export default class BehaviourTree {
         }
 
         try {
-            this.rootNode.update(this.agent);
+            this.rootNode.update(this.agent, this.options);
         } catch (exception) {
             throw new Error(`error stepping tree: ${(exception as Error).message}`);
         }
@@ -206,7 +209,7 @@ export default class BehaviourTree {
             }
 
             // Convert the AST to our actual tree and get the root node.
-            const rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(
+            const rootNode: Root = rootNodeMap[mainRootNodeKey].createNodeInstance(
                 // Create a provider for named root nodes that are part of our definition or have been registered. Prioritising the former.
                 (name: string): RootAstNode => (rootNodeMap[name] ? rootNodeMap[name] : Lookup.getSubtree(name)),
                 []

@@ -3,6 +3,7 @@ import State from "../../state";
 import Node from "../node";
 import { Agent } from "../../agent";
 import Attribute from "../../attributes/attribute";
+import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
 
 /**
  * A PARALLEL node.
@@ -18,11 +19,11 @@ export default class Parallel extends Composite {
     }
 
     /**
-     * Update the node and get whether the node state has changed.
+     * Called when the node is being updated.
      * @param agent The agent.
-     * @returns Whether the state of this node has changed as part of the update.
+     * @param options The behaviour tree options object.
      */
-    onUpdate = (agent: Agent) => {
+    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void {
         // Keep a count of the number of succeeded child nodes.
         let succeededCount = 0;
 
@@ -33,7 +34,7 @@ export default class Parallel extends Composite {
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === State.READY || child.getState() === State.RUNNING) {
                 // Update the child of this node.
-                child.update(agent);
+                child.update(agent, options);
             }
 
             // If the current child has a state of 'SUCCEEDED' then we should move on to the next child.

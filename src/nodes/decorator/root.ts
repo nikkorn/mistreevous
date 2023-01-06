@@ -3,6 +3,7 @@ import Decorator from "./decorator";
 import State from "../../state";
 import { Agent } from "../../agent";
 import Attribute from "../../attributes/attribute";
+import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
 
 /**
  * A Root node.
@@ -18,15 +19,15 @@ export default class Root extends Decorator {
     }
 
     /**
-     * Update the node and get whether the node state has changed.
+     * Called when the node is being updated.
      * @param agent The agent.
-     * @returns Whether the state of this node has changed as part of the update.
+     * @param options The behaviour tree options object.
      */
-    onUpdate = (agent: Agent) => {
+    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void {
         // If the child has never been updated or is running then we will need to update it now.
         if (this.child.getState() === State.READY || this.child.getState() === State.RUNNING) {
             // Update the child of this node.
-            this.child.update(agent);
+            this.child.update(agent, options);
         }
 
         // The state of the root node is the state of its child.
