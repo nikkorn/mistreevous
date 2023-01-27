@@ -11,7 +11,7 @@ import Attribute, { AttributeDetails } from "./attributes/attribute";
 import { BehaviourTreeOptions } from "./behaviourTreeOptions";
 
 // Purely for outside inspection of the tree.
-type FlattenedTreeNode = {
+export type FlattenedTreeNode = {
     id: string;
     type: string;
     caption: string;
@@ -24,7 +24,7 @@ type FlattenedTreeNode = {
 /**
  * A representation of a behaviour tree.
  */
-export default class BehaviourTree {
+export class BehaviourTree {
     /**
      * The main root tree node.
      */
