@@ -20,9 +20,13 @@ export default class Wait extends Leaf {
      */
     private initialUpdateTime;
     /**
-     * The duration in milliseconds that this node will be waiting for.
+     * The total duration in milliseconds that this node will be waiting for.
      */
-    private waitDuration;
+    private totalDuration;
+    /**
+     * The duration in milliseconds that this node has been waiting for.
+     */
+    private waitedDuration;
     /**
      * Called when the node is being updated.
      * @param agent The agent.

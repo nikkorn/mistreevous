@@ -272,15 +272,26 @@ var Wait = class extends Leaf {
     this.duration = duration;
     this.longestDuration = longestDuration;
   }
-  initialUpdateTime;
-  waitDuration;
+  initialUpdateTime = 0;
+  totalDuration = 0;
+  waitedDuration = 0;
   onUpdate(agent, options) {
     if (this.is("mistreevous.ready" /* READY */)) {
       this.initialUpdateTime = new Date().getTime();
-      this.waitDuration = this.longestDuration ? Math.floor(Math.random() * (this.longestDuration - this.duration + 1) + this.duration) : this.duration;
+      this.waitedDuration = 0;
+      this.totalDuration = this.longestDuration ? Math.floor(Math.random() * (this.longestDuration - this.duration + 1) + this.duration) : this.duration;
       this.setState("mistreevous.running" /* RUNNING */);
     }
-    if (new Date().getTime() >= this.initialUpdateTime + this.waitDuration) {
+    if (typeof options.getDeltaTime === "function") {
+      const deltaTime = options.getDeltaTime();
+      if (typeof deltaTime !== "number" || isNaN(deltaTime)) {
+        throw new Error("The delta time must be a valid number and not NaN.");
+      }
+      this.waitedDuration += deltaTime * 1e3;
+    } else {
+      this.waitedDuration = new Date().getTime() - this.initialUpdateTime;
+    }
+    if (this.waitedDuration >= this.totalDuration) {
       this.setState("mistreevous.succeeded" /* SUCCEEDED */);
     }
   }
