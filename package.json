@@ -17,11 +17,12 @@
     "should": "^1.3.0"
   },
   "scripts": {
-    "build": "npm-run-all build:esbuild build:typecheck",
-    "watch": "npm run build:esbuild -- --watch",
+    "build": "npm-run-all build:node build:web build:typecheck",
+    "watch": "npm run build:node -- --watch",
     "test": "npm-run-all build:format build test:unit-test",
     "build:format": "prettier --write \"src/**/*.ts\"",
-    "build:esbuild": "esbuild ./src/index.js --bundle --sourcemap --outdir=dist --platform=node",
+    "build:node": "esbuild ./src/index.js --bundle --sourcemap --outdir=dist --platform=node",
+    "build:web": "esbuild ./src/index.js --bundle --sourcemap --outdir=dist --platform=browser --global-name=mistreevous --outfile=bundle.js",
     "build:typecheck": "tsc --emitDeclarationOnly",
     "test:unit-test": "mocha \"test/**/*.js\""
   },
@@ -41,7 +42,7 @@
     "machine",
     "state"
   ],
-  "author": "nikolas howard smells",
+  "author": "nikolas howard smells bad",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/nikkorn/mistreevous/issues"
