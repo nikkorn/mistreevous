@@ -21,12 +21,17 @@ export default class Wait extends Leaf {
     /**
      * The time in milliseconds at which this node was first updated.
      */
-    private initialUpdateTime: number | undefined;
+    private initialUpdateTime: number = 0;
 
     /**
-     * The duration in milliseconds that this node will be waiting for.
+     * The total duration in milliseconds that this node will be waiting for.
      */
-    private waitDuration: number | undefined;
+    private totalDuration: number = 0;
+
+    /**
+     * The duration in milliseconds that this node has been waiting for.
+     */
+    private waitedDuration: number = 0;
 
     /**
      * Called when the node is being updated.
@@ -39,9 +44,12 @@ export default class Wait extends Leaf {
             // Set the initial update time.
             this.initialUpdateTime = new Date().getTime();
 
+            // Set the initial waited duration.
+            this.waitedDuration = 0;
+
             // If a longestDuration value was defined then we will be randomly picking a duration between the
             // shortest and longest duration. If it was not defined, then we will be just using the duration.
-            this.waitDuration = this.longestDuration
+            this.totalDuration = this.longestDuration
                 ? Math.floor(Math.random() * (this.longestDuration - this.duration + 1) + this.duration)
                 : this.duration;
 
@@ -49,8 +57,25 @@ export default class Wait extends Leaf {
             this.setState(State.RUNNING);
         }
 
+        // If we have a 'getDeltaTime' function defined as part of our options then we will use it to figure out how long we have waited for.
+        if (typeof options.getDeltaTime === "function") {
+            // Get the delta time.
+            const deltaTime = options.getDeltaTime();
+
+            // Our delta time must be a valid number and cannot be NaN.
+            if (typeof deltaTime !== "number" || isNaN(deltaTime)) {
+                throw new Error("The delta time must be a valid number and not NaN.");
+            }
+
+            // Update the amount of time that this node has been waiting for based on the delta time.
+            this.waitedDuration += deltaTime * 1000;
+        } else {
+            // We are not using a delta time, so we will just work out hom much time has passed since the first update.
+            this.waitedDuration = new Date().getTime() - this.initialUpdateTime;
+        }
+
         // Have we waited long enough?
-        if (new Date().getTime() >= this.initialUpdateTime! + this.waitDuration!) {
+        if (this.waitedDuration >= this.totalDuration) {
             // We have finished waiting!
             this.setState(State.SUCCEEDED);
         }
