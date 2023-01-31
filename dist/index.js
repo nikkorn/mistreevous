@@ -1531,13 +1531,15 @@ var BehaviourTree = class {
   getFlattenedNodeDetails() {
     const flattenedTreeNodes = [];
     const processNode = (node, parentUid) => {
-      const getAttributeDetails = (attributes) => attributes.length > 0 ? attributes.map((attribute) => attribute.getDetails()) : null;
+      const guards = node.getAttributes().filter((attribute) => attribute.isGuard()).map((attribute) => attribute.getDetails());
+      const callbacks = node.getAttributes().filter((attribute) => !attribute.isGuard()).map((attribute) => attribute.getDetails());
       flattenedTreeNodes.push({
         id: node.getUid(),
         type: node.getType(),
         caption: node.getName(),
         state: node.getState(),
-        attributes: getAttributeDetails(node.getAttributes()),
+        guards,
+        callbacks,
         arguments: node.getArguments(),
         parentId: parentUid
       });

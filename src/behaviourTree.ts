@@ -111,8 +111,14 @@ export class BehaviourTree {
          */
         const processNode = (node: Node, parentUid: string | null) => {
             // Get the guard and callback attribute details for this node.
-            const guards = node.getAttributes().filter((attribute) => attribute.isGuard()).map((attribute) => attribute.getDetails());
-            const callbacks = node.getAttributes().filter((attribute) => !attribute.isGuard()).map((attribute) => attribute.getDetails());
+            const guards = node
+                .getAttributes()
+                .filter((attribute) => attribute.isGuard())
+                .map((attribute) => attribute.getDetails());
+            const callbacks = node
+                .getAttributes()
+                .filter((attribute) => !attribute.isGuard())
+                .map((attribute) => attribute.getDetails());
 
             // Push the current node into the flattened nodes array.
             flattenedTreeNodes.push({

@@ -9,7 +9,8 @@ export type FlattenedTreeNode = {
     type: string;
     caption: string;
     state: AnyState;
-    attributes: AttributeDetails[] | null;
+    guards: AttributeDetails[];
+    callbacks: AttributeDetails[];
     arguments: AnyArgument[];
     parentId: string | null;
 };
