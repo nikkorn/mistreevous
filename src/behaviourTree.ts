@@ -18,7 +18,7 @@ export type FlattenedTreeNode = {
     state: AnyState;
     guards: AttributeDetails[];
     callbacks: AttributeDetails[];
-    arguments: AnyArgument[];
+    args: AnyArgument[];
     parentId: string | null;
 };
 
@@ -128,7 +128,7 @@ export class BehaviourTree {
                 state: node.getState(),
                 guards,
                 callbacks,
-                arguments: node.getArguments(),
+                args: node.getArguments(),
                 parentId: parentUid
             });
 

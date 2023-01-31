@@ -1125,8 +1125,7 @@ function getAttributes(tokens: string[], stringArgumentPlaceholders: Placeholder
             });
 
         // Create the attribute and add it to the array of attributes found.
-        // TODO: Is this a bug? Passing an IdentifierArgument as a string.
-        attributes.push(attributeFactory(attributeFunctionName as any as string, attributeArguments));
+        attributes.push(attributeFactory(attributeFunctionName.value, attributeArguments));
 
         // Try to get the next attribute name token, as there could be multiple.
         attributeFactory = AttributeFactories[(tokens[0] || "").toUpperCase()];

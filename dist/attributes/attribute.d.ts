@@ -2,7 +2,7 @@ import { AnyArgument } from "../rootAstNodesBuilder";
 import Guard from "./guards/guard";
 export type AttributeDetails = {
     type: string;
-    arguments: AnyArgument[];
+    args: AnyArgument[];
 };
 /**
  * A base node attribute.

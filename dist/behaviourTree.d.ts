@@ -11,7 +11,7 @@ export type FlattenedTreeNode = {
     state: AnyState;
     guards: AttributeDetails[];
     callbacks: AttributeDetails[];
-    arguments: AnyArgument[];
+    args: AnyArgument[];
     parentId: string | null;
 };
 /**

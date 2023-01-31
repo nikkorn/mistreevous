@@ -3,7 +3,7 @@ import Guard from "./guards/guard";
 
 export type AttributeDetails = {
     type: string;
-    arguments: AnyArgument[];
+    args: AnyArgument[];
 };
 
 /**
@@ -31,7 +31,7 @@ export default abstract class Attribute {
      */
     getDetails = (): AttributeDetails => ({
         type: this.getType(),
-        arguments: this.getArguments()
+        args: this.getArguments()
     });
 
     /**

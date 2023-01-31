@@ -702,35 +702,37 @@ var Attribute = class {
   getArguments = () => this.args;
   getDetails = () => ({
     type: this.getType(),
-    arguments: this.getArguments()
+    args: this.getArguments()
   });
 };
 
 // src/attributes/guards/guard.ts
 var Guard = class extends Attribute {
+  constructor(type, args, condition) {
+    super(type, args);
+    this.condition = condition;
+  }
+  getCondition = () => this.condition;
   isGuard = () => true;
+  getDetails = () => {
+    return {
+      type: this.getType(),
+      args: this.getArguments(),
+      condition: this.getCondition()
+    };
+  };
 };
 
 // src/attributes/guards/while.ts
 var While = class extends Guard {
   constructor(condition, args) {
-    super("while", args);
-    this.condition = condition;
+    super("while", args, condition);
   }
-  getCondition = () => this.condition;
-  getDetails = () => {
-    return {
-      type: this.getType(),
-      isGuard: this.isGuard(),
-      condition: this.getCondition(),
-      arguments: this.getArguments()
-    };
-  };
   isSatisfied = (agent) => {
-    const conditionFuncInvoker = Lookup.getFuncInvoker(agent, this.condition);
+    const conditionFuncInvoker = Lookup.getFuncInvoker(agent, this.getCondition());
     if (conditionFuncInvoker === null) {
       throw new Error(
-        `cannot evaluate node guard as the condition '${this.condition}' function is not defined on the agent and has not been registered`
+        `cannot evaluate node guard as the condition '${this.getCondition()}' function is not defined on the agent and has not been registered`
       );
     }
     return !!conditionFuncInvoker(this.args);
@@ -740,23 +742,13 @@ var While = class extends Guard {
 // src/attributes/guards/until.ts
 var Until = class extends Guard {
   constructor(condition, args) {
-    super("until", args);
-    this.condition = condition;
+    super("until", args, condition);
   }
-  getCondition = () => this.condition;
-  getDetails = () => {
-    return {
-      type: this.getType(),
-      isGuard: this.isGuard(),
-      condition: this.getCondition(),
-      arguments: this.getArguments()
-    };
-  };
   isSatisfied = (agent) => {
-    const conditionFuncInvoker = Lookup.getFuncInvoker(agent, this.condition);
+    const conditionFuncInvoker = Lookup.getFuncInvoker(agent, this.getCondition());
     if (conditionFuncInvoker === null) {
       throw new Error(
-        `cannot evaluate node guard as the condition '${this.condition}' function is not defined on the agent and has not been registered`
+        `cannot evaluate node guard as the condition '${this.getCondition()}' function is not defined on the agent and has not been registered`
       );
     }
     return !!!conditionFuncInvoker(this.args);
@@ -765,29 +757,31 @@ var Until = class extends Guard {
 
 // src/attributes/callbacks/callback.ts
 var Callback = class extends Attribute {
+  constructor(type, args, functionName) {
+    super(type, args);
+    this.functionName = functionName;
+  }
+  getFunctionName = () => this.functionName;
   isGuard = () => false;
+  getDetails = () => {
+    return {
+      type: this.getType(),
+      args: this.getArguments(),
+      functionName: this.getFunctionName()
+    };
+  };
 };
 
 // src/attributes/callbacks/entry.ts
 var Entry = class extends Callback {
   constructor(functionName, args) {
-    super("entry", args);
-    this.functionName = functionName;
+    super("entry", args, functionName);
   }
-  getFunctionName = () => this.functionName;
-  getDetails = () => {
-    return {
-      type: this.getType(),
-      isGuard: this.isGuard(),
-      functionName: this.getFunctionName(),
-      arguments: this.getArguments()
-    };
-  };
   callAgentFunction = (agent) => {
-    const callbackFuncInvoker = Lookup.getFuncInvoker(agent, this.functionName);
+    const callbackFuncInvoker = Lookup.getFuncInvoker(agent, this.getFunctionName());
     if (callbackFuncInvoker === null) {
       throw new Error(
-        `cannot call entry function '${this.functionName}' as is not defined on the agent and has not been registered`
+        `cannot call entry function '${this.getFunctionName()}' as is not defined on the agent and has not been registered`
       );
     }
     callbackFuncInvoker(this.args);
@@ -797,23 +791,13 @@ var Entry = class extends Callback {
 // src/attributes/callbacks/exit.ts
 var Exit = class extends Callback {
   constructor(functionName, args) {
-    super("exit", args);
-    this.functionName = functionName;
+    super("exit", args, functionName);
   }
-  getFunctionName = () => this.functionName;
-  getDetails = () => {
-    return {
-      type: this.getType(),
-      isGuard: this.isGuard(),
-      functionName: this.getFunctionName(),
-      arguments: this.getArguments()
-    };
-  };
   callAgentFunction = (agent, isSuccess, isAborted) => {
-    const callbackFuncInvoker = Lookup.getFuncInvoker(agent, this.functionName);
+    const callbackFuncInvoker = Lookup.getFuncInvoker(agent, this.getFunctionName());
     if (callbackFuncInvoker === null) {
       throw new Error(
-        `cannot call exit function '${this.functionName}' as is not defined on the agent and has not been registered`
+        `cannot call exit function '${this.getFunctionName()}' as is not defined on the agent and has not been registered`
       );
     }
     callbackFuncInvoker([{ value: { succeeded: isSuccess, aborted: isAborted } }, ...this.args]);
@@ -823,23 +807,13 @@ var Exit = class extends Callback {
 // src/attributes/callbacks/step.ts
 var Step = class extends Callback {
   constructor(functionName, args) {
-    super("exit", args);
-    this.functionName = functionName;
+    super("step", args, functionName);
   }
-  getFunctionName = () => this.functionName;
-  getDetails = () => {
-    return {
-      type: this.getType(),
-      isGuard: this.isGuard(),
-      functionName: this.getFunctionName(),
-      arguments: this.getArguments()
-    };
-  };
   callAgentFunction = (agent) => {
-    const callbackFuncInvoker = Lookup.getFuncInvoker(agent, this.functionName);
+    const callbackFuncInvoker = Lookup.getFuncInvoker(agent, this.getFunctionName());
     if (callbackFuncInvoker === null) {
       throw new Error(
-        `cannot call step function '${this.functionName}' as is not defined on the agent and has not been registered`
+        `cannot call step function '${this.getFunctionName()}' as is not defined on the agent and has not been registered`
       );
     }
     callbackFuncInvoker(this.args);
@@ -1466,7 +1440,7 @@ function getAttributes(tokens, stringArgumentPlaceholders) {
         "invalid attribute argument value '" + arg.value + "', must be string, number, boolean or null"
       );
     });
-    attributes.push(attributeFactory(attributeFunctionName, attributeArguments));
+    attributes.push(attributeFactory(attributeFunctionName.value, attributeArguments));
     attributeFactory = AttributeFactories[(tokens[0] || "").toUpperCase()];
   }
   return attributes;
@@ -1540,7 +1514,7 @@ var BehaviourTree = class {
         state: node.getState(),
         guards,
         callbacks,
-        arguments: node.getArguments(),
+        args: node.getArguments(),
         parentId: parentUid
       });
       if (!node.isLeafNode()) {
