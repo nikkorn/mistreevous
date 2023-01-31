@@ -7,7 +7,7 @@ import Root from "./nodes/decorator/root";
 import Composite from "./nodes/composite/composite";
 import Decorator from "./nodes/decorator/decorator";
 import { Agent, GlobalFunction } from "./agent";
-import Attribute, { AttributeDetails } from "./attributes/attribute";
+import { AttributeDetails } from "./attributes/attribute";
 import { BehaviourTreeOptions } from "./behaviourTreeOptions";
 
 // Purely for outside inspection of the tree.
@@ -16,7 +16,8 @@ export type FlattenedTreeNode = {
     type: string;
     caption: string;
     state: AnyState;
-    attributes: AttributeDetails[] | null;
+    guards: AttributeDetails[];
+    callbacks: AttributeDetails[];
     arguments: AnyArgument[];
     parentId: string | null;
 };
@@ -109,13 +110,9 @@ export class BehaviourTree {
          * @param parentUid The UID of the node parent, or null if the node is the main root node.
          */
         const processNode = (node: Node, parentUid: string | null) => {
-            /**
-             * Helper function to get details for all node attributes.
-             * @param attributes The node attributes.
-             * @returns The attribute details for a node.
-             */
-            const getAttributeDetails = (attributes: Attribute[]) =>
-                attributes.length > 0 ? attributes.map((attribute) => attribute.getDetails()) : null;
+            // Get the guard and callback attribute details for this node.
+            const guards = node.getAttributes().filter((attribute) => attribute.isGuard()).map((attribute) => attribute.getDetails());
+            const callbacks = node.getAttributes().filter((attribute) => !attribute.isGuard()).map((attribute) => attribute.getDetails());
 
             // Push the current node into the flattened nodes array.
             flattenedTreeNodes.push({
@@ -123,7 +120,8 @@ export class BehaviourTree {
                 type: node.getType(),
                 caption: node.getName(),
                 state: node.getState(),
-                attributes: getAttributeDetails(node.getAttributes()),
+                guards,
+                callbacks,
                 arguments: node.getArguments(),
                 parentId: parentUid
             });
