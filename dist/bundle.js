@@ -700,10 +700,6 @@ var mistreevous = (() => {
     }
     getType = () => this.type;
     getArguments = () => this.args;
-    getDetails = () => ({
-      type: this.getType(),
-      args: this.getArguments()
-    });
   };
 
   // src/attributes/guards/guard.ts
@@ -714,13 +710,13 @@ var mistreevous = (() => {
     }
     getCondition = () => this.condition;
     isGuard = () => true;
-    getDetails = () => {
+    getDetails() {
       return {
         type: this.getType(),
         args: this.getArguments(),
         condition: this.getCondition()
       };
-    };
+    }
   };
 
   // src/attributes/guards/while.ts
@@ -763,13 +759,13 @@ var mistreevous = (() => {
     }
     getFunctionName = () => this.functionName;
     isGuard = () => false;
-    getDetails = () => {
+    getDetails() {
       return {
         type: this.getType(),
         args: this.getArguments(),
         functionName: this.getFunctionName()
       };
-    };
+    }
   };
 
   // src/attributes/callbacks/entry.ts

@@ -64,7 +64,7 @@ export default abstract class Node {
     /**
      * Gets the node attributes.
      */
-    getAttributes: () => Attribute[];
+    getAttributes: () => Attribute<import("../attributes/attribute").AttributeDetails>[];
     /**
      * Gets the node arguments.
      */

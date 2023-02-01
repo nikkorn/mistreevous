@@ -1,11 +1,16 @@
 import { Agent } from "../../agent";
 import { AnyArgument } from "../../rootAstNodesBuilder";
-import Attribute from "../attribute";
+import Attribute, { AttributeDetails } from "../attribute";
+
+export type GuardAttributeDetails = {
+    /** The name of the condition function that determines whether the guard is satisfied. */
+    condition: string;
+} & AttributeDetails;
 
 /**
  * A base node guard attribute.
  */
-export default abstract class Guard extends Attribute {
+export default abstract class Guard extends Attribute<GuardAttributeDetails> {
     /**
      * @param type The node attribute type.
      * @param args The array of decorator argument definitions.
@@ -28,13 +33,13 @@ export default abstract class Guard extends Attribute {
     /**
      * Gets the attribute details.
      */
-    getDetails = () => {
+    getDetails(): GuardAttributeDetails {
         return {
             type: this.getType(),
             args: this.getArguments(),
             condition: this.getCondition()
         };
-    };
+    }
 
     /**
      * Gets whether the guard is satisfied.

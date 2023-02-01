@@ -7,7 +7,8 @@ import Root from "./nodes/decorator/root";
 import Composite from "./nodes/composite/composite";
 import Decorator from "./nodes/decorator/decorator";
 import { Agent, GlobalFunction } from "./agent";
-import { AttributeDetails } from "./attributes/attribute";
+import { CallbackAttributeDetails } from "./attributes/callbacks/callback";
+import { GuardAttributeDetails } from "./attributes/guards/guard";
 import { BehaviourTreeOptions } from "./behaviourTreeOptions";
 
 // Purely for outside inspection of the tree.
@@ -16,8 +17,8 @@ export type FlattenedTreeNode = {
     type: string;
     caption: string;
     state: AnyState;
-    guards: AttributeDetails[];
-    callbacks: AttributeDetails[];
+    guards: GuardAttributeDetails[];
+    callbacks: CallbackAttributeDetails[];
     args: AnyArgument[];
     parentId: string | null;
 };
@@ -114,11 +115,11 @@ export class BehaviourTree {
             const guards = node
                 .getAttributes()
                 .filter((attribute) => attribute.isGuard())
-                .map((attribute) => attribute.getDetails());
+                .map((attribute) => attribute.getDetails()) as GuardAttributeDetails[];
             const callbacks = node
                 .getAttributes()
                 .filter((attribute) => !attribute.isGuard())
-                .map((attribute) => attribute.getDetails());
+                .map((attribute) => attribute.getDetails()) as CallbackAttributeDetails[];
 
             // Push the current node into the flattened nodes array.
             flattenedTreeNodes.push({

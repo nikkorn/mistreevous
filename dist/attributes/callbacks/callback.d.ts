@@ -1,10 +1,14 @@
 import { Agent } from "../../agent";
 import { AnyArgument } from "../../rootAstNodesBuilder";
-import Attribute from "../attribute";
+import Attribute, { AttributeDetails } from "../attribute";
+export type CallbackAttributeDetails = {
+    /** The name of the agent function that is called. */
+    functionName: string;
+} & AttributeDetails;
 /**
  * A base node callback attribute.
  */
-export default abstract class Callback extends Attribute {
+export default abstract class Callback extends Attribute<CallbackAttributeDetails> {
     private functionName;
     /**
      * @param type The node attribute type.
@@ -21,13 +25,9 @@ export default abstract class Callback extends Attribute {
      */
     isGuard: () => boolean;
     /**
-     * Gets the callback details.
+     * Gets the attribute details.
      */
-    getDetails: () => {
-        type: string;
-        args: AnyArgument[];
-        functionName: string;
-    };
+    getDetails(): CallbackAttributeDetails;
     /**
      * Attempt to call the agent function that this callback refers to.
      * @param agent The agent.
