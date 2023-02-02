@@ -2,6 +2,7 @@ import Node from "../node";
 import Decorator from "./decorator";
 import { Agent } from "../../agent";
 import Attribute from "../../attributes/attribute";
+import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
 /**
  * A Succeed node.
  * This node wraps a single child and will always move to the 'SUCCEEDED' state when the child moves to a 'SUCCEEDED' or 'FAILED' state.
@@ -13,11 +14,11 @@ export default class Succeed extends Decorator {
      */
     constructor(attributes: Attribute[], child: Node);
     /**
-     * Update the node.
+     * Called when the node is being updated.
      * @param agent The agent.
-     * @returns The result of the update.
+     * @param options The behaviour tree options object.
      */
-    onUpdate: (agent: Agent) => void;
+    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void;
     /**
      * Gets the name of the node.
      */

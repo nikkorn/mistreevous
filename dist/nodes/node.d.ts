@@ -5,6 +5,7 @@ import Exit from "../attributes/callbacks/exit";
 import Step from "../attributes/callbacks/step";
 import Guard from "../attributes/guards/guard";
 import GuardPath from "../attributes/guards/guardPath";
+import { BehaviourTreeOptions } from "../behaviourTreeOptions";
 import { AnyArgument } from "../rootAstNodesBuilder";
 import { AnyState } from "../state";
 import Leaf from "./leaf/leaf";
@@ -15,12 +16,6 @@ export default abstract class Node {
     private type;
     private attributes;
     private args;
-    /**
-     * @param type The node type.
-     * @param attributes The node attributes.
-     * @param args The node argument definitions.
-     */
-    constructor(type: string, attributes: Attribute[], args: AnyArgument[]);
     /**
      * The node uid.
      */
@@ -34,15 +29,21 @@ export default abstract class Node {
      */
     private guardPath;
     /**
-     * Update the node and get whether the node state has changed.
-     * @param agent The agent.
-     * @returns Whether the state of this node has changed as part of the update.
+     * @param type The node type.
+     * @param attributes The node attributes.
+     * @param args The node argument definitions.
      */
-    abstract onUpdate: (agent: Agent) => void;
+    constructor(type: string, attributes: Attribute[], args: AnyArgument[]);
+    /**
+     * Called when the node is being updated.
+     * @param agent The agent.
+     * @param options The behaviour tree options object.
+     */
+    protected abstract onUpdate(agent: Agent, options: BehaviourTreeOptions): void;
     /**
      * Gets the name of the node.
      */
-    abstract getName: () => string;
+    abstract getName(): string;
     /**
      * Gets whether this node is a leaf node.
      */
@@ -63,7 +64,7 @@ export default abstract class Node {
     /**
      * Gets the node attributes.
      */
-    getAttributes: () => Attribute[];
+    getAttributes: () => Attribute<import("../attributes/attribute").AttributeDetails>[];
     /**
      * Gets the node arguments.
      */
@@ -90,20 +91,21 @@ export default abstract class Node {
      * Gets whether this node is in the specified state.
      * @param value The value to compare to the node state.
      */
-    is: (value: AnyState) => boolean;
+    is(value: AnyState): boolean;
     /**
      * Reset the state of the node.
      */
-    reset: () => void;
+    reset(): void;
     /**
      * Abort the running of this node.
      * @param agent The agent.
      */
-    abort: (agent: Agent) => void;
+    abort(agent: Agent): void;
     /**
      * Update the node.
      * @param agent The agent.
+     * @param options The behaviour tree options object.
      * @returns The result of the update.
      */
-    update: (agent: Agent) => {} | undefined;
+    update(agent: Agent, options: BehaviourTreeOptions): void;
 }

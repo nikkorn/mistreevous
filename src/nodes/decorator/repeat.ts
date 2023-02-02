@@ -3,6 +3,7 @@ import Decorator from "./decorator";
 import State from "../../state";
 import { Agent } from "../../agent";
 import Attribute from "../../attributes/attribute";
+import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
 
 /**
  * A REPEAT node.
@@ -39,11 +40,11 @@ export default class Repeat extends Decorator {
     private currentIterationCount: number = 0;
 
     /**
-     * Update the node.
+     * Called when the node is being updated.
      * @param agent The agent.
-     * @returns The result of the update.
+     * @param options The behaviour tree options object.
      */
-    onUpdate = (agent: Agent) => {
+    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void {
         // If this node is in the READY state then we need to reset the child and the target iteration count.
         if (this.is(State.READY)) {
             // Reset the child node.
@@ -66,7 +67,7 @@ export default class Repeat extends Decorator {
             }
 
             // Update the child of this node.
-            this.child.update(agent);
+            this.child.update(agent, options);
 
             // If the child moved into the FAILED state when we updated it then there is nothing left to do and this node has also failed.
             // If it has moved into the SUCCEEDED state then we have completed the current iteration.
@@ -83,7 +84,7 @@ export default class Repeat extends Decorator {
             // This node is in the 'SUCCEEDED' state as we cannot iterate any more.
             this.setState(State.SUCCEEDED);
         }
-    };
+    }
 
     /**
      * Gets the name of the node.

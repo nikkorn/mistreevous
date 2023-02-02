@@ -2,6 +2,7 @@ import Composite from "./composite";
 import Node from "../node";
 import { Agent } from "../../agent";
 import Attribute from "../../attributes/attribute";
+import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
 /**
  * A SEQUENCE node.
  * The child nodes are executed in sequence until one fails or all succeed.
@@ -14,11 +15,11 @@ export default class Sequence extends Composite {
      */
     constructor(attributes: Attribute[], children: Node[]);
     /**
-     * Update the node and get whether the node state has changed.
+     * Called when the node is being updated.
      * @param agent The agent.
-     * @returns Whether the state of this node has changed as part of the update.
+     * @param options The behaviour tree options object.
      */
-    onUpdate: (agent: Agent) => void;
+    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void;
     /**
      * Gets the name of the node.
      */

@@ -7,33 +7,38 @@ import Root from "./nodes/decorator/root";
 import Composite from "./nodes/composite/composite";
 import Decorator from "./nodes/decorator/decorator";
 import { Agent, GlobalFunction } from "./agent";
-import Attribute, { AttributeDetails } from "./attributes/attribute";
+import { CallbackAttributeDetails } from "./attributes/callbacks/callback";
+import { GuardAttributeDetails } from "./attributes/guards/guard";
+import { BehaviourTreeOptions } from "./behaviourTreeOptions";
 
 // Purely for outside inspection of the tree.
-type FlattenedTreeNode = {
+export type FlattenedTreeNode = {
     id: string;
     type: string;
     caption: string;
     state: AnyState;
-    attributes: AttributeDetails[] | null;
-    arguments: AnyArgument[];
+    guards: GuardAttributeDetails[];
+    callbacks: CallbackAttributeDetails[];
+    args: AnyArgument[];
     parentId: string | null;
 };
 
 /**
  * A representation of a behaviour tree.
  */
-export default class BehaviourTree {
+export class BehaviourTree {
     /**
      * The main root tree node.
      */
     public readonly rootNode: Root;
 
     /**
+     * Creates a new instance of the BehaviourTree class.
      * @param definition The behaviour tree definition.
      * @param agent The agent instance that this behaviour tree is modelling behaviour for.
+     * @param options The behaviour tree options object.
      */
-    constructor(definition: string, private agent: Agent) {
+    constructor(definition: string, private agent: Agent, private options: BehaviourTreeOptions = {}) {
         // The tree definition must be defined and a valid string.
         if (typeof definition !== "string") {
             throw new Error("the tree definition must be a string");
@@ -79,7 +84,7 @@ export default class BehaviourTree {
         }
 
         try {
-            this.rootNode.update(this.agent);
+            this.rootNode.update(this.agent, this.options);
         } catch (exception) {
             throw new Error(`error stepping tree: ${(exception as Error).message}`);
         }
@@ -106,13 +111,15 @@ export default class BehaviourTree {
          * @param parentUid The UID of the node parent, or null if the node is the main root node.
          */
         const processNode = (node: Node, parentUid: string | null) => {
-            /**
-             * Helper function to get details for all node attributes.
-             * @param attributes The node attributes.
-             * @returns The attribute details for a node.
-             */
-            const getAttributeDetails = (attributes: Attribute[]) =>
-                attributes.length > 0 ? attributes.map((attribute) => attribute.getDetails()) : null;
+            // Get the guard and callback attribute details for this node.
+            const guards = node
+                .getAttributes()
+                .filter((attribute) => attribute.isGuard())
+                .map((attribute) => attribute.getDetails()) as GuardAttributeDetails[];
+            const callbacks = node
+                .getAttributes()
+                .filter((attribute) => !attribute.isGuard())
+                .map((attribute) => attribute.getDetails()) as CallbackAttributeDetails[];
 
             // Push the current node into the flattened nodes array.
             flattenedTreeNodes.push({
@@ -120,8 +127,9 @@ export default class BehaviourTree {
                 type: node.getType(),
                 caption: node.getName(),
                 state: node.getState(),
-                attributes: getAttributeDetails(node.getAttributes()),
-                arguments: node.getArguments(),
+                guards,
+                callbacks,
+                args: node.getArguments(),
                 parentId: parentUid
             });
 
@@ -206,7 +214,7 @@ export default class BehaviourTree {
             }
 
             // Convert the AST to our actual tree and get the root node.
-            const rootNode = rootNodeMap[mainRootNodeKey].createNodeInstance(
+            const rootNode: Root = rootNodeMap[mainRootNodeKey].createNodeInstance(
                 // Create a provider for named root nodes that are part of our definition or have been registered. Prioritising the former.
                 (name: string): RootAstNode => (rootNodeMap[name] ? rootNodeMap[name] : Lookup.getSubtree(name)),
                 []

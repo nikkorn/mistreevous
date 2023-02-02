@@ -2,7 +2,7 @@
 [![npm version](https://badge.fury.io/js/mistreevous.svg)](https://badge.fury.io/js/mistreevous)
 [![Node.js CI](https://github.com/nikkorn/mistreevous/actions/workflows/node.js.yml/badge.svg?branch=master)](https://github.com/nikkorn/mistreevous/actions/workflows/node.js.yml)
 
-A tool to declaratively define and generate behaviour trees in JavaScript. Behaviour trees are used to create complex AI via the modular heirarchical composition of individual tasks.
+A tool to declaratively define and generate behaviour trees, built using Typescript. Behaviour trees are used to create complex AI via the modular heirarchical composition of individual tasks.
 
 Using this tool, trees can be defined with a simple and minimal built-in DSL, avoiding the need to write verbose definitions in JSON.
 
@@ -636,6 +636,14 @@ const definition = `root {
 /** Create our agent behaviour tree. */
 const agentBehaviourTree = new BehaviourTree(definition, agent);
 ```
+
+## Further Reading
+[Behavior trees for AI: How they work](https://www.gamedeveloper.com/programming/behavior-trees-for-ai-how-they-work)
+A great overview of behaviour trees, tackling the basic concepts.
+
+[Designing AI Agents’ Behaviors with Behavior Trees](https://towardsdatascience.com/designing-ai-agents-behaviors-with-behavior-trees-b28aa1c3cf8a)
+A practical look at behaviour trees and a good example of modelling behaviour for agents in a game of Pacman.
+
 
 ## Version History
 | Version        | Notes           |

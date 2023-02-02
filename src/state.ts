@@ -1,7 +1,7 @@
 /**
  * Enumeration of node state types.
  */
-export const enum State {
+export enum State {
     READY = "mistreevous.ready",
     RUNNING = "mistreevous.running",
     SUCCEEDED = "mistreevous.succeeded",

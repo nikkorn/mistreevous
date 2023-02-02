@@ -4,6 +4,7 @@ import Lookup from "../../lookup";
 import { Agent } from "../../agent";
 import Attribute from "../../attributes/attribute";
 import { AnyArgument } from "../../rootAstNodesBuilder";
+import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
 
 /**
  * A Condition leaf node.
@@ -20,11 +21,11 @@ export default class Condition extends Leaf {
     }
 
     /**
-     * Update the node.
+     * Called when the node is being updated.
      * @param agent The agent.
-     * @returns The result of the update.
+     * @param options The behaviour tree options object.
      */
-    onUpdate = (agent: Agent) => {
+    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void {
         // Attempt to get the invoker for the condition function.
         const conditionFuncInvoker = Lookup.getFuncInvoker(agent, this.conditionName);
 
@@ -37,7 +38,7 @@ export default class Condition extends Leaf {
 
         // Call the condition function to determine the state of this node.
         this.setState(!!conditionFuncInvoker(this.conditionArguments) ? State.SUCCEEDED : State.FAILED);
-    };
+    }
 
     /**
      * Gets the name of the node.

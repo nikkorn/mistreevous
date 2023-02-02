@@ -2,6 +2,7 @@ import Node from "../node";
 import Decorator from "./decorator";
 import { Agent } from "../../agent";
 import Attribute from "../../attributes/attribute";
+import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
 /**
  * A Root node.
  * The root node will have a single child.
@@ -13,11 +14,11 @@ export default class Root extends Decorator {
      */
     constructor(attributes: Attribute[], child: Node);
     /**
-     * Update the node and get whether the node state has changed.
+     * Called when the node is being updated.
      * @param agent The agent.
-     * @returns Whether the state of this node has changed as part of the update.
+     * @param options The behaviour tree options object.
      */
-    onUpdate: (agent: Agent) => void;
+    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void;
     /**
      * Gets the name of the node.
      */

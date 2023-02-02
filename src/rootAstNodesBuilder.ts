@@ -64,93 +64,78 @@ const AttributeFactories: {
     STEP: (functionName: string, attributeArguments: AnyArgument[]) => new Step(functionName, attributeArguments)
 };
 
-type NodeInstanceCreator<T extends Node> = (
-    namedRootNodeProvider: (name: string) => RootAstNode,
-    visitedBranches: string[]
-) => T;
-
 type Validatable = {
     children?: AstNode<Node>[];
     validate: (depth: number) => void;
 };
+
+type NodeInstanceCreator<T extends Node> = (
+    namedRootNodeProvider: (name: string) => RootAstNode,
+    visitedBranches: string[]
+) => T;
 
 export type AstNode<T extends Node> = Validatable & {
     type: string;
     createNodeInstance: NodeInstanceCreator<T>;
 };
 
-export type InitialAstNode = AstNode<Node> & {
-    createNodeInstance: NodeInstanceCreator<Node>;
+export type LeafAstNode<T extends Leaf = Leaf> = AstNode<T> & {
+    type: "action" | "condition" | "wait";
+    attributes: Attribute[];
+};
+
+export type CompositeAstNode<T extends Composite = Composite> = AstNode<T> & {
+    type: "lotto" | "parallel" | "selector" | "sequence";
+    attributes: Attribute[];
+    children: AstNode<Node>[];
+};
+
+export type DecoratorAstNode<T extends Decorator = Decorator> = AstNode<T> & {
+    type: "fail" | "flip" | "repeat" | "retry" | "root" | "succeed";
+    attributes: Attribute[];
+    children: AstNode<Node>[];
 };
 
 export type BranchAstNode = AstNode<Node> & {
     type: "branch";
     branchName: "" | string;
-    createNodeInstance: NodeInstanceCreator<Node>;
 };
 
-export type CompositeAstNode = AstNode<Composite> & {
-    type: "lotto" | "parallel" | "selector" | "sequence";
-    createNodeInstance: NodeInstanceCreator<Composite>;
-    attributes: Attribute[];
-    children: AstNode<Node>[];
+export type LottoAstNode = CompositeAstNode<Lotto> & {
+    type: "lotto";
+    tickets: number[];
 };
-export type LottoAstNode = CompositeAstNode &
-    AstNode<Lotto> & {
-        type: "lotto";
-        createNodeInstance: NodeInstanceCreator<Lotto>;
-        tickets: number[];
-    };
 
-export type DecoratorAstNode = AstNode<Decorator> & {
-    type: "fail" | "flip" | "repeat" | "retry" | "root" | "succeed";
-    createNodeInstance: NodeInstanceCreator<Decorator>;
-    attributes: Attribute[];
-    children: AstNode<Node>[];
+export type RootAstNode = DecoratorAstNode<Root> & {
+    type: "root";
+    name: null | string;
 };
-export type RootAstNode = DecoratorAstNode &
-    AstNode<Root> & {
-        type: "root";
-        createNodeInstance: NodeInstanceCreator<Root>;
-        name: null | string;
-    };
-export type IterableAstNode = DecoratorAstNode &
-    AstNode<Repeat | Retry> & {
-        type: "repeat" | "retry";
-        createNodeInstance: NodeInstanceCreator<Repeat | Retry>;
-        iterations: null | number;
-        maximumIterations: null | number;
-    };
 
-export type LeafAstNode = AstNode<Leaf> & {
-    type: "action" | "condition" | "wait";
-    createNodeInstance: NodeInstanceCreator<Leaf>;
-    attributes: Attribute[];
+export type IterableAstNode = DecoratorAstNode<Repeat | Retry> & {
+    type: "repeat" | "retry";
+    iterations: null | number;
+    maximumIterations: null | number;
 };
-export type ActionAstNode = LeafAstNode &
-    AstNode<Action> & {
-        type: "action";
-        createNodeInstance: NodeInstanceCreator<Leaf>;
-        actionName: string;
-        actionArguments: AnyArgument[];
-    };
-export type ConditionAstNode = LeafAstNode &
-    AstNode<Condition> & {
-        type: "condition";
-        createNodeInstance: NodeInstanceCreator<Condition>;
-        conditionName: string;
-        conditionArguments: AnyArgument[];
-    };
-export type WaitAstNode = LeafAstNode &
-    AstNode<Wait> & {
-        type: "wait";
-        createNodeInstance: NodeInstanceCreator<Wait>;
-        duration: number | null;
-        longestDuration: number | null;
-    };
+
+export type ActionAstNode = LeafAstNode<Action> & {
+    type: "action";
+    actionName: string;
+    actionArguments: AnyArgument[];
+};
+
+export type ConditionAstNode = LeafAstNode<Condition> & {
+    type: "condition";
+    conditionName: string;
+    conditionArguments: AnyArgument[];
+};
+
+export type WaitAstNode = LeafAstNode<Wait> & {
+    type: "wait";
+    duration: number | null;
+    longestDuration: number | null;
+};
 
 export type AnyAstNode =
-    | InitialAstNode
     | BranchAstNode
     | CompositeAstNode
     | LottoAstNode
@@ -1140,8 +1125,7 @@ function getAttributes(tokens: string[], stringArgumentPlaceholders: Placeholder
             });
 
         // Create the attribute and add it to the array of attributes found.
-        // TODO: Is this a bug? Passing an IdentifierArgument as a string.
-        attributes.push(attributeFactory(attributeFunctionName as any as string, attributeArguments));
+        attributes.push(attributeFactory(attributeFunctionName.value, attributeArguments));
 
         // Try to get the next attribute name token, as there could be multiple.
         attributeFactory = AttributeFactories[(tokens[0] || "").toUpperCase()];

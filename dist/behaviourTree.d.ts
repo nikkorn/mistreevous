@@ -2,30 +2,36 @@ import { AnyArgument } from "./rootAstNodesBuilder";
 import { AnyState } from "./state";
 import Root from "./nodes/decorator/root";
 import { Agent, GlobalFunction } from "./agent";
-import { AttributeDetails } from "./attributes/attribute";
-type FlattenedTreeNode = {
+import { CallbackAttributeDetails } from "./attributes/callbacks/callback";
+import { GuardAttributeDetails } from "./attributes/guards/guard";
+import { BehaviourTreeOptions } from "./behaviourTreeOptions";
+export type FlattenedTreeNode = {
     id: string;
     type: string;
     caption: string;
     state: AnyState;
-    attributes: AttributeDetails[] | null;
-    arguments: AnyArgument[];
+    guards: GuardAttributeDetails[];
+    callbacks: CallbackAttributeDetails[];
+    args: AnyArgument[];
     parentId: string | null;
 };
 /**
  * A representation of a behaviour tree.
  */
-export default class BehaviourTree {
+export declare class BehaviourTree {
     private agent;
+    private options;
     /**
      * The main root tree node.
      */
     readonly rootNode: Root;
     /**
+     * Creates a new instance of the BehaviourTree class.
      * @param definition The behaviour tree definition.
      * @param agent The agent instance that this behaviour tree is modelling behaviour for.
+     * @param options The behaviour tree options object.
      */
-    constructor(definition: string, agent: Agent);
+    constructor(definition: string, agent: Agent, options?: BehaviourTreeOptions);
     /**
      * Gets whether the tree is in the RUNNING state.
      * @returns true if the tree is in the RUNNING state, otherwise false.
@@ -81,4 +87,3 @@ export default class BehaviourTree {
      */
     private static applyLeafNodeGuardPaths;
 }
-export {};

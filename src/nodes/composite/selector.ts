@@ -3,6 +3,7 @@ import Node from "../node";
 import State from "../../state";
 import { Agent } from "../../agent";
 import Attribute from "../../attributes/attribute";
+import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
 
 /**
  * A SELECTOR node.
@@ -18,17 +19,17 @@ export default class Selector extends Composite {
     }
 
     /**
-     * Update the node and get whether the node state has changed.
+     * Called when the node is being updated.
      * @param agent The agent.
-     * @returns Whether the state of this node has changed as part of the update.
+     * @param options The behaviour tree options object.
      */
-    onUpdate = (agent: Agent) => {
+    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void {
         // Iterate over all of the children of this node.
         for (const child of this.children) {
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === State.READY || child.getState() === State.RUNNING) {
                 // Update the child of this node.
-                child.update(agent);
+                child.update(agent, options);
             }
 
             // If the current child has a state of 'SUCCEEDED' then this node is also a 'SUCCEEDED' node.
@@ -68,7 +69,7 @@ export default class Selector extends Composite {
             // The child node was not in an expected state.
             throw new Error("child node was not in an expected state.");
         }
-    };
+    }
 
     /**
      * Gets the name of the node.
