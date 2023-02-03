@@ -1,3 +1,5 @@
+import createLotto from "lotto-draw";
+
 import Node from "../Node";
 import Composite from "./Composite";
 import State from "../../State";
@@ -13,7 +15,7 @@ import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 export default class Lotto extends Composite {
     /**
      * @param attributes The node attributes.
-     * @param tickets The child node tickets
+     * @param tickets The child node tickets.
      * @param children The child nodes.
      */
     constructor(attributes: Attribute[], private tickets: number[], children: Node[]) {
@@ -21,9 +23,9 @@ export default class Lotto extends Composite {
     }
 
     /**
-     * The winning child node.
+     * The child node selected to be the active one.
      */
-    private winningChild: Node | undefined;
+    private selectedChild: Node | undefined;
 
     /**
      * Called when the node is being updated.
@@ -33,86 +35,34 @@ export default class Lotto extends Composite {
     protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void {
         // If this node is in the READY state then we need to pick a winning child node.
         if (this.is(State.READY)) {
-            // Create a lotto draw.
-            const lottoDraw = new LottoDraw();
+            // Create a lotto draw with which to randomly pick a child node to become the active one.
+            const lottoDraw = createLotto<Node>({
+                // Hook up the optional 'random' behaviour tree function option to the one used by 'lotto-draw'.
+                random: options.random,
+                // Pass in each child node as a participant in the lotto draw with their respective ticket count.
+                participants: this.children.map((child, index) => [child, this.tickets[index] || 1])
+            });
 
-            // Add each child of this node to a lotto draw, with each child's corresponding ticket weighting, or a single ticket if not defined.
-            this.children.forEach((child, index) => lottoDraw.add(child, this.tickets[index] || 1));
-
-            // Randomly pick a child based on ticket weighting.
-            this.winningChild = lottoDraw.draw();
+            // Randomly pick a child based on ticket weighting, this will become the active child for this composite node.
+            this.selectedChild = lottoDraw.draw() || undefined;
         }
 
-        // If the winning child has never been updated or is running then we will need to update it now.
-        if (this.winningChild!.getState() === State.READY || this.winningChild!.getState() === State.RUNNING) {
-            this.winningChild!.update(agent, options);
+        // If something went wrong and we don't have an active child then we should throw an error.
+        if (!this.selectedChild) {
+            throw new Error("failed to update lotto node as it has no active child");
         }
 
-        // The state of the lotto node is the state of its winning child.
-        // Note: We're dirty casting away undefined like this ignores the fact lotto.draw() can return undefined...
-        this.setState(this.winningChild!.getState());
+        // If the selected child has never been updated or is running then we will need to update it now.
+        if (this.selectedChild.getState() === State.READY || this.selectedChild.getState() === State.RUNNING) {
+            this.selectedChild.update(agent, options);
+        }
+
+        // The state of the lotto node is the state of its selected child.
+        this.setState(this.selectedChild.getState());
     }
 
     /**
      * Gets the name of the node.
      */
     getName = () => (this.tickets.length ? `LOTTO [${this.tickets.join(",")}]` : "LOTTO");
-}
-
-type Participant = { participant: Node; tickets: number };
-
-/**
- * Represents a lotto draw.
- */
-class LottoDraw {
-    /**
-     * The participants
-     */
-    private readonly participants: Participant[] = [];
-
-    /**
-     * Add a participant.
-     * @param participant The participant.
-     * @param tickets The number of tickets held by the participant.
-     */
-    add = (participant: Node, tickets: number) => {
-        this.participants.push({ participant, tickets });
-        return this;
-    };
-
-    /**
-     * Draw a winning participant.
-     * @returns A winning participant.
-     */
-    draw = () => {
-        // We cannot do anything if there are no participants.
-        if (!this.participants.length) {
-            throw new Error("cannot draw a lotto winner when there are no participants");
-        }
-
-        const pickable: Node[] = [];
-
-        this.participants.forEach(({ participant, tickets }) => {
-            for (let ticketCount = 0; ticketCount < tickets; ticketCount++) {
-                pickable.push(participant);
-            }
-        });
-
-        return this.getRandomItem(pickable);
-    };
-
-    /**
-     * Get a random item form an array.
-     * @param items Th array of items.
-     * @returns The randomly picked item.
-     */
-    getRandomItem = <T>(items: T[]): T | undefined => {
-        // We cant pick a random item from an empty array.
-        if (!items.length) {
-            return undefined;
-        }
-
-        // Return a random item.
-        return items[Math.floor(Math.random() * items.length)];
-    };
 }

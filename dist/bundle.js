@@ -1,10 +1,15 @@
 "use strict";
 var mistreevous = (() => {
+  var __create = Object.create;
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
   var __getOwnPropNames = Object.getOwnPropertyNames;
+  var __getProtoOf = Object.getPrototypeOf;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
   var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+  var __commonJS = (cb, mod) => function __require() {
+    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  };
   var __export = (target, all) => {
     for (var name in all)
       __defProp(target, name, { get: all[name], enumerable: true });
@@ -17,11 +22,231 @@ var mistreevous = (() => {
     }
     return to;
   };
+  var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+    isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+    mod
+  ));
   var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
   var __publicField = (obj, key, value) => {
     __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
     return value;
   };
+
+  // node_modules/lotto-draw/dist/Participant.js
+  var require_Participant = __commonJS({
+    "node_modules/lotto-draw/dist/Participant.js"(exports) {
+      "use strict";
+      Object.defineProperty(exports, "__esModule", { value: true });
+      exports.Participant = void 0;
+      var Participant = function() {
+        function Participant2(participant, tickets) {
+          if (tickets === void 0) {
+            tickets = 1;
+          }
+          this._participant = participant;
+          this._tickets = tickets;
+        }
+        Object.defineProperty(Participant2.prototype, "participant", {
+          get: function() {
+            return this._participant;
+          },
+          enumerable: false,
+          configurable: true
+        });
+        Object.defineProperty(Participant2.prototype, "tickets", {
+          get: function() {
+            return this._tickets;
+          },
+          set: function(value) {
+            this._tickets = value;
+          },
+          enumerable: false,
+          configurable: true
+        });
+        return Participant2;
+      }();
+      exports.Participant = Participant;
+    }
+  });
+
+  // node_modules/lotto-draw/dist/Utilities.js
+  var require_Utilities = __commonJS({
+    "node_modules/lotto-draw/dist/Utilities.js"(exports) {
+      "use strict";
+      Object.defineProperty(exports, "__esModule", { value: true });
+      exports.isNaturalNumber = exports.isNullOrUndefined = void 0;
+      function isNullOrUndefined(value) {
+        return value === null || value === void 0;
+      }
+      exports.isNullOrUndefined = isNullOrUndefined;
+      function isNaturalNumber(value) {
+        return typeof value === "number" && value >= 1 && Math.floor(value) === value;
+      }
+      exports.isNaturalNumber = isNaturalNumber;
+    }
+  });
+
+  // node_modules/lotto-draw/dist/Lotto.js
+  var require_Lotto = __commonJS({
+    "node_modules/lotto-draw/dist/Lotto.js"(exports) {
+      "use strict";
+      Object.defineProperty(exports, "__esModule", { value: true });
+      exports.Lotto = void 0;
+      var Participant_1 = require_Participant();
+      var Utilities_1 = require_Utilities();
+      var Lotto2 = function() {
+        function Lotto3(customRandom) {
+          this._participants = [];
+          this._customRandom = customRandom;
+        }
+        Lotto3.prototype.add = function(participant, tickets) {
+          if (tickets === void 0) {
+            tickets = 1;
+          }
+          if (!(0, Utilities_1.isNaturalNumber)(tickets)) {
+            throw new Error("tickets value must be a natural number");
+          }
+          var existingParticipant = this._participants.find(function(part) {
+            return part.participant === participant;
+          });
+          if (existingParticipant) {
+            existingParticipant.tickets += tickets;
+          } else {
+            this._participants.push(new Participant_1.Participant(participant, tickets));
+          }
+          return this;
+        };
+        Lotto3.prototype.remove = function(participant, tickets) {
+          var existingParticipant = this._participants.find(function(part) {
+            return part.participant === participant;
+          });
+          if (!existingParticipant) {
+            return this;
+          }
+          if (tickets !== void 0) {
+            if (!(0, Utilities_1.isNaturalNumber)(tickets)) {
+              throw new Error("tickets value must be a natural number");
+            }
+            existingParticipant.tickets -= tickets;
+            if (existingParticipant.tickets < 1) {
+              this._participants = this._participants.filter(function(part) {
+                return part !== existingParticipant;
+              });
+            }
+          } else {
+            this._participants = this._participants.filter(function(part) {
+              return part !== existingParticipant;
+            });
+          }
+          return this;
+        };
+        Lotto3.prototype.draw = function(options) {
+          if (options === void 0) {
+            options = {};
+          }
+          if (this._participants.length === 0) {
+            return null;
+          }
+          var redrawable = (0, Utilities_1.isNullOrUndefined)(options.redrawable) ? true : options.redrawable;
+          var pickable = [];
+          this._participants.forEach(function(_a) {
+            var participant = _a.participant, tickets = _a.tickets;
+            for (var ticketCount = 0; ticketCount < tickets; ticketCount++) {
+              pickable.push(participant);
+            }
+          });
+          var random;
+          if (this._customRandom) {
+            random = this._customRandom();
+            if (typeof random !== "number" || random < 0 || random >= 1) {
+              throw new Error("the 'random' function provided did not return a number between 0 (inclusive) and 1");
+            }
+          } else {
+            random = Math.random();
+          }
+          var winner = pickable[Math.floor(random * pickable.length)];
+          if (!redrawable) {
+            this.remove(winner, 1);
+          }
+          return winner;
+        };
+        Lotto3.prototype.drawMultiple = function(tickets, options) {
+          if (options === void 0) {
+            options = {};
+          }
+          var uniqueResults = (0, Utilities_1.isNullOrUndefined)(options.unique) ? false : options.unique;
+          if (tickets === 0) {
+            return [];
+          }
+          if (!(0, Utilities_1.isNaturalNumber)(tickets)) {
+            throw new Error("tickets value must be a natural number");
+          }
+          var result = [];
+          while (result.length < tickets && this._participants.length > 0) {
+            result.push(this.draw(options));
+          }
+          if (uniqueResults) {
+            var unique = [];
+            for (var _i = 0, result_1 = result; _i < result_1.length; _i++) {
+              var participant = result_1[_i];
+              if (unique.indexOf(participant) === -1) {
+                unique.push(participant);
+              }
+            }
+            result = unique;
+          }
+          return result;
+        };
+        return Lotto3;
+      }();
+      exports.Lotto = Lotto2;
+    }
+  });
+
+  // node_modules/lotto-draw/dist/createLotto.js
+  var require_createLotto = __commonJS({
+    "node_modules/lotto-draw/dist/createLotto.js"(exports) {
+      "use strict";
+      Object.defineProperty(exports, "__esModule", { value: true });
+      exports.createLotto = void 0;
+      var Lotto_1 = require_Lotto();
+      function createLotto2(participantsOrOptions) {
+        if (!participantsOrOptions) {
+          return new Lotto_1.Lotto();
+        }
+        if (Array.isArray(participantsOrOptions)) {
+          var participants = participantsOrOptions;
+          var lotto_1 = new Lotto_1.Lotto();
+          participants.forEach(function(_a) {
+            var participant = _a[0], tokens = _a[1];
+            return lotto_1.add(participant, tokens);
+          });
+          return lotto_1;
+        } else {
+          var random = participantsOrOptions.random, participants = participantsOrOptions.participants;
+          var lotto_2 = new Lotto_1.Lotto(random);
+          if (participants) {
+            participants.forEach(function(_a) {
+              var participant = _a[0], tokens = _a[1];
+              return lotto_2.add(participant, tokens);
+            });
+          }
+          return lotto_2;
+        }
+      }
+      exports.createLotto = createLotto2;
+    }
+  });
+
+  // node_modules/lotto-draw/dist/index.js
+  var require_dist = __commonJS({
+    "node_modules/lotto-draw/dist/index.js"(exports) {
+      "use strict";
+      Object.defineProperty(exports, "__esModule", { value: true });
+      var createLotto_1 = require_createLotto();
+      exports.default = createLotto_1.createLotto;
+    }
+  });
 
   // src/index.ts
   var src_exports = {};
@@ -520,6 +745,9 @@ var mistreevous = (() => {
     getName = () => "FAIL";
   };
 
+  // src/nodes/composite/Lotto.ts
+  var import_lotto_draw = __toESM(require_dist());
+
   // src/nodes/composite/Composite.ts
   var Composite = class extends Node {
     constructor(type, attributes, children) {
@@ -548,44 +776,24 @@ var mistreevous = (() => {
       super("lotto", attributes, children);
       this.tickets = tickets;
     }
-    winningChild;
+    selectedChild;
     onUpdate(agent, options) {
       if (this.is("mistreevous.ready" /* READY */)) {
-        const lottoDraw = new LottoDraw();
-        this.children.forEach((child, index) => lottoDraw.add(child, this.tickets[index] || 1));
-        this.winningChild = lottoDraw.draw();
+        const lottoDraw = (0, import_lotto_draw.default)({
+          random: options.random,
+          participants: this.children.map((child, index) => [child, this.tickets[index] || 1])
+        });
+        this.selectedChild = lottoDraw.draw() || void 0;
       }
-      if (this.winningChild.getState() === "mistreevous.ready" /* READY */ || this.winningChild.getState() === "mistreevous.running" /* RUNNING */) {
-        this.winningChild.update(agent, options);
+      if (!this.selectedChild) {
+        throw new Error("failed to update lotto node as it has no active child");
       }
-      this.setState(this.winningChild.getState());
+      if (this.selectedChild.getState() === "mistreevous.ready" /* READY */ || this.selectedChild.getState() === "mistreevous.running" /* RUNNING */) {
+        this.selectedChild.update(agent, options);
+      }
+      this.setState(this.selectedChild.getState());
     }
     getName = () => this.tickets.length ? `LOTTO [${this.tickets.join(",")}]` : "LOTTO";
-  };
-  var LottoDraw = class {
-    participants = [];
-    add = (participant, tickets) => {
-      this.participants.push({ participant, tickets });
-      return this;
-    };
-    draw = () => {
-      if (!this.participants.length) {
-        throw new Error("cannot draw a lotto winner when there are no participants");
-      }
-      const pickable = [];
-      this.participants.forEach(({ participant, tickets }) => {
-        for (let ticketCount = 0; ticketCount < tickets; ticketCount++) {
-          pickable.push(participant);
-        }
-      });
-      return this.getRandomItem(pickable);
-    };
-    getRandomItem = (items) => {
-      if (!items.length) {
-        return void 0;
-      }
-      return items[Math.floor(Math.random() * items.length)];
-    };
   };
 
   // src/nodes/composite/Selector.ts
