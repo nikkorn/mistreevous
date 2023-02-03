@@ -15,6 +15,7 @@ There is an in-browser editor and tree visualiser that you can try [HERE](https:
 ```sh
 $ npm install --save mistreevous
 ```
+This package is built using esbuild to target both node and browsers. If you would like to use this package in a browser you can just reference `dist/build.js` in a `<script>` tag.
 
 # Example
 ```js
@@ -70,6 +71,13 @@ Calling this method when the tree is already in a resolved state of `SUCCEEDED` 
 
 #### .reset()
 Resets the tree from the root node outwards to each nested node, giving each a state of `READY`.
+
+# Behaviour Tree Options
+The `BehaviourTree` constructor can take an options object as an argument, the properties of which are shown below.
+
+| Option          |Type | Description |
+| :--------------------|:- |:- |
+| getDeltaTime |() => number| A function returning a delta time in seconds that is used to calculate the elapsed duration of any `wait` nodes. If this function is not defined then `Date().getTime()` is used instead by default.  |
 
 # Nodes
 
@@ -648,6 +656,7 @@ A practical look at behaviour trees and a good example of modelling behaviour fo
 ## Version History
 | Version        | Notes           |
 | -------------- |:-------------|
+| 3.0.0          | Converted to Typescript | 
 | 2.3.0          | Added Global Functions and Subtrees  | 
 | 2.2.0          | Added Succeed, Fail and Retry decorators  | 
 | 2.1.0          | Added optional arguments for actions, conditions and decorators  | 
