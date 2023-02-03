@@ -1,4 +1,4 @@
-import Node from "../../nodes/node";
+import Node from "../../nodes/Node";
 /**
  * An exception thrown when evaluating node guard path conditions and a conditions fails.
  */

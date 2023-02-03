@@ -1,15 +1,15 @@
-import GuardPath, { GuardPathPart } from "./attributes/guards/guardPath";
-import buildRootASTNodes, { AnyArgument, RootAstNode } from "./rootAstNodesBuilder";
-import State, { AnyState } from "./state";
-import Lookup from "./lookup";
-import Node from "./nodes/node";
-import Root from "./nodes/decorator/root";
-import Composite from "./nodes/composite/composite";
-import Decorator from "./nodes/decorator/decorator";
-import { Agent, GlobalFunction } from "./agent";
-import { CallbackAttributeDetails } from "./attributes/callbacks/callback";
-import { GuardAttributeDetails } from "./attributes/guards/guard";
-import { BehaviourTreeOptions } from "./behaviourTreeOptions";
+import GuardPath, { GuardPathPart } from "./attributes/guards/GuardPath";
+import buildRootASTNodes, { AnyArgument, RootAstNode } from "./RootAstNodesBuilder";
+import State, { AnyState } from "./State";
+import Lookup from "./Lookup";
+import Node from "./nodes/Node";
+import Root from "./nodes/decorator/Root";
+import Composite from "./nodes/composite/Composite";
+import Decorator from "./nodes/decorator/Decorator";
+import { Agent, GlobalFunction } from "./Agent";
+import { CallbackAttributeDetails } from "./attributes/callbacks/Callback";
+import { GuardAttributeDetails } from "./attributes/guards/Guard";
+import { BehaviourTreeOptions } from "./BehaviourTreeOptions";
 
 // Purely for outside inspection of the tree.
 export type FlattenedTreeNode = {

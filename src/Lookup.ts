@@ -1,5 +1,5 @@
-import { ActionResult, Agent, ExitFunctionArg, FunctionArg, GlobalFunction } from "./agent";
-import { AnyArgument, RootAstNode } from "./rootAstNodesBuilder";
+import { ActionResult, Agent, ExitFunctionArg, FunctionArg, GlobalFunction } from "./Agent";
+import { AnyArgument, RootAstNode } from "./RootAstNodesBuilder";
 
 // Exit callbacks receive their own special type of argument.
 // There's probably stricter ways to represent this but it feels overly complex right now.

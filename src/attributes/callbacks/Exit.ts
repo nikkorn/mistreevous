@@ -1,7 +1,7 @@
-import Callback from "./callback";
-import Lookup, { AnyExitArgument } from "../../lookup";
-import { Agent } from "../../agent";
-import { AnyArgument } from "../../rootAstNodesBuilder";
+import Callback from "./Callback";
+import Lookup, { AnyExitArgument } from "../../Lookup";
+import { Agent } from "../../Agent";
+import { AnyArgument } from "../../RootAstNodesBuilder";
 
 /**
  * An EXIT callback which defines an agent function to call when the associated node is updated and moves to a finished state or is aborted.

@@ -1,8 +1,8 @@
-import Leaf from "./leaf";
-import State from "../../state";
-import Attribute from "../../attributes/attribute";
-import { Agent } from "../../agent";
-import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
+import Leaf from "./Leaf";
+import State from "../../State";
+import Attribute from "../../attributes/Attribute";
+import { Agent } from "../../Agent";
+import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 
 /**
  * A WAIT node.

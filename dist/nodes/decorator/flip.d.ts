@@ -1,8 +1,8 @@
-import Decorator from "./decorator";
-import Node from "../node";
-import { Agent } from "../../agent";
-import Attribute from "../../attributes/attribute";
-import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
+import Decorator from "./Decorator";
+import Node from "../Node";
+import { Agent } from "../../Agent";
+import Attribute from "../../attributes/Attribute";
+import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 /**
  * A Flip node.
  * This node wraps a single child and will flip the state of the child state.

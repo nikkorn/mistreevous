@@ -1,21 +1,21 @@
-import Composite from "./composite";
-import Node from "../node";
-import State from "../../state";
-import { Agent } from "../../agent";
-import Attribute from "../../attributes/attribute";
-import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
+import Composite from "./Composite";
+import Node from "../Node";
+import State from "../../State";
+import { Agent } from "../../Agent";
+import Attribute from "../../attributes/Attribute";
+import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 
 /**
- * A SELECTOR node.
- * The child nodes are executed in sequence until one succeeds or all fail.
+ * A SEQUENCE node.
+ * The child nodes are executed in sequence until one fails or all succeed.
  */
-export default class Selector extends Composite {
+export default class Sequence extends Composite {
     /**
      * @param attributes The node attributes.
      * @param children The child nodes.
      */
     constructor(attributes: Attribute[], protected children: Node[]) {
-        super("selector", attributes, children);
+        super("sequence", attributes, children);
     }
 
     /**
@@ -32,29 +32,29 @@ export default class Selector extends Composite {
                 child.update(agent, options);
             }
 
-            // If the current child has a state of 'SUCCEEDED' then this node is also a 'SUCCEEDED' node.
+            // If the current child has a state of 'SUCCEEDED' then we should move on to the next child.
             if (child.getState() === State.SUCCEEDED) {
-                // This node is a 'SUCCEEDED' node.
-                this.setState(State.SUCCEEDED);
-
-                // There is no need to check the rest of the selector nodes.
-                return;
-            }
-
-            // If the current child has a state of 'FAILED' then we should move on to the next child.
-            if (child.getState() === State.FAILED) {
-                // Find out if the current child is the last one in the selector.
-                // If it is then this sequence node has also failed.
+                // Find out if the current child is the last one in the sequence.
+                // If it is then this sequence node has also succeeded.
                 if (this.children.indexOf(child) === this.children.length - 1) {
-                    // This node is a 'FAILED' node.
-                    this.setState(State.FAILED);
+                    // This node is a 'SUCCEEDED' node.
+                    this.setState(State.SUCCEEDED);
 
-                    // There is no need to check the rest of the selector as we have completed it.
+                    // There is no need to check the rest of the sequence as we have completed it.
                     return;
                 } else {
-                    // The child node failed, try the next one.
+                    // The child node succeeded, but we have not finished the sequence yet.
                     continue;
                 }
+            }
+
+            // If the current child has a state of 'FAILED' then this node is also a 'FAILED' node.
+            if (child.getState() === State.FAILED) {
+                // This node is a 'FAILED' node.
+                this.setState(State.FAILED);
+
+                // There is no need to check the rest of the sequence.
+                return;
             }
 
             // The node should be in the 'RUNNING' state.
@@ -62,7 +62,7 @@ export default class Selector extends Composite {
                 // This node is a 'RUNNING' node.
                 this.setState(State.RUNNING);
 
-                // There is no need to check the rest of the selector as the current child is still running.
+                // There is no need to check the rest of the sequence as the current child is still running.
                 return;
             }
 
@@ -74,5 +74,5 @@ export default class Selector extends Composite {
     /**
      * Gets the name of the node.
      */
-    getName = () => "SELECTOR";
+    getName = () => "SEQUENCE";
 }

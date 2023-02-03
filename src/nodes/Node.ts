@@ -1,15 +1,15 @@
-import { Agent } from "../agent";
-import Attribute from "../attributes/attribute";
-import Entry from "../attributes/callbacks/entry";
-import Exit from "../attributes/callbacks/exit";
-import Step from "../attributes/callbacks/step";
-import Guard from "../attributes/guards/guard";
-import GuardPath from "../attributes/guards/guardPath";
-import GuardUnsatisifedException from "../attributes/guards/guardUnsatisifedException";
-import { BehaviourTreeOptions } from "../behaviourTreeOptions";
-import { AnyArgument } from "../rootAstNodesBuilder";
-import State, { AnyState } from "../state";
-import Leaf from "./leaf/leaf";
+import { Agent } from "../Agent";
+import Attribute from "../attributes/Attribute";
+import Entry from "../attributes/callbacks/Entry";
+import Exit from "../attributes/callbacks/Exit";
+import Step from "../attributes/callbacks/Step";
+import Guard from "../attributes/guards/Guard";
+import GuardPath from "../attributes/guards/GuardPath";
+import GuardUnsatisifedException from "../attributes/guards/GuardUnsatisifedException";
+import { BehaviourTreeOptions } from "../BehaviourTreeOptions";
+import { AnyArgument } from "../RootAstNodesBuilder";
+import State, { AnyState } from "../State";
+import Leaf from "./leaf/Leaf";
 
 /**
  * A base node.

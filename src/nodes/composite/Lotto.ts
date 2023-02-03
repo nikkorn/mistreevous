@@ -1,9 +1,9 @@
-import Node from "../node";
-import Composite from "./composite";
-import State from "../../state";
-import { Agent } from "../../agent";
-import Attribute from "../../attributes/attribute";
-import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
+import Node from "../Node";
+import Composite from "./Composite";
+import State from "../../State";
+import { Agent } from "../../Agent";
+import Attribute from "../../attributes/Attribute";
+import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 
 /**
  * A LOTTO node.

@@ -1,5 +1,5 @@
-import { ActionResult, Agent, ExitFunctionArg, GlobalFunction } from "./agent";
-import { AnyArgument, RootAstNode } from "./rootAstNodesBuilder";
+import { ActionResult, Agent, ExitFunctionArg, GlobalFunction } from "./Agent";
+import { AnyArgument, RootAstNode } from "./RootAstNodesBuilder";
 type ExitResultArg = {
     value: ExitFunctionArg;
 };

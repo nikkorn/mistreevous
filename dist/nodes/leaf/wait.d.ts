@@ -1,7 +1,7 @@
-import Leaf from "./leaf";
-import Attribute from "../../attributes/attribute";
-import { Agent } from "../../agent";
-import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
+import Leaf from "./Leaf";
+import Attribute from "../../attributes/Attribute";
+import { Agent } from "../../Agent";
+import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 /**
  * A WAIT node.
  * The state of this node will change to SUCCEEDED after a duration of time

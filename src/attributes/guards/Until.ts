@@ -1,18 +1,18 @@
-import Guard from "./guard";
-import Lookup from "../../lookup";
-import { Agent } from "../../agent";
-import { AnyArgument } from "../../rootAstNodesBuilder";
+import Guard from "./Guard";
+import Lookup from "../../Lookup";
+import { Agent } from "../../Agent";
+import { AnyArgument } from "../../RootAstNodesBuilder";
 
 /**
- * A WHILE guard which is satisfied as long as the given condition remains true.
+ * An UNTIL guard which is satisfied as long as the given condition remains false.
  */
-export default class While extends Guard {
+export default class Until extends Guard {
     /**
      * @param condition The name of the condition function that determines whether the guard is satisfied.
      * @param args The array of decorator argument definitions.
      */
     constructor(condition: string, args: AnyArgument[]) {
-        super("while", args, condition);
+        super("until", args, condition);
     }
 
     /**
@@ -32,6 +32,6 @@ export default class While extends Guard {
         }
 
         // Call the condition function to determine whether this guard is satisfied.
-        return !!conditionFuncInvoker(this.args);
+        return !!!conditionFuncInvoker(this.args);
     };
 }

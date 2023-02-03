@@ -1,8 +1,8 @@
-import Node from "../node";
-import Decorator from "./decorator";
-import { Agent } from "../../agent";
-import Attribute from "../../attributes/attribute";
-import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
+import Node from "../Node";
+import Decorator from "./Decorator";
+import { Agent } from "../../Agent";
+import Attribute from "../../attributes/Attribute";
+import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 /**
  * A Succeed node.
  * This node wraps a single child and will always move to the 'SUCCEEDED' state when the child moves to a 'SUCCEEDED' or 'FAILED' state.

@@ -1,7 +1,7 @@
-import { Agent } from "../../agent";
-import Guard from "./guard";
-import Node from "../../nodes/node";
-import GuardUnsatisifedException from "./guardUnsatisifedException";
+import { Agent } from "../../Agent";
+import Guard from "./Guard";
+import Node from "../../nodes/Node";
+import GuardUnsatisifedException from "./GuardUnsatisifedException";
 
 export type GuardPathPart = {
     node: Node;

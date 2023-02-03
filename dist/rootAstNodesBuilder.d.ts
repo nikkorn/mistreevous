@@ -1,15 +1,15 @@
-import Action from "./nodes/leaf/action";
-import Condition from "./nodes/leaf/condition";
-import Wait from "./nodes/leaf/wait";
-import Root from "./nodes/decorator/root";
-import Repeat from "./nodes/decorator/repeat";
-import Retry from "./nodes/decorator/retry";
-import Lotto from "./nodes/composite/lotto";
-import Node from "./nodes/node";
-import Attribute from "./attributes/attribute";
-import Composite from "./nodes/composite/composite";
-import Decorator from "./nodes/decorator/decorator";
-import Leaf from "./nodes/leaf/leaf";
+import Action from "./nodes/leaf/Action";
+import Condition from "./nodes/leaf/Condition";
+import Wait from "./nodes/leaf/Wait";
+import Root from "./nodes/decorator/Root";
+import Repeat from "./nodes/decorator/Repeat";
+import Retry from "./nodes/decorator/Retry";
+import Lotto from "./nodes/composite/Lotto";
+import Node from "./nodes/Node";
+import Attribute from "./attributes/Attribute";
+import Composite from "./nodes/composite/Composite";
+import Decorator from "./nodes/decorator/Decorator";
+import Leaf from "./nodes/leaf/Leaf";
 export type Argument<T> = {
     value: T;
     type: string;

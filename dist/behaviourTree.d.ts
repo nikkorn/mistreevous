@@ -1,10 +1,10 @@
-import { AnyArgument } from "./rootAstNodesBuilder";
-import { AnyState } from "./state";
-import Root from "./nodes/decorator/root";
-import { Agent, GlobalFunction } from "./agent";
-import { CallbackAttributeDetails } from "./attributes/callbacks/callback";
-import { GuardAttributeDetails } from "./attributes/guards/guard";
-import { BehaviourTreeOptions } from "./behaviourTreeOptions";
+import { AnyArgument } from "./RootAstNodesBuilder";
+import { AnyState } from "./State";
+import Root from "./nodes/decorator/Root";
+import { Agent, GlobalFunction } from "./Agent";
+import { CallbackAttributeDetails } from "./attributes/callbacks/Callback";
+import { GuardAttributeDetails } from "./attributes/guards/Guard";
+import { BehaviourTreeOptions } from "./BehaviourTreeOptions";
 export type FlattenedTreeNode = {
     id: string;
     type: string;

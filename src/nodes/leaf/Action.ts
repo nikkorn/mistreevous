@@ -1,10 +1,10 @@
-import Leaf from "./leaf";
-import State, { CompleteState } from "../../state";
-import Lookup from "../../lookup";
-import { Agent } from "../../agent";
-import Attribute from "../../attributes/attribute";
-import { AnyArgument } from "../../rootAstNodesBuilder";
-import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
+import Leaf from "./Leaf";
+import State, { CompleteState } from "../../State";
+import Lookup from "../../Lookup";
+import { Agent } from "../../Agent";
+import Attribute from "../../attributes/Attribute";
+import { AnyArgument } from "../../RootAstNodesBuilder";
+import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 
 /**
  * An Action leaf node.

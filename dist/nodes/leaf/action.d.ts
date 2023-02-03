@@ -1,8 +1,8 @@
-import Leaf from "./leaf";
-import { Agent } from "../../agent";
-import Attribute from "../../attributes/attribute";
-import { AnyArgument } from "../../rootAstNodesBuilder";
-import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
+import Leaf from "./Leaf";
+import { Agent } from "../../Agent";
+import Attribute from "../../attributes/Attribute";
+import { AnyArgument } from "../../RootAstNodesBuilder";
+import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 /**
  * An Action leaf node.
  * This represents an immediate or ongoing state of behaviour.

@@ -1,8 +1,8 @@
-import Leaf from "./leaf";
-import { Agent } from "../../agent";
-import Attribute from "../../attributes/attribute";
-import { AnyArgument } from "../../rootAstNodesBuilder";
-import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
+import Leaf from "./Leaf";
+import { Agent } from "../../Agent";
+import Attribute from "../../attributes/Attribute";
+import { AnyArgument } from "../../RootAstNodesBuilder";
+import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 /**
  * A Condition leaf node.
  * This will succeed or fail immediately based on an agent predicate, without moving to the 'RUNNING' state.

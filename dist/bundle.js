@@ -30,7 +30,7 @@ var mistreevous = (() => {
     State: () => State
   });
 
-  // src/attributes/guards/guardUnsatisifedException.ts
+  // src/attributes/guards/GuardUnsatisifedException.ts
   var GuardUnsatisifedException = class extends Error {
     constructor(source) {
       super("A guard path condition has failed");
@@ -39,7 +39,7 @@ var mistreevous = (() => {
     isSourceNode = (node) => node === this.source;
   };
 
-  // src/attributes/guards/guardPath.ts
+  // src/attributes/guards/GuardPath.ts
   var GuardPath = class {
     constructor(nodes) {
       this.nodes = nodes;
@@ -55,7 +55,7 @@ var mistreevous = (() => {
     };
   };
 
-  // src/state.ts
+  // src/State.ts
   var State = /* @__PURE__ */ ((State2) => {
     State2["READY"] = "mistreevous.ready";
     State2["RUNNING"] = "mistreevous.running";
@@ -64,7 +64,7 @@ var mistreevous = (() => {
     return State2;
   })(State || {});
 
-  // src/nodes/node.ts
+  // src/nodes/Node.ts
   var Node = class {
     constructor(type, attributes, args) {
       this.type = type;
@@ -132,12 +132,12 @@ var mistreevous = (() => {
     return S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
   }
 
-  // src/nodes/leaf/leaf.ts
+  // src/nodes/leaf/Leaf.ts
   var Leaf = class extends Node {
     isLeafNode = () => true;
   };
 
-  // src/lookup.ts
+  // src/Lookup.ts
   var Lookup = class {
     static getFunc(name) {
       return this.functionTable[name];
@@ -176,7 +176,7 @@ var mistreevous = (() => {
   __publicField(Lookup, "functionTable", {});
   __publicField(Lookup, "subtreeTable", {});
 
-  // src/nodes/leaf/action.ts
+  // src/nodes/leaf/Action.ts
   var Action = class extends Leaf {
     constructor(attributes, actionName, actionArguments) {
       super("action", attributes, actionArguments);
@@ -246,7 +246,7 @@ var mistreevous = (() => {
     };
   };
 
-  // src/nodes/leaf/condition.ts
+  // src/nodes/leaf/Condition.ts
   var Condition = class extends Leaf {
     constructor(attributes, conditionName, conditionArguments) {
       super("condition", attributes, conditionArguments);
@@ -265,7 +265,7 @@ var mistreevous = (() => {
     getName = () => this.conditionName;
   };
 
-  // src/nodes/leaf/wait.ts
+  // src/nodes/leaf/Wait.ts
   var Wait = class extends Leaf {
     constructor(attributes, duration, longestDuration) {
       super("wait", attributes, []);
@@ -298,7 +298,7 @@ var mistreevous = (() => {
     getName = () => `WAIT ${this.longestDuration ? this.duration + "ms-" + this.longestDuration + "ms" : this.duration + "ms"}`;
   };
 
-  // src/nodes/decorator/decorator.ts
+  // src/nodes/decorator/Decorator.ts
   var Decorator = class extends Node {
     constructor(type, attributes, child) {
       super(type, attributes, []);
@@ -320,7 +320,7 @@ var mistreevous = (() => {
     };
   };
 
-  // src/nodes/decorator/root.ts
+  // src/nodes/decorator/Root.ts
   var Root = class extends Decorator {
     constructor(attributes, child) {
       super("root", attributes, child);
@@ -334,7 +334,7 @@ var mistreevous = (() => {
     getName = () => "ROOT";
   };
 
-  // src/nodes/decorator/repeat.ts
+  // src/nodes/decorator/Repeat.ts
   var Repeat = class extends Decorator {
     constructor(attributes, iterations, maximumIterations, child) {
       super("repeat", attributes, child);
@@ -390,7 +390,7 @@ var mistreevous = (() => {
     };
   };
 
-  // src/nodes/decorator/retry.ts
+  // src/nodes/decorator/Retry.ts
   var Retry = class extends Decorator {
     constructor(attributes, iterations, maximumIterations, child) {
       super("retry", attributes, child);
@@ -446,7 +446,7 @@ var mistreevous = (() => {
     };
   };
 
-  // src/nodes/decorator/flip.ts
+  // src/nodes/decorator/Flip.ts
   var Flip = class extends Decorator {
     constructor(attributes, child) {
       super("flip", attributes, child);
@@ -472,7 +472,7 @@ var mistreevous = (() => {
     getName = () => "FLIP";
   };
 
-  // src/nodes/decorator/succeed.ts
+  // src/nodes/decorator/Succeed.ts
   var Succeed = class extends Decorator {
     constructor(attributes, child) {
       super("succeed", attributes, child);
@@ -496,7 +496,7 @@ var mistreevous = (() => {
     getName = () => "SUCCEED";
   };
 
-  // src/nodes/decorator/fail.ts
+  // src/nodes/decorator/Fail.ts
   var Fail = class extends Decorator {
     constructor(attributes, child) {
       super("fail", attributes, child);
@@ -520,7 +520,7 @@ var mistreevous = (() => {
     getName = () => "FAIL";
   };
 
-  // src/nodes/composite/composite.ts
+  // src/nodes/composite/Composite.ts
   var Composite = class extends Node {
     constructor(type, attributes, children) {
       super(type, attributes, []);
@@ -542,7 +542,7 @@ var mistreevous = (() => {
     };
   };
 
-  // src/nodes/composite/lotto.ts
+  // src/nodes/composite/Lotto.ts
   var Lotto = class extends Composite {
     constructor(attributes, tickets, children) {
       super("lotto", attributes, children);
@@ -588,7 +588,7 @@ var mistreevous = (() => {
     };
   };
 
-  // src/nodes/composite/selector.ts
+  // src/nodes/composite/Selector.ts
   var Selector = class extends Composite {
     constructor(attributes, children) {
       super("selector", attributes, children);
@@ -621,7 +621,7 @@ var mistreevous = (() => {
     getName = () => "SELECTOR";
   };
 
-  // src/nodes/composite/sequence.ts
+  // src/nodes/composite/Sequence.ts
   var Sequence = class extends Composite {
     constructor(attributes, children) {
       super("sequence", attributes, children);
@@ -654,7 +654,7 @@ var mistreevous = (() => {
     getName = () => "SEQUENCE";
   };
 
-  // src/nodes/composite/parallel.ts
+  // src/nodes/composite/Parallel.ts
   var Parallel = class extends Composite {
     constructor(attributes, children) {
       super("parallel", attributes, children);
@@ -692,7 +692,7 @@ var mistreevous = (() => {
     getName = () => "PARALLEL";
   };
 
-  // src/attributes/attribute.ts
+  // src/attributes/Attribute.ts
   var Attribute = class {
     constructor(type, args) {
       this.type = type;
@@ -702,7 +702,7 @@ var mistreevous = (() => {
     getArguments = () => this.args;
   };
 
-  // src/attributes/guards/guard.ts
+  // src/attributes/guards/Guard.ts
   var Guard = class extends Attribute {
     constructor(type, args, condition) {
       super(type, args);
@@ -719,7 +719,7 @@ var mistreevous = (() => {
     }
   };
 
-  // src/attributes/guards/while.ts
+  // src/attributes/guards/While.ts
   var While = class extends Guard {
     constructor(condition, args) {
       super("while", args, condition);
@@ -735,7 +735,7 @@ var mistreevous = (() => {
     };
   };
 
-  // src/attributes/guards/until.ts
+  // src/attributes/guards/Until.ts
   var Until = class extends Guard {
     constructor(condition, args) {
       super("until", args, condition);
@@ -751,7 +751,7 @@ var mistreevous = (() => {
     };
   };
 
-  // src/attributes/callbacks/callback.ts
+  // src/attributes/callbacks/Callback.ts
   var Callback = class extends Attribute {
     constructor(type, args, functionName) {
       super(type, args);
@@ -768,7 +768,7 @@ var mistreevous = (() => {
     }
   };
 
-  // src/attributes/callbacks/entry.ts
+  // src/attributes/callbacks/Entry.ts
   var Entry = class extends Callback {
     constructor(functionName, args) {
       super("entry", args, functionName);
@@ -784,7 +784,7 @@ var mistreevous = (() => {
     };
   };
 
-  // src/attributes/callbacks/exit.ts
+  // src/attributes/callbacks/Exit.ts
   var Exit = class extends Callback {
     constructor(functionName, args) {
       super("exit", args, functionName);
@@ -800,7 +800,7 @@ var mistreevous = (() => {
     };
   };
 
-  // src/attributes/callbacks/step.ts
+  // src/attributes/callbacks/Step.ts
   var Step = class extends Callback {
     constructor(functionName, args) {
       super("step", args, functionName);
@@ -816,7 +816,7 @@ var mistreevous = (() => {
     };
   };
 
-  // src/rootAstNodesBuilder.ts
+  // src/RootAstNodesBuilder.ts
   var AttributeFactories = {
     WHILE: (condition, attributeArguments) => new While(condition, attributeArguments),
     UNTIL: (condition, attributeArguments) => new Until(condition, attributeArguments),
@@ -1465,7 +1465,7 @@ var mistreevous = (() => {
     return definition.replace(/\s+/g, " ").trim().split(" ");
   }
 
-  // src/behaviourTree.ts
+  // src/BehaviourTree.ts
   var BehaviourTree = class {
     constructor(definition, agent, options = {}) {
       this.agent = agent;

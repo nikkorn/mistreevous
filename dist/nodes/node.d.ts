@@ -1,14 +1,14 @@
-import { Agent } from "../agent";
-import Attribute from "../attributes/attribute";
-import Entry from "../attributes/callbacks/entry";
-import Exit from "../attributes/callbacks/exit";
-import Step from "../attributes/callbacks/step";
-import Guard from "../attributes/guards/guard";
-import GuardPath from "../attributes/guards/guardPath";
-import { BehaviourTreeOptions } from "../behaviourTreeOptions";
-import { AnyArgument } from "../rootAstNodesBuilder";
-import { AnyState } from "../state";
-import Leaf from "./leaf/leaf";
+import { Agent } from "../Agent";
+import Attribute from "../attributes/Attribute";
+import Entry from "../attributes/callbacks/Entry";
+import Exit from "../attributes/callbacks/Exit";
+import Step from "../attributes/callbacks/Step";
+import Guard from "../attributes/guards/Guard";
+import GuardPath from "../attributes/guards/GuardPath";
+import { BehaviourTreeOptions } from "../BehaviourTreeOptions";
+import { AnyArgument } from "../RootAstNodesBuilder";
+import { AnyState } from "../State";
+import Leaf from "./leaf/Leaf";
 /**
  * A base node.
  */
@@ -64,7 +64,7 @@ export default abstract class Node {
     /**
      * Gets the node attributes.
      */
-    getAttributes: () => Attribute<import("../attributes/attribute").AttributeDetails>[];
+    getAttributes: () => Attribute<import("../attributes/Attribute").AttributeDetails>[];
     /**
      * Gets the node arguments.
      */

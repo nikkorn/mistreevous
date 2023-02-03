@@ -1,6 +1,6 @@
-import Guard from "./guard";
-import { Agent } from "../../agent";
-import { AnyArgument } from "../../rootAstNodesBuilder";
+import Guard from "./Guard";
+import { Agent } from "../../Agent";
+import { AnyArgument } from "../../RootAstNodesBuilder";
 /**
  * A WHILE guard which is satisfied as long as the given condition remains true.
  */

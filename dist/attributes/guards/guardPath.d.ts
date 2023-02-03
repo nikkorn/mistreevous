@@ -1,6 +1,6 @@
-import { Agent } from "../../agent";
-import Guard from "./guard";
-import Node from "../../nodes/node";
+import { Agent } from "../../Agent";
+import Guard from "./Guard";
+import Node from "../../nodes/Node";
 export type GuardPathPart = {
     node: Node;
     guards: Guard[];

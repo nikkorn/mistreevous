@@ -1,6 +1,6 @@
-import { Agent } from "../../agent";
-import { AnyArgument } from "../../rootAstNodesBuilder";
-import Attribute, { AttributeDetails } from "../attribute";
+import { Agent } from "../../Agent";
+import { AnyArgument } from "../../RootAstNodesBuilder";
+import Attribute, { AttributeDetails } from "../Attribute";
 
 export type CallbackAttributeDetails = {
     /** The name of the agent function that is called. */

@@ -1,7 +1,7 @@
-import Node from "../node";
-import State from "../../state";
-import { Agent } from "../../agent";
-import Attribute from "../../attributes/attribute";
+import Node from "../Node";
+import State from "../../State";
+import { Agent } from "../../Agent";
+import Attribute from "../../attributes/Attribute";
 
 /**
  * A decorator node that wraps a single child node.

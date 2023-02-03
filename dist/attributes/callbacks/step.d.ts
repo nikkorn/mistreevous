@@ -1,6 +1,6 @@
-import Callback from "./callback";
-import { Agent } from "../../agent";
-import { AnyArgument } from "../../rootAstNodesBuilder";
+import Callback from "./Callback";
+import { Agent } from "../../Agent";
+import { AnyArgument } from "../../RootAstNodesBuilder";
 /**
  * A STEP callback which defines an agent function to call when the associated node is updated.
  */

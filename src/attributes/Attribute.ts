@@ -1,5 +1,5 @@
-import { AnyArgument } from "../rootAstNodesBuilder";
-import Guard from "./guards/guard";
+import { AnyArgument } from "../RootAstNodesBuilder";
+import Guard from "./guards/Guard";
 
 export type AttributeDetails = {
     /** The attribute type. */

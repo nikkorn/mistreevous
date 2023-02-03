@@ -1,8 +1,8 @@
-import Node from "../node";
-import Decorator from "./decorator";
-import { Agent } from "../../agent";
-import Attribute from "../../attributes/attribute";
-import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
+import Node from "../Node";
+import Decorator from "./Decorator";
+import { Agent } from "../../Agent";
+import Attribute from "../../attributes/Attribute";
+import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 /**
  * A REPEAT node.
  * The node has a single child which can have:

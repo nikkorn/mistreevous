@@ -1,21 +1,21 @@
-import Node from "../node";
-import Decorator from "./decorator";
-import State from "../../state";
-import { Agent } from "../../agent";
-import Attribute from "../../attributes/attribute";
-import { BehaviourTreeOptions } from "../../behaviourTreeOptions";
+import Decorator from "./Decorator";
+import State from "../../State";
+import Node from "../Node";
+import { Agent } from "../../Agent";
+import Attribute from "../../attributes/Attribute";
+import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 
 /**
- * A Succeed node.
- * This node wraps a single child and will always move to the 'SUCCEEDED' state when the child moves to a 'SUCCEEDED' or 'FAILED' state.
+ * A Flip node.
+ * This node wraps a single child and will flip the state of the child state.
  */
-export default class Succeed extends Decorator {
+export default class Flip extends Decorator {
     /**
      * @param attributes The node attributes.
      * @param child The child node.
      */
     constructor(attributes: Attribute[], child: Node) {
-        super("succeed", attributes, child);
+        super("flip", attributes, child);
     }
 
     /**
@@ -36,6 +36,9 @@ export default class Succeed extends Decorator {
                 break;
 
             case State.SUCCEEDED:
+                this.setState(State.FAILED);
+                break;
+
             case State.FAILED:
                 this.setState(State.SUCCEEDED);
                 break;
@@ -48,5 +51,5 @@ export default class Succeed extends Decorator {
     /**
      * Gets the name of the node.
      */
-    getName = () => "SUCCEED";
+    getName = () => "FLIP";
 }

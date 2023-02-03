@@ -1,6 +1,6 @@
-import { Agent } from "../../agent";
-import { AnyArgument } from "../../rootAstNodesBuilder";
-import Attribute, { AttributeDetails } from "../attribute";
+import { Agent } from "../../Agent";
+import { AnyArgument } from "../../RootAstNodesBuilder";
+import Attribute, { AttributeDetails } from "../Attribute";
 export type GuardAttributeDetails = {
     /** The name of the condition function that determines whether the guard is satisfied. */
     condition: string;

@@ -1,4 +1,4 @@
-import { CompleteState } from "./state";
+import { CompleteState } from "./State";
 
 export type Agent = {
     [actionName: string]: AgentFunction;
