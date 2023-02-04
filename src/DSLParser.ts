@@ -154,15 +154,32 @@ export type FailDefinition = DecoratorDefinition & {
 }
 
 /**
+ * A type defining any node type.
+ */
+export type AnyNode = BranchDefinition | ActionDefinition | ConditionDefinition | WaitDefinition | SequenceDefinition |
+    SelectorDefinition | LottoDefinition | ParallelDefinition | RootDefinition | RepeatDefinition | RetryDefinition | FlipDefinition | SucceedDefinition | FailDefinition;
+
+/**
  * A type defining any node type that can be a child of composite parent node.
  */
-export type AnyChildNode = BranchDefinition | ActionDefinition | ConditionDefinition | WaitDefinition | SequenceDefinition |
-    SelectorDefinition | LottoDefinition | ParallelDefinition | RepeatDefinition | RetryDefinition | FlipDefinition | SucceedDefinition | FailDefinition;
+export type AnyChildNode = Exclude<AnyNode, RootDefinition>;
 
 /**
  * A type defining an object that holds a reference to substitued string literals parsed from the definition.
  */
 type StringLiteralPlaceholders = { [key: string]: string };
+
+function isLeafNode(node: NodeDefinition): node is NodeDefinition {
+    return ["branch", "action", "condition", "wait"].includes(node.type);
+}
+
+function isDecoratorNode(node: NodeDefinition): node is DecoratorDefinition {
+    return ["root", "repeat", "retry", "flip", "succeed", "fail"].includes(node.type);
+}
+
+function isCompositeNode(node: NodeDefinition): node is CompositeDefinition {
+    return ["sequence", "selector", "lotto", "parallel"].includes(node.type);
+}
 
 /**
  * Parse the tree definition string into a JSON definition.
@@ -176,16 +193,6 @@ export function parse(definition: string): RootDefinition[] {
     // Parse our definition definition string into an array of raw tokens.
     const tokens = parseTokensFromDefinition(definition);
 
-    // There must be at least 3 tokens for the tree definition to be valid. 'ROOT', '{' and '}'.
-    if (tokens.length < 3) {
-        throw new Error("invalid token count");
-    }
-
-    // We should have a matching number of '{' and '}' tokens. If not, then there are scopes that have not been properly closed.
-    if (tokens.filter((token) => token === "{").length !== tokens.filter((token) => token === "}").length) {
-        throw new Error("scope character mismatch");
-    }
-
     return convertTokensToJSONDefinition(tokens, placeholders, processedDefinition);
 }
 
@@ -196,6 +203,111 @@ export function parse(definition: string): RootDefinition[] {
  * @returns The root node JSON definitions.
  */
 export function convertTokensToJSONDefinition(tokens: string[], placeholders: StringLiteralPlaceholders, processedDefinition: string): RootDefinition[] {
+    // There must be at least 3 tokens for the tree definition to be valid. 'ROOT', '{' and '}'.
+    if (tokens.length < 3) {
+        throw new Error("invalid token count");
+    }
+
+    // We should have a matching number of '{' and '}' tokens. If not, then there are scopes that have not been properly closed.
+    if (tokens.filter((token) => token === "{").length !== tokens.filter((token) => token === "}").length) {
+        throw new Error("scope character mismatch");
+    }
+
+    // Create a stack of node children arrays, starting with a definition scope.
+    const rootStacks: [Partial<RootDefinition>, ...Partial<AnyChildNode>[]][] = [];
+
+    // ONLY COMPOSITE DEFINITIONS GET PUSHED ONTO A ROOT STACK.
+    // When coming across a new node in the definition it must be:
+    // - Set as the child of the top-most node in the root stack OR
+    // - Added to the array of children of the top-most node in the root stack OR
+    
+    const pushNode = (node: AnyChildNode) => {
+        // Get the current root stack that we are populating.
+        const currentRootStack = rootStacks[rootStacks.length - 1];
+
+        // TODO Handle cases where we may not have a current root stack.
+        // This may happen if a root node is not the initially defined one?
+
+        // Get the top node in the current root stack.
+        const topNode = currentRootStack[currentRootStack.length - 1] as AnyNode;
+
+        // TODO Handle cases where we may not have a top-most node.
+        // Also a potential issue with a badly defined tree.
+
+        // If the top-most node in the current root stack is a composite or decorator
+        // node then the current node should be added as a child of the top-most node.
+        if (isCompositeNode(topNode)) {
+            topNode.children.push(node);
+        } else if (isDecoratorNode(topNode)) {
+            topNode.child = node;
+        }
+
+        // If the node we are adding is also a composite or decorator node, then we should push it 
+        // onto the current root stack, as subsequent nodes will be added as its child/children.
+        if (!isLeafNode(node)) {
+            currentRootStack.push(node);
+        }
+    };
+
+    const popNode = () => {
+        // Get the current root stack that we are populating.
+        const currentRootStack = rootStacks[rootStacks.length - 1];
+
+        // Pop the top-most node in the current root stack if there is one.
+        if (currentRootStack.length) {
+            currentRootStack.pop();
+        }
+
+        // We dont want any root stacks in our definition stack. 
+        if (!currentRootStack.length) {
+            rootStacks.pop();
+        }
+    };
+
+    // We should keep processing the raw tokens until we run out of them.
+    while (tokens.length) {
+        // Grab the next token.
+        const token = tokens.shift();
+
+        // How we create the next node depends on the current raw token value.
+        switch (token!.toUpperCase()) {
+            case "ROOT": {
+                const node = {
+                    type: "root"
+                } as RootDefinition;
+
+                // TODO Grab 'id' if defined as a node argument.
+                // TODO Grab attributes.
+
+                // A root node will always be the base of a new root stack.
+                rootStacks.push([node]);
+                break;
+            }
+
+            case "SEQUENCE": {
+                const node = {
+                    type: "sequence",
+                    children: []
+                } as SequenceDefinition;
+
+                // TODO Grab attributes.
+
+                pushNode(node);
+                break;
+            }
+
+            case "}": {
+                // The '}' character closes the current scope.
+                popNode();
+                break;
+            }
+
+            default: {
+                throw new Error("unexpected token: " + token);
+            }
+        }
+    }
+
     // TODO
     return [];
 }
