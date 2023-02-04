@@ -186,7 +186,7 @@ function isCompositeNode(node: NodeDefinition): node is CompositeDefinition {
  * @param definition The tree definition string.
  * @returns The root node JSON definitions.
  */
-export function parse(definition: string): RootDefinition[] {
+export function parseToJSON(definition: string): RootDefinition[] {
     // Swap out any node/attribute argument string literals with a placeholder and get a mapping of placeholders to original values as well as the processed definition.
     const { placeholders, processedDefinition } = substituteStringLiterals(definition);
 
@@ -291,6 +291,9 @@ export function convertTokensToJSONDefinition(tokens: string[], placeholders: St
                 // TODO Grab 'id' if defined as a node argument.
                 // TODO Grab attributes.
 
+                // This is a decorator node, so we expect an opening '{'.
+                popAndCheck(tokens, "{");
+
                 // A root node will always be the base of a new root stack.
                 pushRootNode(node);
                 break;
@@ -302,6 +305,9 @@ export function convertTokensToJSONDefinition(tokens: string[], placeholders: St
                 } as SequenceDefinition;
 
                 // TODO Grab attributes.
+
+                // This is a composite node, so we expect an opening '{'.
+                popAndCheck(tokens, "{");
 
                 pushNode(node);
                 break;
@@ -330,8 +336,11 @@ export function convertTokensToJSONDefinition(tokens: string[], placeholders: St
         }
     }
 
+    // TODO Remove!
+    console.log(rootNodes);
+
     // TODO
-    return [];
+    return rootNodes as RootDefinition[];
 }
 
 /**

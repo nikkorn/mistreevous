@@ -1673,6 +1673,133 @@ function parseTokensFromDefinition(definition) {
   return definition.replace(/\s+/g, " ").trim().split(" ");
 }
 
+// src/DSLParser.ts
+function isLeafNode(node) {
+  return ["branch", "action", "condition", "wait"].includes(node.type);
+}
+function isDecoratorNode(node) {
+  return ["root", "repeat", "retry", "flip", "succeed", "fail"].includes(node.type);
+}
+function isCompositeNode(node) {
+  return ["sequence", "selector", "lotto", "parallel"].includes(node.type);
+}
+function parseToJSON(definition) {
+  const { placeholders, processedDefinition } = substituteStringLiterals2(definition);
+  const tokens = parseTokensFromDefinition2(definition);
+  return convertTokensToJSONDefinition(tokens, placeholders, processedDefinition);
+}
+function convertTokensToJSONDefinition(tokens, placeholders, processedDefinition) {
+  if (tokens.length < 3) {
+    throw new Error("invalid token count");
+  }
+  if (tokens.filter((token) => token === "{").length !== tokens.filter((token) => token === "}").length) {
+    throw new Error("scope character mismatch");
+  }
+  const treeStacks = [];
+  const rootNodes = [];
+  const pushRootNode = (rootNode) => {
+    rootNodes.push(rootNode);
+    treeStacks.push([rootNode]);
+  };
+  const pushNode = (node) => {
+    const currentTreeStack = treeStacks[treeStacks.length - 1];
+    const bottomNode = currentTreeStack[currentTreeStack.length - 1];
+    if (isCompositeNode(bottomNode)) {
+      bottomNode.children = bottomNode.children || [];
+      bottomNode.children.push(node);
+    } else if (isDecoratorNode(bottomNode)) {
+      bottomNode.child = node;
+    }
+    if (!isLeafNode(node)) {
+      currentTreeStack.push(node);
+    }
+  };
+  const popNode = () => {
+    const currentTreeStack = treeStacks[treeStacks.length - 1];
+    if (currentTreeStack.length) {
+      currentTreeStack.pop();
+    }
+    if (!currentTreeStack.length) {
+      treeStacks.pop();
+    }
+  };
+  while (tokens.length) {
+    const token = tokens.shift();
+    switch (token.toUpperCase()) {
+      case "ROOT": {
+        const node = {
+          type: "root"
+        };
+        popAndCheck2(tokens, "{");
+        pushRootNode(node);
+        break;
+      }
+      case "SEQUENCE": {
+        const node = {
+          type: "sequence"
+        };
+        popAndCheck2(tokens, "{");
+        pushNode(node);
+        break;
+      }
+      case "ACTION": {
+        const node = {
+          type: "action"
+        };
+        pushNode(node);
+        break;
+      }
+      case "}": {
+        popNode();
+        break;
+      }
+      default: {
+        throw new Error("unexpected token: " + token);
+      }
+    }
+  }
+  console.log(rootNodes);
+  return rootNodes;
+}
+function substituteStringLiterals2(definition) {
+  const placeholders = {};
+  const processedDefinition = definition.replace(/\"(\\.|[^"\\])*\"/g, (match) => {
+    var strippedMatch = match.substring(1, match.length - 1);
+    var placeholder = Object.keys(placeholders).find((key) => placeholders[key] === strippedMatch);
+    if (!placeholder) {
+      placeholder = `@@${Object.keys(placeholders).length}@@`;
+      placeholders[placeholder] = strippedMatch;
+    }
+    return placeholder;
+  });
+  return { placeholders, processedDefinition };
+}
+function parseTokensFromDefinition2(definition) {
+  definition = definition.replace(/\(/g, " ( ");
+  definition = definition.replace(/\)/g, " ) ");
+  definition = definition.replace(/\{/g, " { ");
+  definition = definition.replace(/\}/g, " } ");
+  definition = definition.replace(/\]/g, " ] ");
+  definition = definition.replace(/\[/g, " [ ");
+  definition = definition.replace(/\,/g, " , ");
+  return definition.replace(/\s+/g, " ").trim().split(" ");
+}
+function popAndCheck2(tokens, expected) {
+  const popped = tokens.shift();
+  if (popped === void 0) {
+    throw new Error("unexpected end of definition");
+  }
+  if (expected != void 0) {
+    const expectedValues = typeof expected === "string" ? [expected] : expected;
+    var tokenMatchesExpectation = expectedValues.some((item) => popped.toUpperCase() === item.toUpperCase());
+    if (!tokenMatchesExpectation) {
+      const expectationString = expectedValues.map((item) => "'" + item + "'").join(" or ");
+      throw new Error("unexpected token found. Expected " + expectationString + " but got '" + popped + "'");
+    }
+  }
+  return popped;
+}
+
 // src/BehaviourTree.ts
 var BehaviourTree = class {
   constructor(definition, agent, options = {}) {
@@ -1753,6 +1880,11 @@ var BehaviourTree = class {
     Lookup.empty();
   }
   static createRootNode(definition) {
+    try {
+      parseToJSON(definition);
+    } catch (exception) {
+      console.log(exception);
+    }
     try {
       const rootASTNodes = buildRootASTNodes(definition);
       const mainRootNodeKey = Symbol("__root__");

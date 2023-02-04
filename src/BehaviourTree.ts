@@ -10,6 +10,7 @@ import { Agent, GlobalFunction } from "./Agent";
 import { CallbackAttributeDetails } from "./attributes/callbacks/Callback";
 import { GuardAttributeDetails } from "./attributes/guards/Guard";
 import { BehaviourTreeOptions } from "./BehaviourTreeOptions";
+import { parseToJSON } from "./DSLParser";
 
 // Purely for outside inspection of the tree.
 export type FlattenedTreeNode = {
@@ -200,6 +201,13 @@ export class BehaviourTree {
      * @returns The root behaviour tree node.
      */
     private static createRootNode(definition: string): Root {
+        // TODO Remove!
+        try {
+            parseToJSON(definition);
+        } catch (exception) {
+            console.log(exception);
+        }
+
         try {
             // Try to create the behaviour tree AST based on the definition provided, this could fail if the definition is invalid.
             const rootASTNodes = buildRootASTNodes(definition);
