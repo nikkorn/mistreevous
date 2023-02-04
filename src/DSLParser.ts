@@ -213,54 +213,65 @@ export function convertTokensToJSONDefinition(tokens: string[], placeholders: St
         throw new Error("scope character mismatch");
     }
 
-    // Create a stack of node children arrays, starting with a definition scope.
-    const rootStacks: [Partial<RootDefinition>, ...Partial<AnyChildNode>[]][] = [];
+    // Create a stack of tree stack arrays where root nodes will always be at the root.
+    const treeStacks: [Partial<RootDefinition>, ...Partial<AnyChildNode>[]][] = [];
+
+    // Create an array of all root node definitions that we create.
+    const rootNodes: Partial<RootDefinition>[] = [];
 
     // ONLY COMPOSITE DEFINITIONS GET PUSHED ONTO A ROOT STACK.
     // When coming across a new node in the definition it must be:
     // - Set as the child of the top-most node in the root stack OR
     // - Added to the array of children of the top-most node in the root stack OR
+
+    const pushRootNode = (rootNode: RootDefinition) => {
+        // Add the root node definition to our array of all parsed root node definitions.
+        rootNodes.push(rootNode);
+
+        // Add the root node definition to the root of a new tree stack. 
+        treeStacks.push([rootNode]);
+    }
     
     const pushNode = (node: AnyChildNode) => {
-        // Get the current root stack that we are populating.
-        const currentRootStack = rootStacks[rootStacks.length - 1];
+        // Get the current tree stack that we are populating.
+        const currentTreeStack = treeStacks[treeStacks.length - 1];
 
         // TODO Handle cases where we may not have a current root stack.
         // This may happen if a root node is not the initially defined one?
 
-        // Get the top node in the current root stack.
-        const topNode = currentRootStack[currentRootStack.length - 1] as AnyNode;
+        // Get the bottom-most node in the current tree stack.
+        const bottomNode = currentTreeStack[currentTreeStack.length - 1] as AnyNode;
 
-        // TODO Handle cases where we may not have a top-most node.
+        // TODO Handle cases where we may not have a bottom-most node.
         // Also a potential issue with a badly defined tree.
 
-        // If the top-most node in the current root stack is a composite or decorator
-        // node then the current node should be added as a child of the top-most node.
-        if (isCompositeNode(topNode)) {
-            topNode.children.push(node);
-        } else if (isDecoratorNode(topNode)) {
-            topNode.child = node;
+        // If the bottom-most node in the current root stack is a composite or decorator
+        // node then the current node should be added as a child of the bottom-most node.
+        if (isCompositeNode(bottomNode)) {
+            bottomNode.children.push(node);
+        } else if (isDecoratorNode(bottomNode)) {
+            bottomNode.child = node;
         }
 
         // If the node we are adding is also a composite or decorator node, then we should push it 
-        // onto the current root stack, as subsequent nodes will be added as its child/children.
+        // onto the current tree stack, as subsequent nodes will be added as its child/children.
         if (!isLeafNode(node)) {
-            currentRootStack.push(node);
+            currentTreeStack.push(node);
         }
     };
 
     const popNode = () => {
-        // Get the current root stack that we are populating.
-        const currentRootStack = rootStacks[rootStacks.length - 1];
+        // Get the current tree stack that we are populating.
+        const currentTreeStack = treeStacks[treeStacks.length - 1];
 
-        // Pop the top-most node in the current root stack if there is one.
-        if (currentRootStack.length) {
-            currentRootStack.pop();
+        // Pop the top-most node in the current tree stack if there is one.
+        if (currentTreeStack.length) {
+            currentTreeStack.pop();
         }
 
-        // We dont want any root stacks in our definition stack. 
-        if (!currentRootStack.length) {
-            rootStacks.pop();
+        // We don't want any empty tree stacks in our stack of tree stacks. 
+        if (!currentTreeStack.length) {
+            treeStacks.pop();
         }
     };
 
@@ -280,7 +291,7 @@ export function convertTokensToJSONDefinition(tokens: string[], placeholders: St
                 // TODO Grab attributes.
 
                 // A root node will always be the base of a new root stack.
-                rootStacks.push([node]);
+                pushRootNode(node);
                 break;
             }
 
