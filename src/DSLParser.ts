@@ -248,6 +248,7 @@ export function convertTokensToJSONDefinition(tokens: string[], placeholders: St
         // If the bottom-most node in the current root stack is a composite or decorator
         // node then the current node should be added as a child of the bottom-most node.
         if (isCompositeNode(bottomNode)) {
+            bottomNode.children = bottomNode.children || [];
             bottomNode.children.push(node);
         } else if (isDecoratorNode(bottomNode)) {
             bottomNode.child = node;
@@ -297,9 +298,19 @@ export function convertTokensToJSONDefinition(tokens: string[], placeholders: St
 
             case "SEQUENCE": {
                 const node = {
-                    type: "sequence",
-                    children: []
+                    type: "sequence"
                 } as SequenceDefinition;
+
+                // TODO Grab attributes.
+
+                pushNode(node);
+                break;
+            }
+
+            case "ACTION": {
+                const node = {
+                    type: "action"
+                } as ActionDefinition;
 
                 // TODO Grab attributes.
 
