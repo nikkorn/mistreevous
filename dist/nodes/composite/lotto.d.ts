@@ -12,14 +12,14 @@ export default class Lotto extends Composite {
     private tickets;
     /**
      * @param attributes The node attributes.
-     * @param tickets The child node tickets
+     * @param tickets The child node tickets.
      * @param children The child nodes.
      */
     constructor(attributes: Attribute[], tickets: number[], children: Node[]);
     /**
-     * The winning child node.
+     * The child node selected to be the active one.
      */
-    private winningChild;
+    private selectedChild;
     /**
      * Called when the node is being updated.
      * @param agent The agent.

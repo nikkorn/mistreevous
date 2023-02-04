@@ -48,5 +48,8 @@
   "bugs": {
     "url": "https://github.com/nikkorn/mistreevous/issues"
   },
-  "homepage": "https://nikkorn.github.io/mistreevous"
+  "homepage": "https://nikkorn.github.io/mistreevous",
+  "dependencies": {
+    "lotto-draw": "^1.0.2"
+  }
 }

@@ -47,7 +47,7 @@ describe("A Flip node", () => {
             assert.strictEqual(node.state, mistreevous.State.FAILED);
         });
 
-        it("move to the RUNNING state if the child node dos not move to the SUCCESS or FAILED state", () => {
+        it("move to the RUNNING state if the child node does not move to the SUCCESS or FAILED state", () => {
             const definition = "root { flip { action [someAction] } }";
             const agent = { someAction: () => {} };
             const tree = new mistreevous.BehaviourTree(definition, agent);
