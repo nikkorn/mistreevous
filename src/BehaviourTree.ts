@@ -10,7 +10,7 @@ import { Agent, GlobalFunction } from "./Agent";
 import { CallbackAttributeDetails } from "./attributes/callbacks/Callback";
 import { GuardAttributeDetails } from "./attributes/guards/Guard";
 import { BehaviourTreeOptions } from "./BehaviourTreeOptions";
-import { parseToJSON } from "./DSLParser";
+import { parseToJSON } from "./dsl/DSLDefinitionParser";
 
 // Purely for outside inspection of the tree.
 export type FlattenedTreeNode = {
@@ -51,7 +51,7 @@ export class BehaviourTree {
         }
 
         // Parse the behaviour tree definition, create the populated tree of behaviour tree nodes, and get the root.
-        this.rootNode = BehaviourTree.createRootNode(definition);
+        this.rootNode = BehaviourTree._createRootNode(definition);
     }
 
     /**
@@ -200,7 +200,7 @@ export class BehaviourTree {
      * @param {string} definition The behaviour tree definition.
      * @returns The root behaviour tree node.
      */
-    private static createRootNode(definition: string): Root {
+    private static _createRootNode(definition: string): Root {
         // TODO Remove!
         try {
             parseToJSON(definition);
@@ -229,7 +229,7 @@ export class BehaviourTree {
             );
 
             // Set a guard path on every leaf of the tree to evaluate as part of its update.
-            BehaviourTree.applyLeafNodeGuardPaths(rootNode);
+            BehaviourTree._applyLeafNodeGuardPaths(rootNode);
 
             // Return the root node.
             return rootNode;
@@ -243,7 +243,7 @@ export class BehaviourTree {
      * Applies a guard path to every leaf of the tree to evaluate as part of each update.
      * @param rootNode The main root tree node.
      */
-    private static applyLeafNodeGuardPaths(rootNode: Root) {
+    private static _applyLeafNodeGuardPaths(rootNode: Root) {
         const nodePaths: Node[][] = [];
 
         const findLeafNodes = (path: Node[], node: Node) => {

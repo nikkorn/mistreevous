@@ -1673,7 +1673,24 @@ function parseTokensFromDefinition(definition) {
   return definition.replace(/\s+/g, " ").trim().split(" ");
 }
 
-// src/DSLParser.ts
+// src/dsl/DSLUtilities.ts
+function popAndCheck2(tokens, expected) {
+  const popped = tokens.shift();
+  if (popped === void 0) {
+    throw new Error("unexpected end of definition");
+  }
+  if (expected != void 0) {
+    const expectedValues = typeof expected === "string" ? [expected] : expected;
+    var tokenMatchesExpectation = expectedValues.some((item) => popped.toUpperCase() === item.toUpperCase());
+    if (!tokenMatchesExpectation) {
+      const expectationString = expectedValues.map((item) => "'" + item + "'").join(" or ");
+      throw new Error("unexpected token found. Expected " + expectationString + " but got '" + popped + "'");
+    }
+  }
+  return popped;
+}
+
+// src/dsl/DSLDefinitionParser.ts
 function isLeafNode(node) {
   return ["branch", "action", "condition", "wait"].includes(node.type);
 }
@@ -1708,6 +1725,9 @@ function convertTokensToJSONDefinition(tokens, placeholders, processedDefinition
       bottomNode.children = bottomNode.children || [];
       bottomNode.children.push(node);
     } else if (isDecoratorNode(bottomNode)) {
+      if (bottomNode.child) {
+        throw new Error("a decorator node must only have a single child node");
+      }
       bottomNode.child = node;
     }
     if (!isLeafNode(node)) {
@@ -1727,26 +1747,15 @@ function convertTokensToJSONDefinition(tokens, placeholders, processedDefinition
     const token = tokens.shift();
     switch (token.toUpperCase()) {
       case "ROOT": {
-        const node = {
-          type: "root"
-        };
-        popAndCheck2(tokens, "{");
-        pushRootNode(node);
+        pushRootNode(createRootNode(tokens));
         break;
       }
       case "SEQUENCE": {
-        const node = {
-          type: "sequence"
-        };
-        popAndCheck2(tokens, "{");
-        pushNode(node);
+        pushNode(createSequenceNode(tokens));
         break;
       }
       case "ACTION": {
-        const node = {
-          type: "action"
-        };
-        pushNode(node);
+        pushNode(createActionNode(tokens));
         break;
       }
       case "}": {
@@ -1758,8 +1767,21 @@ function convertTokensToJSONDefinition(tokens, placeholders, processedDefinition
       }
     }
   }
-  console.log(rootNodes);
   return rootNodes;
+}
+function createRootNode(tokens) {
+  const node = { type: "root" };
+  popAndCheck2(tokens, "{");
+  return node;
+}
+function createSequenceNode(tokens) {
+  const node = { type: "sequence" };
+  popAndCheck2(tokens, "{");
+  return node;
+}
+function createActionNode(tokens) {
+  const node = { type: "action" };
+  return node;
 }
 function substituteStringLiterals2(definition) {
   const placeholders = {};
@@ -1784,21 +1806,6 @@ function parseTokensFromDefinition2(definition) {
   definition = definition.replace(/\,/g, " , ");
   return definition.replace(/\s+/g, " ").trim().split(" ");
 }
-function popAndCheck2(tokens, expected) {
-  const popped = tokens.shift();
-  if (popped === void 0) {
-    throw new Error("unexpected end of definition");
-  }
-  if (expected != void 0) {
-    const expectedValues = typeof expected === "string" ? [expected] : expected;
-    var tokenMatchesExpectation = expectedValues.some((item) => popped.toUpperCase() === item.toUpperCase());
-    if (!tokenMatchesExpectation) {
-      const expectationString = expectedValues.map((item) => "'" + item + "'").join(" or ");
-      throw new Error("unexpected token found. Expected " + expectationString + " but got '" + popped + "'");
-    }
-  }
-  return popped;
-}
 
 // src/BehaviourTree.ts
 var BehaviourTree = class {
@@ -1811,7 +1818,7 @@ var BehaviourTree = class {
     if (typeof agent !== "object" || agent === null) {
       throw new Error("the agent must be defined and not null");
     }
-    this.rootNode = BehaviourTree.createRootNode(definition);
+    this.rootNode = BehaviourTree._createRootNode(definition);
   }
   rootNode;
   isRunning() {
@@ -1879,7 +1886,7 @@ var BehaviourTree = class {
   static unregisterAll() {
     Lookup.empty();
   }
-  static createRootNode(definition) {
+  static _createRootNode(definition) {
     try {
       parseToJSON(definition);
     } catch (exception) {
@@ -1896,14 +1903,14 @@ var BehaviourTree = class {
         (name) => rootNodeMap[name] ? rootNodeMap[name] : Lookup.getSubtree(name),
         []
       );
-      BehaviourTree.applyLeafNodeGuardPaths(rootNode);
+      BehaviourTree._applyLeafNodeGuardPaths(rootNode);
       return rootNode;
     } catch (exception) {
       throw new Error(`error parsing tree: ${exception.message}
 ${exception.stack}`);
     }
   }
-  static applyLeafNodeGuardPaths(rootNode) {
+  static _applyLeafNodeGuardPaths(rootNode) {
     const nodePaths = [];
     const findLeafNodes = (path, node) => {
       path = path.concat(node);

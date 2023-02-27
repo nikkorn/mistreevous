@@ -80,10 +80,10 @@ export declare class BehaviourTree {
      * @param {string} definition The behaviour tree definition.
      * @returns The root behaviour tree node.
      */
-    private static createRootNode;
+    private static _createRootNode;
     /**
      * Applies a guard path to every leaf of the tree to evaluate as part of each update.
      * @param rootNode The main root tree node.
      */
-    private static applyLeafNodeGuardPaths;
+    private static _applyLeafNodeGuardPaths;
 }

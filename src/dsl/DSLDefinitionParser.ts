@@ -1,3 +1,5 @@
+import { popAndCheck } from "./DSLUtilities";
+
 /**
  * A type defining the arguments that can be passed to an agent function.
  */
@@ -219,11 +221,7 @@ export function convertTokensToJSONDefinition(tokens: string[], placeholders: St
     // Create an array of all root node definitions that we create.
     const rootNodes: Partial<RootDefinition>[] = [];
 
-    // ONLY COMPOSITE DEFINITIONS GET PUSHED ONTO A ROOT STACK.
-    // When coming across a new node in the definition it must be:
-    // - Set as the child of the top-most node in the root stack OR
-    // - Added to the array of children of the top-most node in the root stack OR
-
+    // A helper function used to push root node definitions onto the stack.
     const pushRootNode = (rootNode: RootDefinition) => {
         // Add the root node definition to our array of all parsed root node definitions.
         rootNodes.push(rootNode);
@@ -232,6 +230,7 @@ export function convertTokensToJSONDefinition(tokens: string[], placeholders: St
         treeStacks.push([rootNode]);
     }
     
+    // A helper function used to push non-root node definitions onto the stack.
     const pushNode = (node: AnyChildNode) => {
         // Get the current tree stack that we are populating.
         const currentTreeStack = treeStacks[treeStacks.length - 1];
@@ -251,6 +250,11 @@ export function convertTokensToJSONDefinition(tokens: string[], placeholders: St
             bottomNode.children = bottomNode.children || [];
             bottomNode.children.push(node);
         } else if (isDecoratorNode(bottomNode)) {
+            // If the bottom node already has a chld node set then throw an error as a decorator should only have a single child.
+            if (bottomNode.child) {
+                throw new Error("a decorator node must only have a single child node");
+            }
+
             bottomNode.child = node;
         }
 
@@ -261,6 +265,7 @@ export function convertTokensToJSONDefinition(tokens: string[], placeholders: St
         }
     };
 
+    // A helper function used to pop node definitions off of the stack.
     const popNode = () => {
         // Get the current tree stack that we are populating.
         const currentTreeStack = treeStacks[treeStacks.length - 1];
@@ -279,53 +284,28 @@ export function convertTokensToJSONDefinition(tokens: string[], placeholders: St
     // We should keep processing the raw tokens until we run out of them.
     while (tokens.length) {
         // Grab the next token.
-        const token = tokens.shift();
+        const token = tokens.shift()!;
 
         // How we create the next node depends on the current raw token value.
-        switch (token!.toUpperCase()) {
+        switch (token.toUpperCase()) {
             case "ROOT": {
-                const node = {
-                    type: "root"
-                } as RootDefinition;
-
-                // TODO Grab 'id' if defined as a node argument.
-                // TODO Grab attributes.
-
-                // This is a decorator node, so we expect an opening '{'.
-                popAndCheck(tokens, "{");
-
                 // A root node will always be the base of a new root stack.
-                pushRootNode(node);
+                pushRootNode(createRootNode(tokens));
                 break;
             }
 
             case "SEQUENCE": {
-                const node = {
-                    type: "sequence"
-                } as SequenceDefinition;
-
-                // TODO Grab attributes.
-
-                // This is a composite node, so we expect an opening '{'.
-                popAndCheck(tokens, "{");
-
-                pushNode(node);
+                pushNode(createSequenceNode(tokens));
                 break;
             }
 
             case "ACTION": {
-                const node = {
-                    type: "action"
-                } as ActionDefinition;
-
-                // TODO Grab attributes.
-
-                pushNode(node);
+                pushNode(createActionNode(tokens));
                 break;
             }
 
             case "}": {
-                // The '}' character closes the current scope.
+                // The '}' character closes the current scope and means that we have to pop a node off of the current stack.
                 popNode();
                 break;
             }
@@ -336,11 +316,39 @@ export function convertTokensToJSONDefinition(tokens: string[], placeholders: St
         }
     }
 
-    // TODO Remove!
-    console.log(rootNodes);
-
-    // TODO
     return rootNodes as RootDefinition[];
+}
+
+function createRootNode(tokens: string[]): RootDefinition {
+    // Create the root node definition.
+    const node = { type: "root" } as RootDefinition;
+
+    // TODO Grab 'id' if defined as a node argument.
+    // TODO Grab attributes.
+
+    // This is a decorator node, so we expect an opening '{'.
+    popAndCheck(tokens, "{");
+
+    return node;
+}
+
+function createSequenceNode(tokens: string[]): SequenceDefinition {
+    const node = { type: "sequence" } as SequenceDefinition;
+
+    // TODO Grab attributes.
+
+    // This is a composite node, so we expect an opening '{'.
+    popAndCheck(tokens, "{");
+
+    return node;
+}
+
+function createActionNode(tokens: string[]): ActionDefinition {
+    const node = { type: "action" } as ActionDefinition;
+
+    // TODO Grab attributes.
+
+    return node;
 }
 
 /**
@@ -389,38 +397,4 @@ function parseTokensFromDefinition(definition: string): string[] {
 
     // Split the definition into raw token form and return it.
     return definition.replace(/\s+/g, " ").trim().split(" ");
-}
-
-/**
- * Pop the next raw token off of the stack and throw an error if it wasn't the expected one.
- * @param tokens The array of remaining tokens.
- * @param expected An optional string or array or items, one of which must match the next popped token.
- * @returns The popped token.
- */
-function popAndCheck(tokens: string[], expected?: string | string[]): string {
-    // Get and remove the next token.
-    const popped = tokens.shift();
-
-    // We were expecting another token.
-    if (popped === undefined) {
-        throw new Error("unexpected end of definition");
-    }
-
-    // Do we have an expected token/tokens array?
-    if (expected != undefined) {
-        // Get an array of expected values, if the popped token matches any then we are all good.
-        const expectedValues = (typeof expected === "string") ? [expected] : expected;
-
-        // Check whether the popped token matches at least one of our expected items.
-        var tokenMatchesExpectation = expectedValues.some((item) => popped.toUpperCase() === item.toUpperCase());
-
-        // Throw an error if the popped token didn't match any of our expected items.
-        if (!tokenMatchesExpectation) {
-            const expectationString = expectedValues.map((item) => "'" + item + "'").join(" or ");
-            throw new Error("unexpected token found. Expected " + expectationString + " but got '" + popped + "'");
-        }
-    }
-
-    // Return the popped token.
-    return popped;
 }

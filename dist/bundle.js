@@ -1673,6 +1673,140 @@ var mistreevous = (() => {
     return definition.replace(/\s+/g, " ").trim().split(" ");
   }
 
+  // src/dsl/DSLUtilities.ts
+  function popAndCheck2(tokens, expected) {
+    const popped = tokens.shift();
+    if (popped === void 0) {
+      throw new Error("unexpected end of definition");
+    }
+    if (expected != void 0) {
+      const expectedValues = typeof expected === "string" ? [expected] : expected;
+      var tokenMatchesExpectation = expectedValues.some((item) => popped.toUpperCase() === item.toUpperCase());
+      if (!tokenMatchesExpectation) {
+        const expectationString = expectedValues.map((item) => "'" + item + "'").join(" or ");
+        throw new Error("unexpected token found. Expected " + expectationString + " but got '" + popped + "'");
+      }
+    }
+    return popped;
+  }
+
+  // src/dsl/DSLDefinitionParser.ts
+  function isLeafNode(node) {
+    return ["branch", "action", "condition", "wait"].includes(node.type);
+  }
+  function isDecoratorNode(node) {
+    return ["root", "repeat", "retry", "flip", "succeed", "fail"].includes(node.type);
+  }
+  function isCompositeNode(node) {
+    return ["sequence", "selector", "lotto", "parallel"].includes(node.type);
+  }
+  function parseToJSON(definition) {
+    const { placeholders, processedDefinition } = substituteStringLiterals2(definition);
+    const tokens = parseTokensFromDefinition2(definition);
+    return convertTokensToJSONDefinition(tokens, placeholders, processedDefinition);
+  }
+  function convertTokensToJSONDefinition(tokens, placeholders, processedDefinition) {
+    if (tokens.length < 3) {
+      throw new Error("invalid token count");
+    }
+    if (tokens.filter((token) => token === "{").length !== tokens.filter((token) => token === "}").length) {
+      throw new Error("scope character mismatch");
+    }
+    const treeStacks = [];
+    const rootNodes = [];
+    const pushRootNode = (rootNode) => {
+      rootNodes.push(rootNode);
+      treeStacks.push([rootNode]);
+    };
+    const pushNode = (node) => {
+      const currentTreeStack = treeStacks[treeStacks.length - 1];
+      const bottomNode = currentTreeStack[currentTreeStack.length - 1];
+      if (isCompositeNode(bottomNode)) {
+        bottomNode.children = bottomNode.children || [];
+        bottomNode.children.push(node);
+      } else if (isDecoratorNode(bottomNode)) {
+        if (bottomNode.child) {
+          throw new Error("a decorator node must only have a single child node");
+        }
+        bottomNode.child = node;
+      }
+      if (!isLeafNode(node)) {
+        currentTreeStack.push(node);
+      }
+    };
+    const popNode = () => {
+      const currentTreeStack = treeStacks[treeStacks.length - 1];
+      if (currentTreeStack.length) {
+        currentTreeStack.pop();
+      }
+      if (!currentTreeStack.length) {
+        treeStacks.pop();
+      }
+    };
+    while (tokens.length) {
+      const token = tokens.shift();
+      switch (token.toUpperCase()) {
+        case "ROOT": {
+          pushRootNode(createRootNode(tokens));
+          break;
+        }
+        case "SEQUENCE": {
+          pushNode(createSequenceNode(tokens));
+          break;
+        }
+        case "ACTION": {
+          pushNode(createActionNode(tokens));
+          break;
+        }
+        case "}": {
+          popNode();
+          break;
+        }
+        default: {
+          throw new Error("unexpected token: " + token);
+        }
+      }
+    }
+    return rootNodes;
+  }
+  function createRootNode(tokens) {
+    const node = { type: "root" };
+    popAndCheck2(tokens, "{");
+    return node;
+  }
+  function createSequenceNode(tokens) {
+    const node = { type: "sequence" };
+    popAndCheck2(tokens, "{");
+    return node;
+  }
+  function createActionNode(tokens) {
+    const node = { type: "action" };
+    return node;
+  }
+  function substituteStringLiterals2(definition) {
+    const placeholders = {};
+    const processedDefinition = definition.replace(/\"(\\.|[^"\\])*\"/g, (match) => {
+      var strippedMatch = match.substring(1, match.length - 1);
+      var placeholder = Object.keys(placeholders).find((key) => placeholders[key] === strippedMatch);
+      if (!placeholder) {
+        placeholder = `@@${Object.keys(placeholders).length}@@`;
+        placeholders[placeholder] = strippedMatch;
+      }
+      return placeholder;
+    });
+    return { placeholders, processedDefinition };
+  }
+  function parseTokensFromDefinition2(definition) {
+    definition = definition.replace(/\(/g, " ( ");
+    definition = definition.replace(/\)/g, " ) ");
+    definition = definition.replace(/\{/g, " { ");
+    definition = definition.replace(/\}/g, " } ");
+    definition = definition.replace(/\]/g, " ] ");
+    definition = definition.replace(/\[/g, " [ ");
+    definition = definition.replace(/\,/g, " , ");
+    return definition.replace(/\s+/g, " ").trim().split(" ");
+  }
+
   // src/BehaviourTree.ts
   var BehaviourTree = class {
     constructor(definition, agent, options = {}) {
@@ -1684,7 +1818,7 @@ var mistreevous = (() => {
       if (typeof agent !== "object" || agent === null) {
         throw new Error("the agent must be defined and not null");
       }
-      this.rootNode = BehaviourTree.createRootNode(definition);
+      this.rootNode = BehaviourTree._createRootNode(definition);
     }
     rootNode;
     isRunning() {
@@ -1752,7 +1886,12 @@ var mistreevous = (() => {
     static unregisterAll() {
       Lookup.empty();
     }
-    static createRootNode(definition) {
+    static _createRootNode(definition) {
+      try {
+        parseToJSON(definition);
+      } catch (exception) {
+        console.log(exception);
+      }
       try {
         const rootASTNodes = buildRootASTNodes(definition);
         const mainRootNodeKey = Symbol("__root__");
@@ -1764,14 +1903,14 @@ var mistreevous = (() => {
           (name) => rootNodeMap[name] ? rootNodeMap[name] : Lookup.getSubtree(name),
           []
         );
-        BehaviourTree.applyLeafNodeGuardPaths(rootNode);
+        BehaviourTree._applyLeafNodeGuardPaths(rootNode);
         return rootNode;
       } catch (exception) {
         throw new Error(`error parsing tree: ${exception.message}
 ${exception.stack}`);
       }
     }
-    static applyLeafNodeGuardPaths(rootNode) {
+    static _applyLeafNodeGuardPaths(rootNode) {
       const nodePaths = [];
       const findLeafNodes = (path, node) => {
         path = path.concat(node);
