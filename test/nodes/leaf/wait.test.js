@@ -9,13 +9,42 @@ const findNode = (tree, type, caption) =>
 
 describe("A Wait node", () => {
     describe("on tree initialisation", () => {
-        it("will error if a duration is not provided", () => {
-            const definition = "root { wait [] }";
-            assert.throws(
-                () => new mistreevous.BehaviourTree(definition, {}),
-                Error,
-                "error parsing tree: invalid number of wait node duration arguments defined"
-            );
+        describe("will error if", () => {
+            it("the defined node arguments are not integers", () => {
+                const definition = "root { wait ['not', 'integers'] }";
+                assert.throws(
+                    () => new mistreevous.BehaviourTree(definition, {}),
+                    Error,
+                    "error parsing tree: wait node durations must be integer values"
+                );
+            });
+
+            it("a negative duration node argument was defined", () => {
+                const definition = "root { wait [-1] }";
+                assert.throws(
+                    () => new mistreevous.BehaviourTree(definition, {}),
+                    Error,
+                    "error parsing tree: a wait node must have a positive duration"
+                );
+            });
+
+            it("more than two node arguments are defined", () => {
+                const definition = "root { wait [0, 1000, 4000] }";
+                assert.throws(
+                    () => new mistreevous.BehaviourTree(definition, {}),
+                    Error,
+                    "error parsing tree: invalid number of wait node duration arguments defined"
+                );
+            });
+
+            it("a minimum duration bound niode argument is defined that is greater than the maximum duration bound node argument", () => {
+                const definition = "root { wait [1000, 500] }";
+                assert.throws(
+                    () => new mistreevous.BehaviourTree(definition, {}),
+                    Error,
+                    "error parsing tree: a wait node must not have a minimum duration that exceeds the maximum duration"
+                );
+            });
         });
     });
 

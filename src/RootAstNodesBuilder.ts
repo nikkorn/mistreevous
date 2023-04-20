@@ -132,7 +132,8 @@ export type ConditionAstNode = LeafAstNode<Condition> & {
 export type WaitAstNode = LeafAstNode<Wait> & {
     type: "wait";
     duration: number | null;
-    longestDuration: number | null;
+    durationMin: number | null;
+    durationMax: number | null;
 };
 
 export type AnyAstNode =
@@ -404,28 +405,30 @@ const ASTNodeFactories = {
         type: "wait",
         attributes: [],
         duration: null,
-        longestDuration: null,
+        durationMin: null,
+        durationMax: null,
         validate() {
-            // A wait node must have a positive duration.
-            if (this.duration! < 0) {
-                throw new Error("a wait node must have a positive duration");
-            }
-
-            // There is validation to carry out if a longest duration was defined.
-            if (this.longestDuration) {
-                // A wait node must have a positive longest duration.
-                if (this.longestDuration < 0) {
-                    throw new Error("a wait node must have a positive longest duration if one is defined");
+            if (this.duration !== null) {
+                // If an explict duration was defined then it must be a positive number.
+                if (this.duration < 0) {
+                    throw new Error("a wait node must have a positive duration");
+                }
+            } else if (this.durationMin !== null && this.durationMax !== null) {
+                // A wait node must have a positive min and max duration.
+                if (this.durationMin < 0 || this.durationMax < 0) {
+                    throw new Error("a wait node must have a positive minimum and maximum duration");
                 }
 
-                // A wait node must not have a duration that exceeds the longest duration.
-                if (this.duration! > this.longestDuration) {
-                    throw new Error("a wait node must not have a shortest duration that exceeds the longest duration");
+                // A wait node must not have a minimum duration that exceeds the maximum duration.
+                if (this.durationMin > this.durationMax) {
+                    throw new Error("a wait node must not have a minimum duration that exceeds the maximum duration");
                 }
+            } else {
+                // If we have no explicit duration or duration bounds set then we are dealing with a wait node that waits indefinitely.
             }
         },
         createNodeInstance() {
-            return new Wait(this.attributes, this.duration!, this.longestDuration!);
+            return new Wait(this.attributes, this.duration, this.durationMin, this.durationMax);
         }
     }),
     ACTION: (): ActionAstNode => ({
@@ -721,23 +724,26 @@ export default function buildRootASTNodes(definition: string): RootAstNode[] {
                 // Push the WAIT node into the current scope.
                 currentScope.push(node);
 
-                // Get the duration and potential longest duration of the wait.
-                const durations = getArguments(
+                // Get the optional duration and longest duration of the wait.
+                const nodeArguments = getArguments(
                     tokens,
                     placeholders,
                     (arg) => arg.type === "number" && !!arg.isInteger,
                     "wait node durations must be integer values"
                 ).map((argument) => argument.value);
 
-                // We should have got one or two durations.
-                if (durations.length === 1) {
-                    // A static duration was defined.
-                    node.duration = durations[0] as number;
-                } else if (durations.length === 2) {
-                    // A shortest and longest duration was defined.
-                    node.duration = durations[0] as number;
-                    node.longestDuration = durations[1] as number;
-                } else {
+                // We may have:
+                // - No node arguments, in which case the wait will be indefinite until it is aborted.
+                // - One node argument which will be the explicit duration of the wait.
+                // - Two node arguments which define the min and max duration bounds from which a random duration will be picked.
+                if (nodeArguments.length === 1) {
+                    // An explicit duration was defined.
+                    node.duration = nodeArguments[0] as number;
+                } else if (nodeArguments.length === 2) {
+                    // Min and max duration bounds were defined from which a random duration will be picked.
+                    node.durationMin = nodeArguments[0] as number;
+                    node.durationMax = nodeArguments[1] as number;
+                } else if (nodeArguments.length > 2) {
                     // An incorrect number of durations was defined.
                     throw new Error("invalid number of wait node duration arguments defined");
                 }

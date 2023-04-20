@@ -492,20 +492,32 @@ var Condition = class extends Leaf {
 
 // src/nodes/leaf/Wait.ts
 var Wait = class extends Leaf {
-  constructor(attributes, duration, longestDuration) {
+  constructor(attributes, duration, durationMin, durationMax) {
     super("wait", attributes, []);
     this.duration = duration;
-    this.longestDuration = longestDuration;
+    this.durationMin = durationMin;
+    this.durationMax = durationMax;
   }
   initialUpdateTime = 0;
-  totalDuration = 0;
+  totalDuration = null;
   waitedDuration = 0;
   onUpdate(agent, options) {
     if (this.is("mistreevous.ready" /* READY */)) {
       this.initialUpdateTime = new Date().getTime();
       this.waitedDuration = 0;
-      this.totalDuration = this.longestDuration ? Math.floor(Math.random() * (this.longestDuration - this.duration + 1) + this.duration) : this.duration;
+      if (this.duration !== null) {
+        this.totalDuration = this.duration;
+      } else if (this.durationMin !== null && this.durationMax !== null) {
+        this.totalDuration = Math.floor(
+          Math.random() * (this.durationMax - this.durationMin + 1) + this.durationMin
+        );
+      } else {
+        this.totalDuration = null;
+      }
       this.setState("mistreevous.running" /* RUNNING */);
+    }
+    if (this.totalDuration === null) {
+      return;
     }
     if (typeof options.getDeltaTime === "function") {
       const deltaTime = options.getDeltaTime();
@@ -520,7 +532,15 @@ var Wait = class extends Leaf {
       this.setState("mistreevous.succeeded" /* SUCCEEDED */);
     }
   }
-  getName = () => `WAIT ${this.longestDuration ? this.duration + "ms-" + this.longestDuration + "ms" : this.duration + "ms"}`;
+  getName = () => {
+    if (this.duration !== null) {
+      return `WAIT ${this.duration}ms`;
+    } else if (this.durationMin !== null && this.durationMax !== null) {
+      return `WAIT ${this.durationMin}ms-${this.durationMax}ms`;
+    } else {
+      return "WAIT";
+    }
+  };
 };
 
 // src/nodes/decorator/Decorator.ts
@@ -1254,22 +1274,25 @@ var ASTNodeFactories = {
     type: "wait",
     attributes: [],
     duration: null,
-    longestDuration: null,
+    durationMin: null,
+    durationMax: null,
     validate() {
-      if (this.duration < 0) {
-        throw new Error("a wait node must have a positive duration");
-      }
-      if (this.longestDuration) {
-        if (this.longestDuration < 0) {
-          throw new Error("a wait node must have a positive longest duration if one is defined");
+      if (this.duration !== null) {
+        if (this.duration < 0) {
+          throw new Error("a wait node must have a positive duration");
         }
-        if (this.duration > this.longestDuration) {
-          throw new Error("a wait node must not have a shortest duration that exceeds the longest duration");
+      } else if (this.durationMin !== null && this.durationMax !== null) {
+        if (this.durationMin < 0 || this.durationMax < 0) {
+          throw new Error("a wait node must have a positive minimum and maximum duration");
         }
+        if (this.durationMin > this.durationMax) {
+          throw new Error("a wait node must not have a minimum duration that exceeds the maximum duration");
+        }
+      } else {
       }
     },
     createNodeInstance() {
-      return new Wait(this.attributes, this.duration, this.longestDuration);
+      return new Wait(this.attributes, this.duration, this.durationMin, this.durationMax);
     }
   }),
   ACTION: () => ({
@@ -1428,18 +1451,18 @@ function buildRootASTNodes(definition) {
       case "WAIT": {
         const node = ASTNodeFactories.WAIT();
         currentScope.push(node);
-        const durations = getArguments(
+        const nodeArguments = getArguments(
           tokens,
           placeholders,
           (arg) => arg.type === "number" && !!arg.isInteger,
           "wait node durations must be integer values"
         ).map((argument) => argument.value);
-        if (durations.length === 1) {
-          node.duration = durations[0];
-        } else if (durations.length === 2) {
-          node.duration = durations[0];
-          node.longestDuration = durations[1];
-        } else {
+        if (nodeArguments.length === 1) {
+          node.duration = nodeArguments[0];
+        } else if (nodeArguments.length === 2) {
+          node.durationMin = nodeArguments[0];
+          node.durationMax = nodeArguments[1];
+        } else if (nodeArguments.length > 2) {
           throw new Error("invalid number of wait node duration arguments defined");
         }
         node.attributes = getAttributes(tokens, placeholders);

@@ -12,9 +12,15 @@ export default class Wait extends Leaf {
     /**
      * @param attributes The node attributes.
      * @param duration The duration that this node will wait to succeed in milliseconds, or the earliest if longestDuration is defined.
-     * @param longestDuration The longest possible duration in milliseconds that this node will wait to succeed.
+     * @param durationMin The minimum possible duration in milliseconds that this node will wait to succeed.
+     * @param durationMax The maximum possible duration in milliseconds that this node will wait to succeed.
      */
-    constructor(attributes: Attribute[], private duration: number, private longestDuration: number) {
+    constructor(
+        attributes: Attribute[],
+        private duration: number | null,
+        private durationMin: number | null,
+        private durationMax: number | null
+    ) {
         super("wait", attributes, []);
     }
 
@@ -26,7 +32,7 @@ export default class Wait extends Leaf {
     /**
      * The total duration in milliseconds that this node will be waiting for.
      */
-    private totalDuration: number = 0;
+    private totalDuration: number | null = null;
 
     /**
      * The duration in milliseconds that this node has been waiting for.
@@ -47,14 +53,24 @@ export default class Wait extends Leaf {
             // Set the initial waited duration.
             this.waitedDuration = 0;
 
-            // If a longestDuration value was defined then we will be randomly picking a duration between the
-            // shortest and longest duration. If it was not defined, then we will be just using the duration.
-            this.totalDuration = this.longestDuration
-                ? Math.floor(Math.random() * (this.longestDuration - this.duration + 1) + this.duration)
-                : this.duration;
+            // Are we dealing with an explicit duration or will we be randomly picking a duration between the min and max duration.
+            if (this.duration !== null) {
+                this.totalDuration = this.duration;
+            } else if (this.durationMin !== null && this.durationMax !== null) {
+                this.totalDuration = Math.floor(
+                    Math.random() * (this.durationMax - this.durationMin + 1) + this.durationMin
+                );
+            } else {
+                this.totalDuration = null;
+            }
 
             // The node is now running until we finish waiting.
             this.setState(State.RUNNING);
+        }
+
+        // If we have no total duration then this wait node will wait indefinitely until it is aborted.
+        if (this.totalDuration === null) {
+            return;
         }
 
         // If we have a 'getDeltaTime' function defined as part of our options then we will use it to figure out how long we have waited for.
@@ -84,6 +100,13 @@ export default class Wait extends Leaf {
     /**
      * Gets the name of the node.
      */
-    getName = () =>
-        `WAIT ${this.longestDuration ? this.duration + "ms-" + this.longestDuration + "ms" : this.duration + "ms"}`;
+    getName = () => {
+        if (this.duration !== null) {
+            return `WAIT ${this.duration}ms`;
+        } else if (this.durationMin !== null && this.durationMax !== null) {
+            return `WAIT ${this.durationMin}ms-${this.durationMax}ms`;
+        } else {
+            return "WAIT";
+        }
+    };
 }
