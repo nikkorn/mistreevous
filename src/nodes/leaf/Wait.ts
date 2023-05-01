@@ -57,8 +57,13 @@ export default class Wait extends Leaf {
             if (this.duration !== null) {
                 this.totalDuration = this.duration;
             } else if (this.durationMin !== null && this.durationMax !== null) {
+                // We will be picking a random duration between a min and max duration, if the optional 'random' behaviour tree
+                // function option is defined then we will be using that, otherwise we will fall back to using Math.random.
+                const random = typeof options.random === "function" ? options.random : Math.random;
+
+                // Pick a random duration a min and max duration.
                 this.totalDuration = Math.floor(
-                    Math.random() * (this.durationMax - this.durationMin + 1) + this.durationMin
+                    random() * (this.durationMax - this.durationMin + 1) + this.durationMin
                 );
             } else {
                 this.totalDuration = null;

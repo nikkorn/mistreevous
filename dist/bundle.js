@@ -508,8 +508,9 @@ var mistreevous = (() => {
         if (this.duration !== null) {
           this.totalDuration = this.duration;
         } else if (this.durationMin !== null && this.durationMax !== null) {
+          const random = typeof options.random === "function" ? options.random : Math.random;
           this.totalDuration = Math.floor(
-            Math.random() * (this.durationMax - this.durationMin + 1) + this.durationMin
+            random() * (this.durationMax - this.durationMin + 1) + this.durationMin
           );
         } else {
           this.totalDuration = null;
@@ -1451,19 +1452,21 @@ var mistreevous = (() => {
         case "WAIT": {
           const node = ASTNodeFactories.WAIT();
           currentScope.push(node);
-          const nodeArguments = getArguments(
-            tokens,
-            placeholders,
-            (arg) => arg.type === "number" && !!arg.isInteger,
-            "wait node durations must be integer values"
-          ).map((argument) => argument.value);
-          if (nodeArguments.length === 1) {
-            node.duration = nodeArguments[0];
-          } else if (nodeArguments.length === 2) {
-            node.durationMin = nodeArguments[0];
-            node.durationMax = nodeArguments[1];
-          } else if (nodeArguments.length > 2) {
-            throw new Error("invalid number of wait node duration arguments defined");
+          if (tokens[0] === "[") {
+            const nodeArguments = getArguments(
+              tokens,
+              placeholders,
+              (arg) => arg.type === "number" && !!arg.isInteger,
+              "wait node durations must be integer values"
+            ).map((argument) => argument.value);
+            if (nodeArguments.length === 1) {
+              node.duration = nodeArguments[0];
+            } else if (nodeArguments.length === 2) {
+              node.durationMin = nodeArguments[0];
+              node.durationMax = nodeArguments[1];
+            } else if (nodeArguments.length > 2) {
+              throw new Error("invalid number of wait node duration arguments defined");
+            }
           }
           node.attributes = getAttributes(tokens, placeholders);
           break;

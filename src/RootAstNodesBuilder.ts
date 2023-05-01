@@ -724,28 +724,34 @@ export default function buildRootASTNodes(definition: string): RootAstNode[] {
                 // Push the WAIT node into the current scope.
                 currentScope.push(node);
 
-                // Get the optional duration and longest duration of the wait.
-                const nodeArguments = getArguments(
-                    tokens,
-                    placeholders,
-                    (arg) => arg.type === "number" && !!arg.isInteger,
-                    "wait node durations must be integer values"
-                ).map((argument) => argument.value);
-
-                // We may have:
+                // The arguments of a wait node are optional. We may have:
                 // - No node arguments, in which case the wait will be indefinite until it is aborted.
                 // - One node argument which will be the explicit duration of the wait.
                 // - Two node arguments which define the min and max duration bounds from which a random duration will be picked.
-                if (nodeArguments.length === 1) {
-                    // An explicit duration was defined.
-                    node.duration = nodeArguments[0] as number;
-                } else if (nodeArguments.length === 2) {
-                    // Min and max duration bounds were defined from which a random duration will be picked.
-                    node.durationMin = nodeArguments[0] as number;
-                    node.durationMax = nodeArguments[1] as number;
-                } else if (nodeArguments.length > 2) {
-                    // An incorrect number of durations was defined.
-                    throw new Error("invalid number of wait node duration arguments defined");
+                if (tokens[0] === "[") {
+                    // Get the optional duration and longest duration of the wait.
+                    const nodeArguments = getArguments(
+                        tokens,
+                        placeholders,
+                        (arg) => arg.type === "number" && !!arg.isInteger,
+                        "wait node durations must be integer values"
+                    ).map((argument) => argument.value);
+
+                    // We may have:
+                    // - One node argument which will be the explicit duration of the wait.
+                    // - Two node arguments which define the min and max duration bounds from which a random duration will be picked.
+                    // - Too many arguments, which is not valid.
+                    if (nodeArguments.length === 1) {
+                        // An explicit duration was defined.
+                        node.duration = nodeArguments[0] as number;
+                    } else if (nodeArguments.length === 2) {
+                        // Min and max duration bounds were defined from which a random duration will be picked.
+                        node.durationMin = nodeArguments[0] as number;
+                        node.durationMax = nodeArguments[1] as number;
+                    } else if (nodeArguments.length > 2) {
+                        // An incorrect number of durations was defined.
+                        throw new Error("invalid number of wait node duration arguments defined");
+                    }
                 }
 
                 // Try to pick any attributes off of the token stack.
@@ -760,7 +766,7 @@ export default function buildRootASTNodes(definition: string): RootAstNode[] {
                 // Push the REPEAT node into the current scope.
                 currentScope.push(node);
 
-                // Check for iteration counts ([])
+                // Check for iteration count node arguments ([])
                 if (tokens[0] === "[") {
                     // An iteration count has been defined. Get the iteration and potential maximum iteration of the wait.
                     const iterationArguments = getArguments(

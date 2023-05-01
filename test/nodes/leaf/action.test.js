@@ -54,7 +54,7 @@ describe("An Action node", () => {
                 assert.throws(
                     () => tree.step(),
                     Error,
-                    "error stepping tree: cannot update action node as the action 'DoTheThing' function is not defined on the agent and has not been registere"
+                    "error stepping tree: cannot update action node as the action 'DoTheThing' function is not defined on the agent and has not been registered"
                 );
             });
 
