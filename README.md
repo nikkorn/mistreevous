@@ -442,7 +442,7 @@ root {
 In the above example, we are using a wait node to wait 2 seconds between each run of the **FireWeapon** action.
 
 The duration to wait in milliseconds can also be selected at random within a lower and upper bound if these are defined as two integer node arguments. In the example below, we would run the **PickUpProjectile** action and then wait for 2 to 8 seconds before running the **ThrowProjectile** action.
-[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=wait-one-to-five-seconds)
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=wait)
 
 ```
 root {
@@ -451,6 +451,15 @@ root {
         wait [2000, 8000]
         action [ThrowProjectile]
     }
+}
+```
+
+If no node arguments are defined then the wait node will remain in the running state indefinitely until it is aborted.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=wait)
+
+```
+root {
+    wait
 }
 ```
 
@@ -531,14 +540,14 @@ root {
 ```
 
 ## Guards
-A guard defines a condition that must be met in order for the node to remain active. Any running nodes will have their guard condition evaluated for each leaf node update, and will move to a failed state if the guard condition is not met.
+A guard defines a condition that must be met in order for the associated node to remain active. Any running nodes will have their guard condition evaluated for each leaf node update, and will move to a failed state if the guard condition is not met.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=guards)
 
 This functionality is useful as a means of aborting long running actions or branches that span across multiple steps of the tree.
 
 ```
 root {
-    wait [10000] while(CanWait)
+    wait while(CanWait)
 }
 ```
 
