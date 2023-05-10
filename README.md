@@ -664,14 +664,15 @@ A practical look at behaviour trees and a good example of modelling behaviour fo
 
 
 ## Version History
-| Version        | Notes           |
-| -------------- |:-------------|
+| Version        | Notes |
+| -------------- |:----------------------------------------------------------------------------------------|
+| 3.1.0          | Added 'random' function option to allow users to provide psuedo-random numbers for use in operations such as `lotto` node child selection and wait node duration selection when a minimum and maximum duration are defined. Wait nodes will now remain in the running state indefinitely until they are aborted if no duration is defined for them | 
 | 3.0.0          | Converted to Typescript | 
-| 2.3.0          | Added Global Functions and Subtrees  | 
-| 2.2.0          | Added Succeed, Fail and Retry decorators  | 
+| 2.3.0          | Added Global Functions and Subtrees | 
+| 2.2.0          | Added Succeed, Fail and Retry decorators | 
 | 2.1.0          | Added optional arguments for actions, conditions and decorators  | 
 | 2.0.1          | Fixed isses with inconsistent guard condition evaluation for composite nodes | 
 | 2.0.0          | Fixed broken typings | 
 | 1.1.0          | Added parallel composite node |
-| 1.0.0          | Calls to action, condition and guard agent functions are now bound to the agent instance  |
-| 0.0.6          | Added promisey actions     |
+| 1.0.0          | Calls to action, condition and guard agent functions are now bound to the agent instance |
+| 0.0.6          | Added promisey actions |
