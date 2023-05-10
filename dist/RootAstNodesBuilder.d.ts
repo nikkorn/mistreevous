@@ -84,7 +84,8 @@ export type ConditionAstNode = LeafAstNode<Condition> & {
 export type WaitAstNode = LeafAstNode<Wait> & {
     type: "wait";
     duration: number | null;
-    longestDuration: number | null;
+    durationMin: number | null;
+    durationMax: number | null;
 };
 export type AnyAstNode = BranchAstNode | CompositeAstNode | LottoAstNode | DecoratorAstNode | RootAstNode | IterableAstNode | LeafAstNode | ActionAstNode | ConditionAstNode | WaitAstNode;
 /**
