@@ -582,17 +582,19 @@ var Root = class extends Decorator {
 
 // src/nodes/decorator/Repeat.ts
 var Repeat = class extends Decorator {
-  constructor(attributes, iterations, maximumIterations, child) {
+  constructor(attributes, iterations, iterationsMin, iterationsMax, child) {
     super("repeat", attributes, child);
     this.iterations = iterations;
-    this.maximumIterations = maximumIterations;
+    this.iterationsMin = iterationsMin;
+    this.iterationsMax = iterationsMax;
   }
   targetIterationCount = null;
   currentIterationCount = 0;
   onUpdate(agent, options) {
     if (this.is("mistreevous.ready" /* READY */)) {
       this.child.reset();
-      this.setTargetIterationCount();
+      this.currentIterationCount = 0;
+      this.setTargetIterationCount(options);
     }
     if (this.canIterate()) {
       this.setState("mistreevous.running" /* RUNNING */);
@@ -612,9 +614,12 @@ var Repeat = class extends Decorator {
   }
   getName = () => {
     if (this.iterations !== null) {
-      return `REPEAT ${this.maximumIterations ? this.iterations + "x-" + this.maximumIterations + "x" : this.iterations + "x"}`;
+      return `REPEAT ${this.iterations}x`;
+    } else if (this.iterationsMin !== null && this.iterationsMax !== null) {
+      return `REPEAT ${this.iterationsMin}x-${this.iterationsMax}x`;
+    } else {
+      return "REPEAT";
     }
-    return "REPEAT";
   };
   reset = () => {
     this.setState("mistreevous.ready" /* READY */);
@@ -627,9 +632,14 @@ var Repeat = class extends Decorator {
     }
     return true;
   };
-  setTargetIterationCount = () => {
-    if (typeof this.iterations === "number") {
-      this.targetIterationCount = typeof this.maximumIterations === "number" ? Math.floor(Math.random() * (this.maximumIterations - this.iterations + 1) + this.iterations) : this.iterations;
+  setTargetIterationCount = (options) => {
+    if (this.iterations !== null) {
+      this.targetIterationCount = this.iterations;
+    } else if (this.iterationsMin !== null && this.iterationsMax !== null) {
+      const random = typeof options.random === "function" ? options.random : Math.random;
+      this.targetIterationCount = Math.floor(
+        random() * (this.iterationsMax - this.iterationsMin + 1) + this.iterationsMin
+      );
     } else {
       this.targetIterationCount = null;
     }
@@ -638,19 +648,21 @@ var Repeat = class extends Decorator {
 
 // src/nodes/decorator/Retry.ts
 var Retry = class extends Decorator {
-  constructor(attributes, iterations, maximumIterations, child) {
+  constructor(attributes, attempts, attemptsMin, attemptsMax, child) {
     super("retry", attributes, child);
-    this.iterations = iterations;
-    this.maximumIterations = maximumIterations;
+    this.attempts = attempts;
+    this.attemptsMin = attemptsMin;
+    this.attemptsMax = attemptsMax;
   }
-  targetIterationCount = null;
-  currentIterationCount = 0;
+  targetAttemptCount = null;
+  currentAttemptCount = 0;
   onUpdate(agent, options) {
     if (this.is("mistreevous.ready" /* READY */)) {
       this.child.reset();
-      this.setTargetIterationCount();
+      this.currentAttemptCount = 0;
+      this.setTargetAttemptCount(options);
     }
-    if (this.canIterate()) {
+    if (this.canAttempt()) {
       this.setState("mistreevous.running" /* RUNNING */);
       if (this.child.getState() === "mistreevous.failed" /* FAILED */) {
         this.child.reset();
@@ -660,34 +672,42 @@ var Retry = class extends Decorator {
         this.setState("mistreevous.succeeded" /* SUCCEEDED */);
         return;
       } else if (this.child.getState() === "mistreevous.failed" /* FAILED */) {
-        this.currentIterationCount += 1;
+        this.currentAttemptCount += 1;
       }
     } else {
       this.setState("mistreevous.failed" /* FAILED */);
     }
   }
   getName = () => {
-    if (this.iterations !== null) {
-      return `RETRY ${this.maximumIterations ? this.iterations + "x-" + this.maximumIterations + "x" : this.iterations + "x"}`;
+    if (this.attempts !== null) {
+      return `RETRY ${this.attempts}x`;
+    } else if (this.attemptsMin !== null && this.attemptsMax !== null) {
+      return `RETRY ${this.attemptsMin}x-${this.attemptsMax}x`;
+    } else {
+      return "RETRY";
     }
-    return "RETRY";
   };
   reset = () => {
     this.setState("mistreevous.ready" /* READY */);
-    this.currentIterationCount = 0;
+    this.currentAttemptCount = 0;
     this.child.reset();
   };
-  canIterate = () => {
-    if (this.targetIterationCount !== null) {
-      return this.currentIterationCount < this.targetIterationCount;
+  canAttempt = () => {
+    if (this.targetAttemptCount !== null) {
+      return this.currentAttemptCount < this.targetAttemptCount;
     }
     return true;
   };
-  setTargetIterationCount = () => {
-    if (typeof this.iterations === "number") {
-      this.targetIterationCount = typeof this.maximumIterations === "number" ? Math.floor(Math.random() * (this.maximumIterations - this.iterations + 1) + this.iterations) : this.iterations;
+  setTargetAttemptCount = (options) => {
+    if (this.attempts !== null) {
+      this.targetAttemptCount = this.attempts;
+    } else if (this.attemptsMin !== null && this.attemptsMax !== null) {
+      const random = typeof options.random === "function" ? options.random : Math.random;
+      this.targetAttemptCount = Math.floor(
+        random() * (this.attemptsMax - this.attemptsMin + 1) + this.attemptsMin
+      );
     } else {
-      this.targetIterationCount = null;
+      this.targetAttemptCount = null;
     }
   };
 };
@@ -1161,31 +1181,37 @@ var ASTNodeFactories = {
     type: "repeat",
     attributes: [],
     iterations: null,
-    maximumIterations: null,
+    iterationsMin: null,
+    iterationsMax: null,
     children: [],
     validate() {
       if (this.children.length !== 1) {
         throw new Error("a repeat node must have a single child");
       }
-      if (this.iterations !== null && this.iterations < 0) {
-        throw new Error("a repeat node must have a positive number of iterations if defined");
-      }
-      if (this.maximumIterations !== null) {
-        if (this.maximumIterations < 0) {
-          throw new Error("a repeat node must have a positive maximum iterations count if defined");
+      if (this.iterations !== null) {
+        if (this.iterations < 0) {
+          throw new Error("a repeat node must have a positive number of iterations if defined");
         }
-        if (this.iterations > this.maximumIterations) {
+      } else if (this.iterationsMin !== null && this.iterationsMax !== null) {
+        if (this.iterationsMin < 0 || this.iterationsMax < 0) {
           throw new Error(
-            "a repeat node must not have an iteration count that exceeds the maximum iteration count"
+            "a repeat node must have a positive minimum and maximum iteration count if defined"
           );
         }
+        if (this.iterationsMin > this.iterationsMax) {
+          throw new Error(
+            "a repeat node must not have a minimum iteration count that exceeds the maximum iteration count"
+          );
+        }
+      } else {
       }
     },
     createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Repeat(
         this.attributes,
         this.iterations,
-        this.maximumIterations,
+        this.iterationsMin,
+        this.iterationsMax,
         this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
       );
     }
@@ -1193,32 +1219,36 @@ var ASTNodeFactories = {
   RETRY: () => ({
     type: "retry",
     attributes: [],
-    iterations: null,
-    maximumIterations: null,
+    attempts: null,
+    attemptsMin: null,
+    attemptsMax: null,
     children: [],
     validate() {
       if (this.children.length !== 1) {
         throw new Error("a retry node must have a single child");
       }
-      if (this.iterations !== null && this.iterations < 0) {
-        throw new Error("a retry node must have a positive number of iterations if defined");
-      }
-      if (this.maximumIterations !== null) {
-        if (this.maximumIterations < 0) {
-          throw new Error("a retry node must have a positive maximum iterations count if defined");
+      if (this.attempts !== null) {
+        if (this.attempts < 0) {
+          throw new Error("a retry node must have a positive number of attempts if defined");
         }
-        if (this.iterations > this.maximumIterations) {
+      } else if (this.attemptsMin !== null && this.attemptsMax !== null) {
+        if (this.attemptsMin < 0 || this.attemptsMax < 0) {
+          throw new Error("a retry node must have a positive minimum and maximum attempt count if defined");
+        }
+        if (this.attemptsMin > this.attemptsMax) {
           throw new Error(
-            "a retry node must not have an iteration count that exceeds the maximum iteration count"
+            "a retry node must not have a minimum attempt count that exceeds the maximum attempt count"
           );
         }
+      } else {
       }
     },
     createNodeInstance(namedRootNodeProvider, visitedBranches) {
       return new Retry(
         this.attributes,
-        this.iterations,
-        this.maximumIterations,
+        this.attempts,
+        this.attemptsMin,
+        this.attemptsMax,
         this.children[0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
       );
     }
@@ -1475,17 +1505,17 @@ function buildRootASTNodes(definition) {
         const node = ASTNodeFactories.REPEAT();
         currentScope.push(node);
         if (tokens[0] === "[") {
-          const iterationArguments = getArguments(
+          const nodeArguments = getArguments(
             tokens,
             placeholders,
             (arg) => arg.type === "number" && !!arg.isInteger,
             "repeat node iteration counts must be integer values"
           ).map((argument) => argument.value);
-          if (iterationArguments.length === 1) {
-            node.iterations = iterationArguments[0];
-          } else if (iterationArguments.length === 2) {
-            node.iterations = iterationArguments[0];
-            node.maximumIterations = iterationArguments[1];
+          if (nodeArguments.length === 1) {
+            node.iterations = nodeArguments[0];
+          } else if (nodeArguments.length === 2) {
+            node.iterationsMin = nodeArguments[0];
+            node.iterationsMax = nodeArguments[1];
           } else {
             throw new Error("invalid number of repeat node iteration count arguments defined");
           }
@@ -1499,19 +1529,19 @@ function buildRootASTNodes(definition) {
         const node = ASTNodeFactories.RETRY();
         currentScope.push(node);
         if (tokens[0] === "[") {
-          const iterationArguments = getArguments(
+          const nodeArguments = getArguments(
             tokens,
             placeholders,
             (arg) => arg.type === "number" && !!arg.isInteger,
-            "retry node iteration counts must be integer values"
+            "retry node attempt counts must be integer values"
           ).map((argument) => argument.value);
-          if (iterationArguments.length === 1) {
-            node.iterations = iterationArguments[0];
-          } else if (iterationArguments.length === 2) {
-            node.iterations = iterationArguments[0];
-            node.maximumIterations = iterationArguments[1];
+          if (nodeArguments.length === 1) {
+            node.attempts = nodeArguments[0];
+          } else if (nodeArguments.length === 2) {
+            node.attemptsMin = nodeArguments[0];
+            node.attemptsMax = nodeArguments[1];
           } else {
-            throw new Error("invalid number of retry node iteration count arguments defined");
+            throw new Error("invalid number of retry node attempt count arguments defined");
           }
         }
         node.attributes = getAttributes(tokens, placeholders);

@@ -12,7 +12,7 @@ export default class Wait extends Leaf {
     private durationMax;
     /**
      * @param attributes The node attributes.
-     * @param duration The duration that this node will wait to succeed in milliseconds, or the earliest if longestDuration is defined.
+     * @param duration The duration that this node will wait to succeed in milliseconds.
      * @param durationMin The minimum possible duration in milliseconds that this node will wait to succeed.
      * @param durationMax The maximum possible duration in milliseconds that this node will wait to succeed.
      */
