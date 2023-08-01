@@ -78,7 +78,7 @@ The `BehaviourTree` constructor can take an options object as an argument, the p
 | Option          |Type | Description |
 | :--------------------|:- |:- |
 | getDeltaTime |() => number| A function returning a delta time in seconds that is used to calculate the elapsed duration of any `wait` nodes. If this function is not defined then `Date().getTime()` is used instead by default.  |
-| random |() => number| A function returning a floating-point number between 0 (inclusive) and 1 (exclusive). If defined, this function is used to source a pseudo-random number to use in operations such as the selection of active children for any `lotto` nodes and the selection of durations for `wait` nodes when minimum and maximum durations are defined. If not defined then `Math.random` will be used instead by default. This function can be useful in seeding all random numbers used in the running of a tree instance to make any behaviour completely deterministic. |
+| random |() => number| A function returning a floating-point number between 0 (inclusive) and 1 (exclusive). If defined, this function is used to source a pseudo-random number to use in operations such as the selection of active children for any `lotto` nodes as well as the selection of durations for `wait` nodes, iterations for `repeat` nodes and attempts for `retry` nodes when minimum and maximum bounds are defined. If not defined then `Math.random` will be used instead by default. This function can be useful in seeding all random numbers used in the running of a tree instance to make any behaviour completely deterministic. |
 
 # Nodes
 
@@ -666,6 +666,7 @@ A practical look at behaviour trees and a good example of modelling behaviour fo
 ## Version History
 | Version        | Notes |
 | -------------- |:----------------------------------------------------------------------------------------|
+| 3.2.0          | The 'random' function option is used for iteration and attempt selection for `repeat` and `retry` nodes respectively when minimum and maximum bounds are defined | 
 | 3.1.0          | Added 'random' function option to allow users to provide psuedo-random numbers for use in operations such as `lotto` node child selection and wait node duration selection when a minimum and maximum duration are defined. Wait nodes will now remain in the running state indefinitely until they are aborted if no duration is defined for them | 
 | 3.0.0          | Converted to Typescript | 
 | 2.3.0          | Added Global Functions and Subtrees | 
