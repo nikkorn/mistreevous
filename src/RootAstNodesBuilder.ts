@@ -913,7 +913,7 @@ export default function buildRootASTNodes(definition: string): RootAstNode[] {
             }
 
             default: {
-                throw new Error("unexpected token: " + token);
+                throw new Error(`unexpected token '${token}'`);
             }
         }
     }
@@ -995,7 +995,8 @@ function popAndCheck(tokens: string[], expected: string | string[]) {
                 .concat(expected)
                 .map((item) => "'" + item + "'")
                 .join(" or ");
-            throw new Error("unexpected token found. Expected " + expectationString + " but got '" + popped + "'");
+
+            throw new Error(`unexpected token found. Expected '${expectationString}' but got '${popped}'`);
         }
     }
 

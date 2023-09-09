@@ -1575,7 +1575,7 @@ function buildRootASTNodes(definition) {
         break;
       }
       default: {
-        throw new Error("unexpected token: " + token);
+        throw new Error(`unexpected token '${token}'`);
       }
     }
   }
@@ -1621,7 +1621,7 @@ function popAndCheck(tokens, expected) {
     var tokenMatchesExpectation = [].concat(expected).some((item) => popped.toUpperCase() === item.toUpperCase());
     if (!tokenMatchesExpectation) {
       const expectationString = [].concat(expected).map((item) => "'" + item + "'").join(" or ");
-      throw new Error("unexpected token found. Expected " + expectationString + " but got '" + popped + "'");
+      throw new Error(`unexpected token found. Expected '${expectationString}' but got '${popped}'`);
     }
   }
   return popped;
@@ -1823,8 +1823,7 @@ var BehaviourTree = class {
       BehaviourTree.applyLeafNodeGuardPaths(rootNode);
       return rootNode;
     } catch (exception) {
-      throw new Error(`error parsing tree: ${exception.message}
-${exception.stack}`);
+      throw new Error(`error parsing tree: ${exception.message}`);
     }
   }
   static applyLeafNodeGuardPaths(rootNode) {
