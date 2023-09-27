@@ -66,10 +66,17 @@ export type RootAstNode = DecoratorAstNode<Root> & {
     type: "root";
     name: null | string;
 };
-export type IterableAstNode = DecoratorAstNode<Repeat | Retry> & {
-    type: "repeat" | "retry";
-    iterations: null | number;
-    maximumIterations: null | number;
+export type RepeatAstNode = DecoratorAstNode<Repeat> & {
+    type: "repeat";
+    iterations: number | null;
+    iterationsMin: number | null;
+    iterationsMax: number | null;
+};
+export type RetryAstNode = DecoratorAstNode<Retry> & {
+    type: "retry";
+    attempts: number | null;
+    attemptsMin: number | null;
+    attemptsMax: number | null;
 };
 export type ActionAstNode = LeafAstNode<Action> & {
     type: "action";
@@ -87,7 +94,7 @@ export type WaitAstNode = LeafAstNode<Wait> & {
     durationMin: number | null;
     durationMax: number | null;
 };
-export type AnyAstNode = BranchAstNode | CompositeAstNode | LottoAstNode | DecoratorAstNode | RootAstNode | IterableAstNode | LeafAstNode | ActionAstNode | ConditionAstNode | WaitAstNode;
+export type AnyAstNode = BranchAstNode | CompositeAstNode | LottoAstNode | DecoratorAstNode | RootAstNode | RepeatAstNode | RetryAstNode | LeafAstNode | ActionAstNode | ConditionAstNode | WaitAstNode;
 /**
  * Create an array of root AST nodes based on the given definition.
  * @param definition The definition to parse the AST nodes from.

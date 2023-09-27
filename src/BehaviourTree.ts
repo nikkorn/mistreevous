@@ -227,7 +227,7 @@ export class BehaviourTree {
             return rootNode;
         } catch (exception) {
             // There was an issue in trying to parse and build the tree definition.
-            throw new Error(`error parsing tree: ${(exception as Error).message}\n${(exception as Error).stack}`);
+            throw new Error(`error parsing tree: ${(exception as Error).message}`);
         }
     }
 

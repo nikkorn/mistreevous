@@ -12,23 +12,25 @@ import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
  * The RETRY node will attempt to move on to the next iteration if its child is ever in a 'FAILED' state.
  */
 export default class Retry extends Decorator {
-    private iterations;
-    private maximumIterations;
+    private attempts;
+    private attemptsMin;
+    private attemptsMax;
     /**
      * @param attributes The node attributes.
-     * @param iterations The number of iterations to repeat the child node, or the minimum number of iterations if maximumIterations is defined.
-     * @param maximumIterations The maximum number of iterations to repeat the child node.
+     * @param attempts The number of attempts to retry the child node.
+     * @param attemptsMin The minimum possible number of attempts to retry the child node.
+     * @param attemptsMax The maximum possible number of attempts to retry the child node.
      * @param child The child node.
      */
-    constructor(attributes: Attribute[], iterations: number | null, maximumIterations: number | null, child: Node);
+    constructor(attributes: Attribute[], attempts: number | null, attemptsMin: number | null, attemptsMax: number | null, child: Node);
     /**
-     * The number of target iterations to make.
+     * The number of target attempts to make.
      */
-    private targetIterationCount;
+    private targetAttemptCount;
     /**
-     * The current iteration count.
+     * The current attempt count.
      */
-    private currentIterationCount;
+    private currentAttemptCount;
     /**
      * Called when the node is being updated.
      * @param agent The agent.
@@ -44,12 +46,13 @@ export default class Retry extends Decorator {
      */
     reset: () => void;
     /**
-     * Gets whether an iteration can be made.
-     * @returns Whether an iteration can be made.
+     * Gets whether an attempt can be made.
+     * @returns Whether an attempt can be made.
      */
-    canIterate: () => boolean;
+    canAttempt: () => boolean;
     /**
-     * Sets the target iteration count.
+     * Sets the target attempt count.
+     * @param options The behaviour tree options object.
      */
-    setTargetIterationCount: () => void;
+    setTargetAttemptCount: (options: BehaviourTreeOptions) => void;
 }

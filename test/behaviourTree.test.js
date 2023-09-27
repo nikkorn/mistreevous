@@ -29,7 +29,7 @@ describe("A BehaviourTree instance", () => {
                 assert.throws(
                     () => new mistreevous.BehaviourTree("invalid-token { }", {}),
                     Error,
-                    "error parsing tree: unexpected token: invalid-token"
+                    "error parsing tree: unexpected token 'invalid-token'"
                 );
             });
 
