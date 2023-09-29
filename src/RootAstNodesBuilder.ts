@@ -111,10 +111,18 @@ export type RootAstNode = DecoratorAstNode<Root> & {
     name: null | string;
 };
 
-export type IterableAstNode = DecoratorAstNode<Repeat | Retry> & {
-    type: "repeat" | "retry";
-    iterations: null | number;
-    maximumIterations: null | number;
+export type RepeatAstNode = DecoratorAstNode<Repeat> & {
+    type: "repeat";
+    iterations: number | null;
+    iterationsMin: number | null;
+    iterationsMax: number | null;
+};
+
+export type RetryAstNode = DecoratorAstNode<Retry> & {
+    type: "retry";
+    attempts: number | null;
+    attemptsMin: number | null;
+    attemptsMax: number | null;
 };
 
 export type ActionAstNode = LeafAstNode<Action> & {
@@ -142,7 +150,8 @@ export type AnyAstNode =
     | LottoAstNode
     | DecoratorAstNode
     | RootAstNode
-    | IterableAstNode
+    | RepeatAstNode
+    | RetryAstNode
     | LeafAstNode
     | ActionAstNode
     | ConditionAstNode
@@ -268,11 +277,12 @@ const ASTNodeFactories = {
             );
         }
     }),
-    REPEAT: (): IterableAstNode => ({
+    REPEAT: (): RepeatAstNode => ({
         type: "repeat",
         attributes: [],
         iterations: null,
-        maximumIterations: null,
+        iterationsMin: null,
+        iterationsMax: null,
         children: [],
         validate() {
             // A repeat node must have a single node.
@@ -280,40 +290,45 @@ const ASTNodeFactories = {
                 throw new Error("a repeat node must have a single child");
             }
 
-            // A repeat node must have a positive number of iterations if defined.
-            if (this.iterations !== null && this.iterations! < 0) {
-                throw new Error("a repeat node must have a positive number of iterations if defined");
-            }
-
-            // There is validation to carry out if a longest duration was defined.
-            if (this.maximumIterations !== null) {
-                // A repeat node must have a positive maximum iterations count if defined.
-                if (this.maximumIterations! < 0) {
-                    throw new Error("a repeat node must have a positive maximum iterations count if defined");
+            if (this.iterations !== null) {
+                // A repeat node must have a positive number of iterations if defined.
+                if (this.iterations < 0) {
+                    throw new Error("a repeat node must have a positive number of iterations if defined");
                 }
-
-                // A repeat node must not have an iteration count that exceeds the maximum iteration count.
-                if (this.iterations! > this.maximumIterations!) {
+            } else if (this.iterationsMin !== null && this.iterationsMax !== null) {
+                // A repeat node must have a positive min and max iteration count if they are defined.
+                if (this.iterationsMin < 0 || this.iterationsMax < 0) {
                     throw new Error(
-                        "a repeat node must not have an iteration count that exceeds the maximum iteration count"
+                        "a repeat node must have a positive minimum and maximum iteration count if defined"
                     );
                 }
+
+                // A repeat node must not have an minimum iteration count that exceeds the maximum iteration count.
+                if (this.iterationsMin > this.iterationsMax) {
+                    throw new Error(
+                        "a repeat node must not have a minimum iteration count that exceeds the maximum iteration count"
+                    );
+                }
+            } else {
+                // If we have no explicit iteration count or a minimum and maximum iteration count set then we are dealing with a repeat node that iterates indefinitely.
             }
         },
         createNodeInstance(namedRootNodeProvider, visitedBranches) {
             return new Repeat(
                 this.attributes,
-                this.iterations!,
-                this.maximumIterations!,
+                this.iterations,
+                this.iterationsMin,
+                this.iterationsMax,
                 this.children![0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
             );
         }
     }),
-    RETRY: (): IterableAstNode => ({
+    RETRY: (): RetryAstNode => ({
         type: "retry",
         attributes: [],
-        iterations: null,
-        maximumIterations: null,
+        attempts: null,
+        attemptsMin: null,
+        attemptsMax: null,
         children: [],
         validate() {
             // A retry node must have a single node.
@@ -321,31 +336,33 @@ const ASTNodeFactories = {
                 throw new Error("a retry node must have a single child");
             }
 
-            // A retry node must have a positive number of iterations if defined.
-            if (this.iterations !== null && this.iterations! < 0) {
-                throw new Error("a retry node must have a positive number of iterations if defined");
-            }
-
-            // There is validation to carry out if a longest duration was defined.
-            if (this.maximumIterations !== null) {
-                // A retry node must have a positive maximum iterations count if defined.
-                if (this.maximumIterations! < 0) {
-                    throw new Error("a retry node must have a positive maximum iterations count if defined");
+            if (this.attempts !== null) {
+                // A retry node must have a positive number of attempts if defined.
+                if (this.attempts < 0) {
+                    throw new Error("a retry node must have a positive number of attempts if defined");
+                }
+            } else if (this.attemptsMin !== null && this.attemptsMax !== null) {
+                // A retry node must have a positive min and max attempts count if they are defined.
+                if (this.attemptsMin < 0 || this.attemptsMax < 0) {
+                    throw new Error("a retry node must have a positive minimum and maximum attempt count if defined");
                 }
 
-                // A retry node must not have an iteration count that exceeds the maximum iteration count.
-                if (this.iterations! > this.maximumIterations!) {
+                // A retry node must not have a minimum attempt count that exceeds the maximum attempt count.
+                if (this.attemptsMin > this.attemptsMax) {
                     throw new Error(
-                        "a retry node must not have an iteration count that exceeds the maximum iteration count"
+                        "a retry node must not have a minimum attempt count that exceeds the maximum attempt count"
                     );
                 }
+            } else {
+                // If we have no explicit attempt count or a minimum and maximum attempt count set then we are dealing with a retry node that attempts indefinitely.
             }
         },
         createNodeInstance(namedRootNodeProvider, visitedBranches) {
             return new Retry(
                 this.attributes,
-                this.iterations!,
-                this.maximumIterations!,
+                this.attempts,
+                this.attemptsMin,
+                this.attemptsMax,
                 this.children![0].createNodeInstance(namedRootNodeProvider, visitedBranches.slice())
             );
         }
@@ -766,10 +783,13 @@ export default function buildRootASTNodes(definition: string): RootAstNode[] {
                 // Push the REPEAT node into the current scope.
                 currentScope.push(node);
 
-                // Check for iteration count node arguments ([])
+                // The arguments of a repeat node are optional. We may have:
+                // - No node arguments, in which case the repeat note will iterate indefinitely.
+                // - One node argument which will be the explicit number of iterations to make.
+                // - Two node arguments which define the min and max iteration bounds from which a random iteration count will be picked.
                 if (tokens[0] === "[") {
                     // An iteration count has been defined. Get the iteration and potential maximum iteration of the wait.
-                    const iterationArguments = getArguments(
+                    const nodeArguments = getArguments(
                         tokens,
                         placeholders,
                         (arg) => arg.type === "number" && !!arg.isInteger,
@@ -777,13 +797,13 @@ export default function buildRootASTNodes(definition: string): RootAstNode[] {
                     ).map((argument) => argument.value);
 
                     // We should have got one or two iteration counts.
-                    if (iterationArguments.length === 1) {
+                    if (nodeArguments.length === 1) {
                         // A static iteration count was defined.
-                        node.iterations = iterationArguments[0] as number;
-                    } else if (iterationArguments.length === 2) {
+                        node.iterations = nodeArguments[0] as number;
+                    } else if (nodeArguments.length === 2) {
                         // A minimum and maximum iteration count was defined.
-                        node.iterations = iterationArguments[0] as number;
-                        node.maximumIterations = iterationArguments[1] as number;
+                        node.iterationsMin = nodeArguments[0] as number;
+                        node.iterationsMax = nodeArguments[1] as number;
                     } else {
                         // An incorrect number of iteration counts was defined.
                         throw new Error("invalid number of repeat node iteration count arguments defined");
@@ -807,27 +827,30 @@ export default function buildRootASTNodes(definition: string): RootAstNode[] {
                 // Push the RETRY node into the current scope.
                 currentScope.push(node);
 
-                // Check for iteration counts ([])
+                // The arguments of a retry node are optional. We may have:
+                // - No node arguments, in which case the retry note will attempt indefinitely.
+                // - One node argument which will be the explicit number of attempts to make.
+                // - Two node arguments which define the min and max attempt bounds from which a random attempt count will be picked.
                 if (tokens[0] === "[") {
-                    // An iteration count has been defined. Get the iteration and potential maximum iteration of the wait.
-                    const iterationArguments = getArguments(
+                    // An attempt count has been defined. Get the attempt count and potential maximum attempt count of the wait.
+                    const nodeArguments = getArguments(
                         tokens,
                         placeholders,
                         (arg) => arg.type === "number" && !!arg.isInteger,
-                        "retry node iteration counts must be integer values"
+                        "retry node attempt counts must be integer values"
                     ).map((argument) => argument.value);
 
-                    // We should have got one or two iteration counts.
-                    if (iterationArguments.length === 1) {
-                        // A static iteration count was defined.
-                        node.iterations = iterationArguments[0] as number;
-                    } else if (iterationArguments.length === 2) {
-                        // A minimum and maximum iteration count was defined.
-                        node.iterations = iterationArguments[0] as number;
-                        node.maximumIterations = iterationArguments[1] as number;
+                    // We should have got one or two attempt counts.
+                    if (nodeArguments.length === 1) {
+                        // A static attempt count was defined.
+                        node.attempts = nodeArguments[0] as number;
+                    } else if (nodeArguments.length === 2) {
+                        // A minimum and maximum attempt count was defined.
+                        node.attemptsMin = nodeArguments[0] as number;
+                        node.attemptsMax = nodeArguments[1] as number;
                     } else {
-                        // An incorrect number of iteration counts was defined.
-                        throw new Error("invalid number of retry node iteration count arguments defined");
+                        // An incorrect number of attempt counts was defined.
+                        throw new Error("invalid number of retry node attempt count arguments defined");
                     }
                 }
 
@@ -890,7 +913,7 @@ export default function buildRootASTNodes(definition: string): RootAstNode[] {
             }
 
             default: {
-                throw new Error("unexpected token: " + token);
+                throw new Error(`unexpected token '${token}'`);
             }
         }
     }
@@ -972,7 +995,8 @@ function popAndCheck(tokens: string[], expected: string | string[]) {
                 .concat(expected)
                 .map((item) => "'" + item + "'")
                 .join(" or ");
-            throw new Error("unexpected token found. Expected " + expectationString + " but got '" + popped + "'");
+
+            throw new Error(`unexpected token found. Expected '${expectationString}' but got '${popped}'`);
         }
     }
 

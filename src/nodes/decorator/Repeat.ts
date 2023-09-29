@@ -16,14 +16,16 @@ import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 export default class Repeat extends Decorator {
     /**
      * @param attributes The node attributes.
-     * @param iterations The number of iterations to repeat the child node, or the minimum number of iterations if maximumIterations is defined.
-     * @param maximumIterations The maximum number of iterations to repeat the child node.
+     * @param iterations The number of iterations to repeat the child node.
+     * @param iterationsMin The minimum possible number of iterations to repeat the child node.
+     * @param iterationsMax The maximum possible number of iterations to repeat the child node.
      * @param child The child node.
      */
     constructor(
         attributes: Attribute[],
         private iterations: number | null,
-        private maximumIterations: number | null,
+        private iterationsMin: number | null,
+        private iterationsMax: number | null,
         child: Node
     ) {
         super("repeat", attributes, child);
@@ -50,8 +52,11 @@ export default class Repeat extends Decorator {
             // Reset the child node.
             this.child.reset();
 
+            // Reset the current iteration count.
+            this.currentIterationCount = 0;
+
             // Set the target iteration count.
-            this.setTargetIterationCount();
+            this.setTargetIterationCount(options);
         }
 
         // Do a check to see if we can iterate. If we can then this node will move into the 'RUNNING' state.
@@ -91,13 +96,12 @@ export default class Repeat extends Decorator {
      */
     getName = () => {
         if (this.iterations !== null) {
-            return `REPEAT ${
-                this.maximumIterations ? this.iterations + "x-" + this.maximumIterations + "x" : this.iterations + "x"
-            }`;
+            return `REPEAT ${this.iterations}x`;
+        } else if (this.iterationsMin !== null && this.iterationsMax !== null) {
+            return `REPEAT ${this.iterationsMin}x-${this.iterationsMax}x`;
+        } else {
+            return "REPEAT";
         }
-
-        // Return the default repeat node name.
-        return "REPEAT";
     };
 
     /**
@@ -130,15 +134,21 @@ export default class Repeat extends Decorator {
 
     /**
      * Sets the target iteration count.
+     * @param options The behaviour tree options object.
      */
-    private setTargetIterationCount = () => {
-        // Are we dealing with a finite number of iterations?
-        if (typeof this.iterations === "number") {
-            // If we have maximumIterations defined then we will want a random iteration count bounded by iterations and maximumIterations.
-            this.targetIterationCount =
-                typeof this.maximumIterations === "number"
-                    ? Math.floor(Math.random() * (this.maximumIterations - this.iterations + 1) + this.iterations)
-                    : this.iterations;
+    private setTargetIterationCount = (options: BehaviourTreeOptions) => {
+        // Are we dealing with an explicit iteration count or will we be randomly picking a iteration count between the min and max iteration count.
+        if (this.iterations !== null) {
+            this.targetIterationCount = this.iterations;
+        } else if (this.iterationsMin !== null && this.iterationsMax !== null) {
+            // We will be picking a random iteration count between a min and max iteration count, if the optional 'random'
+            // behaviour tree function option is defined then we will be using that, otherwise we will fall back to using Math.random.
+            const random = typeof options.random === "function" ? options.random : Math.random;
+
+            // Pick a random iteration count between a min and max iteration count.
+            this.targetIterationCount = Math.floor(
+                random() * (this.iterationsMax - this.iterationsMin + 1) + this.iterationsMin
+            );
         } else {
             this.targetIterationCount = null;
         }

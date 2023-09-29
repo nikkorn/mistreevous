@@ -1,6 +1,6 @@
 {
   "name": "mistreevous",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "A tool to build behaviour trees in JavaScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -43,7 +43,7 @@
     "machine",
     "state"
   ],
-  "author": "nikolas howard smells bad",
+  "author": "nikolas howard",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/nikkorn/mistreevous/issues"

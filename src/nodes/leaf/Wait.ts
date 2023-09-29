@@ -11,7 +11,7 @@ import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 export default class Wait extends Leaf {
     /**
      * @param attributes The node attributes.
-     * @param duration The duration that this node will wait to succeed in milliseconds, or the earliest if longestDuration is defined.
+     * @param duration The duration that this node will wait to succeed in milliseconds.
      * @param durationMin The minimum possible duration in milliseconds that this node will wait to succeed.
      * @param durationMax The maximum possible duration in milliseconds that this node will wait to succeed.
      */
@@ -61,7 +61,7 @@ export default class Wait extends Leaf {
                 // function option is defined then we will be using that, otherwise we will fall back to using Math.random.
                 const random = typeof options.random === "function" ? options.random : Math.random;
 
-                // Pick a random duration a min and max duration.
+                // Pick a random duration between a min and max duration.
                 this.totalDuration = Math.floor(
                     random() * (this.durationMax - this.durationMin + 1) + this.durationMin
                 );
