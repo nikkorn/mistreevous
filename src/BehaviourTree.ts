@@ -203,7 +203,7 @@ export class BehaviourTree {
     private static _createRootNode(definition: string): Root {
         // TODO Remove!
         try {
-            parseToJSON(definition);
+            // parseToJSON(definition);
         } catch (exception) {
             console.log(exception);
         }

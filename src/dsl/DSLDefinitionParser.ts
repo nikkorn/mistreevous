@@ -11,7 +11,7 @@ export type AgentFunctionArguments = (string | number | boolean | null | undefin
 export type GuardAttributeDefinition = {
     call: string;
     args?: AgentFunctionArguments;
-}
+};
 
 /**
  * A callback attribute for a node.
@@ -19,7 +19,7 @@ export type GuardAttributeDefinition = {
 export type CallbackAttributeDefinition = {
     call: string;
     args?: AgentFunctionArguments;
-}
+};
 
 /**
  * A type defining a general node definition.
@@ -31,21 +31,21 @@ export type NodeDefinition = {
     entry?: CallbackAttributeDefinition;
     exit?: CallbackAttributeDefinition;
     step?: CallbackAttributeDefinition;
-}
+};
 
 /**
  * A composite node that can contain any number of child nodes.
  */
 export type CompositeDefinition = NodeDefinition & {
     children: AnyChildNode[];
-}
+};
 
 /**
  * A decorator node, a composite with only a single child node.
  */
 export type DecoratorDefinition = NodeDefinition & {
     child: AnyChildNode;
-}
+};
 
 /**
  * A branch node.
@@ -53,7 +53,7 @@ export type DecoratorDefinition = NodeDefinition & {
 export type BranchDefinition = NodeDefinition & {
     type: "branch";
     ref: string;
-}
+};
 
 /**
  * An action node.
@@ -62,7 +62,7 @@ export type ActionDefinition = NodeDefinition & {
     type: "action";
     call: string;
     args?: AgentFunctionArguments;
-}
+};
 
 /**
  * A condition node.
@@ -71,7 +71,7 @@ export type ConditionDefinition = NodeDefinition & {
     type: "condition";
     call: string;
     args?: AgentFunctionArguments;
-}
+};
 
 /**
  * A wait node.
@@ -79,36 +79,36 @@ export type ConditionDefinition = NodeDefinition & {
 export type WaitDefinition = NodeDefinition & {
     type: "wait";
     duration: number | [number, number];
-}
+};
 
 /**
  * A sequence node.
  */
 export type SequenceDefinition = CompositeDefinition & {
     type: "sequence";
-}
+};
 
 /**
  * A selector node.
  */
 export type SelectorDefinition = CompositeDefinition & {
     type: "selector";
-}
+};
 
 /**
  * A lotto node.
  */
 export type LottoDefinition = CompositeDefinition & {
     type: "lotto";
-    weights?: number[]
-}
+    weights?: number[];
+};
 
 /**
  * A parallel node.
  */
 export type ParallelDefinition = CompositeDefinition & {
     type: "parallel";
-}
+};
 
 /**
  * A root node.
@@ -116,7 +116,7 @@ export type ParallelDefinition = CompositeDefinition & {
 export type RootDefinition = DecoratorDefinition & {
     type: "root";
     id?: string;
-}
+};
 
 /**
  * A repeat node.
@@ -124,7 +124,7 @@ export type RootDefinition = DecoratorDefinition & {
 export type RepeatDefinition = DecoratorDefinition & {
     type: "repeat";
     iterations?: number | [number, number];
-}
+};
 
 /**
  * A retry node.
@@ -132,34 +132,47 @@ export type RepeatDefinition = DecoratorDefinition & {
 export type RetryDefinition = DecoratorDefinition & {
     type: "retry";
     attempts?: number | [number, number];
-}
+};
 
 /**
  * A flip node.
  */
 export type FlipDefinition = DecoratorDefinition & {
     type: "flip";
-}
+};
 
 /**
  * A succeed node.
  */
 export type SucceedDefinition = DecoratorDefinition & {
     type: "succeed";
-}
+};
 
 /**
  * A fail node.
  */
 export type FailDefinition = DecoratorDefinition & {
     type: "fail";
-}
+};
 
 /**
  * A type defining any node type.
  */
-export type AnyNode = BranchDefinition | ActionDefinition | ConditionDefinition | WaitDefinition | SequenceDefinition |
-    SelectorDefinition | LottoDefinition | ParallelDefinition | RootDefinition | RepeatDefinition | RetryDefinition | FlipDefinition | SucceedDefinition | FailDefinition;
+export type AnyNode =
+    | BranchDefinition
+    | ActionDefinition
+    | ConditionDefinition
+    | WaitDefinition
+    | SequenceDefinition
+    | SelectorDefinition
+    | LottoDefinition
+    | ParallelDefinition
+    | RootDefinition
+    | RepeatDefinition
+    | RetryDefinition
+    | FlipDefinition
+    | SucceedDefinition
+    | FailDefinition;
 
 /**
  * A type defining any node type that can be a child of composite parent node.
@@ -204,7 +217,11 @@ export function parseToJSON(definition: string): RootDefinition[] {
  * @param placeholders The substituted string literal placeholders.
  * @returns The root node JSON definitions.
  */
-export function convertTokensToJSONDefinition(tokens: string[], placeholders: StringLiteralPlaceholders, processedDefinition: string): RootDefinition[] {
+export function convertTokensToJSONDefinition(
+    tokens: string[],
+    placeholders: StringLiteralPlaceholders,
+    processedDefinition: string
+): RootDefinition[] {
     // There must be at least 3 tokens for the tree definition to be valid. 'ROOT', '{' and '}'.
     if (tokens.length < 3) {
         throw new Error("invalid token count");
@@ -226,10 +243,10 @@ export function convertTokensToJSONDefinition(tokens: string[], placeholders: St
         // Add the root node definition to our array of all parsed root node definitions.
         rootNodes.push(rootNode);
 
-        // Add the root node definition to the root of a new tree stack. 
+        // Add the root node definition to the root of a new tree stack.
         treeStacks.push([rootNode]);
-    }
-    
+    };
+
     // A helper function used to push non-root node definitions onto the stack.
     const pushNode = (node: AnyChildNode) => {
         // Get the current tree stack that we are populating.
@@ -258,7 +275,7 @@ export function convertTokensToJSONDefinition(tokens: string[], placeholders: St
             bottomNode.child = node;
         }
 
-        // If the node we are adding is also a composite or decorator node, then we should push it 
+        // If the node we are adding is also a composite or decorator node, then we should push it
         // onto the current tree stack, as subsequent nodes will be added as its child/children.
         if (!isLeafNode(node)) {
             currentTreeStack.push(node);
@@ -275,7 +292,7 @@ export function convertTokensToJSONDefinition(tokens: string[], placeholders: St
             currentTreeStack.pop();
         }
 
-        // We don't want any empty tree stacks in our stack of tree stacks. 
+        // We don't want any empty tree stacks in our stack of tree stacks.
         if (!currentTreeStack.length) {
             treeStacks.pop();
         }

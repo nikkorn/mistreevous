@@ -16,7 +16,7 @@ export function popAndCheck(tokens: string[], expected?: string | string[]): str
     // Do we have an expected token/tokens array?
     if (expected != undefined) {
         // Get an array of expected values, if the popped token matches any then we are all good.
-        const expectedValues = (typeof expected === "string") ? [expected] : expected;
+        const expectedValues = typeof expected === "string" ? [expected] : expected;
 
         // Check whether the popped token matches at least one of our expected items.
         var tokenMatchesExpectation = expectedValues.some((item) => popped.toUpperCase() === item.toUpperCase());

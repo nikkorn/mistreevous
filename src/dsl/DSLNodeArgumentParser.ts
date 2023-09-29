@@ -54,10 +54,10 @@ export function getArguments(
     const argumentList: AnyArgument[] = [];
 
     // If the next token is not a '[' or '(' then we have no arguments to parse.
-    if (!["[","("].includes(tokens[0])) {
+    if (!["[", "("].includes(tokens[0])) {
         return argumentList;
-    };
-    
+    }
+
     // Any lists of arguments will always be wrapped in '[]' for node arguments or '()' for attribute arguments.
     // We are looking for a '[' or '(' opener that wraps the argument tokens and the relevant closer.
     const closer = popAndCheck(tokens, ["[", "("]) === "[" ? "]" : ")";
