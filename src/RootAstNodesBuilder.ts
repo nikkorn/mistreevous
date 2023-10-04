@@ -1004,7 +1004,7 @@ function popAndCheck(tokens: string[], expected: string | string[]) {
     return popped;
 }
 
-type Placeholders = { [key: string]: string };
+type StringPlaceholders = { [key: string]: string };
 
 /**
  * Pull an argument definition list off of the token stack.
@@ -1016,7 +1016,7 @@ type Placeholders = { [key: string]: string };
  */
 function getArguments(
     tokens: string[],
-    stringArgumentPlaceholders: Placeholders,
+    stringArgumentPlaceholders: StringPlaceholders,
     argumentValidator?: (arg: AnyArgument) => boolean,
     validationFailedMessage?: string
 ) {
@@ -1071,7 +1071,7 @@ function getArguments(
  * @param stringArgumentPlaceholders The mapping of string literal node argument placeholders to original values.
  * @returns An argument value definition.
  */
-function getArgumentDefinition(token: string, stringArgumentPlaceholders: Placeholders): AnyArgument {
+function getArgumentDefinition(token: string, stringArgumentPlaceholders: StringPlaceholders): AnyArgument {
     // Check whether the token represents a null value.
     if (token === "null") {
         return {
@@ -1120,7 +1120,7 @@ function getArgumentDefinition(token: string, stringArgumentPlaceholders: Placeh
  * @param stringArgumentPlaceholders The mapping of string literal node argument placeholders to original values.
  * @returns An array of attributes defined by any directly following tokens.
  */
-function getAttributes(tokens: string[], stringArgumentPlaceholders: Placeholders) {
+function getAttributes(tokens: string[], stringArgumentPlaceholders: StringPlaceholders) {
     // Create an array to hold any attributes found.
     const attributes: Attribute[] = [];
 
@@ -1180,7 +1180,7 @@ function substituteStringLiterals(definition: string): {
     processedDefinition: string;
 } {
     // Create an object to hold the mapping of placeholders to original string values.
-    const placeholders: Placeholders = {};
+    const placeholders: StringPlaceholders = {};
 
     // Replace any string literals wrapped with double quotes in our definition with placeholders to be processed later.
     const processedDefinition = definition.replace(/\"(\\.|[^"\\])*\"/g, (match) => {

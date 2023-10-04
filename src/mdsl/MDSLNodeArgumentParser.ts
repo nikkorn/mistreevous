@@ -1,6 +1,4 @@
-import { popAndCheck } from "./DSLUtilities";
-
-type Placeholders = { [key: string]: string };
+import { StringLiteralPlaceholders, popAndCheck } from "./MDSLUtilities";
 
 export type Argument<T> = {
     /** The argument value. */
@@ -9,24 +7,24 @@ export type Argument<T> = {
     type: string;
 };
 
-type NullArgument = Argument<null> & {
+export type NullArgument = Argument<null> & {
     type: "null";
 };
 
-type BooleanArgument = Argument<boolean> & {
+export type BooleanArgument = Argument<boolean> & {
     type: "boolean";
 };
 
-type NumberArgument = Argument<number> & {
+export type NumberArgument = Argument<number> & {
     type: "number";
     isInteger: boolean; // Used for validation.
 };
 
-type StringPlaceholderArgument = Argument<string> & {
+export type StringPlaceholderArgument = Argument<string> & {
     type: "string";
 };
 
-type IdentifierArgument = Argument<string> & {
+export type IdentifierArgument = Argument<string> & {
     type: "identifier";
 };
 
@@ -45,11 +43,9 @@ export type AnyArgument =
  * @param validationFailedMessage  The exception message to throw if argument validation fails.
  * @returns An array of argument definitions parsed from the specified tokens array.
  */
-export function getArguments(
+export function parseArgumentTokens(
     tokens: string[],
-    stringArgumentPlaceholders: Placeholders,
-    argumentValidator?: (arg: AnyArgument) => boolean,
-    validationFailedMessage?: string
+    stringArgumentPlaceholders: StringLiteralPlaceholders
 ): AnyArgument[] {
     const argumentList: AnyArgument[] = [];
 
@@ -60,12 +56,12 @@ export function getArguments(
 
     // Any lists of arguments will always be wrapped in '[]' for node arguments or '()' for attribute arguments.
     // We are looking for a '[' or '(' opener that wraps the argument tokens and the relevant closer.
-    const closer = popAndCheck(tokens, ["[", "("]) === "[" ? "]" : ")";
+    const closingToken = popAndCheck(tokens, ["[", "("]) === "[" ? "]" : ")";
 
     const argumentListTokens: string[] = [];
 
     // Grab all tokens between the '[' and ']' or '(' and ')'.
-    while (tokens.length && tokens[0] !== closer) {
+    while (tokens.length && tokens[0] !== closingToken) {
         // The next token is part of our arguments list.
         argumentListTokens.push(tokens.shift()!);
     }
@@ -80,11 +76,6 @@ export function getArguments(
             // Get the argument definition.
             const argumentDefinition = getArgumentDefinition(token, stringArgumentPlaceholders);
 
-            // Try to validate the argument.
-            if (argumentValidator && !argumentValidator(argumentDefinition)) {
-                throw new Error(validationFailedMessage);
-            }
-
             // This is a valid argument!
             argumentList.push(argumentDefinition);
         } else {
@@ -96,7 +87,7 @@ export function getArguments(
     });
 
     // The arguments list should terminate with a ']' or ')' token, depending on the opener.
-    popAndCheck(tokens, closer);
+    popAndCheck(tokens, closingToken);
 
     // Return the arguments.
     return argumentList;
@@ -108,7 +99,7 @@ export function getArguments(
  * @param stringArgumentPlaceholders The mapping of string literal node argument placeholders to original values.
  * @returns An argument value definition.
  */
-function getArgumentDefinition(token: string, stringArgumentPlaceholders: Placeholders): AnyArgument {
+function getArgumentDefinition(token: string, stringArgumentPlaceholders: StringLiteralPlaceholders): AnyArgument {
     // Check whether the token represents a null value.
     if (token === "null") {
         return {
