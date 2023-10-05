@@ -1,9 +1,9 @@
 import {
-    RootDefinition,
+    RootNodeDefinition,
     AnyChildNode,
     AnyNode,
-    SequenceDefinition,
-    ActionDefinition
+    SequenceNodeDefinition,
+    ActionNodeDefinition
 } from "../BehaviourTreeDefinition";
 import { parseArgumentTokens } from "./MDSLNodeArgumentParser";
 import { parseAttributeTokens } from "./MDSLNodeAttributeParser";
@@ -12,6 +12,7 @@ import {
     isCompositeNode,
     isDecoratorNode,
     isLeafNode,
+    isRootNode,
     parseTokensFromDefinition,
     popAndCheck,
     substituteStringLiterals
@@ -22,7 +23,7 @@ import {
  * @param definition The tree definition string as MDSL.
  * @returns The root node JSON definitions.
  */
-export function parseMDSLToJSON(definition: string): RootDefinition[] {
+export function parseMDSLToJSON(definition: string): RootNodeDefinition[] {
     // Swap out any node/attribute argument string literals with a placeholder and get a mapping of placeholders to original values as well as the processed definition.
     const { placeholders, processedDefinition } = substituteStringLiterals(definition);
 
@@ -41,7 +42,7 @@ export function parseMDSLToJSON(definition: string): RootDefinition[] {
 function convertTokensToJSONDefinition(
     tokens: string[],
     stringLiteralPlaceholders: StringLiteralPlaceholders
-): RootDefinition[] {
+): RootNodeDefinition[] {
     // There must be at least 3 tokens for the tree definition to be valid. 'ROOT', '{' and '}'.
     if (tokens.length < 3) {
         throw new Error("invalid token count");
@@ -52,68 +53,77 @@ function convertTokensToJSONDefinition(
         throw new Error("scope character mismatch");
     }
 
-    // Create a stack of tree stack arrays where root nodes will always be at the root.
-    const treeStacks: [Partial<RootDefinition>, ...Partial<AnyChildNode>[]][] = [];
+    // Create an array of tree stack arrays where root nodes will always be at the botton and the current composite/decorator node at the top.
+    // There should be an element in this array for every root node defined and every element should be an array with a root note as the first element.
+    // E.g. A definition with two root nodes defined:
+    // [
+    //    [root, lotto, sequence],
+    //    [root, selector]
+    // ]
+    const treeStacks: [Partial<RootNodeDefinition>, ...Partial<AnyChildNode>[]][] = [];
 
     // Create an array of all root node definitions that we create.
-    const rootNodes: Partial<RootDefinition>[] = [];
+    const rootNodes: Partial<RootNodeDefinition>[] = [];
 
-    // A helper function used to push root node definitions onto the stack.
-    const pushRootNode = (rootNode: RootDefinition) => {
-        // Add the root node definition to our array of all parsed root node definitions.
-        rootNodes.push(rootNode);
+    // A helper function used to push node definitions onto the tree stack.
+    const pushNode = (node: AnyNode) => {
+        // If the node is a root node then we need to create a new tree stack array with the root node at the root.
+        if (isRootNode(node)) {
+            // Add the root node definition to our array of all parsed root node definitions.
+            rootNodes.push(node);
 
-        // Add the root node definition to the root of a new tree stack.
-        treeStacks.push([rootNode]);
-    };
+            // Add the root node definition to the root of a new tree stack.
+            treeStacks.push([node]);
 
-    // A helper function used to push non-root node definitions onto the stack.
-    const pushNode = (node: AnyChildNode) => {
+            return;
+        }
+
+        // All non-root nodes should be pushed after their root nodes so handle cases
+        // where we may not have any tree stacks or our top-most tree stack is empty.
+        if (!treeStacks.length || !treeStacks[treeStacks.length - 1].length) {
+            throw new Error("expected root node at base of definition");
+        }
+
         // Get the current tree stack that we are populating.
-        const currentTreeStack = treeStacks[treeStacks.length - 1];
+        const topTreeStack = treeStacks[treeStacks.length - 1];
 
-        // TODO Handle cases where we may not have a current root stack.
-        // This may happen if a root node is not the initially defined one?
+        // Get the top-most node in the current tree stack, this will be a composite/decorator node
+        // for which we will populate its children array if composite or setting its child if a decorator.
+        const topTreeStackTopNode = topTreeStack[topTreeStack.length - 1] as AnyNode;
 
-        // Get the bottom-most node in the current tree stack.
-        const bottomNode = currentTreeStack[currentTreeStack.length - 1] as AnyNode;
-
-        // TODO Handle cases where we may not have a bottom-most node.
-        // Also a potential issue with a badly defined tree.
-
-        // If the bottom-most node in the current root stack is a composite or decorator
-        // node then the current node should be added as a child of the bottom-most node.
-        if (isCompositeNode(bottomNode)) {
-            bottomNode.children = bottomNode.children || [];
-            bottomNode.children.push(node);
-        } else if (isDecoratorNode(bottomNode)) {
-            // If the bottom node already has a child node set then throw an error as a decorator should only have a single child.
-            if (bottomNode.child) {
+        // If the top-most node in the current root stack is a composite or decorator
+        // node then the current node should be added as a child of the top-most node.
+        if (isCompositeNode(topTreeStackTopNode)) {
+            topTreeStackTopNode.children = topTreeStackTopNode.children || [];
+            topTreeStackTopNode.children.push(node);
+        } else if (isDecoratorNode(topTreeStackTopNode)) {
+            // If the top node already has a child node set then throw an error as a decorator should only have a single child.
+            if (topTreeStackTopNode.child) {
                 throw new Error("a decorator node must only have a single child node");
             }
 
-            bottomNode.child = node;
+            topTreeStackTopNode.child = node;
         }
 
         // If the node we are adding is also a composite or decorator node, then we should push it
         // onto the current tree stack, as subsequent nodes will be added as its child/children.
         if (!isLeafNode(node)) {
-            currentTreeStack.push(node);
+            topTreeStack.push(node);
         }
     };
 
     // A helper function used to pop node definitions off of the stack.
     const popNode = () => {
         // Get the current tree stack that we are populating.
-        const currentTreeStack = treeStacks[treeStacks.length - 1];
+        const topTreeStack = treeStacks[treeStacks.length - 1];
 
         // Pop the top-most node in the current tree stack if there is one.
-        if (currentTreeStack.length) {
-            currentTreeStack.pop();
+        if (topTreeStack.length) {
+            topTreeStack.pop();
         }
 
         // We don't want any empty tree stacks in our stack of tree stacks.
-        if (!currentTreeStack.length) {
+        if (!topTreeStack.length) {
             treeStacks.pop();
         }
     };
@@ -126,8 +136,7 @@ function convertTokensToJSONDefinition(
         // How we create the next node depends on the current raw token value.
         switch (token.toUpperCase()) {
             case "ROOT": {
-                // A root node will always be the base of a new root stack.
-                pushRootNode(createRootNode(tokens, stringLiteralPlaceholders));
+                pushNode(createRootNode(tokens, stringLiteralPlaceholders));
                 break;
             }
 
@@ -153,17 +162,23 @@ function convertTokensToJSONDefinition(
         }
     }
 
-    return rootNodes as RootDefinition[];
+    return rootNodes as RootNodeDefinition[];
 }
 
-function createRootNode(tokens: string[], stringLiteralPlaceholders: StringLiteralPlaceholders): RootDefinition {
+/**
+ * Creates a root node JSON definition.
+ * @param tokens The tree definition tokens.
+ * @param stringLiteralPlaceholders The substituted string literal placeholders.
+ * @returns The root node JSON definition.
+ */
+function createRootNode(tokens: string[], stringLiteralPlaceholders: StringLiteralPlaceholders): RootNodeDefinition {
     // Create the root node definition.
     let node = {
         type: "root",
         id: undefined
-    } as RootDefinition;
+    } as RootNodeDefinition;
 
-    // Parse any node arguments, we should only have one if any with will be an identifier argument for the root identifier.
+    // Parse any node arguments, we should only have one if any which will be an identifier argument for the root identifier.
     const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
 
     // Check whether any node arguments were defined.
@@ -186,14 +201,20 @@ function createRootNode(tokens: string[], stringLiteralPlaceholders: StringLiter
     return node;
 }
 
+/**
+ * Creates a sequence node JSON definition.
+ * @param tokens The tree definition tokens.
+ * @param stringLiteralPlaceholders The substituted string literal placeholders.
+ * @returns The sequence node JSON definition.
+ */
 function createSequenceNode(
     tokens: string[],
     stringLiteralPlaceholders: StringLiteralPlaceholders
-): SequenceDefinition {
+): SequenceNodeDefinition {
     const node = {
         type: "sequence",
         ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
-    } as SequenceDefinition;
+    } as SequenceNodeDefinition;
 
     // This is a composite node, so we expect an opening '{'.
     popAndCheck(tokens, "{");
@@ -201,10 +222,39 @@ function createSequenceNode(
     return node;
 }
 
-function createActionNode(tokens: string[], stringLiteralPlaceholders: StringLiteralPlaceholders): ActionDefinition {
-    const node = { type: "action" } as ActionDefinition;
+/**
+ * Creates an action node JSON definition.
+ * @param tokens The tree definition tokens.
+ * @param stringLiteralPlaceholders The substituted string literal placeholders.
+ * @returns The action node JSON definition.
+ */
+function createActionNode(
+    tokens: string[],
+    stringLiteralPlaceholders: StringLiteralPlaceholders
+): ActionNodeDefinition {
+    // Parse any node arguments, we should have at least one which will be an identifier argument for the action name
+    // and agent function to invoke for the action, all other arguments are to be passed as arguments to that function.
+    const [actionNameIdentifier, ...agentFunctionArgs] = parseArgumentTokens(tokens, stringLiteralPlaceholders);
 
-    // TODO Grab attributes.
+    // Our first argument MUST be defined and be an identifier as we require an action name argument.
+    if (actionNameIdentifier?.type !== "identifier") {
+        throw new Error("expected action name identifier argument");
+    }
 
-    return node;
+    // Only the first argument should have been an identifier, all agent function arguments must be string, number, boolean or null.
+    agentFunctionArgs
+        .filter((arg) => arg.type === "identifier")
+        .forEach((arg) => {
+            throw new Error(
+                `invalid action node argument value '${arg.value}', must be string, number, boolean or null`
+            );
+        });
+
+    // Return the action node definition.
+    return {
+        type: "action",
+        call: actionNameIdentifier.value,
+        args: agentFunctionArgs.map(({ value }) => value),
+        ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+    } as ActionNodeDefinition;
 }

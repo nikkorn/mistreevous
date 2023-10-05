@@ -1,9 +1,23 @@
-import { CompositeDefinition, DecoratorDefinition, NodeDefinition } from "../BehaviourTreeDefinition";
+import {
+    CompositeNodeDefinition,
+    DecoratorNodeDefinition,
+    NodeDefinition,
+    RootNodeDefinition
+} from "../BehaviourTreeDefinition";
 
 /**
  * A type defining an object that holds a reference to substitued string literals parsed from the definition.
  */
 export type StringLiteralPlaceholders = { [key: string]: string };
+
+/**
+ * A type guard function that returns true if the specified node satisfies the RootNodeDefinition type.
+ * @param node The node.
+ * @returns A value of true if the specified node satisfies the RootNodeDefinition type.
+ */
+export function isRootNode(node: NodeDefinition): node is RootNodeDefinition {
+    return node.type === "root";
+}
 
 /**
  * A type guard function that returns true if the specified node satisfies the NodeDefinition type.
@@ -15,20 +29,20 @@ export function isLeafNode(node: NodeDefinition): node is NodeDefinition {
 }
 
 /**
- * A type guard function that returns true if the specified node satisfies the DecoratorDefinition type.
+ * A type guard function that returns true if the specified node satisfies the DecoratorNodeDefinition type.
  * @param node The node.
- * @returns A value of true if the specified node satisfies the DecoratorDefinition type.
+ * @returns A value of true if the specified node satisfies the DecoratorNodeDefinition type.
  */
-export function isDecoratorNode(node: NodeDefinition): node is DecoratorDefinition {
+export function isDecoratorNode(node: NodeDefinition): node is DecoratorNodeDefinition {
     return ["root", "repeat", "retry", "flip", "succeed", "fail"].includes(node.type);
 }
 
 /**
- * A type guard function that returns true if the specified node satisfies the CompositeDefinition type.
+ * A type guard function that returns true if the specified node satisfies the CompositeNodeDefinition type.
  * @param node The node.
- * @returns A value of true if the specified node satisfies the CompositeDefinition type.
+ * @returns A value of true if the specified node satisfies the CompositeNodeDefinition type.
  */
-export function isCompositeNode(node: NodeDefinition): node is CompositeDefinition {
+export function isCompositeNode(node: NodeDefinition): node is CompositeNodeDefinition {
     return ["sequence", "selector", "lotto", "parallel"].includes(node.type);
 }
 

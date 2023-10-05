@@ -57,7 +57,7 @@ export function parseAttributeTokens(
             .filter((arg) => arg.type === "identifier")
             .forEach((arg) => {
                 throw new Error(
-                    "invalid attribute argument value '" + arg.value + "', must be string, number, boolean or null"
+                    `invalid attribute argument value '${arg.value}', must be string, number, boolean or null`
                 );
             });
 

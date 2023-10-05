@@ -32,21 +32,21 @@ export interface NodeDefinition {
 /**
  * A composite node that can contain any number of child nodes.
  */
-export interface CompositeDefinition extends NodeDefinition {
+export interface CompositeNodeDefinition extends NodeDefinition {
     children: AnyChildNode[];
 }
 
 /**
  * A decorator node, a composite with only a single child node.
  */
-export interface DecoratorDefinition extends NodeDefinition {
+export interface DecoratorNodeDefinition extends NodeDefinition {
     child: AnyChildNode;
 }
 
 /**
  * A branch node.
  */
-export interface BranchDefinition extends NodeDefinition {
+export interface BranchNodeDefinition extends NodeDefinition {
     type: "branch";
     ref: string;
 }
@@ -54,7 +54,7 @@ export interface BranchDefinition extends NodeDefinition {
 /**
  * An action node.
  */
-export interface ActionDefinition extends NodeDefinition {
+export interface ActionNodeDefinition extends NodeDefinition {
     type: "action";
     call: string;
     args?: AgentFunctionArgument[];
@@ -63,7 +63,7 @@ export interface ActionDefinition extends NodeDefinition {
 /**
  * A condition node.
  */
-export interface ConditionDefinition extends NodeDefinition {
+export interface ConditionNodeDefinition extends NodeDefinition {
     type: "condition";
     call: string;
     args?: AgentFunctionArgument[];
@@ -72,7 +72,7 @@ export interface ConditionDefinition extends NodeDefinition {
 /**
  * A wait node.
  */
-export interface WaitDefinition extends NodeDefinition {
+export interface WaitNodeDefinition extends NodeDefinition {
     type: "wait";
     duration: number | [number, number];
 }
@@ -80,21 +80,21 @@ export interface WaitDefinition extends NodeDefinition {
 /**
  * A sequence node.
  */
-export interface SequenceDefinition extends CompositeDefinition {
+export interface SequenceNodeDefinition extends CompositeNodeDefinition {
     type: "sequence";
 }
 
 /**
  * A selector node.
  */
-export interface SelectorDefinition extends CompositeDefinition {
+export interface SelectorNodeDefinition extends CompositeNodeDefinition {
     type: "selector";
 }
 
 /**
  * A lotto node.
  */
-export interface LottoDefinition extends CompositeDefinition {
+export interface LottoNodeDefinition extends CompositeNodeDefinition {
     type: "lotto";
     weights?: number[];
 }
@@ -102,14 +102,14 @@ export interface LottoDefinition extends CompositeDefinition {
 /**
  * A parallel node.
  */
-export interface ParallelDefinition extends CompositeDefinition {
+export interface ParallelNodeDefinition extends CompositeNodeDefinition {
     type: "parallel";
 }
 
 /**
  * A root node.
  */
-export interface RootDefinition extends DecoratorDefinition {
+export interface RootNodeDefinition extends DecoratorNodeDefinition {
     type: "root";
     id?: string;
 }
@@ -117,7 +117,7 @@ export interface RootDefinition extends DecoratorDefinition {
 /**
  * A repeat node.
  */
-export interface RepeatDefinition extends DecoratorDefinition {
+export interface RepeatNodeDefinition extends DecoratorNodeDefinition {
     type: "repeat";
     iterations?: number | [number, number];
 }
@@ -125,7 +125,7 @@ export interface RepeatDefinition extends DecoratorDefinition {
 /**
  * A retry node.
  */
-export interface RetryDefinition extends DecoratorDefinition {
+export interface RetryNodeDefinition extends DecoratorNodeDefinition {
     type: "retry";
     attempts?: number | [number, number];
 }
@@ -133,21 +133,21 @@ export interface RetryDefinition extends DecoratorDefinition {
 /**
  * A flip node.
  */
-export interface FlipDefinition extends DecoratorDefinition {
+export interface FlipNodeDefinition extends DecoratorNodeDefinition {
     type: "flip";
 }
 
 /**
  * A succeed node.
  */
-export interface SucceedDefinition extends DecoratorDefinition {
+export interface SucceedNodeDefinition extends DecoratorNodeDefinition {
     type: "succeed";
 }
 
 /**
  * A fail node.
  */
-export interface FailDefinition extends DecoratorDefinition {
+export interface FailNodeDefinition extends DecoratorNodeDefinition {
     type: "fail";
 }
 
@@ -155,22 +155,22 @@ export interface FailDefinition extends DecoratorDefinition {
  * A type defining any node type.
  */
 export type AnyNode =
-    | BranchDefinition
-    | ActionDefinition
-    | ConditionDefinition
-    | WaitDefinition
-    | SequenceDefinition
-    | SelectorDefinition
-    | LottoDefinition
-    | ParallelDefinition
-    | RootDefinition
-    | RepeatDefinition
-    | RetryDefinition
-    | FlipDefinition
-    | SucceedDefinition
-    | FailDefinition;
+    | BranchNodeDefinition
+    | ActionNodeDefinition
+    | ConditionNodeDefinition
+    | WaitNodeDefinition
+    | SequenceNodeDefinition
+    | SelectorNodeDefinition
+    | LottoNodeDefinition
+    | ParallelNodeDefinition
+    | RootNodeDefinition
+    | RepeatNodeDefinition
+    | RetryNodeDefinition
+    | FlipNodeDefinition
+    | SucceedNodeDefinition
+    | FailNodeDefinition;
 
 /**
  * A type defining any node type that can be a child of composite parent node.
  */
-export type AnyChildNode = Exclude<AnyNode, RootDefinition>;
+export type AnyChildNode = Exclude<AnyNode, RootNodeDefinition>;
