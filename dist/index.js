@@ -251,7 +251,8 @@ var require_dist = __commonJS({
 var src_exports = {};
 __export(src_exports, {
   BehaviourTree: () => BehaviourTree,
-  State: () => State
+  State: () => State,
+  parseMDSLToJSON: () => parseMDSLToJSON
 });
 module.exports = __toCommonJS(src_exports);
 
@@ -1855,9 +1856,443 @@ var BehaviourTree = class {
     });
   }
 };
+
+// src/mdsl/MDSLUtilities.ts
+function isRootNode(node) {
+  return node.type === "root";
+}
+function isLeafNode(node) {
+  return ["branch", "action", "condition", "wait"].includes(node.type);
+}
+function isDecoratorNode(node) {
+  return ["root", "repeat", "retry", "flip", "succeed", "fail"].includes(node.type);
+}
+function isCompositeNode(node) {
+  return ["sequence", "selector", "lotto", "parallel"].includes(node.type);
+}
+function popAndCheck2(tokens, expected) {
+  const popped = tokens.shift();
+  if (popped === void 0) {
+    throw new Error("unexpected end of definition");
+  }
+  if (expected != void 0) {
+    const expectedValues = typeof expected === "string" ? [expected] : expected;
+    var tokenMatchesExpectation = expectedValues.some((item) => popped.toUpperCase() === item.toUpperCase());
+    if (!tokenMatchesExpectation) {
+      const expectationString = expectedValues.map((item) => "'" + item + "'").join(" or ");
+      throw new Error("unexpected token found. Expected " + expectationString + " but got '" + popped + "'");
+    }
+  }
+  return popped;
+}
+function substituteStringLiterals2(definition) {
+  const placeholders = {};
+  const processedDefinition = definition.replace(/\"(\\.|[^"\\])*\"/g, (match) => {
+    var strippedMatch = match.substring(1, match.length - 1);
+    var placeholder = Object.keys(placeholders).find((key) => placeholders[key] === strippedMatch);
+    if (!placeholder) {
+      placeholder = `@@${Object.keys(placeholders).length}@@`;
+      placeholders[placeholder] = strippedMatch;
+    }
+    return placeholder;
+  });
+  return { placeholders, processedDefinition };
+}
+function parseTokensFromDefinition2(definition) {
+  definition = definition.replace(/\(/g, " ( ");
+  definition = definition.replace(/\)/g, " ) ");
+  definition = definition.replace(/\{/g, " { ");
+  definition = definition.replace(/\}/g, " } ");
+  definition = definition.replace(/\]/g, " ] ");
+  definition = definition.replace(/\[/g, " [ ");
+  definition = definition.replace(/\,/g, " , ");
+  return definition.replace(/\s+/g, " ").trim().split(" ");
+}
+
+// src/mdsl/MDSLNodeArgumentParser.ts
+function parseArgumentTokens(tokens, stringArgumentPlaceholders) {
+  const argumentList = [];
+  if (!["[", "("].includes(tokens[0])) {
+    return argumentList;
+  }
+  const closingToken = popAndCheck2(tokens, ["[", "("]) === "[" ? "]" : ")";
+  const argumentListTokens = [];
+  while (tokens.length && tokens[0] !== closingToken) {
+    argumentListTokens.push(tokens.shift());
+  }
+  argumentListTokens.forEach((token, index) => {
+    const shouldBeArgumentToken = !(index & 1);
+    if (shouldBeArgumentToken) {
+      const argumentDefinition = getArgumentDefinition2(token, stringArgumentPlaceholders);
+      argumentList.push(argumentDefinition);
+    } else {
+      if (token !== ",") {
+        throw new Error(`invalid argument list, expected ',' or ']' but got '${token}'`);
+      }
+    }
+  });
+  popAndCheck2(tokens, closingToken);
+  return argumentList;
+}
+function getArgumentDefinition2(token, stringArgumentPlaceholders) {
+  if (token === "null") {
+    return {
+      value: null,
+      type: "null"
+    };
+  }
+  if (token === "true" || token === "false") {
+    return {
+      value: token === "true",
+      type: "boolean"
+    };
+  }
+  if (!isNaN(token)) {
+    return {
+      value: parseFloat(token),
+      isInteger: parseFloat(token) === parseInt(token, 10),
+      type: "number"
+    };
+  }
+  if (token.match(/^@@\d+@@$/g)) {
+    return {
+      value: stringArgumentPlaceholders[token].replace('\\"', '"'),
+      type: "string"
+    };
+  }
+  return {
+    value: token,
+    type: "identifier"
+  };
+}
+
+// src/mdsl/MDSLNodeAttributeParser.ts
+function parseAttributeTokens(tokens, stringArgumentPlaceholders) {
+  const nodeAttributeNames = ["while", "until", "entry", "exit", "step"];
+  const attributes = {};
+  let nextAttributeName = tokens[0]?.toLowerCase();
+  while (nodeAttributeNames.includes(nextAttributeName)) {
+    if (attributes[nextAttributeName]) {
+      throw new Error(`duplicate attribute '${tokens[0].toUpperCase()}' found for node`);
+    }
+    tokens.shift();
+    const [attributeCallIdentifier, ...attributeArguments] = parseArgumentTokens(
+      tokens,
+      stringArgumentPlaceholders
+    );
+    if (attributeCallIdentifier?.type !== "identifier") {
+      throw new Error("expected agent function name identifier argument for attribute");
+    }
+    attributeArguments.filter((arg) => arg.type === "identifier").forEach((arg) => {
+      throw new Error(
+        `invalid attribute argument value '${arg.value}', must be string, number, boolean or null`
+      );
+    });
+    attributes[nextAttributeName] = {
+      call: attributeCallIdentifier.value,
+      args: attributeArguments.map(({ value }) => value)
+    };
+    nextAttributeName = tokens[0]?.toLowerCase();
+  }
+  return attributes;
+}
+
+// src/mdsl/MDSLDefinitionParser.ts
+function parseMDSLToJSON(definition) {
+  const { placeholders, processedDefinition } = substituteStringLiterals2(definition);
+  const tokens = parseTokensFromDefinition2(processedDefinition);
+  return convertTokensToJSONDefinition(tokens, placeholders);
+}
+function convertTokensToJSONDefinition(tokens, stringLiteralPlaceholders) {
+  if (tokens.length < 3) {
+    throw new Error("invalid token count");
+  }
+  if (tokens.filter((token) => token === "{").length !== tokens.filter((token) => token === "}").length) {
+    throw new Error("scope character mismatch");
+  }
+  const treeStacks = [];
+  const rootNodes = [];
+  const pushNode = (node) => {
+    if (isRootNode(node)) {
+      rootNodes.push(node);
+      treeStacks.push([node]);
+      return;
+    }
+    if (!treeStacks.length || !treeStacks[treeStacks.length - 1].length) {
+      throw new Error("expected root node at base of definition");
+    }
+    const topTreeStack = treeStacks[treeStacks.length - 1];
+    const topTreeStackTopNode = topTreeStack[topTreeStack.length - 1];
+    if (isCompositeNode(topTreeStackTopNode)) {
+      topTreeStackTopNode.children = topTreeStackTopNode.children || [];
+      topTreeStackTopNode.children.push(node);
+    } else if (isDecoratorNode(topTreeStackTopNode)) {
+      if (topTreeStackTopNode.child) {
+        throw new Error("a decorator node must only have a single child node");
+      }
+      topTreeStackTopNode.child = node;
+    }
+    if (!isLeafNode(node)) {
+      topTreeStack.push(node);
+    }
+  };
+  const popNode = () => {
+    const topTreeStack = treeStacks[treeStacks.length - 1];
+    if (topTreeStack.length) {
+      topTreeStack.pop();
+    }
+    if (!topTreeStack.length) {
+      treeStacks.pop();
+    }
+  };
+  while (tokens.length) {
+    const token = tokens.shift();
+    switch (token.toUpperCase()) {
+      case "ROOT": {
+        pushNode(createRootNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "SUCCEED": {
+        pushNode(createSucceedNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "FAIL": {
+        pushNode(createFailNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "FLIP": {
+        pushNode(createFlipNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "REPEAT": {
+        pushNode(createRepeatNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "RETRY": {
+        pushNode(createRetryNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "SEQUENCE": {
+        pushNode(createSequenceNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "SELECTOR": {
+        pushNode(createSelectorNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "PARALLEL": {
+        pushNode(createParallelNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "LOTTO": {
+        pushNode(createLottoNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "ACTION": {
+        pushNode(createActionNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "CONDITION": {
+        pushNode(createConditionNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "WAIT": {
+        pushNode(createWaitNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "BRANCH": {
+        pushNode(createBranchNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "}": {
+        popNode();
+        break;
+      }
+      default: {
+        throw new Error(`unexpected token: ${token}`);
+      }
+    }
+  }
+  return rootNodes;
+}
+function createRootNode(tokens, stringLiteralPlaceholders) {
+  let node = {
+    type: "root",
+    id: void 0
+  };
+  const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+  if (nodeArguments.length) {
+    if (nodeArguments.length === 1 && nodeArguments[0].type === "identifier") {
+      node.id = nodeArguments[0].value;
+    } else {
+      throw new Error("expected single root name argument");
+    }
+  }
+  node = { ...node, ...parseAttributeTokens(tokens, stringLiteralPlaceholders) };
+  popAndCheck2(tokens, "{");
+  return node;
+}
+function createSucceedNode(tokens, stringLiteralPlaceholders) {
+  const node = {
+    type: "succeed",
+    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+  };
+  popAndCheck2(tokens, "{");
+  return node;
+}
+function createFailNode(tokens, stringLiteralPlaceholders) {
+  const node = {
+    type: "fail",
+    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+  };
+  popAndCheck2(tokens, "{");
+  return node;
+}
+function createFlipNode(tokens, stringLiteralPlaceholders) {
+  const node = {
+    type: "flip",
+    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+  };
+  popAndCheck2(tokens, "{");
+  return node;
+}
+function createRepeatNode(tokens, stringLiteralPlaceholders) {
+  let node = { type: "repeat" };
+  const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+  if (nodeArguments.length) {
+    nodeArguments.filter((arg) => arg.type !== "number" || !arg.isInteger).forEach(() => {
+      throw new Error(`repeat node iteration counts must be integer values`);
+    });
+    if (nodeArguments.length === 1) {
+      node.iterations = nodeArguments[0].value;
+    } else if (nodeArguments.length === 2) {
+      node.iterations = [nodeArguments[0].value, nodeArguments[1].value];
+    } else {
+      throw new Error("invalid number of repeat node iteration count arguments defined");
+    }
+  }
+  node = { ...node, ...parseAttributeTokens(tokens, stringLiteralPlaceholders) };
+  popAndCheck2(tokens, "{");
+  return node;
+}
+function createRetryNode(tokens, stringLiteralPlaceholders) {
+  let node = { type: "retry" };
+  const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+  if (nodeArguments.length) {
+    nodeArguments.filter((arg) => arg.type !== "number" || !arg.isInteger).forEach(() => {
+      throw new Error(`retry node attempt counts must be integer values`);
+    });
+    if (nodeArguments.length === 1) {
+      node.attempts = nodeArguments[0].value;
+    } else if (nodeArguments.length === 2) {
+      node.attempts = [nodeArguments[0].value, nodeArguments[1].value];
+    } else {
+      throw new Error("invalid number of retry node attempt count arguments defined");
+    }
+  }
+  node = { ...node, ...parseAttributeTokens(tokens, stringLiteralPlaceholders) };
+  popAndCheck2(tokens, "{");
+  return node;
+}
+function createSequenceNode(tokens, stringLiteralPlaceholders) {
+  const node = {
+    type: "sequence",
+    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+  };
+  popAndCheck2(tokens, "{");
+  return node;
+}
+function createSelectorNode(tokens, stringLiteralPlaceholders) {
+  const node = {
+    type: "selector",
+    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+  };
+  popAndCheck2(tokens, "{");
+  return node;
+}
+function createParallelNode(tokens, stringLiteralPlaceholders) {
+  const node = {
+    type: "parallel",
+    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+  };
+  popAndCheck2(tokens, "{");
+  return node;
+}
+function createLottoNode(tokens, stringLiteralPlaceholders) {
+  const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+  nodeArguments.filter((arg) => arg.type !== "number" || !arg.isInteger).forEach(() => {
+    throw new Error(`lotto node weight arguments must be integer values`);
+  });
+  const node = {
+    type: "lotto",
+    weights: nodeArguments.map(({ value }) => value),
+    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+  };
+  popAndCheck2(tokens, "{");
+  return node;
+}
+function createActionNode(tokens, stringLiteralPlaceholders) {
+  const [actionNameIdentifier, ...agentFunctionArgs] = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+  if (actionNameIdentifier?.type !== "identifier") {
+    throw new Error("expected action name identifier argument");
+  }
+  agentFunctionArgs.filter((arg) => arg.type === "identifier").forEach((arg) => {
+    throw new Error(
+      `invalid action node argument value '${arg.value}', must be string, number, boolean or null`
+    );
+  });
+  return {
+    type: "action",
+    call: actionNameIdentifier.value,
+    args: agentFunctionArgs.map(({ value }) => value),
+    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+  };
+}
+function createConditionNode(tokens, stringLiteralPlaceholders) {
+  const [conditionNameIdentifier, ...agentFunctionArgs] = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+  if (conditionNameIdentifier?.type !== "identifier") {
+    throw new Error("expected condition name identifier argument");
+  }
+  agentFunctionArgs.filter((arg) => arg.type === "identifier").forEach((arg) => {
+    throw new Error(
+      `invalid condition node argument value '${arg.value}', must be string, number, boolean or null`
+    );
+  });
+  return {
+    type: "condition",
+    call: conditionNameIdentifier.value,
+    args: agentFunctionArgs.map(({ value }) => value),
+    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+  };
+}
+function createWaitNode(tokens, stringLiteralPlaceholders) {
+  let node = { type: "wait" };
+  const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+  if (nodeArguments.length) {
+    nodeArguments.filter((arg) => arg.type !== "number" || !arg.isInteger).forEach(() => {
+      throw new Error(`wait node duration arguments must be integer values`);
+    });
+    if (nodeArguments.length === 1) {
+      node.duration = nodeArguments[0].value;
+    } else if (nodeArguments.length === 2) {
+      node.duration = [nodeArguments[0].value, nodeArguments[1].value];
+    } else if (nodeArguments.length > 2) {
+      throw new Error("invalid number of wait node duration arguments defined");
+    }
+  }
+  return { ...node, ...parseAttributeTokens(tokens, stringLiteralPlaceholders) };
+}
+function createBranchNode(tokens, stringLiteralPlaceholders) {
+  const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+  if (nodeArguments.length !== 1 || nodeArguments[0].type !== "identifier") {
+    throw new Error("expected single branch name argument");
+  }
+  return { type: "branch", ref: nodeArguments[0].value };
+}
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   BehaviourTree,
-  State
+  State,
+  parseMDSLToJSON
 });
 //# sourceMappingURL=index.js.map

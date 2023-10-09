@@ -1,9 +1,20 @@
 import {
-    RootNodeDefinition,
+    ActionNodeDefinition,
     AnyChildNode,
     AnyNode,
+    BranchNodeDefinition,
+    ConditionNodeDefinition,
+    FailNodeDefinition,
+    FlipNodeDefinition,
+    LottoNodeDefinition,
+    ParallelNodeDefinition,
+    RepeatNodeDefinition,
+    RetryNodeDefinition,
+    RootNodeDefinition,
+    SelectorNodeDefinition,
     SequenceNodeDefinition,
-    ActionNodeDefinition
+    SucceedNodeDefinition,
+    WaitNodeDefinition
 } from "../BehaviourTreeDefinition";
 import { parseArgumentTokens } from "./MDSLNodeArgumentParser";
 import { parseAttributeTokens } from "./MDSLNodeAttributeParser";
@@ -140,13 +151,68 @@ function convertTokensToJSONDefinition(
                 break;
             }
 
+            case "SUCCEED": {
+                pushNode(createSucceedNode(tokens, stringLiteralPlaceholders));
+                break;
+            }
+
+            case "FAIL": {
+                pushNode(createFailNode(tokens, stringLiteralPlaceholders));
+                break;
+            }
+
+            case "FLIP": {
+                pushNode(createFlipNode(tokens, stringLiteralPlaceholders));
+                break;
+            }
+
+            case "REPEAT": {
+                pushNode(createRepeatNode(tokens, stringLiteralPlaceholders));
+                break;
+            }
+
+            case "RETRY": {
+                pushNode(createRetryNode(tokens, stringLiteralPlaceholders));
+                break;
+            }
+
             case "SEQUENCE": {
                 pushNode(createSequenceNode(tokens, stringLiteralPlaceholders));
                 break;
             }
 
+            case "SELECTOR": {
+                pushNode(createSelectorNode(tokens, stringLiteralPlaceholders));
+                break;
+            }
+
+            case "PARALLEL": {
+                pushNode(createParallelNode(tokens, stringLiteralPlaceholders));
+                break;
+            }
+
+            case "LOTTO": {
+                pushNode(createLottoNode(tokens, stringLiteralPlaceholders));
+                break;
+            }
+
             case "ACTION": {
                 pushNode(createActionNode(tokens, stringLiteralPlaceholders));
+                break;
+            }
+
+            case "CONDITION": {
+                pushNode(createConditionNode(tokens, stringLiteralPlaceholders));
+                break;
+            }
+
+            case "WAIT": {
+                pushNode(createWaitNode(tokens, stringLiteralPlaceholders));
+                break;
+            }
+
+            case "BRANCH": {
+                pushNode(createBranchNode(tokens, stringLiteralPlaceholders));
                 break;
             }
 
@@ -157,7 +223,7 @@ function convertTokensToJSONDefinition(
             }
 
             default: {
-                throw new Error("unexpected token: " + token);
+                throw new Error(`unexpected token: ${token}`);
             }
         }
     }
@@ -198,6 +264,164 @@ function createRootNode(tokens: string[], stringLiteralPlaceholders: StringLiter
     // This is a decorator node, so we expect an opening '{'.
     popAndCheck(tokens, "{");
 
+    // Return the root node definition.
+    return node;
+}
+
+/**
+ * Creates a succeed node JSON definition.
+ * @param tokens The tree definition tokens.
+ * @param stringLiteralPlaceholders The substituted string literal placeholders.
+ * @returns The succeed node JSON definition.
+ */
+function createSucceedNode(
+    tokens: string[],
+    stringLiteralPlaceholders: StringLiteralPlaceholders
+): SucceedNodeDefinition {
+    const node = {
+        type: "succeed",
+        ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+    } as SucceedNodeDefinition;
+
+    // This is a decorator node, so we expect an opening '{'.
+    popAndCheck(tokens, "{");
+
+    // Return the succeed node definition.
+    return node;
+}
+
+/**
+ * Creates a fail node JSON definition.
+ * @param tokens The tree definition tokens.
+ * @param stringLiteralPlaceholders The substituted string literal placeholders.
+ * @returns The fail node JSON definition.
+ */
+function createFailNode(tokens: string[], stringLiteralPlaceholders: StringLiteralPlaceholders): FailNodeDefinition {
+    const node = {
+        type: "fail",
+        ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+    } as FailNodeDefinition;
+
+    // This is a decorator node, so we expect an opening '{'.
+    popAndCheck(tokens, "{");
+
+    // Return the fail node definition.
+    return node;
+}
+
+/**
+ * Creates a flip node JSON definition.
+ * @param tokens The tree definition tokens.
+ * @param stringLiteralPlaceholders The substituted string literal placeholders.
+ * @returns The flip node JSON definition.
+ */
+function createFlipNode(tokens: string[], stringLiteralPlaceholders: StringLiteralPlaceholders): FlipNodeDefinition {
+    const node = {
+        type: "flip",
+        ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+    } as FlipNodeDefinition;
+
+    // This is a decorator node, so we expect an opening '{'.
+    popAndCheck(tokens, "{");
+
+    // Return the flip node definition.
+    return node;
+}
+
+/**
+ * Creates a repeat node JSON definition.
+ * @param tokens The tree definition tokens.
+ * @param stringLiteralPlaceholders The substituted string literal placeholders.
+ * @returns The repeat node JSON definition.
+ */
+function createRepeatNode(
+    tokens: string[],
+    stringLiteralPlaceholders: StringLiteralPlaceholders
+): RepeatNodeDefinition {
+    let node = { type: "repeat" } as RepeatNodeDefinition;
+
+    // Get the node arguments.
+    const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+
+    // The arguments of a repeat node are optional. We may have:
+    // - No node arguments, in which case the repeat note will iterate indefinitely.
+    // - One node argument which will be the explicit number of iterations to make.
+    // - Two node arguments which define the min and max iteration bounds from which a random iteration count will be picked.
+    if (nodeArguments.length) {
+        // All repeat node arguments MUST be of type number and must be integer.
+        nodeArguments
+            .filter((arg) => arg.type !== "number" || !arg.isInteger)
+            .forEach(() => {
+                throw new Error(`repeat node iteration counts must be integer values`);
+            });
+
+        // We should have got one or two iteration counts.
+        if (nodeArguments.length === 1) {
+            // A static iteration count was defined.
+            node.iterations = nodeArguments[0].value as number;
+        } else if (nodeArguments.length === 2) {
+            // A minimum and maximum iteration count was defined.
+            node.iterations = [nodeArguments[0].value as number, nodeArguments[1].value as number];
+        } else {
+            // An incorrect number of iteration counts was defined.
+            throw new Error("invalid number of repeat node iteration count arguments defined");
+        }
+    }
+
+    // Grab any node attribute definitions and spread them into the node definition.
+    node = { ...node, ...parseAttributeTokens(tokens, stringLiteralPlaceholders) };
+
+    // This is a decorator node, so we expect an opening '{'.
+    popAndCheck(tokens, "{");
+
+    // Return the repeat node definition.
+    return node;
+}
+
+/**
+ * Creates a retry node JSON definition.
+ * @param tokens The tree definition tokens.
+ * @param stringLiteralPlaceholders The substituted string literal placeholders.
+ * @returns The retry node JSON definition.
+ */
+function createRetryNode(tokens: string[], stringLiteralPlaceholders: StringLiteralPlaceholders): RetryNodeDefinition {
+    let node = { type: "retry" } as RetryNodeDefinition;
+
+    // Get the node arguments.
+    const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+
+    // The arguments of a retry node are optional. We may have:
+    // - No node arguments, in which case the retry note will attempt indefinitely.
+    // - One node argument which will be the explicit number of attempts to make.
+    // - Two node arguments which define the min and max attempt bounds from which a random attempt count will be picked.
+    if (nodeArguments.length) {
+        // All retry node arguments MUST be of type number and must be integer.
+        nodeArguments
+            .filter((arg) => arg.type !== "number" || !arg.isInteger)
+            .forEach(() => {
+                throw new Error(`retry node attempt counts must be integer values`);
+            });
+
+        // We should have got one or two attempt counts.
+        if (nodeArguments.length === 1) {
+            // A static attempt count was defined.
+            node.attempts = nodeArguments[0].value as number;
+        } else if (nodeArguments.length === 2) {
+            // A minimum and maximum attempt count was defined.
+            node.attempts = [nodeArguments[0].value as number, nodeArguments[1].value as number];
+        } else {
+            // An incorrect number of attempt counts was defined.
+            throw new Error("invalid number of retry node attempt count arguments defined");
+        }
+    }
+
+    // Grab any node attribute definitions and spread them into the node definition.
+    node = { ...node, ...parseAttributeTokens(tokens, stringLiteralPlaceholders) };
+
+    // This is a decorator node, so we expect an opening '{'.
+    popAndCheck(tokens, "{");
+
+    // Return the retry node definition.
     return node;
 }
 
@@ -219,6 +443,81 @@ function createSequenceNode(
     // This is a composite node, so we expect an opening '{'.
     popAndCheck(tokens, "{");
 
+    // Return the sequence node definition.
+    return node;
+}
+
+/**
+ * Creates a selector node JSON definition.
+ * @param tokens The tree definition tokens.
+ * @param stringLiteralPlaceholders The substituted string literal placeholders.
+ * @returns The selector node JSON definition.
+ */
+function createSelectorNode(
+    tokens: string[],
+    stringLiteralPlaceholders: StringLiteralPlaceholders
+): SelectorNodeDefinition {
+    const node = {
+        type: "selector",
+        ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+    } as SelectorNodeDefinition;
+
+    // This is a composite node, so we expect an opening '{'.
+    popAndCheck(tokens, "{");
+
+    // Return the selector node definition.
+    return node;
+}
+
+/**
+ * Creates a parallel node JSON definition.
+ * @param tokens The tree definition tokens.
+ * @param stringLiteralPlaceholders The substituted string literal placeholders.
+ * @returns The parallel node JSON definition.
+ */
+function createParallelNode(
+    tokens: string[],
+    stringLiteralPlaceholders: StringLiteralPlaceholders
+): ParallelNodeDefinition {
+    const node = {
+        type: "parallel",
+        ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+    } as ParallelNodeDefinition;
+
+    // This is a composite node, so we expect an opening '{'.
+    popAndCheck(tokens, "{");
+
+    // Return the parallel node definition.
+    return node;
+}
+
+/**
+ * Creates a lotto node JSON definition.
+ * @param tokens The tree definition tokens.
+ * @param stringLiteralPlaceholders The substituted string literal placeholders.
+ * @returns The lotto node JSON definition.
+ */
+function createLottoNode(tokens: string[], stringLiteralPlaceholders: StringLiteralPlaceholders): LottoNodeDefinition {
+    // If any node arguments have been defined then they must be our weights.
+    const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+
+    // All lotto node arguments MUST be of type number and must be integer.
+    nodeArguments
+        .filter((arg) => arg.type !== "number" || !arg.isInteger)
+        .forEach(() => {
+            throw new Error(`lotto node weight arguments must be integer values`);
+        });
+
+    const node = {
+        type: "lotto",
+        weights: nodeArguments.map(({ value }) => value),
+        ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+    } as LottoNodeDefinition;
+
+    // This is a composite node, so we expect an opening '{'.
+    popAndCheck(tokens, "{");
+
+    // Return the lotto node definition.
     return node;
 }
 
@@ -256,5 +555,108 @@ function createActionNode(
         call: actionNameIdentifier.value,
         args: agentFunctionArgs.map(({ value }) => value),
         ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
-    } as ActionNodeDefinition;
+    };
+}
+
+/**
+ * Creates a condition node JSON definition.
+ * @param tokens The tree definition tokens.
+ * @param stringLiteralPlaceholders The substituted string literal placeholders.
+ * @returns The condition node JSON definition.
+ */
+function createConditionNode(
+    tokens: string[],
+    stringLiteralPlaceholders: StringLiteralPlaceholders
+): ConditionNodeDefinition {
+    // Parse any node arguments, we should have at least one which will be an identifier argument for the condition name
+    // and agent function to invoke for the condition, all other arguments are to be passed as arguments to that function.
+    const [conditionNameIdentifier, ...agentFunctionArgs] = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+
+    // Our first argument MUST be defined and be an identifier as we require a condition name argument.
+    if (conditionNameIdentifier?.type !== "identifier") {
+        throw new Error("expected condition name identifier argument");
+    }
+
+    // Only the first argument should have been an identifier, all agent function arguments must be string, number, boolean or null.
+    agentFunctionArgs
+        .filter((arg) => arg.type === "identifier")
+        .forEach((arg) => {
+            throw new Error(
+                `invalid condition node argument value '${arg.value}', must be string, number, boolean or null`
+            );
+        });
+
+    // Return the condition node definition.
+    return {
+        type: "condition",
+        call: conditionNameIdentifier.value,
+        args: agentFunctionArgs.map(({ value }) => value),
+        ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+    };
+}
+
+/**
+ * Creates a wait node JSON definition.
+ * @param tokens The tree definition tokens.
+ * @param stringLiteralPlaceholders The substituted string literal placeholders.
+ * @returns The wait node JSON definition.
+ */
+function createWaitNode(tokens: string[], stringLiteralPlaceholders: StringLiteralPlaceholders): WaitNodeDefinition {
+    let node = { type: "wait" } as WaitNodeDefinition;
+
+    // Get the node arguments.
+    const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+
+    // The arguments of a wait node are optional. We may have:
+    // - No node arguments, in which case the wait will be indefinite until it is aborted.
+    // - One node argument which will be the explicit duration of the wait.
+    // - Two node arguments which define the min and max duration bounds from which a random duration will be picked.
+    if (nodeArguments.length) {
+        // All wait node arguments MUST be of type number and must be integer.
+        nodeArguments
+            .filter((arg) => arg.type !== "number" || !arg.isInteger)
+            .forEach(() => {
+                throw new Error(`wait node duration arguments must be integer values`);
+            });
+
+        // We may have:
+        // - One node argument which will be the explicit duration of the wait.
+        // - Two node arguments which define the min and max duration bounds from which a random duration will be picked.
+        // - Too many arguments, which is not valid.
+        if (nodeArguments.length === 1) {
+            // An explicit duration was defined.
+            node.duration = nodeArguments[0].value as number;
+        } else if (nodeArguments.length === 2) {
+            // Min and max duration bounds were defined from which a random duration will be picked.
+            node.duration = [nodeArguments[0].value as number, nodeArguments[1].value as number];
+        } else if (nodeArguments.length > 2) {
+            // An incorrect number of duration arguments were defined.
+            throw new Error("invalid number of wait node duration arguments defined");
+        }
+    }
+
+    // Return the wait node definition.
+    return { ...node, ...parseAttributeTokens(tokens, stringLiteralPlaceholders) };
+}
+
+/**
+ * Creates a branch node JSON definition.
+ * @param tokens The tree definition tokens.
+ * @param stringLiteralPlaceholders The substituted string literal placeholders.
+ * @returns The branch node JSON definition.
+ */
+function createBranchNode(
+    tokens: string[],
+    stringLiteralPlaceholders: StringLiteralPlaceholders
+): BranchNodeDefinition {
+    // Parse any node arguments, we should have one which will be an identifier argument for the root ref.
+    const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+
+    // We should have only a single identifer argument for a branch node, which is the root ref.
+    if (nodeArguments.length !== 1 || nodeArguments[0].type !== "identifier") {
+        throw new Error("expected single branch name argument");
+    }
+
+    // Return the branch node definition.
+    return { type: "branch", ref: nodeArguments[0].value };
 }
