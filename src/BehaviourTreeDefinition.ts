@@ -1,9 +1,4 @@
 /**
- * A type defining the an argument that can be passed to an agent function.
- */
-export type AgentFunctionArgument = string | number | boolean | null | undefined;
-
-/**
  * An attribute for a node.
  */
 export interface NodeAttributeDefinition {
@@ -14,7 +9,7 @@ export interface NodeAttributeDefinition {
     /**
      * An array of arguments to pass when invoking the agent function.
      */
-    args?: AgentFunctionArgument[];
+    args?: any[];
 }
 
 /**
@@ -87,7 +82,7 @@ export interface ActionNodeDefinition extends NodeDefinition {
      */
     type: "action";
     call: string;
-    args?: AgentFunctionArgument[];
+    args?: any[];
 }
 
 /**
@@ -99,7 +94,7 @@ export interface ConditionNodeDefinition extends NodeDefinition {
      */
     type: "condition";
     call: string;
-    args?: AgentFunctionArgument[];
+    args?: any[];
 }
 
 /**
