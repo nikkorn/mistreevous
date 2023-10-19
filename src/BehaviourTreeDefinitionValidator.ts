@@ -62,15 +62,43 @@ export function validateDefinition(definition: any): DefinitionValidationResult 
             rootNodeDefinitions = [definition];
         }
     } else {
-        throw new Error(`unexpected definition type of '${typeof definition}'`);
+        return {
+            succeeded: false,
+            errorMessage: `unexpected definition type of '${typeof definition}'`
+        };
     }
-    
-    // The definition could be an object (our single root node) or an array (multiple root nodes with one that has no id and the rest must have an id)
-    // Check that all elements in 'definition' ONE has no id AND there are no duplicate ids
-    // Get a list of all root nodes, we will need this to validate that all branch nodes refer to real root nodes.
-    // Check for circular dependencies in root node references via branches.
 
-    // Iterate over our array of root nodes and call validateNode for each, passing an initial depth of 0, wrapped in a try catch to handle validation failures.
+    // TODO Iterate over our array of root nodes and call validateNode for each, passing an initial depth of 0, wrapped in a try catch to handle validation failures.
+
+    // Unpack all of the root node definitions into arrays of main (no 'id' defined) and sub ('id' defined) root node definitions.
+    const mainRootNodeDefinitions = rootNodeDefinitions.filter(({ id }) => typeof id === "undefined");
+    const subRootNodeDefinitions = rootNodeDefinitions.filter(({ id }) => typeof id === "string" && id.length > 0);
+
+    // We should ALWAYS have exactly one root node definition without an 'id' property defined, which is out main root node definition. 
+    if (mainRootNodeDefinitions.length !== 1) {
+        return {
+            succeeded: false,
+            errorMessage: "expected single root node without 'id' property defined to act as main root"
+        };
+    }
+
+    // We should never have duplicate 'id' properties across our sub root node definitions. 
+    const subRootNodeIdenitifers: string[] = [];
+    for (const { id } of subRootNodeDefinitions) {
+        // Have we already come across this 'id' property value?
+        if (subRootNodeIdenitifers.includes(id)) {
+            return {
+                succeeded: false,
+                errorMessage: `multiple root nodes found with duplicate 'id' property value of '${id}'`
+            };
+        }
+
+        subRootNodeIdenitifers.push(id);
+    }
+
+    // TODO Check for any root node circular depedencies.
+
+    // TODO How do we handle globally defined root nodes?
     
     // Our definition was valid!
     return { succeeded: true };
