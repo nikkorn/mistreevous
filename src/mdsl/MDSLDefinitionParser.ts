@@ -16,14 +16,11 @@ import {
     SucceedNodeDefinition,
     WaitNodeDefinition
 } from "../BehaviourTreeDefinition";
+import { isCompositeNode, isDecoratorNode, isLeafNode, isRootNode } from "../BehaviourTreeDefinitionUtilities";
 import { parseArgumentTokens } from "./MDSLNodeArgumentParser";
 import { parseAttributeTokens } from "./MDSLNodeAttributeParser";
 import {
     StringLiteralPlaceholders,
-    isCompositeNode,
-    isDecoratorNode,
-    isLeafNode,
-    isRootNode,
     parseTokensFromDefinition,
     popAndCheck,
     substituteStringLiterals
