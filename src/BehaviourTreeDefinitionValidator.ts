@@ -91,24 +91,62 @@ export function validateDefinition(definition: any): DefinitionValidationResult 
         subRootNodeIdenitifers.push(id);
     }
 
-    // TODO Check for any root node circular depedencies. This will not include any globally registered subtrees.
+    // Check for any branch node circular depedencies. This will not include any globally registered subtrees.
+    const circularDependencyPath = findBranchCircularDependencyPath(rootNodeDefinitions);
 
-
-    // TODO How do we handle globally defined root nodes?
+    // If we found a circular dependency in our root node and branch node definitions then the definition is definitely not valid.
+    if (circularDependencyPath) {
+        return createFailureResult(`circular dependency found in branch node references: ${circularDependencyPath}`);
+    }
     
     // Our definition was valid!
     return { succeeded: true };
 }
 
-function _checkForRootNodeCircularDependencies(rootNodeDefinitions: RootNodeDefinition[]): void {
-    // Create a mapping of root node id's to other root nodes that they reference via branch nodes.
+/**
+ * Find the first circular depdendency path present in the array of root node definitions, or null if one doesn't exist.
+ * This will not consider branch nodes that reference any globally registered subtrees.
+ * @param rootNodeDefinitions The array of root node definitions.
+ * @returns The first circular depdendency path present in the array of root node definitions as string, or null if one doesn't exist.
+ */
+function findBranchCircularDependencyPath(rootNodeDefinitions: RootNodeDefinition[]): string | null {
+    // Create a mapping of root node identifiers to other root nodes that they reference via branch nodes.
+    // Below is an example of a mapping that includes a circular dependency (root => a => b => c => a)
+    // [{ refs: ["a", "b"] }, { id: "a", refs: ["b"] }, { id: "b", refs: ["c"] }, { id: "c", refs: ["a"] }]
     const rootNodeMappings: { id: string | undefined, refs: string[] }[] = rootNodeDefinitions
         .map((rootNodeDefinition) => ({
             id: rootNodeDefinition.id,
             refs: flattenDefinition(rootNodeDefinition).filter(isBranchNode).map(({ ref }) => ref)
         }));
 
-    // TODO Create a recursive function to walk through the mappings, keeing track of which root nodes we have visited.
+    let badPathFormatted: string | null = null;
+
+    // A recursive function to walk through the mappings, keeping track of which root nodes we have visited in the form of a path of root node identifiers.
+    const followRefs = (mapping: { id: string | undefined, refs: string[] }, path: (string | undefined)[] = []) => {
+        // Have we found a circular dependency?
+        if(path.includes(mapping.id)) {
+            // We found a circular dependency! Get the bad path of root node identifiers.
+            const badPath = [...path, mapping.id];
+
+            // Set the formatted path value. [undefined, "a", "b", "c", "a"] would be formatted as "a -> b -> c -> a".
+            badPathFormatted = badPath.map((element) => !!element).join(" => ");
+
+            // No need to continue, we found a circular dependency.
+            return;
+        }
+
+        for (const ref of mapping.refs) {
+            // Find the mapping for the root node with an identifer matching the current ref.
+            const subMapping = rootNodeMappings.find(({ id }) => id === ref);
+
+            // We may not have a mapping for this ref, which will happen if this ref is for a globally registered subtree.
+            if (subMapping) {
+                followRefs(subMapping, [...path, mapping.id]);
+            }
+        }
+    }
+
+    return badPathFormatted;
 }
 
 /**
@@ -126,6 +164,30 @@ function validateNode(definition: any, depth: number): void {
     switch (definition.type) {
         case "root":
             validateRootNode(definition, depth);
+            break;
+
+        case "branch":
+            validateBranchNode(definition, depth);
+            break;
+
+        case "action":
+            validateActionNode(definition, depth);
+            break;
+
+        case "condition":
+            validateConditionNode(definition, depth);
+            break;
+
+        case "sequence":
+            validateSequenceNode(definition, depth);
+            break;
+
+        case "selector":
+            validateSelectorNode(definition, depth);
+            break;
+
+        case "parallel":
+            validateParallelNode(definition, depth);
             break;
 
         // TODO Add cases for all other nodes.
@@ -199,4 +261,154 @@ function validateRootNode(definition: any, depth: number): void {
 
     // Validate the child node of this decorator node.
     validateNode(definition.child, depth + 1);
+}
+
+/**
+ * Validate an object that we expect to be a branch node definition.
+ * @param definition An object that we expect to be a branch node definition.
+ * @param depth The depth of the node in the definition tree.
+ */
+function validateBranchNode(definition: any, depth: number): void {
+    // Check that the node type is correct.
+    if (definition.type !== "branch") {
+        throw new Error(`expected node type of 'branch' for branch node at depth '${depth}'`);
+    }
+
+    // Check that the branch node 'ref' property is defined and is a non-empty string.
+    if (typeof definition.ref !== "string" || definition.ref.length === 0) {
+        throw new Error(`expected non-empty string for 'ref' property for branch node at depth '${depth}'`);
+    }
+
+    // It is invalid to define guard attributes for a branch node as they should be defined on the referenced root node.
+    ["while", "until"].forEach((attributeName) => {
+        if (typeof definition[attributeName] !== "undefined") {
+            throw new Error(`guards should not be defined for branch nodes but guard '${attributeName}' was defined for branch node at depth '${depth}'`);
+        }
+    });
+
+    // It is invalid to define callback attributes for a branch node as they should be defined on the referenced root node.
+    ["entry", "exit", "step"].forEach((attributeName) => {
+        if (typeof definition[attributeName] !== "undefined") {
+            throw new Error(`callbacks should not be defined for branch nodes but callback '${attributeName}' was defined for branch node at depth '${depth}'`);
+        }
+    });
+}
+
+/**
+ * Validate an object that we expect to be a action node definition.
+ * @param definition An object that we expect to be a action node definition.
+ * @param depth The depth of the node in the definition tree.
+ */
+function validateActionNode(definition: any, depth: number): void {
+    // Check that the node type is correct.
+    if (definition.type !== "action") {
+        throw new Error(`expected node type of 'action' for action node at depth '${depth}'`);
+    }
+
+    // The 'call' property must be defined for a action node definition.
+    if (typeof definition.call !== "string" || definition.call.length === 0) {
+        throw new Error(`expected non-empty string for 'call' property of action node at depth '${depth}'`);
+    }
+
+    // If any action function arguments have been defined then they must have been defined in an array.
+    if (typeof definition.args !== "undefined" && !Array.isArray(definition.args)) {
+        throw new Error(`expected array for 'args' property if defined for action node at depth '${depth}'`);
+    }
+
+    // Validate the node attributes.
+    validateNodeAttributes(definition, depth);
+}
+
+/**
+ * Validate an object that we expect to be a condition node definition.
+ * @param definition An object that we expect to be a condition node definition.
+ * @param depth The depth of the node in the definition tree.
+ */
+function validateConditionNode(definition: any, depth: number): void {
+    // Check that the node type is correct.
+    if (definition.type !== "condition") {
+        throw new Error(`expected node type of 'condition' for condition node at depth '${depth}'`);
+    }
+
+    // The 'call' property must be defined for a condition node definition.
+    if (typeof definition.call !== "string" || definition.call.length === 0) {
+        throw new Error(`expected non-empty string for 'call' property of condition node at depth '${depth}'`);
+    }
+
+    // If any condition function arguments have been defined then they must have been defined in an array.
+    if (typeof definition.args !== "undefined" && !Array.isArray(definition.args)) {
+        throw new Error(`expected array for 'args' property if defined for condition node at depth '${depth}'`);
+    }
+
+    // Validate the node attributes.
+    validateNodeAttributes(definition, depth);
+}
+
+/**
+ * Validate an object that we expect to be a sequence node definition.
+ * @param definition An object that we expect to be a sequence node definition.
+ * @param depth The depth of the node in the definition tree.
+ */
+function validateSequenceNode(definition: any, depth: number): void {
+    // Check that the node type is correct.
+    if (definition.type !== "sequence") {
+        throw new Error(`expected node type of 'sequence' for sequence node at depth '${depth}'`);
+    }
+
+    // A sequence node is a composite node, so must have a children nodes array defined.
+    if (!Array.isArray(definition.children) || definition.children.length === 0) {
+        throw new Error(`expected non-empty 'children' array to be defined for sequence node at depth '${depth}'`);
+    }
+
+    // Validate the node attributes.
+    validateNodeAttributes(definition, depth);
+
+    // Validate the child nodes of this composite node.
+    definition.children.forEach((child: any) => validateNode(child, depth + 1));
+}
+
+/**
+ * Validate an object that we expect to be a selector node definition.
+ * @param definition An object that we expect to be a selector node definition.
+ * @param depth The depth of the node in the definition tree.
+ */
+function validateSelectorNode(definition: any, depth: number): void {
+    // Check that the node type is correct.
+    if (definition.type !== "selector") {
+        throw new Error(`expected node type of 'selector' for selector node at depth '${depth}'`);
+    }
+
+    // A selector node is a composite node, so must have a children nodes array defined.
+    if (!Array.isArray(definition.children) || definition.children.length === 0) {
+        throw new Error(`expected non-empty 'children' array to be defined for selector node at depth '${depth}'`);
+    }
+
+    // Validate the node attributes.
+    validateNodeAttributes(definition, depth);
+
+    // Validate the child nodes of this composite node.
+    definition.children.forEach((child: any) => validateNode(child, depth + 1));
+}
+
+/**
+ * Validate an object that we expect to be a parallel node definition.
+ * @param definition An object that we expect to be a parallel node definition.
+ * @param depth The depth of the node in the definition tree.
+ */
+function validateParallelNode(definition: any, depth: number): void {
+    // Check that the node type is correct.
+    if (definition.type !== "parallel") {
+        throw new Error(`expected node type of 'parallel' for parallel node at depth '${depth}'`);
+    }
+
+    // A parallel node is a composite node, so must have a children nodes array defined.
+    if (!Array.isArray(definition.children) || definition.children.length === 0) {
+        throw new Error(`expected non-empty 'children' array to be defined for parallel node at depth '${depth}'`);
+    }
+
+    // Validate the node attributes.
+    validateNodeAttributes(definition, depth);
+
+    // Validate the child nodes of this composite node.
+    definition.children.forEach((child: any) => validateNode(child, depth + 1));
 }
