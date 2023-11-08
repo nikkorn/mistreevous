@@ -1,5 +1,5 @@
 import { RootNodeDefinition } from "./BehaviourTreeDefinition";
-import { flattenDefinition, isBranchNode } from "./BehaviourTreeDefinitionUtilities";
+import { flattenDefinition, isBranchNode, isInteger } from "./BehaviourTreeDefinitionUtilities";
 import { parseMDSLToJSON } from "./mdsl/MDSLDefinitionParser";
 
 /**
@@ -160,22 +160,38 @@ function validateNode(definition: any, depth: number): void {
         throw new Error(`node definition is not an object or 'type' property is not a non-empty string at depth '${depth}'`);
     }
 
-    // How we validate this node will depend on its type.
+    // How we validate this node definition will depend on its type.
     switch (definition.type) {
-        case "root":
-            validateRootNode(definition, depth);
-            break;
-
-        case "branch":
-            validateBranchNode(definition, depth);
-            break;
-
         case "action":
             validateActionNode(definition, depth);
             break;
 
         case "condition":
             validateConditionNode(definition, depth);
+            break;
+
+        case "wait":
+            validateWaitNode(definition, depth);
+            break;
+        
+        case "branch":
+            validateBranchNode(definition, depth);
+            break;
+
+        case "root":
+            validateRootNode(definition, depth);
+            break;
+
+        case "success":
+            validateSuccessNode(definition, depth);
+            break;
+
+        case "fail":
+            validateFailNode(definition, depth);
+            break;
+
+        case "flip":
+            validateFlipNode(definition, depth);
             break;
 
         case "sequence":
@@ -264,6 +280,75 @@ function validateRootNode(definition: any, depth: number): void {
 }
 
 /**
+ * Validate an object that we expect to be a success node definition.
+ * @param definition An object that we expect to be a success node definition.
+ * @param depth The depth of the node in the definition tree.
+ */
+function validateSuccessNode(definition: any, depth: number): void {
+    // Check that the node type is correct.
+    if (definition.type !== "success") {
+        throw new Error(`expected node type of 'success' for success node at depth '${depth}'`);
+    }
+
+    // A success node is a decorator node, so must have a child node defined.
+    if (typeof definition.child === "undefined") {
+        throw new Error(`expected property 'child' to be defined for success node at depth '${depth}'`);
+    }
+
+    // Validate the node attributes.
+    validateNodeAttributes(definition, depth);
+
+    // Validate the child node of this decorator node.
+    validateNode(definition.child, depth + 1);
+}
+
+/**
+ * Validate an object that we expect to be a fail node definition.
+ * @param definition An object that we expect to be a fail node definition.
+ * @param depth The depth of the node in the definition tree.
+ */
+function validateFailNode(definition: any, depth: number): void {
+    // Check that the node type is correct.
+    if (definition.type !== "fail") {
+        throw new Error(`expected node type of 'fail' for fail node at depth '${depth}'`);
+    }
+
+    // A fail node is a decorator node, so must have a child node defined.
+    if (typeof definition.child === "undefined") {
+        throw new Error(`expected property 'child' to be defined for fail node at depth '${depth}'`);
+    }
+
+    // Validate the node attributes.
+    validateNodeAttributes(definition, depth);
+
+    // Validate the child node of this decorator node.
+    validateNode(definition.child, depth + 1);
+}
+
+/**
+ * Validate an object that we expect to be a flip node definition.
+ * @param definition An object that we expect to be a flip node definition.
+ * @param depth The depth of the node in the definition tree.
+ */
+function validateFlipNode(definition: any, depth: number): void {
+    // Check that the node type is correct.
+    if (definition.type !== "flip") {
+        throw new Error(`expected node type of 'flip' for flip node at depth '${depth}'`);
+    }
+
+    // A flip node is a decorator node, so must have a child node defined.
+    if (typeof definition.child === "undefined") {
+        throw new Error(`expected property 'child' to be defined for flip node at depth '${depth}'`);
+    }
+
+    // Validate the node attributes.
+    validateNodeAttributes(definition, depth);
+
+    // Validate the child node of this decorator node.
+    validateNode(definition.child, depth + 1);
+}
+
+/**
  * Validate an object that we expect to be a branch node definition.
  * @param definition An object that we expect to be a branch node definition.
  * @param depth The depth of the node in the definition tree.
@@ -338,6 +423,36 @@ function validateConditionNode(definition: any, depth: number): void {
     // If any condition function arguments have been defined then they must have been defined in an array.
     if (typeof definition.args !== "undefined" && !Array.isArray(definition.args)) {
         throw new Error(`expected array for 'args' property if defined for condition node at depth '${depth}'`);
+    }
+
+    // Validate the node attributes.
+    validateNodeAttributes(definition, depth);
+}
+
+/**
+ * Validate an object that we expect to be a wait node definition.
+ * @param definition An object that we expect to be a wait node definition.
+ * @param depth The depth of the node in the definition tree.
+ */
+function validateWaitNode(definition: any, depth: number): void {
+    // Check that the node type is correct.
+    if (definition.type !== "wait") {
+        throw new Error(`expected node type of 'wait' for wait node at depth '${depth}'`);
+    }
+
+    // Check whether a 'duration' property has been defined, it may not have been if this node is to wait indefinitely.
+    if (typeof definition.duration !== "undefined") {
+        if (Array.isArray(definition.duration)) {
+            // Check whether any elements of the array are not integer values.
+            const containsNonInteger = !!definition.duration.find((value: unknown) => !isInteger(value));
+
+            // If the 'duration' property is an array then it MUST contain two integer values.
+            if (definition.duration.length !== 2 || containsNonInteger) {
+                throw new Error(`expected array containing two integer values for 'duration' property if defined for wait node at depth '${depth}'`);
+            }
+        } else if (!isInteger(definition.duration)) {
+            throw new Error(`expected integer value or array containing two integer values for 'duration' property if defined for wait node at depth '${depth}'`);
+        }
     }
 
     // Validate the node attributes.

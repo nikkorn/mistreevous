@@ -70,6 +70,9 @@ export interface BranchNodeDefinition extends NodeDefinition {
      * The node type.
      */
     type: "branch";
+    /**
+     * The reference matching a root node identifier.
+     */
     ref: string;
 }
 
@@ -81,7 +84,13 @@ export interface ActionNodeDefinition extends NodeDefinition {
      * The node type.
      */
     type: "action";
+    /**
+     * The name of the agent function to invoke.
+     */
     call: string;
+    /**
+     * An array of arguments to pass when invoking the agent function.
+     */
     args?: any[];
 }
 
@@ -93,7 +102,13 @@ export interface ConditionNodeDefinition extends NodeDefinition {
      * The node type.
      */
     type: "condition";
+    /**
+     * The name of the agent function to invoke.
+     */
     call: string;
+    /**
+     * An array of arguments to pass when invoking the agent function.
+     */
     args?: any[];
 }
 
@@ -105,7 +120,7 @@ export interface WaitNodeDefinition extends NodeDefinition {
      * The node type.
      */
     type: "wait";
-    duration: number | [number, number];
+    duration?: number | [number, number];
 }
 
 /**
@@ -160,6 +175,9 @@ export interface RootNodeDefinition extends DecoratorNodeDefinition {
      * The node type.
      */
     type: "root";
+    /**
+     * The unique root node identifier.
+     */
     id?: string;
 }
 

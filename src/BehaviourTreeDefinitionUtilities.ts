@@ -67,3 +67,12 @@ export function flattenDefinition(nodeDefinition: AnyNode): AnyNode[] {
 
     return nodes;
 }
+
+/**
+ * Determines whether the passed value is an integer.
+ * @param value The value to check.
+ * @returns Whether the passed value is an integer.
+ */
+export function isInteger(value: unknown): boolean {
+    return typeof value === "number" && Math.floor(value) === value;
+}
