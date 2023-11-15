@@ -3,8 +3,8 @@ const chai = require("chai");
 
 var assert = chai.assert;
 
-describe("The parseMDSLToJSON function", () => {
+describe("The convertMDSLToJSON function", () => {
     it("does stuff", () => {
-        assert.strictEqual(mistreevous.parseMDSLToJSON("root {}"), JSON.stringify([{ type: "root" }]));
+        assert.strictEqual(mistreevous.convertMDSLToJSON("root {}"), JSON.stringify([{ type: "root" }]));
     });
 });

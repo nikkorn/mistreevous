@@ -1,5 +1,6 @@
-import { BehaviourTree, FlattenedTreeNode } from "./BehaviourTree";
 import State from "./State";
-import { parseMDSLToJSON } from "./mdsl/MDSLDefinitionParser";
-export { BehaviourTree, State, parseMDSLToJSON };
+import { validateDefinition } from "./BehaviourTreeDefinitionValidator";
+import { convertMDSLToJSON } from "./mdsl/MDSLDefinitionParser";
+import { BehaviourTree, FlattenedTreeNode } from "./BehaviourTree";
+export { BehaviourTree, State, convertMDSLToJSON, validateDefinition };
 export type { FlattenedTreeNode };

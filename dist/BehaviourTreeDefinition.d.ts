@@ -1,8 +1,4 @@
 /**
- * A type defining the an argument that can be passed to an agent function.
- */
-export type AgentFunctionArgument = string | number | boolean | null | undefined;
-/**
  * An attribute for a node.
  */
 export interface NodeAttributeDefinition {
@@ -13,7 +9,7 @@ export interface NodeAttributeDefinition {
     /**
      * An array of arguments to pass when invoking the agent function.
      */
-    args?: AgentFunctionArgument[];
+    args?: any[];
 }
 /**
  * A type defining a general node definition.
@@ -70,6 +66,9 @@ export interface BranchNodeDefinition extends NodeDefinition {
      * The node type.
      */
     type: "branch";
+    /**
+     * The reference matching a root node identifier.
+     */
     ref: string;
 }
 /**
@@ -80,8 +79,14 @@ export interface ActionNodeDefinition extends NodeDefinition {
      * The node type.
      */
     type: "action";
+    /**
+     * The name of the agent function to invoke.
+     */
     call: string;
-    args?: AgentFunctionArgument[];
+    /**
+     * An array of arguments to pass when invoking the agent function.
+     */
+    args?: any[];
 }
 /**
  * A condition node.
@@ -91,8 +96,14 @@ export interface ConditionNodeDefinition extends NodeDefinition {
      * The node type.
      */
     type: "condition";
+    /**
+     * The name of the agent function to invoke.
+     */
     call: string;
-    args?: AgentFunctionArgument[];
+    /**
+     * An array of arguments to pass when invoking the agent function.
+     */
+    args?: any[];
 }
 /**
  * A wait node.
@@ -102,7 +113,7 @@ export interface WaitNodeDefinition extends NodeDefinition {
      * The node type.
      */
     type: "wait";
-    duration: number | [number, number];
+    duration?: number | [number, number];
 }
 /**
  * A sequence node.
@@ -152,6 +163,9 @@ export interface RootNodeDefinition extends DecoratorNodeDefinition {
      * The node type.
      */
     type: "root";
+    /**
+     * The unique root node identifier.
+     */
     id?: string;
 }
 /**

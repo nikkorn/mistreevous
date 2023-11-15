@@ -1,4 +1,11 @@
-import { NodeDefinition, RootNodeDefinition, DecoratorNodeDefinition, CompositeNodeDefinition, AnyNode, BranchNodeDefinition } from "./BehaviourTreeDefinition";
+import {
+    NodeDefinition,
+    RootNodeDefinition,
+    DecoratorNodeDefinition,
+    CompositeNodeDefinition,
+    AnyNode,
+    BranchNodeDefinition
+} from "./BehaviourTreeDefinition";
 
 /**
  * A type guard function that returns true if the specified node satisfies the RootNodeDefinition type.

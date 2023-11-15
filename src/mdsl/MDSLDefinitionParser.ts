@@ -27,11 +27,11 @@ import {
 } from "./MDSLUtilities";
 
 /**
- * Parse the MDSL tree definition string into an equivalent JSON definition.
+ * Convert the MDSL tree definition string into an equivalent JSON definition.
  * @param definition The tree definition string as MDSL.
  * @returns The root node JSON definitions.
  */
-export function parseMDSLToJSON(definition: string): RootNodeDefinition[] {
+export function convertMDSLToJSON(definition: string): RootNodeDefinition[] {
     // Swap out any node/attribute argument string literals with a placeholder and get a mapping of placeholders to original values as well as the processed definition.
     const { placeholders, processedDefinition } = substituteStringLiterals(definition);
 

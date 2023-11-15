@@ -10,7 +10,7 @@ import { Agent, GlobalFunction } from "./Agent";
 import { CallbackAttributeDetails } from "./attributes/callbacks/Callback";
 import { GuardAttributeDetails } from "./attributes/guards/Guard";
 import { BehaviourTreeOptions } from "./BehaviourTreeOptions";
-import { parseMDSLToJSON } from "./mdsl/MDSLDefinitionParser";
+import { convertMDSLToJSON } from "./mdsl/MDSLDefinitionParser";
 
 // Purely for outside inspection of the tree.
 export type FlattenedTreeNode = {

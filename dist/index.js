@@ -252,9 +252,816 @@ var src_exports = {};
 __export(src_exports, {
   BehaviourTree: () => BehaviourTree,
   State: () => State,
-  parseMDSLToJSON: () => parseMDSLToJSON
+  convertMDSLToJSON: () => convertMDSLToJSON,
+  validateDefinition: () => validateDefinition
 });
 module.exports = __toCommonJS(src_exports);
+
+// src/State.ts
+var State = /* @__PURE__ */ ((State2) => {
+  State2["READY"] = "mistreevous.ready";
+  State2["RUNNING"] = "mistreevous.running";
+  State2["SUCCEEDED"] = "mistreevous.succeeded";
+  State2["FAILED"] = "mistreevous.failed";
+  return State2;
+})(State || {});
+
+// src/BehaviourTreeDefinitionUtilities.ts
+function isRootNode(node) {
+  return node.type === "root";
+}
+function isBranchNode(node) {
+  return node.type === "branch";
+}
+function isLeafNode(node) {
+  return ["branch", "action", "condition", "wait"].includes(node.type);
+}
+function isDecoratorNode(node) {
+  return ["root", "repeat", "retry", "flip", "succeed", "fail"].includes(node.type);
+}
+function isCompositeNode(node) {
+  return ["sequence", "selector", "lotto", "parallel"].includes(node.type);
+}
+function flattenDefinition(nodeDefinition) {
+  const nodes = [];
+  const processNode = (currentNodeDefinition) => {
+    nodes.push(currentNodeDefinition);
+    if (isCompositeNode(currentNodeDefinition)) {
+      currentNodeDefinition.children.forEach(processNode);
+    } else if (isDecoratorNode(currentNodeDefinition)) {
+      processNode(currentNodeDefinition.child);
+    }
+  };
+  processNode(nodeDefinition);
+  return nodes;
+}
+function isInteger(value) {
+  return typeof value === "number" && Math.floor(value) === value;
+}
+
+// src/mdsl/MDSLUtilities.ts
+function popAndCheck(tokens, expected) {
+  const popped = tokens.shift();
+  if (popped === void 0) {
+    throw new Error("unexpected end of definition");
+  }
+  if (expected != void 0) {
+    const expectedValues = typeof expected === "string" ? [expected] : expected;
+    var tokenMatchesExpectation = expectedValues.some((item) => popped.toUpperCase() === item.toUpperCase());
+    if (!tokenMatchesExpectation) {
+      const expectationString = expectedValues.map((item) => "'" + item + "'").join(" or ");
+      throw new Error("unexpected token found. Expected " + expectationString + " but got '" + popped + "'");
+    }
+  }
+  return popped;
+}
+function substituteStringLiterals(definition) {
+  const placeholders = {};
+  const processedDefinition = definition.replace(/\"(\\.|[^"\\])*\"/g, (match) => {
+    var strippedMatch = match.substring(1, match.length - 1);
+    var placeholder = Object.keys(placeholders).find((key) => placeholders[key] === strippedMatch);
+    if (!placeholder) {
+      placeholder = `@@${Object.keys(placeholders).length}@@`;
+      placeholders[placeholder] = strippedMatch;
+    }
+    return placeholder;
+  });
+  return { placeholders, processedDefinition };
+}
+function parseTokensFromDefinition(definition) {
+  definition = definition.replace(/\(/g, " ( ");
+  definition = definition.replace(/\)/g, " ) ");
+  definition = definition.replace(/\{/g, " { ");
+  definition = definition.replace(/\}/g, " } ");
+  definition = definition.replace(/\]/g, " ] ");
+  definition = definition.replace(/\[/g, " [ ");
+  definition = definition.replace(/\,/g, " , ");
+  return definition.replace(/\s+/g, " ").trim().split(" ");
+}
+
+// src/mdsl/MDSLNodeArgumentParser.ts
+function parseArgumentTokens(tokens, stringArgumentPlaceholders) {
+  const argumentList = [];
+  if (!["[", "("].includes(tokens[0])) {
+    return argumentList;
+  }
+  const closingToken = popAndCheck(tokens, ["[", "("]) === "[" ? "]" : ")";
+  const argumentListTokens = [];
+  while (tokens.length && tokens[0] !== closingToken) {
+    argumentListTokens.push(tokens.shift());
+  }
+  argumentListTokens.forEach((token, index) => {
+    const shouldBeArgumentToken = !(index & 1);
+    if (shouldBeArgumentToken) {
+      const argumentDefinition = getArgumentDefinition(token, stringArgumentPlaceholders);
+      argumentList.push(argumentDefinition);
+    } else {
+      if (token !== ",") {
+        throw new Error(`invalid argument list, expected ',' or ']' but got '${token}'`);
+      }
+    }
+  });
+  popAndCheck(tokens, closingToken);
+  return argumentList;
+}
+function getArgumentDefinition(token, stringArgumentPlaceholders) {
+  if (token === "null") {
+    return {
+      value: null,
+      type: "null"
+    };
+  }
+  if (token === "true" || token === "false") {
+    return {
+      value: token === "true",
+      type: "boolean"
+    };
+  }
+  if (!isNaN(token)) {
+    return {
+      value: parseFloat(token),
+      isInteger: parseFloat(token) === parseInt(token, 10),
+      type: "number"
+    };
+  }
+  if (token.match(/^@@\d+@@$/g)) {
+    return {
+      value: stringArgumentPlaceholders[token].replace('\\"', '"'),
+      type: "string"
+    };
+  }
+  return {
+    value: token,
+    type: "identifier"
+  };
+}
+
+// src/mdsl/MDSLNodeAttributeParser.ts
+function parseAttributeTokens(tokens, stringArgumentPlaceholders) {
+  const nodeAttributeNames = ["while", "until", "entry", "exit", "step"];
+  const attributes = {};
+  let nextAttributeName = tokens[0]?.toLowerCase();
+  while (nodeAttributeNames.includes(nextAttributeName)) {
+    if (attributes[nextAttributeName]) {
+      throw new Error(`duplicate attribute '${tokens[0].toUpperCase()}' found for node`);
+    }
+    tokens.shift();
+    const [attributeCallIdentifier, ...attributeArguments] = parseArgumentTokens(
+      tokens,
+      stringArgumentPlaceholders
+    );
+    if (attributeCallIdentifier?.type !== "identifier") {
+      throw new Error("expected agent function name identifier argument for attribute");
+    }
+    attributeArguments.filter((arg) => arg.type === "identifier").forEach((arg) => {
+      throw new Error(
+        `invalid attribute argument value '${arg.value}', must be string, number, boolean or null`
+      );
+    });
+    attributes[nextAttributeName] = {
+      call: attributeCallIdentifier.value,
+      args: attributeArguments.map(({ value }) => value)
+    };
+    nextAttributeName = tokens[0]?.toLowerCase();
+  }
+  return attributes;
+}
+
+// src/mdsl/MDSLDefinitionParser.ts
+function convertMDSLToJSON(definition) {
+  const { placeholders, processedDefinition } = substituteStringLiterals(definition);
+  const tokens = parseTokensFromDefinition(processedDefinition);
+  return convertTokensToJSONDefinition(tokens, placeholders);
+}
+function convertTokensToJSONDefinition(tokens, stringLiteralPlaceholders) {
+  if (tokens.length < 3) {
+    throw new Error("invalid token count");
+  }
+  if (tokens.filter((token) => token === "{").length !== tokens.filter((token) => token === "}").length) {
+    throw new Error("scope character mismatch");
+  }
+  const treeStacks = [];
+  const rootNodes = [];
+  const pushNode = (node) => {
+    if (isRootNode(node)) {
+      rootNodes.push(node);
+      treeStacks.push([node]);
+      return;
+    }
+    if (!treeStacks.length || !treeStacks[treeStacks.length - 1].length) {
+      throw new Error("expected root node at base of definition");
+    }
+    const topTreeStack = treeStacks[treeStacks.length - 1];
+    const topTreeStackTopNode = topTreeStack[topTreeStack.length - 1];
+    if (isCompositeNode(topTreeStackTopNode)) {
+      topTreeStackTopNode.children = topTreeStackTopNode.children || [];
+      topTreeStackTopNode.children.push(node);
+    } else if (isDecoratorNode(topTreeStackTopNode)) {
+      if (topTreeStackTopNode.child) {
+        throw new Error("a decorator node must only have a single child node");
+      }
+      topTreeStackTopNode.child = node;
+    }
+    if (!isLeafNode(node)) {
+      topTreeStack.push(node);
+    }
+  };
+  const popNode = () => {
+    const topTreeStack = treeStacks[treeStacks.length - 1];
+    if (topTreeStack.length) {
+      topTreeStack.pop();
+    }
+    if (!topTreeStack.length) {
+      treeStacks.pop();
+    }
+  };
+  while (tokens.length) {
+    const token = tokens.shift();
+    switch (token.toUpperCase()) {
+      case "ROOT": {
+        pushNode(createRootNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "SUCCEED": {
+        pushNode(createSucceedNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "FAIL": {
+        pushNode(createFailNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "FLIP": {
+        pushNode(createFlipNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "REPEAT": {
+        pushNode(createRepeatNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "RETRY": {
+        pushNode(createRetryNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "SEQUENCE": {
+        pushNode(createSequenceNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "SELECTOR": {
+        pushNode(createSelectorNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "PARALLEL": {
+        pushNode(createParallelNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "LOTTO": {
+        pushNode(createLottoNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "ACTION": {
+        pushNode(createActionNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "CONDITION": {
+        pushNode(createConditionNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "WAIT": {
+        pushNode(createWaitNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "BRANCH": {
+        pushNode(createBranchNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
+      case "}": {
+        popNode();
+        break;
+      }
+      default: {
+        throw new Error(`unexpected token: ${token}`);
+      }
+    }
+  }
+  return rootNodes;
+}
+function createRootNode(tokens, stringLiteralPlaceholders) {
+  let node = {
+    type: "root",
+    id: void 0
+  };
+  const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+  if (nodeArguments.length) {
+    if (nodeArguments.length === 1 && nodeArguments[0].type === "identifier") {
+      node.id = nodeArguments[0].value;
+    } else {
+      throw new Error("expected single root name argument");
+    }
+  }
+  node = { ...node, ...parseAttributeTokens(tokens, stringLiteralPlaceholders) };
+  popAndCheck(tokens, "{");
+  return node;
+}
+function createSucceedNode(tokens, stringLiteralPlaceholders) {
+  const node = {
+    type: "succeed",
+    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+  };
+  popAndCheck(tokens, "{");
+  return node;
+}
+function createFailNode(tokens, stringLiteralPlaceholders) {
+  const node = {
+    type: "fail",
+    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+  };
+  popAndCheck(tokens, "{");
+  return node;
+}
+function createFlipNode(tokens, stringLiteralPlaceholders) {
+  const node = {
+    type: "flip",
+    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+  };
+  popAndCheck(tokens, "{");
+  return node;
+}
+function createRepeatNode(tokens, stringLiteralPlaceholders) {
+  let node = { type: "repeat" };
+  const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+  if (nodeArguments.length) {
+    nodeArguments.filter((arg) => arg.type !== "number" || !arg.isInteger).forEach(() => {
+      throw new Error(`repeat node iteration counts must be integer values`);
+    });
+    if (nodeArguments.length === 1) {
+      node.iterations = nodeArguments[0].value;
+    } else if (nodeArguments.length === 2) {
+      node.iterations = [nodeArguments[0].value, nodeArguments[1].value];
+    } else {
+      throw new Error("invalid number of repeat node iteration count arguments defined");
+    }
+  }
+  node = { ...node, ...parseAttributeTokens(tokens, stringLiteralPlaceholders) };
+  popAndCheck(tokens, "{");
+  return node;
+}
+function createRetryNode(tokens, stringLiteralPlaceholders) {
+  let node = { type: "retry" };
+  const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+  if (nodeArguments.length) {
+    nodeArguments.filter((arg) => arg.type !== "number" || !arg.isInteger).forEach(() => {
+      throw new Error(`retry node attempt counts must be integer values`);
+    });
+    if (nodeArguments.length === 1) {
+      node.attempts = nodeArguments[0].value;
+    } else if (nodeArguments.length === 2) {
+      node.attempts = [nodeArguments[0].value, nodeArguments[1].value];
+    } else {
+      throw new Error("invalid number of retry node attempt count arguments defined");
+    }
+  }
+  node = { ...node, ...parseAttributeTokens(tokens, stringLiteralPlaceholders) };
+  popAndCheck(tokens, "{");
+  return node;
+}
+function createSequenceNode(tokens, stringLiteralPlaceholders) {
+  const node = {
+    type: "sequence",
+    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+  };
+  popAndCheck(tokens, "{");
+  return node;
+}
+function createSelectorNode(tokens, stringLiteralPlaceholders) {
+  const node = {
+    type: "selector",
+    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+  };
+  popAndCheck(tokens, "{");
+  return node;
+}
+function createParallelNode(tokens, stringLiteralPlaceholders) {
+  const node = {
+    type: "parallel",
+    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+  };
+  popAndCheck(tokens, "{");
+  return node;
+}
+function createLottoNode(tokens, stringLiteralPlaceholders) {
+  const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+  nodeArguments.filter((arg) => arg.type !== "number" || !arg.isInteger).forEach(() => {
+    throw new Error(`lotto node weight arguments must be integer values`);
+  });
+  const node = {
+    type: "lotto",
+    weights: nodeArguments.map(({ value }) => value),
+    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+  };
+  popAndCheck(tokens, "{");
+  return node;
+}
+function createActionNode(tokens, stringLiteralPlaceholders) {
+  const [actionNameIdentifier, ...agentFunctionArgs] = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+  if (actionNameIdentifier?.type !== "identifier") {
+    throw new Error("expected action name identifier argument");
+  }
+  agentFunctionArgs.filter((arg) => arg.type === "identifier").forEach((arg) => {
+    throw new Error(
+      `invalid action node argument value '${arg.value}', must be string, number, boolean or null`
+    );
+  });
+  return {
+    type: "action",
+    call: actionNameIdentifier.value,
+    args: agentFunctionArgs.map(({ value }) => value),
+    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+  };
+}
+function createConditionNode(tokens, stringLiteralPlaceholders) {
+  const [conditionNameIdentifier, ...agentFunctionArgs] = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+  if (conditionNameIdentifier?.type !== "identifier") {
+    throw new Error("expected condition name identifier argument");
+  }
+  agentFunctionArgs.filter((arg) => arg.type === "identifier").forEach((arg) => {
+    throw new Error(
+      `invalid condition node argument value '${arg.value}', must be string, number, boolean or null`
+    );
+  });
+  return {
+    type: "condition",
+    call: conditionNameIdentifier.value,
+    args: agentFunctionArgs.map(({ value }) => value),
+    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+  };
+}
+function createWaitNode(tokens, stringLiteralPlaceholders) {
+  let node = { type: "wait" };
+  const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+  if (nodeArguments.length) {
+    nodeArguments.filter((arg) => arg.type !== "number" || !arg.isInteger).forEach(() => {
+      throw new Error(`wait node duration arguments must be integer values`);
+    });
+    if (nodeArguments.length === 1) {
+      node.duration = nodeArguments[0].value;
+    } else if (nodeArguments.length === 2) {
+      node.duration = [nodeArguments[0].value, nodeArguments[1].value];
+    } else if (nodeArguments.length > 2) {
+      throw new Error("invalid number of wait node duration arguments defined");
+    }
+  }
+  return { ...node, ...parseAttributeTokens(tokens, stringLiteralPlaceholders) };
+}
+function createBranchNode(tokens, stringLiteralPlaceholders) {
+  const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+  if (nodeArguments.length !== 1 || nodeArguments[0].type !== "identifier") {
+    throw new Error("expected single branch name argument");
+  }
+  return { type: "branch", ref: nodeArguments[0].value };
+}
+
+// src/BehaviourTreeDefinitionValidator.ts
+function validateDefinition(definition) {
+  const createFailureResult = (errorMessage) => ({ succeeded: false, errorMessage });
+  if (definition === null || typeof definition === "undefined") {
+    return createFailureResult("definition is null or undefined");
+  }
+  let rootNodeDefinitions;
+  if (typeof definition === "string") {
+    try {
+      rootNodeDefinitions = convertMDSLToJSON(definition);
+    } catch (error) {
+      return createFailureResult(`invalid mdsl: ${definition}`);
+    }
+  } else if (typeof definition === "object") {
+    if (Array.isArray(definition)) {
+      const invalidDefinitionElements = definition.filter((element) => {
+        return typeof element !== "object" || Array.isArray(element) || element === null;
+      });
+      if (invalidDefinitionElements.length) {
+        return createFailureResult(
+          "invalid elements in definition array, each must be an root node definition object"
+        );
+      }
+      rootNodeDefinitions = definition;
+    } else {
+      rootNodeDefinitions = [definition];
+    }
+  } else {
+    return createFailureResult(`unexpected definition type of '${typeof definition}'`);
+  }
+  try {
+    rootNodeDefinitions.forEach((rootNodeDefinition) => validateNode(rootNodeDefinition, 0));
+  } catch (error) {
+    if (error instanceof Error) {
+      return createFailureResult(error.message);
+    }
+    return createFailureResult(`unexpected error: ${error}`);
+  }
+  const mainRootNodeDefinitions = rootNodeDefinitions.filter(({ id }) => typeof id === "undefined");
+  const subRootNodeDefinitions = rootNodeDefinitions.filter(({ id }) => typeof id === "string" && id.length > 0);
+  if (mainRootNodeDefinitions.length !== 1) {
+    return createFailureResult("expected single root node without 'id' property defined to act as main root");
+  }
+  const subRootNodeIdenitifers = [];
+  for (const { id } of subRootNodeDefinitions) {
+    if (subRootNodeIdenitifers.includes(id)) {
+      return createFailureResult(`multiple root nodes found with duplicate 'id' property value of '${id}'`);
+    }
+    subRootNodeIdenitifers.push(id);
+  }
+  const circularDependencyPath = findBranchCircularDependencyPath(rootNodeDefinitions);
+  if (circularDependencyPath) {
+    return createFailureResult(`circular dependency found in branch node references: ${circularDependencyPath}`);
+  }
+  return { succeeded: true };
+}
+function findBranchCircularDependencyPath(rootNodeDefinitions) {
+  const rootNodeMappings = rootNodeDefinitions.map(
+    (rootNodeDefinition) => ({
+      id: rootNodeDefinition.id,
+      refs: flattenDefinition(rootNodeDefinition).filter(isBranchNode).map(({ ref }) => ref)
+    })
+  );
+  let badPathFormatted = null;
+  const followRefs = (mapping, path = []) => {
+    if (path.includes(mapping.id)) {
+      const badPath = [...path, mapping.id];
+      badPathFormatted = badPath.map((element) => !!element).join(" => ");
+      return;
+    }
+    for (const ref of mapping.refs) {
+      const subMapping = rootNodeMappings.find(({ id }) => id === ref);
+      if (subMapping) {
+        followRefs(subMapping, [...path, mapping.id]);
+      }
+    }
+  };
+  return badPathFormatted;
+}
+function validateNode(definition, depth) {
+  if (typeof definition !== "object" || typeof definition.type !== "string" || definition.type.length === 0) {
+    throw new Error(
+      `node definition is not an object or 'type' property is not a non-empty string at depth '${depth}'`
+    );
+  }
+  switch (definition.type) {
+    case "action":
+      validateActionNode(definition, depth);
+      break;
+    case "condition":
+      validateConditionNode(definition, depth);
+      break;
+    case "wait":
+      validateWaitNode(definition, depth);
+      break;
+    case "branch":
+      validateBranchNode(definition, depth);
+      break;
+    case "root":
+      validateRootNode(definition, depth);
+      break;
+    case "success":
+      validateSuccessNode(definition, depth);
+      break;
+    case "fail":
+      validateFailNode(definition, depth);
+      break;
+    case "flip":
+      validateFlipNode(definition, depth);
+      break;
+    case "repeat":
+      validateRepeatNode(definition, depth);
+      break;
+    case "retry":
+      validateRetryNode(definition, depth);
+      break;
+    case "sequence":
+      validateSequenceNode(definition, depth);
+      break;
+    case "selector":
+      validateSelectorNode(definition, depth);
+      break;
+    case "parallel":
+      validateParallelNode(definition, depth);
+      break;
+    default:
+      throw new Error(`unexpected node type of '${definition.type}' at depth '${depth}'`);
+  }
+}
+function validateNodeAttributes(definition, depth) {
+  ["while", "until", "entry", "exit", "step"].forEach((attributeName) => {
+    const attributeDefinition = definition[attributeName];
+    if (typeof attributeDefinition === "undefined") {
+      return;
+    }
+    if (typeof attributeDefinition !== "object") {
+      throw new Error(
+        `expected attribute '${attributeName}' to be an object for '${definition.type}' node at depth '${depth}'`
+      );
+    }
+    if (typeof attributeDefinition.call !== "string" || attributeDefinition.call.length === 0) {
+      throw new Error(
+        `expected 'call' property for attribute '${attributeName}' to be a non-empty string for '${definition.type}' node at depth '${depth}'`
+      );
+    }
+    if (typeof attributeDefinition.args !== "undefined" && !Array.isArray(attributeDefinition.args)) {
+      throw new Error(
+        `expected 'args' property for attribute '${attributeName}' to be an array for '${definition.type}' node at depth '${depth}'`
+      );
+    }
+  });
+}
+function validateRootNode(definition, depth) {
+  if (definition.type !== "root") {
+    throw new Error("expected node type of 'root' for root node");
+  }
+  if (depth > 0) {
+    throw new Error("a root node cannot be the child of another node");
+  }
+  if (typeof definition.id !== "undefined" && (typeof definition.id !== "string" || definition.id.length === 0)) {
+    throw new Error("expected non-empty string for 'id' property if defined for root node");
+  }
+  if (typeof definition.child === "undefined") {
+    throw new Error("expected property 'child' to be defined for root node");
+  }
+  validateNodeAttributes(definition, depth);
+  validateNode(definition.child, depth + 1);
+}
+function validateSuccessNode(definition, depth) {
+  if (definition.type !== "success") {
+    throw new Error(`expected node type of 'success' for success node at depth '${depth}'`);
+  }
+  if (typeof definition.child === "undefined") {
+    throw new Error(`expected property 'child' to be defined for success node at depth '${depth}'`);
+  }
+  validateNodeAttributes(definition, depth);
+  validateNode(definition.child, depth + 1);
+}
+function validateFailNode(definition, depth) {
+  if (definition.type !== "fail") {
+    throw new Error(`expected node type of 'fail' for fail node at depth '${depth}'`);
+  }
+  if (typeof definition.child === "undefined") {
+    throw new Error(`expected property 'child' to be defined for fail node at depth '${depth}'`);
+  }
+  validateNodeAttributes(definition, depth);
+  validateNode(definition.child, depth + 1);
+}
+function validateFlipNode(definition, depth) {
+  if (definition.type !== "flip") {
+    throw new Error(`expected node type of 'flip' for flip node at depth '${depth}'`);
+  }
+  if (typeof definition.child === "undefined") {
+    throw new Error(`expected property 'child' to be defined for flip node at depth '${depth}'`);
+  }
+  validateNodeAttributes(definition, depth);
+  validateNode(definition.child, depth + 1);
+}
+function validateRepeatNode(definition, depth) {
+  if (definition.type !== "repeat") {
+    throw new Error(`expected node type of 'repeat' for repeat node at depth '${depth}'`);
+  }
+  if (typeof definition.child === "undefined") {
+    throw new Error(`expected property 'child' to be defined for repeat node at depth '${depth}'`);
+  }
+  if (typeof definition.iterations !== "undefined") {
+    if (Array.isArray(definition.iterations)) {
+      const containsNonInteger = !!definition.iterations.find((value) => !isInteger(value));
+      if (definition.iterations.length !== 2 || containsNonInteger) {
+        throw new Error(
+          `expected array containing two integer values for 'iterations' property if defined for repeat node at depth '${depth}'`
+        );
+      }
+    } else if (!isInteger(definition.iterations)) {
+      throw new Error(
+        `expected integer value or array containing two integer values for 'iterations' property if defined for repeat node at depth '${depth}'`
+      );
+    }
+  }
+  validateNodeAttributes(definition, depth);
+  validateNode(definition.child, depth + 1);
+}
+function validateRetryNode(definition, depth) {
+  if (definition.type !== "retry") {
+    throw new Error(`expected node type of 'retry' for retry node at depth '${depth}'`);
+  }
+  if (typeof definition.child === "undefined") {
+    throw new Error(`expected property 'child' to be defined for retry node at depth '${depth}'`);
+  }
+  if (typeof definition.attempts !== "undefined") {
+    if (Array.isArray(definition.attempts)) {
+      const containsNonInteger = !!definition.attempts.find((value) => !isInteger(value));
+      if (definition.attempts.length !== 2 || containsNonInteger) {
+        throw new Error(
+          `expected array containing two integer values for 'attempts' property if defined for retry node at depth '${depth}'`
+        );
+      }
+    } else if (!isInteger(definition.attempts)) {
+      throw new Error(
+        `expected integer value or array containing two integer values for 'attempts' property if defined for retry node at depth '${depth}'`
+      );
+    }
+  }
+  validateNodeAttributes(definition, depth);
+  validateNode(definition.child, depth + 1);
+}
+function validateBranchNode(definition, depth) {
+  if (definition.type !== "branch") {
+    throw new Error(`expected node type of 'branch' for branch node at depth '${depth}'`);
+  }
+  if (typeof definition.ref !== "string" || definition.ref.length === 0) {
+    throw new Error(`expected non-empty string for 'ref' property for branch node at depth '${depth}'`);
+  }
+  ["while", "until"].forEach((attributeName) => {
+    if (typeof definition[attributeName] !== "undefined") {
+      throw new Error(
+        `guards should not be defined for branch nodes but guard '${attributeName}' was defined for branch node at depth '${depth}'`
+      );
+    }
+  });
+  ["entry", "exit", "step"].forEach((attributeName) => {
+    if (typeof definition[attributeName] !== "undefined") {
+      throw new Error(
+        `callbacks should not be defined for branch nodes but callback '${attributeName}' was defined for branch node at depth '${depth}'`
+      );
+    }
+  });
+}
+function validateActionNode(definition, depth) {
+  if (definition.type !== "action") {
+    throw new Error(`expected node type of 'action' for action node at depth '${depth}'`);
+  }
+  if (typeof definition.call !== "string" || definition.call.length === 0) {
+    throw new Error(`expected non-empty string for 'call' property of action node at depth '${depth}'`);
+  }
+  if (typeof definition.args !== "undefined" && !Array.isArray(definition.args)) {
+    throw new Error(`expected array for 'args' property if defined for action node at depth '${depth}'`);
+  }
+  validateNodeAttributes(definition, depth);
+}
+function validateConditionNode(definition, depth) {
+  if (definition.type !== "condition") {
+    throw new Error(`expected node type of 'condition' for condition node at depth '${depth}'`);
+  }
+  if (typeof definition.call !== "string" || definition.call.length === 0) {
+    throw new Error(`expected non-empty string for 'call' property of condition node at depth '${depth}'`);
+  }
+  if (typeof definition.args !== "undefined" && !Array.isArray(definition.args)) {
+    throw new Error(`expected array for 'args' property if defined for condition node at depth '${depth}'`);
+  }
+  validateNodeAttributes(definition, depth);
+}
+function validateWaitNode(definition, depth) {
+  if (definition.type !== "wait") {
+    throw new Error(`expected node type of 'wait' for wait node at depth '${depth}'`);
+  }
+  if (typeof definition.duration !== "undefined") {
+    if (Array.isArray(definition.duration)) {
+      const containsNonInteger = !!definition.duration.find((value) => !isInteger(value));
+      if (definition.duration.length !== 2 || containsNonInteger) {
+        throw new Error(
+          `expected array containing two integer values for 'duration' property if defined for wait node at depth '${depth}'`
+        );
+      }
+    } else if (!isInteger(definition.duration)) {
+      throw new Error(
+        `expected integer value or array containing two integer values for 'duration' property if defined for wait node at depth '${depth}'`
+      );
+    }
+  }
+  validateNodeAttributes(definition, depth);
+}
+function validateSequenceNode(definition, depth) {
+  if (definition.type !== "sequence") {
+    throw new Error(`expected node type of 'sequence' for sequence node at depth '${depth}'`);
+  }
+  if (!Array.isArray(definition.children) || definition.children.length === 0) {
+    throw new Error(`expected non-empty 'children' array to be defined for sequence node at depth '${depth}'`);
+  }
+  validateNodeAttributes(definition, depth);
+  definition.children.forEach((child) => validateNode(child, depth + 1));
+}
+function validateSelectorNode(definition, depth) {
+  if (definition.type !== "selector") {
+    throw new Error(`expected node type of 'selector' for selector node at depth '${depth}'`);
+  }
+  if (!Array.isArray(definition.children) || definition.children.length === 0) {
+    throw new Error(`expected non-empty 'children' array to be defined for selector node at depth '${depth}'`);
+  }
+  validateNodeAttributes(definition, depth);
+  definition.children.forEach((child) => validateNode(child, depth + 1));
+}
+function validateParallelNode(definition, depth) {
+  if (definition.type !== "parallel") {
+    throw new Error(`expected node type of 'parallel' for parallel node at depth '${depth}'`);
+  }
+  if (!Array.isArray(definition.children) || definition.children.length === 0) {
+    throw new Error(`expected non-empty 'children' array to be defined for parallel node at depth '${depth}'`);
+  }
+  validateNodeAttributes(definition, depth);
+  definition.children.forEach((child) => validateNode(child, depth + 1));
+}
 
 // src/attributes/guards/GuardUnsatisifedException.ts
 var GuardUnsatisifedException = class extends Error {
@@ -280,15 +1087,6 @@ var GuardPath = class {
     }
   };
 };
-
-// src/State.ts
-var State = /* @__PURE__ */ ((State2) => {
-  State2["READY"] = "mistreevous.ready";
-  State2["RUNNING"] = "mistreevous.running";
-  State2["SUCCEEDED"] = "mistreevous.succeeded";
-  State2["FAILED"] = "mistreevous.failed";
-  return State2;
-})(State || {});
 
 // src/nodes/Node.ts
 var Node = class {
@@ -1351,8 +2149,8 @@ var ASTNodeFactories = {
   })
 };
 function buildRootASTNodes(definition) {
-  const { placeholders, processedDefinition } = substituteStringLiterals(definition);
-  const tokens = parseTokensFromDefinition(processedDefinition);
+  const { placeholders, processedDefinition } = substituteStringLiterals2(definition);
+  const tokens = parseTokensFromDefinition2(processedDefinition);
   if (tokens.length < 3) {
     throw new Error("invalid token count");
   }
@@ -1377,7 +2175,7 @@ function buildRootASTNodes(definition) {
           }
         }
         node.attributes = getAttributes(tokens, placeholders);
-        popAndCheck(tokens, "{");
+        popAndCheck2(tokens, "{");
         stack.push(node.children);
         break;
       }
@@ -1399,7 +2197,7 @@ function buildRootASTNodes(definition) {
         const node = ASTNodeFactories.SELECTOR();
         currentScope.push(node);
         node.attributes = getAttributes(tokens, placeholders);
-        popAndCheck(tokens, "{");
+        popAndCheck2(tokens, "{");
         stack.push(node.children);
         break;
       }
@@ -1407,7 +2205,7 @@ function buildRootASTNodes(definition) {
         const node = ASTNodeFactories.SEQUENCE();
         currentScope.push(node);
         node.attributes = getAttributes(tokens, placeholders);
-        popAndCheck(tokens, "{");
+        popAndCheck2(tokens, "{");
         stack.push(node.children);
         break;
       }
@@ -1415,7 +2213,7 @@ function buildRootASTNodes(definition) {
         const node = ASTNodeFactories.PARALLEL();
         currentScope.push(node);
         node.attributes = getAttributes(tokens, placeholders);
-        popAndCheck(tokens, "{");
+        popAndCheck2(tokens, "{");
         stack.push(node.children);
         break;
       }
@@ -1431,7 +2229,7 @@ function buildRootASTNodes(definition) {
           ).map((argument) => argument.value);
         }
         node.attributes = getAttributes(tokens, placeholders);
-        popAndCheck(tokens, "{");
+        popAndCheck2(tokens, "{");
         stack.push(node.children);
         break;
       }
@@ -1460,7 +2258,7 @@ function buildRootASTNodes(definition) {
         const node = ASTNodeFactories.FLIP();
         currentScope.push(node);
         node.attributes = getAttributes(tokens, placeholders);
-        popAndCheck(tokens, "{");
+        popAndCheck2(tokens, "{");
         stack.push(node.children);
         break;
       }
@@ -1468,7 +2266,7 @@ function buildRootASTNodes(definition) {
         const node = ASTNodeFactories.SUCCEED();
         currentScope.push(node);
         node.attributes = getAttributes(tokens, placeholders);
-        popAndCheck(tokens, "{");
+        popAndCheck2(tokens, "{");
         stack.push(node.children);
         break;
       }
@@ -1476,7 +2274,7 @@ function buildRootASTNodes(definition) {
         const node = ASTNodeFactories.FAIL();
         currentScope.push(node);
         node.attributes = getAttributes(tokens, placeholders);
-        popAndCheck(tokens, "{");
+        popAndCheck2(tokens, "{");
         stack.push(node.children);
         break;
       }
@@ -1522,7 +2320,7 @@ function buildRootASTNodes(definition) {
           }
         }
         node.attributes = getAttributes(tokens, placeholders);
-        popAndCheck(tokens, "{");
+        popAndCheck2(tokens, "{");
         stack.push(node.children);
         break;
       }
@@ -1546,7 +2344,7 @@ function buildRootASTNodes(definition) {
           }
         }
         node.attributes = getAttributes(tokens, placeholders);
-        popAndCheck(tokens, "{");
+        popAndCheck2(tokens, "{");
         stack.push(node.children);
         break;
       }
@@ -1613,7 +2411,7 @@ function buildRootASTNodes(definition) {
   );
   return stack[0];
 }
-function popAndCheck(tokens, expected) {
+function popAndCheck2(tokens, expected) {
   const popped = tokens.shift();
   if (popped === void 0) {
     throw new Error("unexpected end of definition");
@@ -1628,7 +2426,7 @@ function popAndCheck(tokens, expected) {
   return popped;
 }
 function getArguments(tokens, stringArgumentPlaceholders, argumentValidator, validationFailedMessage) {
-  const closer = popAndCheck(tokens, ["[", "("]) === "[" ? "]" : ")";
+  const closer = popAndCheck2(tokens, ["[", "("]) === "[" ? "]" : ")";
   const argumentListTokens = [];
   const argumentList = [];
   while (tokens.length && tokens[0] !== closer) {
@@ -1637,7 +2435,7 @@ function getArguments(tokens, stringArgumentPlaceholders, argumentValidator, val
   argumentListTokens.forEach((token, index) => {
     const shouldBeArgumentToken = !(index & 1);
     if (shouldBeArgumentToken) {
-      const argumentDefinition = getArgumentDefinition(token, stringArgumentPlaceholders);
+      const argumentDefinition = getArgumentDefinition2(token, stringArgumentPlaceholders);
       if (argumentValidator && !argumentValidator(argumentDefinition)) {
         throw new Error(validationFailedMessage);
       }
@@ -1648,10 +2446,10 @@ function getArguments(tokens, stringArgumentPlaceholders, argumentValidator, val
       }
     }
   });
-  popAndCheck(tokens, closer);
+  popAndCheck2(tokens, closer);
   return argumentList;
 }
-function getArgumentDefinition(token, stringArgumentPlaceholders) {
+function getArgumentDefinition2(token, stringArgumentPlaceholders) {
   if (token === "null") {
     return {
       value: null,
@@ -1706,7 +2504,7 @@ function getAttributes(tokens, stringArgumentPlaceholders) {
   }
   return attributes;
 }
-function substituteStringLiterals(definition) {
+function substituteStringLiterals2(definition) {
   const placeholders = {};
   const processedDefinition = definition.replace(/\"(\\.|[^"\\])*\"/g, (match) => {
     var strippedMatch = match.substring(1, match.length - 1);
@@ -1719,7 +2517,7 @@ function substituteStringLiterals(definition) {
   });
   return { placeholders, processedDefinition };
 }
-function parseTokensFromDefinition(definition) {
+function parseTokensFromDefinition2(definition) {
   definition = definition.replace(/\(/g, " ( ");
   definition = definition.replace(/\)/g, " ) ");
   definition = definition.replace(/\{/g, " { ");
@@ -1856,443 +2654,11 @@ var BehaviourTree = class {
     });
   }
 };
-
-// src/mdsl/MDSLUtilities.ts
-function isRootNode(node) {
-  return node.type === "root";
-}
-function isLeafNode(node) {
-  return ["branch", "action", "condition", "wait"].includes(node.type);
-}
-function isDecoratorNode(node) {
-  return ["root", "repeat", "retry", "flip", "succeed", "fail"].includes(node.type);
-}
-function isCompositeNode(node) {
-  return ["sequence", "selector", "lotto", "parallel"].includes(node.type);
-}
-function popAndCheck2(tokens, expected) {
-  const popped = tokens.shift();
-  if (popped === void 0) {
-    throw new Error("unexpected end of definition");
-  }
-  if (expected != void 0) {
-    const expectedValues = typeof expected === "string" ? [expected] : expected;
-    var tokenMatchesExpectation = expectedValues.some((item) => popped.toUpperCase() === item.toUpperCase());
-    if (!tokenMatchesExpectation) {
-      const expectationString = expectedValues.map((item) => "'" + item + "'").join(" or ");
-      throw new Error("unexpected token found. Expected " + expectationString + " but got '" + popped + "'");
-    }
-  }
-  return popped;
-}
-function substituteStringLiterals2(definition) {
-  const placeholders = {};
-  const processedDefinition = definition.replace(/\"(\\.|[^"\\])*\"/g, (match) => {
-    var strippedMatch = match.substring(1, match.length - 1);
-    var placeholder = Object.keys(placeholders).find((key) => placeholders[key] === strippedMatch);
-    if (!placeholder) {
-      placeholder = `@@${Object.keys(placeholders).length}@@`;
-      placeholders[placeholder] = strippedMatch;
-    }
-    return placeholder;
-  });
-  return { placeholders, processedDefinition };
-}
-function parseTokensFromDefinition2(definition) {
-  definition = definition.replace(/\(/g, " ( ");
-  definition = definition.replace(/\)/g, " ) ");
-  definition = definition.replace(/\{/g, " { ");
-  definition = definition.replace(/\}/g, " } ");
-  definition = definition.replace(/\]/g, " ] ");
-  definition = definition.replace(/\[/g, " [ ");
-  definition = definition.replace(/\,/g, " , ");
-  return definition.replace(/\s+/g, " ").trim().split(" ");
-}
-
-// src/mdsl/MDSLNodeArgumentParser.ts
-function parseArgumentTokens(tokens, stringArgumentPlaceholders) {
-  const argumentList = [];
-  if (!["[", "("].includes(tokens[0])) {
-    return argumentList;
-  }
-  const closingToken = popAndCheck2(tokens, ["[", "("]) === "[" ? "]" : ")";
-  const argumentListTokens = [];
-  while (tokens.length && tokens[0] !== closingToken) {
-    argumentListTokens.push(tokens.shift());
-  }
-  argumentListTokens.forEach((token, index) => {
-    const shouldBeArgumentToken = !(index & 1);
-    if (shouldBeArgumentToken) {
-      const argumentDefinition = getArgumentDefinition2(token, stringArgumentPlaceholders);
-      argumentList.push(argumentDefinition);
-    } else {
-      if (token !== ",") {
-        throw new Error(`invalid argument list, expected ',' or ']' but got '${token}'`);
-      }
-    }
-  });
-  popAndCheck2(tokens, closingToken);
-  return argumentList;
-}
-function getArgumentDefinition2(token, stringArgumentPlaceholders) {
-  if (token === "null") {
-    return {
-      value: null,
-      type: "null"
-    };
-  }
-  if (token === "true" || token === "false") {
-    return {
-      value: token === "true",
-      type: "boolean"
-    };
-  }
-  if (!isNaN(token)) {
-    return {
-      value: parseFloat(token),
-      isInteger: parseFloat(token) === parseInt(token, 10),
-      type: "number"
-    };
-  }
-  if (token.match(/^@@\d+@@$/g)) {
-    return {
-      value: stringArgumentPlaceholders[token].replace('\\"', '"'),
-      type: "string"
-    };
-  }
-  return {
-    value: token,
-    type: "identifier"
-  };
-}
-
-// src/mdsl/MDSLNodeAttributeParser.ts
-function parseAttributeTokens(tokens, stringArgumentPlaceholders) {
-  const nodeAttributeNames = ["while", "until", "entry", "exit", "step"];
-  const attributes = {};
-  let nextAttributeName = tokens[0]?.toLowerCase();
-  while (nodeAttributeNames.includes(nextAttributeName)) {
-    if (attributes[nextAttributeName]) {
-      throw new Error(`duplicate attribute '${tokens[0].toUpperCase()}' found for node`);
-    }
-    tokens.shift();
-    const [attributeCallIdentifier, ...attributeArguments] = parseArgumentTokens(
-      tokens,
-      stringArgumentPlaceholders
-    );
-    if (attributeCallIdentifier?.type !== "identifier") {
-      throw new Error("expected agent function name identifier argument for attribute");
-    }
-    attributeArguments.filter((arg) => arg.type === "identifier").forEach((arg) => {
-      throw new Error(
-        `invalid attribute argument value '${arg.value}', must be string, number, boolean or null`
-      );
-    });
-    attributes[nextAttributeName] = {
-      call: attributeCallIdentifier.value,
-      args: attributeArguments.map(({ value }) => value)
-    };
-    nextAttributeName = tokens[0]?.toLowerCase();
-  }
-  return attributes;
-}
-
-// src/mdsl/MDSLDefinitionParser.ts
-function parseMDSLToJSON(definition) {
-  const { placeholders, processedDefinition } = substituteStringLiterals2(definition);
-  const tokens = parseTokensFromDefinition2(processedDefinition);
-  return convertTokensToJSONDefinition(tokens, placeholders);
-}
-function convertTokensToJSONDefinition(tokens, stringLiteralPlaceholders) {
-  if (tokens.length < 3) {
-    throw new Error("invalid token count");
-  }
-  if (tokens.filter((token) => token === "{").length !== tokens.filter((token) => token === "}").length) {
-    throw new Error("scope character mismatch");
-  }
-  const treeStacks = [];
-  const rootNodes = [];
-  const pushNode = (node) => {
-    if (isRootNode(node)) {
-      rootNodes.push(node);
-      treeStacks.push([node]);
-      return;
-    }
-    if (!treeStacks.length || !treeStacks[treeStacks.length - 1].length) {
-      throw new Error("expected root node at base of definition");
-    }
-    const topTreeStack = treeStacks[treeStacks.length - 1];
-    const topTreeStackTopNode = topTreeStack[topTreeStack.length - 1];
-    if (isCompositeNode(topTreeStackTopNode)) {
-      topTreeStackTopNode.children = topTreeStackTopNode.children || [];
-      topTreeStackTopNode.children.push(node);
-    } else if (isDecoratorNode(topTreeStackTopNode)) {
-      if (topTreeStackTopNode.child) {
-        throw new Error("a decorator node must only have a single child node");
-      }
-      topTreeStackTopNode.child = node;
-    }
-    if (!isLeafNode(node)) {
-      topTreeStack.push(node);
-    }
-  };
-  const popNode = () => {
-    const topTreeStack = treeStacks[treeStacks.length - 1];
-    if (topTreeStack.length) {
-      topTreeStack.pop();
-    }
-    if (!topTreeStack.length) {
-      treeStacks.pop();
-    }
-  };
-  while (tokens.length) {
-    const token = tokens.shift();
-    switch (token.toUpperCase()) {
-      case "ROOT": {
-        pushNode(createRootNode(tokens, stringLiteralPlaceholders));
-        break;
-      }
-      case "SUCCEED": {
-        pushNode(createSucceedNode(tokens, stringLiteralPlaceholders));
-        break;
-      }
-      case "FAIL": {
-        pushNode(createFailNode(tokens, stringLiteralPlaceholders));
-        break;
-      }
-      case "FLIP": {
-        pushNode(createFlipNode(tokens, stringLiteralPlaceholders));
-        break;
-      }
-      case "REPEAT": {
-        pushNode(createRepeatNode(tokens, stringLiteralPlaceholders));
-        break;
-      }
-      case "RETRY": {
-        pushNode(createRetryNode(tokens, stringLiteralPlaceholders));
-        break;
-      }
-      case "SEQUENCE": {
-        pushNode(createSequenceNode(tokens, stringLiteralPlaceholders));
-        break;
-      }
-      case "SELECTOR": {
-        pushNode(createSelectorNode(tokens, stringLiteralPlaceholders));
-        break;
-      }
-      case "PARALLEL": {
-        pushNode(createParallelNode(tokens, stringLiteralPlaceholders));
-        break;
-      }
-      case "LOTTO": {
-        pushNode(createLottoNode(tokens, stringLiteralPlaceholders));
-        break;
-      }
-      case "ACTION": {
-        pushNode(createActionNode(tokens, stringLiteralPlaceholders));
-        break;
-      }
-      case "CONDITION": {
-        pushNode(createConditionNode(tokens, stringLiteralPlaceholders));
-        break;
-      }
-      case "WAIT": {
-        pushNode(createWaitNode(tokens, stringLiteralPlaceholders));
-        break;
-      }
-      case "BRANCH": {
-        pushNode(createBranchNode(tokens, stringLiteralPlaceholders));
-        break;
-      }
-      case "}": {
-        popNode();
-        break;
-      }
-      default: {
-        throw new Error(`unexpected token: ${token}`);
-      }
-    }
-  }
-  return rootNodes;
-}
-function createRootNode(tokens, stringLiteralPlaceholders) {
-  let node = {
-    type: "root",
-    id: void 0
-  };
-  const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
-  if (nodeArguments.length) {
-    if (nodeArguments.length === 1 && nodeArguments[0].type === "identifier") {
-      node.id = nodeArguments[0].value;
-    } else {
-      throw new Error("expected single root name argument");
-    }
-  }
-  node = { ...node, ...parseAttributeTokens(tokens, stringLiteralPlaceholders) };
-  popAndCheck2(tokens, "{");
-  return node;
-}
-function createSucceedNode(tokens, stringLiteralPlaceholders) {
-  const node = {
-    type: "succeed",
-    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
-  };
-  popAndCheck2(tokens, "{");
-  return node;
-}
-function createFailNode(tokens, stringLiteralPlaceholders) {
-  const node = {
-    type: "fail",
-    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
-  };
-  popAndCheck2(tokens, "{");
-  return node;
-}
-function createFlipNode(tokens, stringLiteralPlaceholders) {
-  const node = {
-    type: "flip",
-    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
-  };
-  popAndCheck2(tokens, "{");
-  return node;
-}
-function createRepeatNode(tokens, stringLiteralPlaceholders) {
-  let node = { type: "repeat" };
-  const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
-  if (nodeArguments.length) {
-    nodeArguments.filter((arg) => arg.type !== "number" || !arg.isInteger).forEach(() => {
-      throw new Error(`repeat node iteration counts must be integer values`);
-    });
-    if (nodeArguments.length === 1) {
-      node.iterations = nodeArguments[0].value;
-    } else if (nodeArguments.length === 2) {
-      node.iterations = [nodeArguments[0].value, nodeArguments[1].value];
-    } else {
-      throw new Error("invalid number of repeat node iteration count arguments defined");
-    }
-  }
-  node = { ...node, ...parseAttributeTokens(tokens, stringLiteralPlaceholders) };
-  popAndCheck2(tokens, "{");
-  return node;
-}
-function createRetryNode(tokens, stringLiteralPlaceholders) {
-  let node = { type: "retry" };
-  const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
-  if (nodeArguments.length) {
-    nodeArguments.filter((arg) => arg.type !== "number" || !arg.isInteger).forEach(() => {
-      throw new Error(`retry node attempt counts must be integer values`);
-    });
-    if (nodeArguments.length === 1) {
-      node.attempts = nodeArguments[0].value;
-    } else if (nodeArguments.length === 2) {
-      node.attempts = [nodeArguments[0].value, nodeArguments[1].value];
-    } else {
-      throw new Error("invalid number of retry node attempt count arguments defined");
-    }
-  }
-  node = { ...node, ...parseAttributeTokens(tokens, stringLiteralPlaceholders) };
-  popAndCheck2(tokens, "{");
-  return node;
-}
-function createSequenceNode(tokens, stringLiteralPlaceholders) {
-  const node = {
-    type: "sequence",
-    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
-  };
-  popAndCheck2(tokens, "{");
-  return node;
-}
-function createSelectorNode(tokens, stringLiteralPlaceholders) {
-  const node = {
-    type: "selector",
-    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
-  };
-  popAndCheck2(tokens, "{");
-  return node;
-}
-function createParallelNode(tokens, stringLiteralPlaceholders) {
-  const node = {
-    type: "parallel",
-    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
-  };
-  popAndCheck2(tokens, "{");
-  return node;
-}
-function createLottoNode(tokens, stringLiteralPlaceholders) {
-  const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
-  nodeArguments.filter((arg) => arg.type !== "number" || !arg.isInteger).forEach(() => {
-    throw new Error(`lotto node weight arguments must be integer values`);
-  });
-  const node = {
-    type: "lotto",
-    weights: nodeArguments.map(({ value }) => value),
-    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
-  };
-  popAndCheck2(tokens, "{");
-  return node;
-}
-function createActionNode(tokens, stringLiteralPlaceholders) {
-  const [actionNameIdentifier, ...agentFunctionArgs] = parseArgumentTokens(tokens, stringLiteralPlaceholders);
-  if (actionNameIdentifier?.type !== "identifier") {
-    throw new Error("expected action name identifier argument");
-  }
-  agentFunctionArgs.filter((arg) => arg.type === "identifier").forEach((arg) => {
-    throw new Error(
-      `invalid action node argument value '${arg.value}', must be string, number, boolean or null`
-    );
-  });
-  return {
-    type: "action",
-    call: actionNameIdentifier.value,
-    args: agentFunctionArgs.map(({ value }) => value),
-    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
-  };
-}
-function createConditionNode(tokens, stringLiteralPlaceholders) {
-  const [conditionNameIdentifier, ...agentFunctionArgs] = parseArgumentTokens(tokens, stringLiteralPlaceholders);
-  if (conditionNameIdentifier?.type !== "identifier") {
-    throw new Error("expected condition name identifier argument");
-  }
-  agentFunctionArgs.filter((arg) => arg.type === "identifier").forEach((arg) => {
-    throw new Error(
-      `invalid condition node argument value '${arg.value}', must be string, number, boolean or null`
-    );
-  });
-  return {
-    type: "condition",
-    call: conditionNameIdentifier.value,
-    args: agentFunctionArgs.map(({ value }) => value),
-    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
-  };
-}
-function createWaitNode(tokens, stringLiteralPlaceholders) {
-  let node = { type: "wait" };
-  const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
-  if (nodeArguments.length) {
-    nodeArguments.filter((arg) => arg.type !== "number" || !arg.isInteger).forEach(() => {
-      throw new Error(`wait node duration arguments must be integer values`);
-    });
-    if (nodeArguments.length === 1) {
-      node.duration = nodeArguments[0].value;
-    } else if (nodeArguments.length === 2) {
-      node.duration = [nodeArguments[0].value, nodeArguments[1].value];
-    } else if (nodeArguments.length > 2) {
-      throw new Error("invalid number of wait node duration arguments defined");
-    }
-  }
-  return { ...node, ...parseAttributeTokens(tokens, stringLiteralPlaceholders) };
-}
-function createBranchNode(tokens, stringLiteralPlaceholders) {
-  const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
-  if (nodeArguments.length !== 1 || nodeArguments[0].type !== "identifier") {
-    throw new Error("expected single branch name argument");
-  }
-  return { type: "branch", ref: nodeArguments[0].value };
-}
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   BehaviourTree,
   State,
-  parseMDSLToJSON
+  convertMDSLToJSON,
+  validateDefinition
 });
 //# sourceMappingURL=index.js.map
