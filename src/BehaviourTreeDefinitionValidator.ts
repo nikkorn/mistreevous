@@ -46,27 +46,7 @@ export function validateDefinition(definition: any): DefinitionValidationResult 
         }
     } else if (typeof definition === "object") {
         // The definition will either be an array (of root node definitions) or an object (the single primary root node definition).
-        // If our definition is an array, we should verify that each of the elements within it are objects (potential root node definitions).
-        if (Array.isArray(definition)) {
-            // Find any invalid node definitions in our definition array, not full validation just a check that each is a valid object.
-            const invalidDefinitionElements = definition.filter((element) => {
-                // Each element isn't valid unless it is an object that isn't also an array and isn't null.
-                return typeof element !== "object" || Array.isArray(element) || element === null;
-            });
-
-            // If we have any invalid node definitions then validation has failed.
-            if (invalidDefinitionElements.length) {
-                return createFailureResult(
-                    "invalid elements in definition array, each must be an root node definition object"
-                );
-            }
-
-            // Our definition is already an array of root node definition objects.
-            rootNodeDefinitions = definition;
-        } else {
-            // Our definition is an object, but we want an array of root node definitions.
-            rootNodeDefinitions = [definition];
-        }
+        rootNodeDefinitions = Array.isArray(definition) ? definition : [definition];
     } else {
         return createFailureResult(`unexpected definition type of '${typeof definition}'`);
     }
@@ -145,7 +125,7 @@ function findBranchCircularDependencyPath(rootNodeDefinitions: RootNodeDefinitio
             const badPath = [...path, mapping.id];
 
             // Set the formatted path value. [undefined, "a", "b", "c", "a"] would be formatted as "a -> b -> c -> a".
-            badPathFormatted = badPath.map((element) => !!element).join(" => ");
+            badPathFormatted = badPath.filter((element) => !!element).join(" => ");
 
             // No need to continue, we found a circular dependency.
             return;
@@ -161,6 +141,9 @@ function findBranchCircularDependencyPath(rootNodeDefinitions: RootNodeDefinitio
             }
         }
     };
+
+    // Start looking for circular dependencies from the root.
+    followRefs(rootNodeMappings.find((mapping) => typeof mapping.id === "undefined")!);
 
     return badPathFormatted;
 }

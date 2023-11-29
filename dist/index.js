@@ -734,19 +734,7 @@ function validateDefinition(definition) {
       return createFailureResult(`invalid mdsl: ${definition}`);
     }
   } else if (typeof definition === "object") {
-    if (Array.isArray(definition)) {
-      const invalidDefinitionElements = definition.filter((element) => {
-        return typeof element !== "object" || Array.isArray(element) || element === null;
-      });
-      if (invalidDefinitionElements.length) {
-        return createFailureResult(
-          "invalid elements in definition array, each must be an root node definition object"
-        );
-      }
-      rootNodeDefinitions = definition;
-    } else {
-      rootNodeDefinitions = [definition];
-    }
+    rootNodeDefinitions = Array.isArray(definition) ? definition : [definition];
   } else {
     return createFailureResult(`unexpected definition type of '${typeof definition}'`);
   }
@@ -787,7 +775,7 @@ function findBranchCircularDependencyPath(rootNodeDefinitions) {
   const followRefs = (mapping, path = []) => {
     if (path.includes(mapping.id)) {
       const badPath = [...path, mapping.id];
-      badPathFormatted = badPath.map((element) => !!element).join(" => ");
+      badPathFormatted = badPath.filter((element) => !!element).join(" => ");
       return;
     }
     for (const ref of mapping.refs) {
@@ -797,6 +785,7 @@ function findBranchCircularDependencyPath(rootNodeDefinitions) {
       }
     }
   };
+  followRefs(rootNodeMappings.find((mapping) => typeof mapping.id === "undefined"));
   return badPathFormatted;
 }
 function validateNode(definition, depth) {
