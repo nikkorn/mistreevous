@@ -722,45 +722,77 @@ function createBranchNode(tokens, stringLiteralPlaceholders) {
 
 // src/BehaviourTreeDefinitionValidator.ts
 function validateDefinition(definition) {
-  const createFailureResult = (errorMessage) => ({ succeeded: false, errorMessage });
   if (definition === null || typeof definition === "undefined") {
-    return createFailureResult("definition is null or undefined");
+    return createValidationFailureResult("definition is null or undefined");
   }
-  let rootNodeDefinitions;
   if (typeof definition === "string") {
-    try {
-      rootNodeDefinitions = convertMDSLToJSON(definition);
-    } catch (error) {
-      return createFailureResult(`invalid mdsl: ${definition}`);
-    }
+    return validateMDSLDefinition(definition);
   } else if (typeof definition === "object") {
-    rootNodeDefinitions = Array.isArray(definition) ? definition : [definition];
+    return validateJSONDefinition(definition);
   } else {
-    return createFailureResult(`unexpected definition type of '${typeof definition}'`);
+    return createValidationFailureResult(`unexpected definition type of '${typeof definition}'`);
   }
+}
+function validateMDSLDefinition(definition) {
+  let rootNodeDefinitions;
   try {
-    rootNodeDefinitions.forEach((rootNodeDefinition) => validateNode(rootNodeDefinition, 0));
+    rootNodeDefinitions = convertMDSLToJSON(definition);
   } catch (error) {
-    if (error instanceof Error) {
-      return createFailureResult(error.message);
-    }
-    return createFailureResult(`unexpected error: ${error}`);
+    return createValidationFailureResult(`invalid MDSL: ${definition}`);
   }
   const mainRootNodeDefinitions = rootNodeDefinitions.filter(({ id }) => typeof id === "undefined");
   const subRootNodeDefinitions = rootNodeDefinitions.filter(({ id }) => typeof id === "string" && id.length > 0);
   if (mainRootNodeDefinitions.length !== 1) {
-    return createFailureResult("expected single root node without 'id' property defined to act as main root");
+    return createValidationFailureResult(
+      "expected single unnamed root node at base of definition to act as main root"
+    );
   }
   const subRootNodeIdenitifers = [];
   for (const { id } of subRootNodeDefinitions) {
     if (subRootNodeIdenitifers.includes(id)) {
-      return createFailureResult(`multiple root nodes found with duplicate 'id' property value of '${id}'`);
+      return createValidationFailureResult(`multiple root nodes found with duplicate name '${id}'`);
     }
     subRootNodeIdenitifers.push(id);
   }
   const circularDependencyPath = findBranchCircularDependencyPath(rootNodeDefinitions);
   if (circularDependencyPath) {
-    return createFailureResult(`circular dependency found in branch node references: ${circularDependencyPath}`);
+    return createValidationFailureResult(
+      `circular dependency found in branch node references: ${circularDependencyPath}`
+    );
+  }
+  return { succeeded: true };
+}
+function validateJSONDefinition(definition) {
+  const rootNodeDefinitions = Array.isArray(definition) ? definition : [definition];
+  try {
+    rootNodeDefinitions.forEach((rootNodeDefinition) => validateNode(rootNodeDefinition, 0));
+  } catch (error) {
+    if (error instanceof Error) {
+      return createValidationFailureResult(error.message);
+    }
+    return createValidationFailureResult(`unexpected error: ${error}`);
+  }
+  const mainRootNodeDefinitions = rootNodeDefinitions.filter(({ id }) => typeof id === "undefined");
+  const subRootNodeDefinitions = rootNodeDefinitions.filter(({ id }) => typeof id === "string" && id.length > 0);
+  if (mainRootNodeDefinitions.length !== 1) {
+    return createValidationFailureResult(
+      "expected single root node without 'id' property defined to act as main root"
+    );
+  }
+  const subRootNodeIdenitifers = [];
+  for (const { id } of subRootNodeDefinitions) {
+    if (subRootNodeIdenitifers.includes(id)) {
+      return createValidationFailureResult(
+        `multiple root nodes found with duplicate 'id' property value of '${id}'`
+      );
+    }
+    subRootNodeIdenitifers.push(id);
+  }
+  const circularDependencyPath = findBranchCircularDependencyPath(rootNodeDefinitions);
+  if (circularDependencyPath) {
+    return createValidationFailureResult(
+      `circular dependency found in branch node references: ${circularDependencyPath}`
+    );
   }
   return { succeeded: true };
 }
@@ -1050,6 +1082,9 @@ function validateParallelNode(definition, depth) {
   }
   validateNodeAttributes(definition, depth);
   definition.children.forEach((child) => validateNode(child, depth + 1));
+}
+function createValidationFailureResult(errorMessage) {
+  return { succeeded: false, errorMessage };
 }
 
 // src/attributes/guards/GuardUnsatisifedException.ts

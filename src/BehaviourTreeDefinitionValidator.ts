@@ -22,46 +22,41 @@ export type DefinitionValidationResult = {
  * @returns An object representing the result of validating the given tree definition.
  */
 export function validateDefinition(definition: any): DefinitionValidationResult {
-    // A helper function to create a failure validation result with the given error message.
-    const createFailureResult = (errorMessage: string) => ({ succeeded: false, errorMessage });
-
     // The definition must be defined.
     if (definition === null || typeof definition === "undefined") {
-        return createFailureResult("definition is null or undefined");
+        return createValidationFailureResult("definition is null or undefined");
     }
 
-    let rootNodeDefinitions: any[];
-
     // We are expecting a definition in one of three different forms:
-    // - A string which we will assume is mdsl and we will parse this to JSON before validation.
+    // - A string which we will assume is MDSL and we will parse this to JSON before validation.
     // - An array which we will assume is an array of root node definitions with at least one being the primary root node (no 'id' property)
     // - An object which we will assume is the primary root node and should not have an 'id' property.
     if (typeof definition === "string") {
-        try {
-            // The definition is a string which we can assume is mdsl, so attempt to parse it to a JSON definition in the form of an array of root node definitions.
-            rootNodeDefinitions = convertMDSLToJSON(definition);
-        } catch (error) {
-            // We failed to parse the JSON from the mdsl, this is likely to be the result of it not being a valid mdsl string.
-            return createFailureResult(`invalid mdsl: ${definition}`);
-        }
+        // The definition is a string which we can assume is MDSL, so attempt to validate it.
+        return validateMDSLDefinition(definition);
     } else if (typeof definition === "object") {
         // The definition will either be an array (of root node definitions) or an object (the single primary root node definition).
-        rootNodeDefinitions = Array.isArray(definition) ? definition : [definition];
+        return validateJSONDefinition(definition);
     } else {
-        return createFailureResult(`unexpected definition type of '${typeof definition}'`);
+        return createValidationFailureResult(`unexpected definition type of '${typeof definition}'`);
     }
+}
 
-    // Iterate over our array of root nodes and call validateNode for each, passing an initial depth of 0, wrapped in a try catch to handle validation failures.
+/**
+ * Validates the specified behaviour tree definition in the form of MDSL.
+ * @param definition The behaviour tree definition in the form of MDSL.
+ * @returns An object representing the result of validating the given tree definition.
+ */
+export function validateMDSLDefinition(definition: string): DefinitionValidationResult {
+    let rootNodeDefinitions;
+
+    // The first thing the we need to do is to attempt to convert our MDSL into JSON.
     try {
-        rootNodeDefinitions.forEach((rootNodeDefinition) => validateNode(rootNodeDefinition, 0));
+        // The definition is a string which we can assume is MDSL, so attempt to parse it to a JSON definition in the form of an array of root node definitions.
+        rootNodeDefinitions = convertMDSLToJSON(definition);
     } catch (error) {
-        // Handle cases where we have caught a thrown Error and return a failure result with the error message.
-        if (error instanceof Error) {
-            return createFailureResult(error.message);
-        }
-
-        // No idea what happened here!
-        return createFailureResult(`unexpected error: ${error}`);
+        // We failed to parse the JSON from the MDSL, this is likely to be the result of it not being a valid MDSL string.
+        return createValidationFailureResult(`invalid MDSL: ${definition}`);
     }
 
     // Unpack all of the root node definitions into arrays of main ('id' defined) and sub ('id' not defined) root node definitions.
@@ -70,26 +65,92 @@ export function validateDefinition(definition: any): DefinitionValidationResult 
 
     // We should ALWAYS have exactly one root node definition without an 'id' property defined, which is out main root node definition.
     if (mainRootNodeDefinitions.length !== 1) {
-        return createFailureResult("expected single root node without 'id' property defined to act as main root");
+        return createValidationFailureResult(
+            "expected single unnamed root node at base of definition to act as main root"
+        );
     }
 
     // We should never have duplicate 'id' properties across our sub root node definitions.
     const subRootNodeIdenitifers: string[] = [];
     for (const { id } of subRootNodeDefinitions) {
         // Have we already come across this 'id' property value?
-        if (subRootNodeIdenitifers.includes(id)) {
-            return createFailureResult(`multiple root nodes found with duplicate 'id' property value of '${id}'`);
+        if (subRootNodeIdenitifers.includes(id!)) {
+            return createValidationFailureResult(`multiple root nodes found with duplicate name '${id}'`);
         }
 
-        subRootNodeIdenitifers.push(id);
+        subRootNodeIdenitifers.push(id!);
     }
 
-    // Check for any branch node circular depedencies. This will not include any globally registered subtrees.
+    // Check for any branch node circular depedencies. This will NOT include any globally registered subtrees.
     const circularDependencyPath = findBranchCircularDependencyPath(rootNodeDefinitions);
 
     // If we found a circular dependency in our root node and branch node definitions then the definition is definitely not valid.
     if (circularDependencyPath) {
-        return createFailureResult(`circular dependency found in branch node references: ${circularDependencyPath}`);
+        return createValidationFailureResult(
+            `circular dependency found in branch node references: ${circularDependencyPath}`
+        );
+    }
+
+    // Our definition was valid!
+    return { succeeded: true };
+}
+
+/**
+ * Validates the specified behaviour tree definition in the form of JSON.
+ * @param definition The behaviour tree definition in the form of JSON.
+ * @returns An object representing the result of validating the given tree definition.
+ */
+export function validateJSONDefinition(
+    definition: RootNodeDefinition | RootNodeDefinition[]
+): DefinitionValidationResult {
+    // The definition will either be an array (of root node definitions) or an object (the single primary root node definition).
+    const rootNodeDefinitions = Array.isArray(definition) ? definition : [definition];
+
+    // Iterate over our array of root nodes and call validateNode for each, passing an initial depth of 0, wrapped in a try catch to handle validation failures.
+    try {
+        rootNodeDefinitions.forEach((rootNodeDefinition) => validateNode(rootNodeDefinition, 0));
+    } catch (error) {
+        // Handle cases where we have caught a thrown Error and return a failure result with the error message.
+        if (error instanceof Error) {
+            return createValidationFailureResult(error.message);
+        }
+
+        // No idea what happened here!
+        return createValidationFailureResult(`unexpected error: ${error}`);
+    }
+
+    // Unpack all of the root node definitions into arrays of main ('id' defined) and sub ('id' not defined) root node definitions.
+    const mainRootNodeDefinitions = rootNodeDefinitions.filter(({ id }) => typeof id === "undefined");
+    const subRootNodeDefinitions = rootNodeDefinitions.filter(({ id }) => typeof id === "string" && id.length > 0);
+
+    // We should ALWAYS have exactly one root node definition without an 'id' property defined, which is out main root node definition.
+    if (mainRootNodeDefinitions.length !== 1) {
+        return createValidationFailureResult(
+            "expected single root node without 'id' property defined to act as main root"
+        );
+    }
+
+    // We should never have duplicate 'id' properties across our sub root node definitions.
+    const subRootNodeIdenitifers: string[] = [];
+    for (const { id } of subRootNodeDefinitions) {
+        // Have we already come across this 'id' property value?
+        if (subRootNodeIdenitifers.includes(id!)) {
+            return createValidationFailureResult(
+                `multiple root nodes found with duplicate 'id' property value of '${id}'`
+            );
+        }
+
+        subRootNodeIdenitifers.push(id!);
+    }
+
+    // Check for any branch node circular depedencies. This will NOT include any globally registered subtrees.
+    const circularDependencyPath = findBranchCircularDependencyPath(rootNodeDefinitions);
+
+    // If we found a circular dependency in our root node and branch node definitions then the definition is definitely not valid.
+    if (circularDependencyPath) {
+        return createValidationFailureResult(
+            `circular dependency found in branch node references: ${circularDependencyPath}`
+        );
     }
 
     // Our definition was valid!
@@ -631,4 +692,13 @@ function validateParallelNode(definition: any, depth: number): void {
 
     // Validate the child nodes of this composite node.
     definition.children.forEach((child: any) => validateNode(child, depth + 1));
+}
+
+/**
+ * A helper function to create a failure validation result with the given error message.
+ * @param errorMessage The validation failure error message.
+ * @returns A failure validation result with the given error message.
+ */
+function createValidationFailureResult(errorMessage: string): DefinitionValidationResult {
+    return { succeeded: false, errorMessage };
 }
