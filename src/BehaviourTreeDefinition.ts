@@ -49,7 +49,7 @@ export interface CompositeNodeDefinition extends NodeDefinition {
     /**
      * The child nodes of this composite node.
      */
-    children: AnyChildNode[];
+    children: AnyChildNodeDefinition[];
 }
 
 /**
@@ -59,7 +59,7 @@ export interface DecoratorNodeDefinition extends NodeDefinition {
     /**
      * The child node of this decorator node.
      */
-    child: AnyChildNode;
+    child: AnyChildNodeDefinition;
 }
 
 /**
@@ -234,9 +234,9 @@ export interface FailNodeDefinition extends DecoratorNodeDefinition {
 }
 
 /**
- * A type defining any node type.
+ * A type defining any node definition.
  */
-export type AnyNode =
+export type AnyNodeDefinition =
     | BranchNodeDefinition
     | ActionNodeDefinition
     | ConditionNodeDefinition
@@ -255,4 +255,4 @@ export type AnyNode =
 /**
  * A type defining any node type that can be a child of composite parent node.
  */
-export type AnyChildNode = Exclude<AnyNode, RootNodeDefinition>;
+export type AnyChildNodeDefinition = Exclude<AnyNodeDefinition, RootNodeDefinition>;

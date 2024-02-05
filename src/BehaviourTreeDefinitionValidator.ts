@@ -163,7 +163,7 @@ export function validateJSONDefinition(
  * @param rootNodeDefinitions The array of root node definitions.
  * @returns The first circular depdendency path present in the array of root node definitions as string, or null if one doesn't exist.
  */
-function findBranchCircularDependencyPath(rootNodeDefinitions: RootNodeDefinition[]): string | null {
+export function findBranchCircularDependencyPath(rootNodeDefinitions: RootNodeDefinition[]): string | null {
     // Create a mapping of root node identifiers to other root nodes that they reference via branch nodes.
     // Below is an example of a mapping that includes a circular dependency (root => a => b => c => a)
     // [{ refs: ["a", "b"] }, { id: "a", refs: ["b"] }, { id: "b", refs: ["c"] }, { id: "c", refs: ["a"] }]

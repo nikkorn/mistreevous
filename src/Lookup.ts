@@ -1,5 +1,6 @@
-import { ActionResult, Agent, ExitFunctionArg, FunctionArg, GlobalFunction } from "./Agent";
-import { AnyArgument, RootAstNode } from "./RootAstNodesBuilder";
+import { ActionResult, Agent, ExitFunctionArg, GlobalFunction } from "./Agent";
+import { RootNodeDefinition } from "./BehaviourTreeDefinition";
+import { AnyArgument } from "./RootAstNodesBuilder";
 
 // Exit callbacks receive their own special type of argument.
 // There's probably stricter ways to represent this but it feels overly complex right now.
@@ -17,9 +18,9 @@ export default class Lookup {
      */
     private static functionTable: { [key: string]: GlobalFunction } = {};
     /**
-     * The object holding any registered sub-trees keyed on tree name.
+     * The object holding any registered subtree root node definitions keyed on tree name.
      */
-    private static subtreeTable: { [key: string]: RootAstNode } = {};
+    private static subtreeTable: { [key: string]: RootNodeDefinition } = {};
 
     /**
      * Gets the function with the specified name.
@@ -68,12 +69,10 @@ export default class Lookup {
     }
 
     /**
-     * Gets the subtree with the specified name.
-     * @param name The name of the subtree.
-     * @returns The subtree with the specified name.
+     * Gets all registered subtree root node definitions.
      */
-    static getSubtree(name: string): RootAstNode {
-        return this.subtreeTable[name];
+    static getSubtrees(): { [key: string]: RootNodeDefinition } {
+        return this.subtreeTable;
     }
 
     /**
@@ -81,7 +80,7 @@ export default class Lookup {
      * @param name The name of the subtree.
      * @param subtree The subtree.
      */
-    static setSubtree(name: string, subtree: RootAstNode) {
+    static setSubtree(name: string, subtree: RootNodeDefinition) {
         this.subtreeTable[name] = subtree;
     }
 

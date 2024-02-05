@@ -1,7 +1,7 @@
 import {
     ActionNodeDefinition,
-    AnyChildNode,
-    AnyNode,
+    AnyChildNodeDefinition,
+    AnyNodeDefinition,
     BranchNodeDefinition,
     ConditionNodeDefinition,
     FailNodeDefinition,
@@ -68,13 +68,13 @@ function convertTokensToJSONDefinition(
     //    [root, lotto, sequence],
     //    [root, selector]
     // ]
-    const treeStacks: [Partial<RootNodeDefinition>, ...Partial<AnyChildNode>[]][] = [];
+    const treeStacks: [Partial<RootNodeDefinition>, ...Partial<AnyChildNodeDefinition>[]][] = [];
 
     // Create an array of all root node definitions that we create.
     const rootNodes: Partial<RootNodeDefinition>[] = [];
 
     // A helper function used to push node definitions onto the tree stack.
-    const pushNode = (node: AnyNode) => {
+    const pushNode = (node: AnyNodeDefinition) => {
         // If the node is a root node then we need to create a new tree stack array with the root node at the root.
         if (isRootNode(node)) {
             // Add the root node definition to our array of all parsed root node definitions.
@@ -97,7 +97,7 @@ function convertTokensToJSONDefinition(
 
         // Get the top-most node in the current tree stack, this will be a composite/decorator node
         // for which we will populate its children array if composite or setting its child if a decorator.
-        const topTreeStackTopNode = topTreeStack[topTreeStack.length - 1] as AnyNode;
+        const topTreeStackTopNode = topTreeStack[topTreeStack.length - 1] as AnyNodeDefinition;
 
         // If the top-most node in the current root stack is a composite or decorator
         // node then the current node should be added as a child of the top-most node.

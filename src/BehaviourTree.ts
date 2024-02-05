@@ -1,16 +1,18 @@
-import GuardPath, { GuardPathPart } from "./attributes/guards/GuardPath";
-import buildRootASTNodes, { AnyArgument, RootAstNode } from "./RootAstNodesBuilder";
 import State, { AnyState } from "./State";
 import Lookup from "./Lookup";
 import Node from "./nodes/Node";
 import Root from "./nodes/decorator/Root";
 import Composite from "./nodes/composite/Composite";
 import Decorator from "./nodes/decorator/Decorator";
+import { AnyArgument } from "./RootAstNodesBuilder";
 import { Agent, GlobalFunction } from "./Agent";
 import { CallbackAttributeDetails } from "./attributes/callbacks/Callback";
 import { GuardAttributeDetails } from "./attributes/guards/Guard";
 import { BehaviourTreeOptions } from "./BehaviourTreeOptions";
 import { convertMDSLToJSON } from "./mdsl/MDSLDefinitionParser";
+import { RootNodeDefinition } from "./BehaviourTreeDefinition";
+import { validateJSONDefinition } from "./BehaviourTreeDefinitionValidator";
+import buildRootNode from "./BehaviourTreeBuilder";
 
 // Purely for outside inspection of the tree.
 export type FlattenedTreeNode = {
@@ -39,10 +41,10 @@ export class BehaviourTree {
      * @param agent The agent instance that this behaviour tree is modelling behaviour for.
      * @param options The behaviour tree options object.
      */
-    constructor(definition: string, private agent: Agent, private options: BehaviourTreeOptions = {}) {
-        // The tree definition must be defined and a valid string.
-        if (typeof definition !== "string") {
-            throw new Error("the tree definition must be a string");
+    constructor(definition: string | RootNodeDefinition | RootNodeDefinition[], private agent: Agent, private options: BehaviourTreeOptions = {}) {
+        // The tree definition must be defined.
+        if (!definition) {
+            throw new Error("the tree definition must be a string ro");
         }
 
         // The agent must be defined and not null.
@@ -50,8 +52,13 @@ export class BehaviourTree {
             throw new Error("the agent must be defined and not null");
         }
 
-        // Parse the behaviour tree definition, create the populated tree of behaviour tree nodes, and get the root.
-        this.rootNode = BehaviourTree._createRootNode(definition);
+        try {
+            // Parse the behaviour tree definition, create the populated tree of behaviour tree nodes, and get the root.
+            this.rootNode = this._createRootNode(definition);
+        } catch (exception) {
+            // There was an issue in trying build and populate the behaviour tree.
+            throw new Error(`error building tree: ${(exception as Error).message}`);
+        }
     }
 
     /**
@@ -153,30 +160,61 @@ export class BehaviourTree {
      * @param name The name of the function or subtree to register.
      * @param value The function or subtree definition to register.
      */
-    static register(name: string, value: GlobalFunction | string) {
+    static register(name: string, value: GlobalFunction | string | RootNodeDefinition) {
+        // Are we going to register a action/condition/guard/callback function?
         if (typeof value === "function") {
-            // We are going to register a action/condition/guard/callback function.
             Lookup.setFunc(name, value);
-        } else if (typeof value === "string") {
-            // We are going to register a subtree.
-            let rootASTNodes: RootAstNode[];
+            return;
+        }
+        
+        // We are not registering an action/condition/guard/callback function, so we must be registering a subtree. 
+        if (typeof value === "string") {
+            let rootNodeDefinitions: RootNodeDefinition[];
 
+            // We will assume that any string passed in will be a mdsl definition.
             try {
-                // Try to create the behaviour tree AST based on the definition provided, this could fail if the definition is invalid.
-                rootASTNodes = buildRootASTNodes(value);
+                rootNodeDefinitions = convertMDSLToJSON(value);
             } catch (exception) {
-                // There was an issue in trying to parse and build the tree definition.
-                throw new Error(`error registering definition: ${(exception as Error).message}`);
+                throw new Error(`error registering definition, invalid MDSL: ${(exception as Error).message}`);
             }
 
             // This function should only ever be called with a definition containing a single unnamed root node.
-            if (rootASTNodes.length != 1 || rootASTNodes[0].name !== null) {
+            if (rootNodeDefinitions.length != 1 || rootNodeDefinitions[0].id !== null) {
                 throw new Error("error registering definition: expected a single unnamed root node");
             }
 
-            Lookup.setSubtree(name, rootASTNodes[0]);
+            // We should validate the subtree as we don't want invalid subtrees available via the lookup.
+            try {
+                const { succeeded, errorMessage } = validateJSONDefinition(rootNodeDefinitions[0]);
+
+                // Did our validation fail without error?
+                if (!succeeded) {
+                    throw new Error(errorMessage);
+                }
+            } catch (exception) {
+                throw new Error(`error registering definition: ${(exception as Error).message}`);
+            }
+
+            // Everything seems hunky-dory, register the subtree.
+            Lookup.setSubtree(name, rootNodeDefinitions[0]);
+        } else if (typeof value === "object" && !Array.isArray(value)) {
+            // We will assume that any object passed in is a root node definition.
+            // We should validate the subtree as we don't want invalid subtrees available via the lookup.
+            try {
+                const { succeeded, errorMessage } = validateJSONDefinition(value);
+
+                // Did our validation fail without error?
+                if (!succeeded) {
+                    throw new Error(errorMessage);
+                }
+            } catch (exception) {
+                throw new Error(`error registering definition: ${(exception as Error).message}`);
+            }
+
+            // Everything seems hunky-dory, register the subtree.
+            Lookup.setSubtree(name, value);
         } else {
-            throw new Error("unexpected value, expected string definition or function");
+            throw new Error("unexpected value, expected string mdsl definition, root node json definition or function");
         }
     }
 
@@ -196,93 +234,26 @@ export class BehaviourTree {
     }
 
     /**
-     * Parses a behaviour tree definition and creates a tree of behaviour tree nodes.
-     * @param {string} definition The behaviour tree definition.
+     * Parses a behaviour tree definition and creates a tree of behaviour tree nodes populated at a root.
+     * @param {string | RootNodeDefinition | RootNodeDefinition[]} definition The behaviour tree definition.
      * @returns The root behaviour tree node.
      */
-    private static _createRootNode(definition: string): Root {
-        // TODO Remove!
-        try {
-            // parseToJSON(definition);
-        } catch (exception) {
-            console.log(exception);
+    private _createRootNode(definition: string | RootNodeDefinition | RootNodeDefinition[]): Root {
+        let resolvedDefinition: RootNodeDefinition | RootNodeDefinition[]
+
+        // If the definition is a string then we will assume that it is an mdsl string which needs to be converted to a JSON definition.
+        if (typeof definition === "string") {
+            try {
+                resolvedDefinition = convertMDSLToJSON(definition);
+            } catch (exception) {
+                throw new Error(`invalid mdsl definition: ${(exception as Error).message}`);
+            }
+        } else {
+            // The definition is not a string, so we should assume that it is already a JSON definition.
+            resolvedDefinition = definition;
         }
 
-        try {
-            // Try to create the behaviour tree AST based on the definition provided, this could fail if the definition is invalid.
-            const rootASTNodes = buildRootASTNodes(definition);
-
-            // Create a symbol to use as the main root key in our root node mapping.
-            const mainRootNodeKey = Symbol("__root__");
-
-            // Create a mapping of root node names to root AST tokens. The main root node will have a key of Symbol("__root__").
-            const rootNodeMap: { [key: string | symbol]: RootAstNode } = {};
-            for (const rootASTNode of rootASTNodes) {
-                rootNodeMap[rootASTNode.name === null ? mainRootNodeKey : rootASTNode.name!] = rootASTNode;
-            }
-
-            // Convert the AST to our actual tree and get the root node.
-            const rootNode: Root = rootNodeMap[mainRootNodeKey].createNodeInstance(
-                // Create a provider for named root nodes that are part of our definition or have been registered. Prioritising the former.
-                (name: string): RootAstNode => (rootNodeMap[name] ? rootNodeMap[name] : Lookup.getSubtree(name)),
-                []
-            );
-
-            // Set a guard path on every leaf of the tree to evaluate as part of its update.
-            BehaviourTree._applyLeafNodeGuardPaths(rootNode);
-
-            // Return the root node.
-            return rootNode;
-        } catch (exception) {
-            // There was an issue in trying to parse and build the tree definition.
-            throw new Error(`error parsing tree: ${(exception as Error).message}`);
-        }
-    }
-
-    /**
-     * Applies a guard path to every leaf of the tree to evaluate as part of each update.
-     * @param rootNode The main root tree node.
-     */
-    private static _applyLeafNodeGuardPaths(rootNode: Root) {
-        const nodePaths: Node[][] = [];
-
-        const findLeafNodes = (path: Node[], node: Node) => {
-            // Add the current node to the path.
-            path = path.concat(node);
-
-            // Check whether the current node is a leaf node.
-            if (node.isLeafNode()) {
-                nodePaths.push(path);
-            } else {
-                (node as Composite | Decorator).getChildren().forEach((child) => findLeafNodes(path, child));
-            }
-        };
-
-        // Find all leaf node paths, starting from the root.
-        findLeafNodes([], rootNode);
-
-        nodePaths.forEach((path) => {
-            // Each node in the current path will have to be assigned a guard path, working from the root outwards.
-            for (let depth = 0; depth < path.length; depth++) {
-                // Get the node in the path at the current depth.
-                const currentNode = path[depth];
-
-                // The node may already have been assigned a guard path, if so just skip it.
-                if (currentNode.hasGuardPath()) {
-                    continue;
-                }
-
-                // Create the guard path for the current node.
-                const guardPath = new GuardPath(
-                    path
-                        .slice(0, depth + 1)
-                        .map<GuardPathPart>((node) => ({ node, guards: node.getGuardAttributes() }))
-                        .filter((details) => details.guards.length > 0)
-                );
-
-                // Assign the guard path to the current node.
-                currentNode.setGuardPath(guardPath);
-            }
-        });
+        // Build and populate the root node.
+        return buildRootNode(Array.isArray(resolvedDefinition) ? resolvedDefinition : [resolvedDefinition]);
     }
 }

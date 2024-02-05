@@ -3,7 +3,7 @@ import {
     RootNodeDefinition,
     DecoratorNodeDefinition,
     CompositeNodeDefinition,
-    AnyNode,
+    AnyNodeDefinition,
     BranchNodeDefinition
 } from "./BehaviourTreeDefinition";
 
@@ -57,10 +57,10 @@ export function isCompositeNode(node: NodeDefinition): node is CompositeNodeDefi
  * @param nodeDefinition The node definition to flatten.
  * @returns An array of all of nested node definitions.
  */
-export function flattenDefinition(nodeDefinition: AnyNode): AnyNode[] {
-    const nodes: AnyNode[] = [];
+export function flattenDefinition(nodeDefinition: AnyNodeDefinition): AnyNodeDefinition[] {
+    const nodes: AnyNodeDefinition[] = [];
 
-    const processNode = (currentNodeDefinition: AnyNode) => {
+    const processNode = (currentNodeDefinition: AnyNodeDefinition) => {
         nodes.push(currentNodeDefinition);
 
         if (isCompositeNode(currentNodeDefinition)) {
