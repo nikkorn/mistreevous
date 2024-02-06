@@ -47,7 +47,7 @@ export interface CompositeNodeDefinition extends NodeDefinition {
     /**
      * The child nodes of this composite node.
      */
-    children: AnyChildNode[];
+    children: AnyChildNodeDefinition[];
 }
 /**
  * A decorator node, a composite with only a single child node.
@@ -56,7 +56,7 @@ export interface DecoratorNodeDefinition extends NodeDefinition {
     /**
      * The child node of this decorator node.
      */
-    child: AnyChildNode;
+    child: AnyChildNodeDefinition;
 }
 /**
  * A branch node.
@@ -216,10 +216,10 @@ export interface FailNodeDefinition extends DecoratorNodeDefinition {
     type: "fail";
 }
 /**
- * A type defining any node type.
+ * A type defining any node definition.
  */
-export type AnyNode = BranchNodeDefinition | ActionNodeDefinition | ConditionNodeDefinition | WaitNodeDefinition | SequenceNodeDefinition | SelectorNodeDefinition | LottoNodeDefinition | ParallelNodeDefinition | RootNodeDefinition | RepeatNodeDefinition | RetryNodeDefinition | FlipNodeDefinition | SucceedNodeDefinition | FailNodeDefinition;
+export type AnyNodeDefinition = BranchNodeDefinition | ActionNodeDefinition | ConditionNodeDefinition | WaitNodeDefinition | SequenceNodeDefinition | SelectorNodeDefinition | LottoNodeDefinition | ParallelNodeDefinition | RootNodeDefinition | RepeatNodeDefinition | RetryNodeDefinition | FlipNodeDefinition | SucceedNodeDefinition | FailNodeDefinition;
 /**
  * A type defining any node type that can be a child of composite parent node.
  */
-export type AnyChildNode = Exclude<AnyNode, RootNodeDefinition>;
+export type AnyChildNodeDefinition = Exclude<AnyNodeDefinition, RootNodeDefinition>;

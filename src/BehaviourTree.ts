@@ -4,7 +4,6 @@ import Node from "./nodes/Node";
 import Root from "./nodes/decorator/Root";
 import Composite from "./nodes/composite/Composite";
 import Decorator from "./nodes/decorator/Decorator";
-import { AnyArgument } from "./RootAstNodesBuilder";
 import { Agent, GlobalFunction } from "./Agent";
 import { CallbackAttributeDetails } from "./attributes/callbacks/Callback";
 import { GuardAttributeDetails } from "./attributes/guards/Guard";
@@ -22,7 +21,7 @@ export type FlattenedTreeNode = {
     state: AnyState;
     guards: GuardAttributeDetails[];
     callbacks: CallbackAttributeDetails[];
-    args: AnyArgument[];
+    args: any[];
     parentId: string | null;
 };
 
@@ -41,7 +40,11 @@ export class BehaviourTree {
      * @param agent The agent instance that this behaviour tree is modelling behaviour for.
      * @param options The behaviour tree options object.
      */
-    constructor(definition: string | RootNodeDefinition | RootNodeDefinition[], private agent: Agent, private options: BehaviourTreeOptions = {}) {
+    constructor(
+        definition: string | RootNodeDefinition | RootNodeDefinition[],
+        private agent: Agent,
+        private options: BehaviourTreeOptions = {}
+    ) {
         // The tree definition must be defined.
         if (!definition) {
             throw new Error("the tree definition must be a string ro");
@@ -166,8 +169,8 @@ export class BehaviourTree {
             Lookup.setFunc(name, value);
             return;
         }
-        
-        // We are not registering an action/condition/guard/callback function, so we must be registering a subtree. 
+
+        // We are not registering an action/condition/guard/callback function, so we must be registering a subtree.
         if (typeof value === "string") {
             let rootNodeDefinitions: RootNodeDefinition[];
 
@@ -183,8 +186,8 @@ export class BehaviourTree {
                 throw new Error("error registering definition: expected a single unnamed root node");
             }
 
-            // We should validate the subtree as we don't want invalid subtrees available via the lookup.
             try {
+                // We should validate the subtree as we don't want invalid subtrees available via the lookup.
                 const { succeeded, errorMessage } = validateJSONDefinition(rootNodeDefinitions[0]);
 
                 // Did our validation fail without error?
@@ -199,8 +202,9 @@ export class BehaviourTree {
             Lookup.setSubtree(name, rootNodeDefinitions[0]);
         } else if (typeof value === "object" && !Array.isArray(value)) {
             // We will assume that any object passed in is a root node definition.
-            // We should validate the subtree as we don't want invalid subtrees available via the lookup.
+
             try {
+                // We should validate the subtree as we don't want invalid subtrees available via the lookup.
                 const { succeeded, errorMessage } = validateJSONDefinition(value);
 
                 // Did our validation fail without error?
@@ -239,7 +243,7 @@ export class BehaviourTree {
      * @returns The root behaviour tree node.
      */
     private _createRootNode(definition: string | RootNodeDefinition | RootNodeDefinition[]): Root {
-        let resolvedDefinition: RootNodeDefinition | RootNodeDefinition[]
+        let resolvedDefinition: RootNodeDefinition | RootNodeDefinition[];
 
         // If the definition is a string then we will assume that it is an mdsl string which needs to be converted to a JSON definition.
         if (typeof definition === "string") {

@@ -1,14 +1,13 @@
+import { BehaviourTreeOptions } from "../BehaviourTreeOptions";
+import { AnyState } from "../State";
 import { Agent } from "../Agent";
+import Leaf from "./leaf/Leaf";
 import Attribute from "../attributes/Attribute";
 import Entry from "../attributes/callbacks/Entry";
 import Exit from "../attributes/callbacks/Exit";
 import Step from "../attributes/callbacks/Step";
 import Guard from "../attributes/guards/Guard";
 import GuardPath from "../attributes/guards/GuardPath";
-import { BehaviourTreeOptions } from "../BehaviourTreeOptions";
-import { AnyArgument } from "../RootAstNodesBuilder";
-import { AnyState } from "../State";
-import Leaf from "./leaf/Leaf";
 /**
  * A base node.
  */
@@ -33,7 +32,7 @@ export default abstract class Node {
      * @param attributes The node attributes.
      * @param args The node argument definitions.
      */
-    constructor(type: string, attributes: Attribute[], args: AnyArgument[]);
+    constructor(type: string, attributes: Attribute[], args: any[]);
     /**
      * Called when the node is being updated.
      * @param agent The agent.
@@ -68,7 +67,7 @@ export default abstract class Node {
     /**
      * Gets the node arguments.
      */
-    getArguments: () => AnyArgument[];
+    getArguments: () => any[];
     /**
      * Gets the node attribute with the specified type, or null if it does not exist.
      */

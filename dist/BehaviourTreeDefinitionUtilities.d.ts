@@ -1,4 +1,4 @@
-import { NodeDefinition, RootNodeDefinition, DecoratorNodeDefinition, CompositeNodeDefinition, AnyNode, BranchNodeDefinition } from "./BehaviourTreeDefinition";
+import { NodeDefinition, RootNodeDefinition, DecoratorNodeDefinition, CompositeNodeDefinition, AnyNodeDefinition, BranchNodeDefinition } from "./BehaviourTreeDefinition";
 /**
  * A type guard function that returns true if the specified node satisfies the RootNodeDefinition type.
  * @param node The node.
@@ -34,7 +34,7 @@ export declare function isCompositeNode(node: NodeDefinition): node is Composite
  * @param nodeDefinition The node definition to flatten.
  * @returns An array of all of nested node definitions.
  */
-export declare function flattenDefinition(nodeDefinition: AnyNode): AnyNode[];
+export declare function flattenDefinition(nodeDefinition: AnyNodeDefinition): AnyNodeDefinition[];
 /**
  * Determines whether the passed value is an integer.
  * @param value The value to check.

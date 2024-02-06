@@ -1,13 +1,7 @@
-import { ActionResult, Agent, ExitFunctionArg, GlobalFunction } from "./Agent";
+import { ActionResult, Agent, GlobalFunction } from "./Agent";
 import { RootNodeDefinition } from "./BehaviourTreeDefinition";
-import { AnyArgument } from "./RootAstNodesBuilder";
 
-// Exit callbacks receive their own special type of argument.
-// There's probably stricter ways to represent this but it feels overly complex right now.
-type ExitResultArg = { value: ExitFunctionArg };
-export type AnyExitArgument = AnyArgument | ExitResultArg;
-
-export type InvokerFunction = (args: AnyExitArgument[]) => ActionResult;
+export type InvokerFunction = (args: any[]) => ActionResult;
 
 /**
  * A singleton used to store and lookup registered functions and subtrees.
@@ -52,16 +46,12 @@ export default class Lookup {
         // Check whether the agent contains the specified function.
         const foundOnAgent = agent[name];
         if (foundOnAgent && typeof foundOnAgent === "function") {
-            return (args: AnyExitArgument[]): boolean | ActionResult =>
-                foundOnAgent.apply(
-                    agent,
-                    args.map((arg) => arg.value)
-                );
+            return (args: any[]): boolean | ActionResult => foundOnAgent.apply(agent, args);
         }
 
         // The agent does not contain the specified function but it may have been registered at some point.
         if (this.functionTable[name] && typeof this.functionTable[name] === "function") {
-            return (args: AnyExitArgument[]) => this.functionTable[name](agent, ...args.map((arg) => arg.value));
+            return (args: any[]) => this.functionTable[name](agent, ...args.map((arg) => arg.value));
         }
 
         // We have no function to invoke.

@@ -17,7 +17,7 @@ export type DefinitionValidationResult = {
 };
 
 /**
- * Validates the specified behaviour tree definition in the form of JSON or MDSL.
+ * Validates the specified behaviour tree definition in the form of JSON or MDSL, not taking any globally registered subtrees into consideration.
  * @param definition The behaviour tree definition in the form of JSON or MDSL.
  * @returns An object representing the result of validating the given tree definition.
  */
@@ -56,7 +56,7 @@ export function validateMDSLDefinition(definition: string): DefinitionValidation
         rootNodeDefinitions = convertMDSLToJSON(definition);
     } catch (error) {
         // We failed to parse the JSON from the MDSL, this is likely to be the result of it not being a valid MDSL string.
-        return createValidationFailureResult(`invalid MDSL: ${definition}`);
+        return createValidationFailureResult(`invalid MDSL: ${error}`);
     }
 
     // Unpack all of the root node definitions into arrays of main ('id' defined) and sub ('id' not defined) root node definitions.
@@ -81,14 +81,11 @@ export function validateMDSLDefinition(definition: string): DefinitionValidation
         subRootNodeIdenitifers.push(id!);
     }
 
-    // Check for any branch node circular depedencies. This will NOT include any globally registered subtrees.
-    const circularDependencyPath = findBranchCircularDependencyPath(rootNodeDefinitions);
-
-    // If we found a circular dependency in our root node and branch node definitions then the definition is definitely not valid.
-    if (circularDependencyPath) {
-        return createValidationFailureResult(
-            `circular dependency found in branch node references: ${circularDependencyPath}`
-        );
+    try {
+        // Validate our branch -> subtree links and check for any circular dependencies, we don't care about checking for broken subtree links here.
+        validateBranchSubtreeLinks(rootNodeDefinitions, false);
+    } catch (exception) {
+        return createValidationFailureResult((exception as Error).message);
     }
 
     // Our definition was valid!
@@ -143,14 +140,11 @@ export function validateJSONDefinition(
         subRootNodeIdenitifers.push(id!);
     }
 
-    // Check for any branch node circular depedencies. This will NOT include any globally registered subtrees.
-    const circularDependencyPath = findBranchCircularDependencyPath(rootNodeDefinitions);
-
-    // If we found a circular dependency in our root node and branch node definitions then the definition is definitely not valid.
-    if (circularDependencyPath) {
-        return createValidationFailureResult(
-            `circular dependency found in branch node references: ${circularDependencyPath}`
-        );
+    try {
+        // Validate our branch -> subtree links and check for any circular dependencies, we don't care about checking for broken subtree links here.
+        validateBranchSubtreeLinks(rootNodeDefinitions, false);
+    } catch (exception) {
+        return createValidationFailureResult((exception as Error).message);
     }
 
     // Our definition was valid!
@@ -158,12 +152,13 @@ export function validateJSONDefinition(
 }
 
 /**
- * Find the first circular depdendency path present in the array of root node definitions, or null if one doesn't exist.
- * This will not consider branch nodes that reference any globally registered subtrees.
+ * Validates the branch -> subtree links across all provided root node definitions.
+ * This will not consider branch nodes that reference any globally registered subtrees unless includesGlobalSubtrees
+ * is set to true, in which case we will also verify that there are no broken branch -> subtree links.
  * @param rootNodeDefinitions The array of root node definitions.
- * @returns The first circular depdendency path present in the array of root node definitions as string, or null if one doesn't exist.
+ * @param includesGlobalSubtrees A flag defining whether the array includes all global subtree root node definitions.
  */
-export function findBranchCircularDependencyPath(rootNodeDefinitions: RootNodeDefinition[]): string | null {
+export function validateBranchSubtreeLinks(rootNodeDefinitions: RootNodeDefinition[], includesGlobalSubtrees: boolean) {
     // Create a mapping of root node identifiers to other root nodes that they reference via branch nodes.
     // Below is an example of a mapping that includes a circular dependency (root => a => b => c => a)
     // [{ refs: ["a", "b"] }, { id: "a", refs: ["b"] }, { id: "b", refs: ["c"] }, { id: "c", refs: ["a"] }]
@@ -176,8 +171,6 @@ export function findBranchCircularDependencyPath(rootNodeDefinitions: RootNodeDe
         })
     );
 
-    let badPathFormatted: string | null = null;
-
     // A recursive function to walk through the mappings, keeping track of which root nodes we have visited in the form of a path of root node identifiers.
     const followRefs = (mapping: { id: string | undefined; refs: string[] }, path: (string | undefined)[] = []) => {
         // Have we found a circular dependency?
@@ -185,28 +178,33 @@ export function findBranchCircularDependencyPath(rootNodeDefinitions: RootNodeDe
             // We found a circular dependency! Get the bad path of root node identifiers.
             const badPath = [...path, mapping.id];
 
-            // Set the formatted path value. [undefined, "a", "b", "c", "a"] would be formatted as "a -> b -> c -> a".
-            badPathFormatted = badPath.filter((element) => !!element).join(" => ");
+            // Create the formatted path value. [undefined, "a", "b", "c", "a"] would be formatted as "a -> b -> c -> a".
+            const badPathFormatted = badPath.filter((element) => !!element).join(" => ");
 
             // No need to continue, we found a circular dependency.
-            return;
+            throw new Error(`circular dependency found in branch node references: ${badPathFormatted}`);
         }
 
         for (const ref of mapping.refs) {
             // Find the mapping for the root node with an identifer matching the current ref.
             const subMapping = rootNodeMappings.find(({ id }) => id === ref);
 
-            // We may not have a mapping for this ref, which will happen if this ref is for a globally registered subtree.
+            // We may not have a mapping for this ref, which is normal when we aren't considering all globally registered subtrees.
             if (subMapping) {
                 followRefs(subMapping, [...path, mapping.id]);
+            } else if (includesGlobalSubtrees) {
+                // We found a reference to a root node that doesn't exist, which is a problem seeing as the root node definitons includes all globally registered subtrees.
+                throw new Error(
+                    mapping.id
+                        ? `subtree '${mapping.id}' has branch node that references root node '${ref}' which has not been defined`
+                        : `primary tree has branch node that references root node '${ref}' which has not been defined`
+                );
             }
         }
     };
 
-    // Start looking for circular dependencies from the root.
+    // Start looking for circular dependencies and broken references from the primary root node definition.
     followRefs(rootNodeMappings.find((mapping) => typeof mapping.id === "undefined")!);
-
-    return badPathFormatted;
 }
 
 /**

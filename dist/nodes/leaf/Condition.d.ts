@@ -1,8 +1,7 @@
-import Leaf from "./Leaf";
-import { Agent } from "../../Agent";
-import Attribute from "../../attributes/Attribute";
-import { AnyArgument } from "../../RootAstNodesBuilder";
 import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
+import { Agent } from "../../Agent";
+import Leaf from "./Leaf";
+import Attribute from "../../attributes/Attribute";
 /**
  * A Condition leaf node.
  * This will succeed or fail immediately based on an agent predicate, without moving to the 'RUNNING' state.
@@ -15,7 +14,7 @@ export default class Condition extends Leaf {
      * @param conditionName The name of the condition function.
      * @param conditionArguments The array of condition argument definitions.
      */
-    constructor(attributes: Attribute[], conditionName: string, conditionArguments: AnyArgument[]);
+    constructor(attributes: Attribute[], conditionName: string, conditionArguments: any[]);
     /**
      * Called when the node is being updated.
      * @param agent The agent.

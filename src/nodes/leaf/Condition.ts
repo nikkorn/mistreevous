@@ -1,10 +1,9 @@
-import Leaf from "./Leaf";
-import State from "../../State";
-import Lookup from "../../Lookup";
-import { Agent } from "../../Agent";
-import Attribute from "../../attributes/Attribute";
-import { AnyArgument } from "../../RootAstNodesBuilder";
 import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
+import State from "../../State";
+import { Agent } from "../../Agent";
+import Leaf from "./Leaf";
+import Lookup from "../../Lookup";
+import Attribute from "../../attributes/Attribute";
 
 /**
  * A Condition leaf node.
@@ -16,7 +15,7 @@ export default class Condition extends Leaf {
      * @param conditionName The name of the condition function.
      * @param conditionArguments The array of condition argument definitions.
      */
-    constructor(attributes: Attribute[], private conditionName: string, private conditionArguments: AnyArgument[]) {
+    constructor(attributes: Attribute[], private conditionName: string, private conditionArguments: any[]) {
         super("condition", attributes, conditionArguments);
     }
 

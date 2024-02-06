@@ -1,7 +1,6 @@
 import Callback from "./Callback";
 import Lookup from "../../Lookup";
 import { Agent } from "../../Agent";
-import { AnyArgument } from "../../RootAstNodesBuilder";
 
 /**
  * A STEP callback which defines an agent function to call when the associated node is updated.
@@ -11,7 +10,7 @@ export default class Step extends Callback {
      * @param functionName The name of the agent function to call.
      * @param args The array of callback argument definitions.
      */
-    constructor(functionName: string, args: AnyArgument[]) {
+    constructor(functionName: string, args: any[]) {
         super("step", args, functionName);
     }
 

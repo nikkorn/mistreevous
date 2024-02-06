@@ -1,5 +1,4 @@
 import { Agent } from "../../Agent";
-import { AnyArgument } from "../../RootAstNodesBuilder";
 import Attribute, { AttributeDetails } from "../Attribute";
 
 export type GuardAttributeDetails = {
@@ -16,7 +15,7 @@ export default abstract class Guard extends Attribute<GuardAttributeDetails> {
      * @param args The array of decorator argument definitions.
      * @param condition The name of the condition function that determines whether the guard is satisfied.
      */
-    constructor(type: string, args: AnyArgument[], private condition: string) {
+    constructor(type: string, args: any[], private condition: string) {
         super(type, args);
     }
 
@@ -35,8 +34,8 @@ export default abstract class Guard extends Attribute<GuardAttributeDetails> {
      */
     getDetails(): GuardAttributeDetails {
         return {
-            type: this.getType(),
-            args: this.getArguments(),
+            type: this.type,
+            args: this.args,
             condition: this.getCondition()
         };
     }

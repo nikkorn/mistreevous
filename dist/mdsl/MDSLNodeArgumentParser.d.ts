@@ -1,27 +1,40 @@
 import { StringLiteralPlaceholders } from "./MDSLUtilities";
-export type Argument<T> = {
-    /** The argument value. */
+/**
+ * A type representing any node function argument.
+ */
+type Argument<T> = {
+    /**
+     * The argument value.
+     */
     value: T;
-    /** The argument type, used for validation. */
+    /**
+     * The argument type, used for validation.
+     */
     type: string;
 };
-export type NullArgument = Argument<null> & {
+type NullArgument = Argument<null> & {
     type: "null";
 };
-export type BooleanArgument = Argument<boolean> & {
+type BooleanArgument = Argument<boolean> & {
     type: "boolean";
 };
-export type NumberArgument = Argument<number> & {
+type NumberArgument = Argument<number> & {
     type: "number";
+    /**
+     * A flag defining whether the number argument value is a valid integer. (used for validation)
+     */
     isInteger: boolean;
 };
-export type StringPlaceholderArgument = Argument<string> & {
+type StringPlaceholderArgument = Argument<string> & {
     type: "string";
 };
-export type IdentifierArgument = Argument<string> & {
+type IdentifierArgument = Argument<string> & {
     type: "identifier";
 };
-export type AnyArgument = NullArgument | BooleanArgument | NumberArgument | StringPlaceholderArgument | IdentifierArgument;
+/**
+ * A type representing a reference to any node function argument.
+ */
+type AnyArgument = NullArgument | BooleanArgument | NumberArgument | StringPlaceholderArgument | IdentifierArgument;
 /**
  * Parse an array of argument definitions from the specified tokens array.
  * @param tokens The array tokens to parse the argument definitions from.
@@ -31,3 +44,4 @@ export type AnyArgument = NullArgument | BooleanArgument | NumberArgument | Stri
  * @returns An array of argument definitions parsed from the specified tokens array.
  */
 export declare function parseArgumentTokens(tokens: string[], stringArgumentPlaceholders: StringLiteralPlaceholders): AnyArgument[];
+export {};

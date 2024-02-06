@@ -1,4 +1,7 @@
 import { CompleteState } from "./State";
+/**
+ * A type representing an agent that a behavior tree instance would operate on.
+ */
 export type Agent = {
     [actionName: string]: AgentFunction;
 };
