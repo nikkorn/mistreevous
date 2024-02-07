@@ -16,7 +16,13 @@ import {
     SucceedNodeDefinition,
     WaitNodeDefinition
 } from "../BehaviourTreeDefinition";
-import { isCompositeNode, isDecoratorNode, isLeafNode, isRootNode } from "../BehaviourTreeDefinitionUtilities";
+import {
+    isCompositeNode,
+    isDecoratorNode,
+    isLeafNode,
+    isNullOrUndefined,
+    isRootNode
+} from "../BehaviourTreeDefinitionUtilities";
 import { parseArgumentTokens } from "./MDSLNodeArgumentParser";
 import { parseAttributeTokens } from "./MDSLNodeAttributeParser";
 import {
@@ -77,6 +83,12 @@ function convertTokensToJSONDefinition(
     const pushNode = (node: AnyNodeDefinition) => {
         // If the node is a root node then we need to create a new tree stack array with the root node at the root.
         if (isRootNode(node)) {
+            // We need to double-check that this root node is not the child of another node.
+            // We can do this by checking whether the top tree stack is not empty (contains an existing node)
+            if (treeStacks[treeStacks.length - 1]?.length) {
+                throw new Error("a root node cannot be the child of another node");
+            }
+
             // Add the root node definition to our array of all parsed root node definitions.
             rootNodes.push(node);
 
@@ -120,20 +132,24 @@ function convertTokensToJSONDefinition(
         }
     };
 
-    // A helper function used to pop node definitions off of the stack.
-    const popNode = () => {
+    // A helper function used to pop the top-most node definition off of the tree stack and return it.
+    const popNode = (): AnyNodeDefinition | null => {
+        let poppedNode: AnyNodeDefinition | null = null;
+
         // Get the current tree stack that we are populating.
         const topTreeStack = treeStacks[treeStacks.length - 1];
 
         // Pop the top-most node in the current tree stack if there is one.
         if (topTreeStack.length) {
-            topTreeStack.pop();
+            poppedNode = topTreeStack.pop() as AnyNodeDefinition;
         }
 
         // We don't want any empty tree stacks in our stack of tree stacks.
         if (!topTreeStack.length) {
             treeStacks.pop();
         }
+
+        return poppedNode;
     };
 
     // We should keep processing the raw tokens until we run out of them.
@@ -215,7 +231,13 @@ function convertTokensToJSONDefinition(
 
             case "}": {
                 // The '}' character closes the current scope and means that we have to pop a node off of the current stack.
-                popNode();
+                const poppedNode = popNode();
+
+                // Now that we have a node definition we can carry out any validation that may require the node to be fully populated.
+                if (poppedNode) {
+                    validatePoppedNode(poppedNode);
+                }
+
                 break;
             }
 
@@ -356,9 +378,26 @@ function createRepeatNode(
         if (nodeArguments.length === 1) {
             // A static iteration count was defined.
             node.iterations = nodeArguments[0].value as number;
+
+            // A repeat node must have a positive number of iterations if defined.
+            if (node.iterations < 0) {
+                throw new Error("a repeat node must have a positive number of iterations if defined");
+            }
         } else if (nodeArguments.length === 2) {
             // A minimum and maximum iteration count was defined.
             node.iterations = [nodeArguments[0].value as number, nodeArguments[1].value as number];
+
+            // A repeat node must have a positive min and max iteration count if they are defined.
+            if (node.iterations[0] < 0 || node.iterations[1] < 0) {
+                throw new Error("a repeat node must have a positive minimum and maximum iteration count if defined");
+            }
+
+            // A repeat node must not have an minimum iteration count that exceeds the maximum iteration count.
+            if (node.iterations[0] > node.iterations[1]) {
+                throw new Error(
+                    "a repeat node must not have a minimum iteration count that exceeds the maximum iteration count"
+                );
+            }
         } else {
             // An incorrect number of iteration counts was defined.
             throw new Error("invalid number of repeat node iteration count arguments defined");
@@ -403,9 +442,26 @@ function createRetryNode(tokens: string[], stringLiteralPlaceholders: StringLite
         if (nodeArguments.length === 1) {
             // A static attempt count was defined.
             node.attempts = nodeArguments[0].value as number;
+
+            // A retry node must have a positive number of attempts if defined.
+            if (node.attempts < 0) {
+                throw new Error("a retry node must have a positive number of attempts if defined");
+            }
         } else if (nodeArguments.length === 2) {
             // A minimum and maximum attempt count was defined.
             node.attempts = [nodeArguments[0].value as number, nodeArguments[1].value as number];
+
+            // A retry node must have a positive min and max attempts count if they are defined.
+            if (node.attempts[0] < 0 || node.attempts[1] < 0) {
+                throw new Error("a retry node must have a positive minimum and maximum attempt count if defined");
+            }
+
+            // A retry node must not have a minimum attempt count that exceeds the maximum attempt count.
+            if (node.attempts[0] > node.attempts[1]) {
+                throw new Error(
+                    "a retry node must not have a minimum attempt count that exceeds the maximum attempt count"
+                );
+            }
         } else {
             // An incorrect number of attempt counts was defined.
             throw new Error("invalid number of retry node attempt count arguments defined");
@@ -623,9 +679,24 @@ function createWaitNode(tokens: string[], stringLiteralPlaceholders: StringLiter
         if (nodeArguments.length === 1) {
             // An explicit duration was defined.
             node.duration = nodeArguments[0].value as number;
+
+            // If an explict duration was defined then it must be a positive number.
+            if (node.duration < 0) {
+                throw new Error("a wait node must have a positive duration");
+            }
         } else if (nodeArguments.length === 2) {
             // Min and max duration bounds were defined from which a random duration will be picked.
             node.duration = [nodeArguments[0].value as number, nodeArguments[1].value as number];
+
+            // A wait node must have a positive min and max duration.
+            if (node.duration[0] < 0 || node.duration[1] < 0) {
+                throw new Error("a wait node must have a positive minimum and maximum duration");
+            }
+
+            // A wait node must not have a minimum duration that exceeds the maximum duration.
+            if (node.duration[0] > node.duration[1]) {
+                throw new Error("a wait node must not have a minimum duration that exceeds the maximum duration");
+            }
         } else if (nodeArguments.length > 2) {
             // An incorrect number of duration arguments were defined.
             throw new Error("invalid number of wait node duration arguments defined");
@@ -656,4 +727,20 @@ function createBranchNode(
 
     // Return the branch node definition.
     return { type: "branch", ref: nodeArguments[0].value };
+}
+
+/**
+ * Validate a fully-populated node definition that was popped off of the tree stack.
+ * @param node The popped node to validate.
+ */
+function validatePoppedNode(node: AnyNodeDefinition): void {
+    // Decorators MUST have a child defined.
+    if (isDecoratorNode(node) && isNullOrUndefined(node.child)) {
+        throw new Error(`a ${node.type} node must have a single child node defined`);
+    }
+
+    // Composites MUST have at least one child defined.
+    if (isCompositeNode(node) && !node.children?.length) {
+        throw new Error(`a ${node.type} node must have at least a single child node defined`);
+    }
 }

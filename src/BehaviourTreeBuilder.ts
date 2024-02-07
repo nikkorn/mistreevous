@@ -1,6 +1,7 @@
 import { AnyNodeDefinition, RootNodeDefinition } from "./BehaviourTreeDefinition";
 import GuardPath, { GuardPathPart } from "./attributes/guards/GuardPath";
 import { validateBranchSubtreeLinks } from "./BehaviourTreeDefinitionValidator";
+import { isInteger } from "./BehaviourTreeDefinitionUtilities";
 import Node from "./nodes/Node";
 import Composite from "./nodes/composite/Composite";
 import Decorator from "./nodes/decorator/Decorator";
@@ -68,9 +69,9 @@ export default function buildRootNode(definition: RootNodeDefinition[]): Root {
     validateBranchSubtreeLinks(definition, true);
 
     // Create our populated tree of node instances, starting with our main root node.
-    const rootNode = nodeFactory(rootNodeDefinitionMap[MAIN_ROOT_NODE_KEY]) as Root;
+    const rootNode = nodeFactory(rootNodeDefinitionMap[MAIN_ROOT_NODE_KEY], rootNodeDefinitionMap) as Root;
 
-    // Set a guard path on every leaf of the tree to evaluate as part of its update.
+    // Set a guard path on every leaf of the tree to evaluate as part of each update.
     applyLeafNodeGuardPaths(rootNode);
 
     // We only need to return the main root node.
@@ -80,21 +81,114 @@ export default function buildRootNode(definition: RootNodeDefinition[]): Root {
 /**
  * A factory function which creates a node instance based on the specified definition.
  * @param definition The node definition.
+ * @param rootNodeDefinitionMap The mapping of root node identifers to root node definitions, including globally registered subtree root node definitions.
  * @returns A node instance based on the specified definition.
  */
-function nodeFactory(definition: AnyNodeDefinition): AnyNode {
+function nodeFactory(definition: AnyNodeDefinition, rootNodeDefinitionMap: RootNodeDefinitionMap): AnyNode {
     // Get the attributes for the node.
     const attributes = nodeAttributesFactory(definition);
 
     // Create the node instance based on the definition type.
     switch (definition.type) {
         case "root":
-            return new Root(attributes, nodeFactory(definition.child));
+            return new Root(attributes, nodeFactory(definition.child, rootNodeDefinitionMap));
 
-        // ...
+        case "repeat":
+            let iterations: number | null = null;
+            let iterationsMin: number | null = null;
+            let iterationsMax: number | null = null;
 
-        default:
-            throw new Error(`unexpected node type of '${definition.type}'`);
+            if (Array.isArray(definition.iterations)) {
+                iterationsMin = definition.iterations[0];
+                iterationsMax = definition.iterations[1];
+            } else if (isInteger(definition.iterations)) {
+                iterations = definition.iterations!;
+            }
+
+            return new Repeat(
+                attributes,
+                iterations,
+                iterationsMin,
+                iterationsMax,
+                nodeFactory(definition.child, rootNodeDefinitionMap)
+            );
+
+        case "retry":
+            let attempts: number | null = null;
+            let attemptsMin: number | null = null;
+            let attemptsMax: number | null = null;
+
+            if (Array.isArray(definition.attempts)) {
+                attemptsMin = definition.attempts[0];
+                attemptsMax = definition.attempts[1];
+            } else if (isInteger(definition.attempts)) {
+                attempts = definition.attempts!;
+            }
+
+            return new Retry(
+                attributes,
+                attempts,
+                attemptsMin,
+                attemptsMax,
+                nodeFactory(definition.child, rootNodeDefinitionMap)
+            );
+
+        case "flip":
+            return new Flip(attributes, nodeFactory(definition.child, rootNodeDefinitionMap));
+
+        case "succeed":
+            return new Succeed(attributes, nodeFactory(definition.child, rootNodeDefinitionMap));
+
+        case "fail":
+            return new Fail(attributes, nodeFactory(definition.child, rootNodeDefinitionMap));
+
+        case "sequence":
+            return new Sequence(
+                attributes,
+                definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+            );
+
+        case "selector":
+            return new Selector(
+                attributes,
+                definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+            );
+
+        case "parallel":
+            return new Parallel(
+                attributes,
+                definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+            );
+
+        case "lotto":
+            return new Lotto(
+                attributes,
+                definition.weights,
+                definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+            );
+
+        case "branch":
+            return nodeFactory(rootNodeDefinitionMap[definition.ref].child, rootNodeDefinitionMap);
+
+        case "action":
+            return new Action(attributes, definition.call, definition.args || []);
+
+        case "condition":
+            return new Condition(attributes, definition.call, definition.args || []);
+
+        case "wait":
+            let duration: number | null = null;
+            let durationMin: number | null = null;
+            let durationMax: number | null = null;
+
+            if (Array.isArray(definition.duration)) {
+                durationMin = definition.duration[0];
+                durationMax = definition.duration[1];
+            } else if (isInteger(definition.duration)) {
+                duration = definition.duration!;
+            }
+
+            return new Wait(attributes, duration, durationMin, durationMax);
     }
 }
 

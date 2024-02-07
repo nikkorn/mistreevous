@@ -15,10 +15,10 @@ import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 export default class Lotto extends Composite {
     /**
      * @param attributes The node attributes.
-     * @param tickets The child node tickets.
+     * @param weights The child node weights.
      * @param children The child nodes.
      */
-    constructor(attributes: Attribute[], private tickets: number[], children: Node[]) {
+    constructor(attributes: Attribute[], private weights: number[] | undefined, children: Node[]) {
         super("lotto", attributes, children);
     }
 
@@ -40,7 +40,7 @@ export default class Lotto extends Composite {
                 // Hook up the optional 'random' behaviour tree function option to the one used by 'lotto-draw'.
                 random: options.random,
                 // Pass in each child node as a participant in the lotto draw with their respective ticket count.
-                participants: this.children.map((child, index) => [child, this.tickets[index] || 1])
+                participants: this.children.map((child, index) => [child, this.weights?.[index] || 1])
             });
 
             // Randomly pick a child based on ticket weighting, this will become the active child for this composite node.
@@ -64,5 +64,5 @@ export default class Lotto extends Composite {
     /**
      * Gets the name of the node.
      */
-    getName = () => (this.tickets.length ? `LOTTO [${this.tickets.join(",")}]` : "LOTTO");
+    getName = () => (this.weights ? `LOTTO [${this.weights.join(",")}]` : "LOTTO");
 }

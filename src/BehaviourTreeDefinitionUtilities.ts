@@ -83,3 +83,12 @@ export function flattenDefinition(nodeDefinition: AnyNodeDefinition): AnyNodeDef
 export function isInteger(value: unknown): boolean {
     return typeof value === "number" && Math.floor(value) === value;
 }
+
+/**
+ * Determines whether the passed value is null or undefined.
+ * @param value The value to check.
+ * @returns Whether the passed value is null or undefined.
+ */
+export function isNullOrUndefined(value: unknown): boolean {
+    return typeof value === "undefined" || value === null;
+}

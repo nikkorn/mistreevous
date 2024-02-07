@@ -1,9 +1,14 @@
 "use strict";
+var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __commonJS = (cb, mod) => function __require() {
+  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+};
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
@@ -16,11 +21,231 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 var __publicField = (obj, key, value) => {
   __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
 };
+
+// node_modules/lotto-draw/dist/Participant.js
+var require_Participant = __commonJS({
+  "node_modules/lotto-draw/dist/Participant.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Participant = void 0;
+    var Participant = function() {
+      function Participant2(participant, tickets) {
+        if (tickets === void 0) {
+          tickets = 1;
+        }
+        this._participant = participant;
+        this._tickets = tickets;
+      }
+      Object.defineProperty(Participant2.prototype, "participant", {
+        get: function() {
+          return this._participant;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(Participant2.prototype, "tickets", {
+        get: function() {
+          return this._tickets;
+        },
+        set: function(value) {
+          this._tickets = value;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      return Participant2;
+    }();
+    exports.Participant = Participant;
+  }
+});
+
+// node_modules/lotto-draw/dist/Utilities.js
+var require_Utilities = __commonJS({
+  "node_modules/lotto-draw/dist/Utilities.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.isNaturalNumber = exports.isNullOrUndefined = void 0;
+    function isNullOrUndefined2(value) {
+      return value === null || value === void 0;
+    }
+    exports.isNullOrUndefined = isNullOrUndefined2;
+    function isNaturalNumber(value) {
+      return typeof value === "number" && value >= 1 && Math.floor(value) === value;
+    }
+    exports.isNaturalNumber = isNaturalNumber;
+  }
+});
+
+// node_modules/lotto-draw/dist/Lotto.js
+var require_Lotto = __commonJS({
+  "node_modules/lotto-draw/dist/Lotto.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Lotto = void 0;
+    var Participant_1 = require_Participant();
+    var Utilities_1 = require_Utilities();
+    var Lotto2 = function() {
+      function Lotto3(customRandom) {
+        this._participants = [];
+        this._customRandom = customRandom;
+      }
+      Lotto3.prototype.add = function(participant, tickets) {
+        if (tickets === void 0) {
+          tickets = 1;
+        }
+        if (!(0, Utilities_1.isNaturalNumber)(tickets)) {
+          throw new Error("tickets value must be a natural number");
+        }
+        var existingParticipant = this._participants.find(function(part) {
+          return part.participant === participant;
+        });
+        if (existingParticipant) {
+          existingParticipant.tickets += tickets;
+        } else {
+          this._participants.push(new Participant_1.Participant(participant, tickets));
+        }
+        return this;
+      };
+      Lotto3.prototype.remove = function(participant, tickets) {
+        var existingParticipant = this._participants.find(function(part) {
+          return part.participant === participant;
+        });
+        if (!existingParticipant) {
+          return this;
+        }
+        if (tickets !== void 0) {
+          if (!(0, Utilities_1.isNaturalNumber)(tickets)) {
+            throw new Error("tickets value must be a natural number");
+          }
+          existingParticipant.tickets -= tickets;
+          if (existingParticipant.tickets < 1) {
+            this._participants = this._participants.filter(function(part) {
+              return part !== existingParticipant;
+            });
+          }
+        } else {
+          this._participants = this._participants.filter(function(part) {
+            return part !== existingParticipant;
+          });
+        }
+        return this;
+      };
+      Lotto3.prototype.draw = function(options) {
+        if (options === void 0) {
+          options = {};
+        }
+        if (this._participants.length === 0) {
+          return null;
+        }
+        var redrawable = (0, Utilities_1.isNullOrUndefined)(options.redrawable) ? true : options.redrawable;
+        var pickable = [];
+        this._participants.forEach(function(_a) {
+          var participant = _a.participant, tickets = _a.tickets;
+          for (var ticketCount = 0; ticketCount < tickets; ticketCount++) {
+            pickable.push(participant);
+          }
+        });
+        var random;
+        if (this._customRandom) {
+          random = this._customRandom();
+          if (typeof random !== "number" || random < 0 || random >= 1) {
+            throw new Error("the 'random' function provided did not return a number between 0 (inclusive) and 1");
+          }
+        } else {
+          random = Math.random();
+        }
+        var winner = pickable[Math.floor(random * pickable.length)];
+        if (!redrawable) {
+          this.remove(winner, 1);
+        }
+        return winner;
+      };
+      Lotto3.prototype.drawMultiple = function(tickets, options) {
+        if (options === void 0) {
+          options = {};
+        }
+        var uniqueResults = (0, Utilities_1.isNullOrUndefined)(options.unique) ? false : options.unique;
+        if (tickets === 0) {
+          return [];
+        }
+        if (!(0, Utilities_1.isNaturalNumber)(tickets)) {
+          throw new Error("tickets value must be a natural number");
+        }
+        var result = [];
+        while (result.length < tickets && this._participants.length > 0) {
+          result.push(this.draw(options));
+        }
+        if (uniqueResults) {
+          var unique = [];
+          for (var _i = 0, result_1 = result; _i < result_1.length; _i++) {
+            var participant = result_1[_i];
+            if (unique.indexOf(participant) === -1) {
+              unique.push(participant);
+            }
+          }
+          result = unique;
+        }
+        return result;
+      };
+      return Lotto3;
+    }();
+    exports.Lotto = Lotto2;
+  }
+});
+
+// node_modules/lotto-draw/dist/createLotto.js
+var require_createLotto = __commonJS({
+  "node_modules/lotto-draw/dist/createLotto.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.createLotto = void 0;
+    var Lotto_1 = require_Lotto();
+    function createLotto2(participantsOrOptions) {
+      if (!participantsOrOptions) {
+        return new Lotto_1.Lotto();
+      }
+      if (Array.isArray(participantsOrOptions)) {
+        var participants = participantsOrOptions;
+        var lotto_1 = new Lotto_1.Lotto();
+        participants.forEach(function(_a) {
+          var participant = _a[0], tokens = _a[1];
+          return lotto_1.add(participant, tokens);
+        });
+        return lotto_1;
+      } else {
+        var random = participantsOrOptions.random, participants = participantsOrOptions.participants;
+        var lotto_2 = new Lotto_1.Lotto(random);
+        if (participants) {
+          participants.forEach(function(_a) {
+            var participant = _a[0], tokens = _a[1];
+            return lotto_2.add(participant, tokens);
+          });
+        }
+        return lotto_2;
+      }
+    }
+    exports.createLotto = createLotto2;
+  }
+});
+
+// node_modules/lotto-draw/dist/index.js
+var require_dist = __commonJS({
+  "node_modules/lotto-draw/dist/index.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var createLotto_1 = require_createLotto();
+    exports.default = createLotto_1.createLotto;
+  }
+});
 
 // src/index.ts
 var src_exports = {};
@@ -72,6 +297,9 @@ function flattenDefinition(nodeDefinition) {
 }
 function isInteger(value) {
   return typeof value === "number" && Math.floor(value) === value;
+}
+function isNullOrUndefined(value) {
+  return typeof value === "undefined" || value === null;
 }
 
 // src/mdsl/MDSLUtilities.ts
@@ -219,6 +447,9 @@ function convertTokensToJSONDefinition(tokens, stringLiteralPlaceholders) {
   const rootNodes = [];
   const pushNode = (node) => {
     if (isRootNode(node)) {
+      if (treeStacks[treeStacks.length - 1]?.length) {
+        throw new Error("a root node cannot be the child of another node");
+      }
       rootNodes.push(node);
       treeStacks.push([node]);
       return;
@@ -242,13 +473,15 @@ function convertTokensToJSONDefinition(tokens, stringLiteralPlaceholders) {
     }
   };
   const popNode = () => {
+    let poppedNode = null;
     const topTreeStack = treeStacks[treeStacks.length - 1];
     if (topTreeStack.length) {
-      topTreeStack.pop();
+      poppedNode = topTreeStack.pop();
     }
     if (!topTreeStack.length) {
       treeStacks.pop();
     }
+    return poppedNode;
   };
   while (tokens.length) {
     const token = tokens.shift();
@@ -310,7 +543,10 @@ function convertTokensToJSONDefinition(tokens, stringLiteralPlaceholders) {
         break;
       }
       case "}": {
-        popNode();
+        const poppedNode = popNode();
+        if (poppedNode) {
+          validatePoppedNode(poppedNode);
+        }
         break;
       }
       default: {
@@ -370,8 +606,19 @@ function createRepeatNode(tokens, stringLiteralPlaceholders) {
     });
     if (nodeArguments.length === 1) {
       node.iterations = nodeArguments[0].value;
+      if (node.iterations < 0) {
+        throw new Error("a repeat node must have a positive number of iterations if defined");
+      }
     } else if (nodeArguments.length === 2) {
       node.iterations = [nodeArguments[0].value, nodeArguments[1].value];
+      if (node.iterations[0] < 0 || node.iterations[1] < 0) {
+        throw new Error("a repeat node must have a positive minimum and maximum iteration count if defined");
+      }
+      if (node.iterations[0] > node.iterations[1]) {
+        throw new Error(
+          "a repeat node must not have a minimum iteration count that exceeds the maximum iteration count"
+        );
+      }
     } else {
       throw new Error("invalid number of repeat node iteration count arguments defined");
     }
@@ -389,8 +636,19 @@ function createRetryNode(tokens, stringLiteralPlaceholders) {
     });
     if (nodeArguments.length === 1) {
       node.attempts = nodeArguments[0].value;
+      if (node.attempts < 0) {
+        throw new Error("a retry node must have a positive number of attempts if defined");
+      }
     } else if (nodeArguments.length === 2) {
       node.attempts = [nodeArguments[0].value, nodeArguments[1].value];
+      if (node.attempts[0] < 0 || node.attempts[1] < 0) {
+        throw new Error("a retry node must have a positive minimum and maximum attempt count if defined");
+      }
+      if (node.attempts[0] > node.attempts[1]) {
+        throw new Error(
+          "a retry node must not have a minimum attempt count that exceeds the maximum attempt count"
+        );
+      }
     } else {
       throw new Error("invalid number of retry node attempt count arguments defined");
     }
@@ -479,8 +737,17 @@ function createWaitNode(tokens, stringLiteralPlaceholders) {
     });
     if (nodeArguments.length === 1) {
       node.duration = nodeArguments[0].value;
+      if (node.duration < 0) {
+        throw new Error("a wait node must have a positive duration");
+      }
     } else if (nodeArguments.length === 2) {
       node.duration = [nodeArguments[0].value, nodeArguments[1].value];
+      if (node.duration[0] < 0 || node.duration[1] < 0) {
+        throw new Error("a wait node must have a positive minimum and maximum duration");
+      }
+      if (node.duration[0] > node.duration[1]) {
+        throw new Error("a wait node must not have a minimum duration that exceeds the maximum duration");
+      }
     } else if (nodeArguments.length > 2) {
       throw new Error("invalid number of wait node duration arguments defined");
     }
@@ -493,6 +760,14 @@ function createBranchNode(tokens, stringLiteralPlaceholders) {
     throw new Error("expected single branch name argument");
   }
   return { type: "branch", ref: nodeArguments[0].value };
+}
+function validatePoppedNode(node) {
+  if (isDecoratorNode(node) && isNullOrUndefined(node.child)) {
+    throw new Error(`a ${node.type} node must have a single child node defined`);
+  }
+  if (isCompositeNode(node) && !node.children?.length) {
+    throw new Error(`a ${node.type} node must have at least a single child node defined`);
+  }
 }
 
 // src/BehaviourTreeDefinitionValidator.ts
@@ -729,7 +1004,23 @@ function validateRepeatNode(definition, depth) {
           `expected array containing two integer values for 'iterations' property if defined for repeat node at depth '${depth}'`
         );
       }
-    } else if (!isInteger(definition.iterations)) {
+      if (definition.iterations[0] < 0 || definition.iterations[1] < 0) {
+        throw new Error(
+          `expected positive minimum and maximum iterations count for 'iterations' property if defined for repeat node at depth '${depth}'`
+        );
+      }
+      if (definition.iterations[0] > definition.iterations[1]) {
+        throw new Error(
+          `expected minimum iterations count that does not exceed the maximum iterations count for 'iterations' property if defined for repeat node at depth '${depth}'`
+        );
+      }
+    } else if (isInteger(definition.iterations)) {
+      if (definition.iterations < 0) {
+        throw new Error(
+          `expected positive iterations count for 'iterations' property if defined for repeat node at depth '${depth}'`
+        );
+      }
+    } else {
       throw new Error(
         `expected integer value or array containing two integer values for 'iterations' property if defined for repeat node at depth '${depth}'`
       );
@@ -753,7 +1044,23 @@ function validateRetryNode(definition, depth) {
           `expected array containing two integer values for 'attempts' property if defined for retry node at depth '${depth}'`
         );
       }
-    } else if (!isInteger(definition.attempts)) {
+      if (definition.attempts[0] < 0 || definition.attempts[1] < 0) {
+        throw new Error(
+          `expected positive minimum and maximum attempts count for 'attempts' property if defined for retry node at depth '${depth}'`
+        );
+      }
+      if (definition.attempts[0] > definition.attempts[1]) {
+        throw new Error(
+          `expected minimum attempts count that does not exceed the maximum attempts count for 'attempts' property if defined for retry node at depth '${depth}'`
+        );
+      }
+    } else if (isInteger(definition.attempts)) {
+      if (definition.attempts < 0) {
+        throw new Error(
+          `expected positive attempts count for 'attempts' property if defined for retry node at depth '${depth}'`
+        );
+      }
+    } else {
       throw new Error(
         `expected integer value or array containing two integer values for 'attempts' property if defined for retry node at depth '${depth}'`
       );
@@ -820,7 +1127,23 @@ function validateWaitNode(definition, depth) {
           `expected array containing two integer values for 'duration' property if defined for wait node at depth '${depth}'`
         );
       }
-    } else if (!isInteger(definition.duration)) {
+      if (definition.duration[0] < 0 || definition.duration[1] < 0) {
+        throw new Error(
+          `expected positive minimum and maximum duration for 'duration' property if defined for wait node at depth '${depth}'`
+        );
+      }
+      if (definition.duration[0] > definition.duration[1]) {
+        throw new Error(
+          `expected minimum duration value that does not exceed the maximum duration value for 'duration' property if defined for wait node at depth '${depth}'`
+        );
+      }
+    } else if (isInteger(definition.duration)) {
+      if (definition.duration < 0) {
+        throw new Error(
+          `expected positive duration value for 'duration' property if defined for wait node at depth '${depth}'`
+        );
+      }
+    } else {
       throw new Error(
         `expected integer value or array containing two integer values for 'duration' property if defined for wait node at depth '${depth}'`
       );
@@ -991,6 +1314,159 @@ function createNodeUid() {
   return S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
 }
 
+// src/nodes/composite/Composite.ts
+var Composite = class extends Node {
+  constructor(type, attributes, children) {
+    super(type, attributes, []);
+    this.children = children;
+  }
+  isLeafNode = () => false;
+  getChildren = () => this.children;
+  reset = () => {
+    this.setState("mistreevous.ready" /* READY */);
+    this.getChildren().forEach((child) => child.reset());
+  };
+  abort = (agent) => {
+    if (!this.is("mistreevous.running" /* RUNNING */)) {
+      return;
+    }
+    this.getChildren().forEach((child) => child.abort(agent));
+    this.reset();
+    this.getAttribute("exit")?.callAgentFunction(agent, false, true);
+  };
+};
+
+// src/nodes/composite/Parallel.ts
+var Parallel = class extends Composite {
+  constructor(attributes, children) {
+    super("parallel", attributes, children);
+  }
+  onUpdate(agent, options) {
+    let succeededCount = 0;
+    let hasChildFailed = false;
+    for (const child of this.children) {
+      if (child.getState() === "mistreevous.ready" /* READY */ || child.getState() === "mistreevous.running" /* RUNNING */) {
+        child.update(agent, options);
+      }
+      if (child.getState() === "mistreevous.succeeded" /* SUCCEEDED */) {
+        succeededCount++;
+        continue;
+      }
+      if (child.getState() === "mistreevous.failed" /* FAILED */) {
+        hasChildFailed = true;
+        break;
+      }
+      if (child.getState() !== "mistreevous.running" /* RUNNING */) {
+        throw new Error("child node was not in an expected state.");
+      }
+    }
+    if (hasChildFailed) {
+      this.setState("mistreevous.failed" /* FAILED */);
+      for (const child of this.children) {
+        if (child.getState() === "mistreevous.running" /* RUNNING */) {
+          child.abort(agent);
+        }
+      }
+    } else {
+      this.setState(succeededCount === this.children.length ? "mistreevous.succeeded" /* SUCCEEDED */ : "mistreevous.running" /* RUNNING */);
+    }
+  }
+  getName = () => "PARALLEL";
+};
+
+// src/nodes/composite/Selector.ts
+var Selector = class extends Composite {
+  constructor(attributes, children) {
+    super("selector", attributes, children);
+    this.children = children;
+  }
+  onUpdate(agent, options) {
+    for (const child of this.children) {
+      if (child.getState() === "mistreevous.ready" /* READY */ || child.getState() === "mistreevous.running" /* RUNNING */) {
+        child.update(agent, options);
+      }
+      if (child.getState() === "mistreevous.succeeded" /* SUCCEEDED */) {
+        this.setState("mistreevous.succeeded" /* SUCCEEDED */);
+        return;
+      }
+      if (child.getState() === "mistreevous.failed" /* FAILED */) {
+        if (this.children.indexOf(child) === this.children.length - 1) {
+          this.setState("mistreevous.failed" /* FAILED */);
+          return;
+        } else {
+          continue;
+        }
+      }
+      if (child.getState() === "mistreevous.running" /* RUNNING */) {
+        this.setState("mistreevous.running" /* RUNNING */);
+        return;
+      }
+      throw new Error("child node was not in an expected state.");
+    }
+  }
+  getName = () => "SELECTOR";
+};
+
+// src/nodes/composite/Sequence.ts
+var Sequence = class extends Composite {
+  constructor(attributes, children) {
+    super("sequence", attributes, children);
+    this.children = children;
+  }
+  onUpdate(agent, options) {
+    for (const child of this.children) {
+      if (child.getState() === "mistreevous.ready" /* READY */ || child.getState() === "mistreevous.running" /* RUNNING */) {
+        child.update(agent, options);
+      }
+      if (child.getState() === "mistreevous.succeeded" /* SUCCEEDED */) {
+        if (this.children.indexOf(child) === this.children.length - 1) {
+          this.setState("mistreevous.succeeded" /* SUCCEEDED */);
+          return;
+        } else {
+          continue;
+        }
+      }
+      if (child.getState() === "mistreevous.failed" /* FAILED */) {
+        this.setState("mistreevous.failed" /* FAILED */);
+        return;
+      }
+      if (child.getState() === "mistreevous.running" /* RUNNING */) {
+        this.setState("mistreevous.running" /* RUNNING */);
+        return;
+      }
+      throw new Error("child node was not in an expected state.");
+    }
+  }
+  getName = () => "SEQUENCE";
+};
+
+// src/nodes/composite/Lotto.ts
+var import_lotto_draw = __toESM(require_dist());
+var Lotto = class extends Composite {
+  constructor(attributes, weights, children) {
+    super("lotto", attributes, children);
+    this.weights = weights;
+  }
+  selectedChild;
+  onUpdate(agent, options) {
+    if (this.is("mistreevous.ready" /* READY */)) {
+      const lottoDraw = (0, import_lotto_draw.default)({
+        random: options.random,
+        participants: this.children.map((child, index) => [child, this.weights?.[index] || 1])
+      });
+      this.selectedChild = lottoDraw.draw() || void 0;
+    }
+    if (!this.selectedChild) {
+      throw new Error("failed to update lotto node as it has no active child");
+    }
+    if (this.selectedChild.getState() === "mistreevous.ready" /* READY */ || this.selectedChild.getState() === "mistreevous.running" /* RUNNING */) {
+      this.selectedChild.update(agent, options);
+    }
+    this.setState(this.selectedChild.getState());
+  }
+  getName = () => this.weights ? `LOTTO [${this.weights.join(",")}]` : "LOTTO";
+};
+
 // src/nodes/decorator/Decorator.ts
 var Decorator = class extends Node {
   constructor(type, attributes, child) {
@@ -1013,6 +1489,188 @@ var Decorator = class extends Node {
   };
 };
 
+// src/nodes/decorator/Fail.ts
+var Fail = class extends Decorator {
+  constructor(attributes, child) {
+    super("fail", attributes, child);
+  }
+  onUpdate(agent, options) {
+    if (this.child.getState() === "mistreevous.ready" /* READY */ || this.child.getState() === "mistreevous.running" /* RUNNING */) {
+      this.child.update(agent, options);
+    }
+    switch (this.child.getState()) {
+      case "mistreevous.running" /* RUNNING */:
+        this.setState("mistreevous.running" /* RUNNING */);
+        break;
+      case "mistreevous.succeeded" /* SUCCEEDED */:
+      case "mistreevous.failed" /* FAILED */:
+        this.setState("mistreevous.failed" /* FAILED */);
+        break;
+      default:
+        this.setState("mistreevous.ready" /* READY */);
+    }
+  }
+  getName = () => "FAIL";
+};
+
+// src/nodes/decorator/Flip.ts
+var Flip = class extends Decorator {
+  constructor(attributes, child) {
+    super("flip", attributes, child);
+  }
+  onUpdate(agent, options) {
+    if (this.child.getState() === "mistreevous.ready" /* READY */ || this.child.getState() === "mistreevous.running" /* RUNNING */) {
+      this.child.update(agent, options);
+    }
+    switch (this.child.getState()) {
+      case "mistreevous.running" /* RUNNING */:
+        this.setState("mistreevous.running" /* RUNNING */);
+        break;
+      case "mistreevous.succeeded" /* SUCCEEDED */:
+        this.setState("mistreevous.failed" /* FAILED */);
+        break;
+      case "mistreevous.failed" /* FAILED */:
+        this.setState("mistreevous.succeeded" /* SUCCEEDED */);
+        break;
+      default:
+        this.setState("mistreevous.ready" /* READY */);
+    }
+  }
+  getName = () => "FLIP";
+};
+
+// src/nodes/decorator/Repeat.ts
+var Repeat = class extends Decorator {
+  constructor(attributes, iterations, iterationsMin, iterationsMax, child) {
+    super("repeat", attributes, child);
+    this.iterations = iterations;
+    this.iterationsMin = iterationsMin;
+    this.iterationsMax = iterationsMax;
+  }
+  targetIterationCount = null;
+  currentIterationCount = 0;
+  onUpdate(agent, options) {
+    if (this.is("mistreevous.ready" /* READY */)) {
+      this.child.reset();
+      this.currentIterationCount = 0;
+      this.setTargetIterationCount(options);
+    }
+    if (this.canIterate()) {
+      this.setState("mistreevous.running" /* RUNNING */);
+      if (this.child.getState() === "mistreevous.succeeded" /* SUCCEEDED */) {
+        this.child.reset();
+      }
+      this.child.update(agent, options);
+      if (this.child.getState() === "mistreevous.failed" /* FAILED */) {
+        this.setState("mistreevous.failed" /* FAILED */);
+        return;
+      } else if (this.child.getState() === "mistreevous.succeeded" /* SUCCEEDED */) {
+        this.currentIterationCount += 1;
+      }
+    } else {
+      this.setState("mistreevous.succeeded" /* SUCCEEDED */);
+    }
+  }
+  getName = () => {
+    if (this.iterations !== null) {
+      return `REPEAT ${this.iterations}x`;
+    } else if (this.iterationsMin !== null && this.iterationsMax !== null) {
+      return `REPEAT ${this.iterationsMin}x-${this.iterationsMax}x`;
+    } else {
+      return "REPEAT";
+    }
+  };
+  reset = () => {
+    this.setState("mistreevous.ready" /* READY */);
+    this.currentIterationCount = 0;
+    this.child.reset();
+  };
+  canIterate = () => {
+    if (this.targetIterationCount !== null) {
+      return this.currentIterationCount < this.targetIterationCount;
+    }
+    return true;
+  };
+  setTargetIterationCount = (options) => {
+    if (this.iterations !== null) {
+      this.targetIterationCount = this.iterations;
+    } else if (this.iterationsMin !== null && this.iterationsMax !== null) {
+      const random = typeof options.random === "function" ? options.random : Math.random;
+      this.targetIterationCount = Math.floor(
+        random() * (this.iterationsMax - this.iterationsMin + 1) + this.iterationsMin
+      );
+    } else {
+      this.targetIterationCount = null;
+    }
+  };
+};
+
+// src/nodes/decorator/Retry.ts
+var Retry = class extends Decorator {
+  constructor(attributes, attempts, attemptsMin, attemptsMax, child) {
+    super("retry", attributes, child);
+    this.attempts = attempts;
+    this.attemptsMin = attemptsMin;
+    this.attemptsMax = attemptsMax;
+  }
+  targetAttemptCount = null;
+  currentAttemptCount = 0;
+  onUpdate(agent, options) {
+    if (this.is("mistreevous.ready" /* READY */)) {
+      this.child.reset();
+      this.currentAttemptCount = 0;
+      this.setTargetAttemptCount(options);
+    }
+    if (this.canAttempt()) {
+      this.setState("mistreevous.running" /* RUNNING */);
+      if (this.child.getState() === "mistreevous.failed" /* FAILED */) {
+        this.child.reset();
+      }
+      this.child.update(agent, options);
+      if (this.child.getState() === "mistreevous.succeeded" /* SUCCEEDED */) {
+        this.setState("mistreevous.succeeded" /* SUCCEEDED */);
+        return;
+      } else if (this.child.getState() === "mistreevous.failed" /* FAILED */) {
+        this.currentAttemptCount += 1;
+      }
+    } else {
+      this.setState("mistreevous.failed" /* FAILED */);
+    }
+  }
+  getName = () => {
+    if (this.attempts !== null) {
+      return `RETRY ${this.attempts}x`;
+    } else if (this.attemptsMin !== null && this.attemptsMax !== null) {
+      return `RETRY ${this.attemptsMin}x-${this.attemptsMax}x`;
+    } else {
+      return "RETRY";
+    }
+  };
+  reset = () => {
+    this.setState("mistreevous.ready" /* READY */);
+    this.currentAttemptCount = 0;
+    this.child.reset();
+  };
+  canAttempt = () => {
+    if (this.targetAttemptCount !== null) {
+      return this.currentAttemptCount < this.targetAttemptCount;
+    }
+    return true;
+  };
+  setTargetAttemptCount = (options) => {
+    if (this.attempts !== null) {
+      this.targetAttemptCount = this.attempts;
+    } else if (this.attemptsMin !== null && this.attemptsMax !== null) {
+      const random = typeof options.random === "function" ? options.random : Math.random;
+      this.targetAttemptCount = Math.floor(
+        random() * (this.attemptsMax - this.attemptsMin + 1) + this.attemptsMin
+      );
+    } else {
+      this.targetAttemptCount = null;
+    }
+  };
+};
+
 // src/nodes/decorator/Root.ts
 var Root = class extends Decorator {
   constructor(attributes, child) {
@@ -1025,6 +1683,178 @@ var Root = class extends Decorator {
     this.setState(this.child.getState());
   }
   getName = () => "ROOT";
+};
+
+// src/nodes/decorator/Succeed.ts
+var Succeed = class extends Decorator {
+  constructor(attributes, child) {
+    super("succeed", attributes, child);
+  }
+  onUpdate(agent, options) {
+    if (this.child.getState() === "mistreevous.ready" /* READY */ || this.child.getState() === "mistreevous.running" /* RUNNING */) {
+      this.child.update(agent, options);
+    }
+    switch (this.child.getState()) {
+      case "mistreevous.running" /* RUNNING */:
+        this.setState("mistreevous.running" /* RUNNING */);
+        break;
+      case "mistreevous.succeeded" /* SUCCEEDED */:
+      case "mistreevous.failed" /* FAILED */:
+        this.setState("mistreevous.succeeded" /* SUCCEEDED */);
+        break;
+      default:
+        this.setState("mistreevous.ready" /* READY */);
+    }
+  }
+  getName = () => "SUCCEED";
+};
+
+// src/nodes/leaf/Leaf.ts
+var Leaf = class extends Node {
+  isLeafNode = () => true;
+};
+
+// src/nodes/leaf/Action.ts
+var Action = class extends Leaf {
+  constructor(attributes, actionName, actionArguments) {
+    super("action", attributes, actionArguments);
+    this.actionName = actionName;
+    this.actionArguments = actionArguments;
+  }
+  isUsingUpdatePromise = false;
+  updatePromiseStateResult = null;
+  onUpdate(agent, options) {
+    if (this.isUsingUpdatePromise) {
+      if (this.updatePromiseStateResult) {
+        this.setState(this.updatePromiseStateResult);
+      }
+      return;
+    }
+    const actionFuncInvoker = Lookup.getFuncInvoker(agent, this.actionName);
+    if (actionFuncInvoker === null) {
+      throw new Error(
+        `cannot update action node as the action '${this.actionName}' function is not defined on the agent and has not been registered`
+      );
+    }
+    const updateResult = actionFuncInvoker(this.actionArguments);
+    if (updateResult instanceof Promise) {
+      updateResult.then(
+        (result) => {
+          if (!this.isUsingUpdatePromise) {
+            return;
+          }
+          if (result !== "mistreevous.succeeded" /* SUCCEEDED */ && result !== "mistreevous.failed" /* FAILED */) {
+            throw new Error(
+              "action node promise resolved with an invalid value, expected a State.SUCCEEDED or State.FAILED value to be returned"
+            );
+          }
+          this.updatePromiseStateResult = result;
+        },
+        (reason) => {
+          if (!this.isUsingUpdatePromise) {
+            return;
+          }
+          throw new Error(reason);
+        }
+      );
+      this.setState("mistreevous.running" /* RUNNING */);
+      this.isUsingUpdatePromise = true;
+    } else {
+      this.validateUpdateResult(updateResult);
+      this.setState(updateResult || "mistreevous.running" /* RUNNING */);
+    }
+  }
+  getName = () => this.actionName;
+  reset = () => {
+    this.setState("mistreevous.ready" /* READY */);
+    this.isUsingUpdatePromise = false;
+    this.updatePromiseStateResult = null;
+  };
+  validateUpdateResult = (result) => {
+    switch (result) {
+      case "mistreevous.succeeded" /* SUCCEEDED */:
+      case "mistreevous.failed" /* FAILED */:
+      case void 0:
+        return;
+      default:
+        throw new Error(
+          `action '${this.actionName}' 'onUpdate' returned an invalid response, expected an optional State.SUCCEEDED or State.FAILED value to be returned`
+        );
+    }
+  };
+};
+
+// src/nodes/leaf/Condition.ts
+var Condition = class extends Leaf {
+  constructor(attributes, conditionName, conditionArguments) {
+    super("condition", attributes, conditionArguments);
+    this.conditionName = conditionName;
+    this.conditionArguments = conditionArguments;
+  }
+  onUpdate(agent, options) {
+    const conditionFuncInvoker = Lookup.getFuncInvoker(agent, this.conditionName);
+    if (conditionFuncInvoker === null) {
+      throw new Error(
+        `cannot update condition node as the condition '${this.conditionName}' function is not defined on the agent and has not been registered`
+      );
+    }
+    this.setState(!!conditionFuncInvoker(this.conditionArguments) ? "mistreevous.succeeded" /* SUCCEEDED */ : "mistreevous.failed" /* FAILED */);
+  }
+  getName = () => this.conditionName;
+};
+
+// src/nodes/leaf/Wait.ts
+var Wait = class extends Leaf {
+  constructor(attributes, duration, durationMin, durationMax) {
+    super("wait", attributes, []);
+    this.duration = duration;
+    this.durationMin = durationMin;
+    this.durationMax = durationMax;
+  }
+  initialUpdateTime = 0;
+  totalDuration = null;
+  waitedDuration = 0;
+  onUpdate(agent, options) {
+    if (this.is("mistreevous.ready" /* READY */)) {
+      this.initialUpdateTime = new Date().getTime();
+      this.waitedDuration = 0;
+      if (this.duration !== null) {
+        this.totalDuration = this.duration;
+      } else if (this.durationMin !== null && this.durationMax !== null) {
+        const random = typeof options.random === "function" ? options.random : Math.random;
+        this.totalDuration = Math.floor(
+          random() * (this.durationMax - this.durationMin + 1) + this.durationMin
+        );
+      } else {
+        this.totalDuration = null;
+      }
+      this.setState("mistreevous.running" /* RUNNING */);
+    }
+    if (this.totalDuration === null) {
+      return;
+    }
+    if (typeof options.getDeltaTime === "function") {
+      const deltaTime = options.getDeltaTime();
+      if (typeof deltaTime !== "number" || isNaN(deltaTime)) {
+        throw new Error("The delta time must be a valid number and not NaN.");
+      }
+      this.waitedDuration += deltaTime * 1e3;
+    } else {
+      this.waitedDuration = new Date().getTime() - this.initialUpdateTime;
+    }
+    if (this.waitedDuration >= this.totalDuration) {
+      this.setState("mistreevous.succeeded" /* SUCCEEDED */);
+    }
+  }
+  getName = () => {
+    if (this.duration !== null) {
+      return `WAIT ${this.duration}ms`;
+    } else if (this.durationMin !== null && this.durationMax !== null) {
+      return `WAIT ${this.durationMin}ms-${this.durationMax}ms`;
+    } else {
+      return "WAIT";
+    }
+  };
 };
 
 // src/attributes/Attribute.ts
@@ -1154,17 +1984,93 @@ var MAIN_ROOT_NODE_KEY = Symbol("__root__");
 function buildRootNode(definition) {
   const rootNodeDefinitionMap = createRootNodeDefinitionMap(definition);
   validateBranchSubtreeLinks(definition, true);
-  const rootNode = nodeFactory(rootNodeDefinitionMap[MAIN_ROOT_NODE_KEY]);
+  const rootNode = nodeFactory(rootNodeDefinitionMap[MAIN_ROOT_NODE_KEY], rootNodeDefinitionMap);
   applyLeafNodeGuardPaths(rootNode);
   return rootNode;
 }
-function nodeFactory(definition) {
+function nodeFactory(definition, rootNodeDefinitionMap) {
   const attributes = nodeAttributesFactory(definition);
   switch (definition.type) {
     case "root":
-      return new Root(attributes, nodeFactory(definition.child));
-    default:
-      throw new Error(`unexpected node type of '${definition.type}'`);
+      return new Root(attributes, nodeFactory(definition.child, rootNodeDefinitionMap));
+    case "repeat":
+      let iterations = null;
+      let iterationsMin = null;
+      let iterationsMax = null;
+      if (Array.isArray(definition.iterations)) {
+        iterationsMin = definition.iterations[0];
+        iterationsMax = definition.iterations[1];
+      } else if (isInteger(definition.iterations)) {
+        iterations = definition.iterations;
+      }
+      return new Repeat(
+        attributes,
+        iterations,
+        iterationsMin,
+        iterationsMax,
+        nodeFactory(definition.child, rootNodeDefinitionMap)
+      );
+    case "retry":
+      let attempts = null;
+      let attemptsMin = null;
+      let attemptsMax = null;
+      if (Array.isArray(definition.attempts)) {
+        attemptsMin = definition.attempts[0];
+        attemptsMax = definition.attempts[1];
+      } else if (isInteger(definition.attempts)) {
+        attempts = definition.attempts;
+      }
+      return new Retry(
+        attributes,
+        attempts,
+        attemptsMin,
+        attemptsMax,
+        nodeFactory(definition.child, rootNodeDefinitionMap)
+      );
+    case "flip":
+      return new Flip(attributes, nodeFactory(definition.child, rootNodeDefinitionMap));
+    case "succeed":
+      return new Succeed(attributes, nodeFactory(definition.child, rootNodeDefinitionMap));
+    case "fail":
+      return new Fail(attributes, nodeFactory(definition.child, rootNodeDefinitionMap));
+    case "sequence":
+      return new Sequence(
+        attributes,
+        definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+      );
+    case "selector":
+      return new Selector(
+        attributes,
+        definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+      );
+    case "parallel":
+      return new Parallel(
+        attributes,
+        definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+      );
+    case "lotto":
+      return new Lotto(
+        attributes,
+        definition.weights,
+        definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+      );
+    case "branch":
+      return nodeFactory(rootNodeDefinitionMap[definition.ref].child, rootNodeDefinitionMap);
+    case "action":
+      return new Action(attributes, definition.call, definition.args || []);
+    case "condition":
+      return new Condition(attributes, definition.call, definition.args || []);
+    case "wait":
+      let duration = null;
+      let durationMin = null;
+      let durationMax = null;
+      if (Array.isArray(definition.duration)) {
+        durationMin = definition.duration[0];
+        durationMax = definition.duration[1];
+      } else if (isInteger(definition.duration)) {
+        duration = definition.duration;
+      }
+      return new Wait(attributes, duration, durationMin, durationMax);
   }
 }
 function nodeAttributesFactory(definition) {

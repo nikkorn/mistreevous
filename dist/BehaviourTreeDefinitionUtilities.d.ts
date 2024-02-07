@@ -41,3 +41,9 @@ export declare function flattenDefinition(nodeDefinition: AnyNodeDefinition): An
  * @returns Whether the passed value is an integer.
  */
 export declare function isInteger(value: unknown): boolean;
+/**
+ * Determines whether the passed value is null or undefined.
+ * @param value The value to check.
+ * @returns Whether the passed value is null or undefined.
+ */
+export declare function isNullOrUndefined(value: unknown): boolean;

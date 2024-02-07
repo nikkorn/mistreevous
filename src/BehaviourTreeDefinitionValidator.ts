@@ -448,7 +448,28 @@ function validateRepeatNode(definition: any, depth: number): void {
                     `expected array containing two integer values for 'iterations' property if defined for repeat node at depth '${depth}'`
                 );
             }
-        } else if (!isInteger(definition.iterations)) {
+
+            // A repeat node must have a positive min and max iterations count if they are defined.
+            if (definition.iterations[0] < 0 || definition.iterations[1] < 0) {
+                throw new Error(
+                    `expected positive minimum and maximum iterations count for 'iterations' property if defined for repeat node at depth '${depth}'`
+                );
+            }
+
+            // A repeat node must not have a minimum iterations count that exceeds the maximum iterations count.
+            if (definition.iterations[0] > definition.iterations[1]) {
+                throw new Error(
+                    `expected minimum iterations count that does not exceed the maximum iterations count for 'iterations' property if defined for repeat node at depth '${depth}'`
+                );
+            }
+        } else if (isInteger(definition.iterations)) {
+            // A repeat node must have a positive number of iterations if defined.
+            if (definition.iterations < 0) {
+                throw new Error(
+                    `expected positive iterations count for 'iterations' property if defined for repeat node at depth '${depth}'`
+                );
+            }
+        } else {
             throw new Error(
                 `expected integer value or array containing two integer values for 'iterations' property if defined for repeat node at depth '${depth}'`
             );
@@ -490,7 +511,28 @@ function validateRetryNode(definition: any, depth: number): void {
                     `expected array containing two integer values for 'attempts' property if defined for retry node at depth '${depth}'`
                 );
             }
-        } else if (!isInteger(definition.attempts)) {
+
+            // A retry node must have a positive min and max attempts count if they are defined.
+            if (definition.attempts[0] < 0 || definition.attempts[1] < 0) {
+                throw new Error(
+                    `expected positive minimum and maximum attempts count for 'attempts' property if defined for retry node at depth '${depth}'`
+                );
+            }
+
+            // A retry node must not have a minimum attempts count that exceeds the maximum attempts count.
+            if (definition.attempts[0] > definition.attempts[1]) {
+                throw new Error(
+                    `expected minimum attempts count that does not exceed the maximum attempts count for 'attempts' property if defined for retry node at depth '${depth}'`
+                );
+            }
+        } else if (isInteger(definition.attempts)) {
+            // A retry node must have a positive number of attempts if defined.
+            if (definition.attempts < 0) {
+                throw new Error(
+                    `expected positive attempts count for 'attempts' property if defined for retry node at depth '${depth}'`
+                );
+            }
+        } else {
             throw new Error(
                 `expected integer value or array containing two integer values for 'attempts' property if defined for retry node at depth '${depth}'`
             );
@@ -612,7 +654,28 @@ function validateWaitNode(definition: any, depth: number): void {
                     `expected array containing two integer values for 'duration' property if defined for wait node at depth '${depth}'`
                 );
             }
-        } else if (!isInteger(definition.duration)) {
+
+            // A wait node must have a positive min and max duration value if they are defined.
+            if (definition.duration[0] < 0 || definition.duration[1] < 0) {
+                throw new Error(
+                    `expected positive minimum and maximum duration for 'duration' property if defined for wait node at depth '${depth}'`
+                );
+            }
+
+            // A wait node must not have a minimum duration value that exceeds the maximum duration value.
+            if (definition.duration[0] > definition.duration[1]) {
+                throw new Error(
+                    `expected minimum duration value that does not exceed the maximum duration value for 'duration' property if defined for wait node at depth '${depth}'`
+                );
+            }
+        } else if (isInteger(definition.duration)) {
+            // A wait node must have a positive duration value if defined.
+            if (definition.duration < 0) {
+                throw new Error(
+                    `expected positive duration value for 'duration' property if defined for wait node at depth '${depth}'`
+                );
+            }
+        } else {
             throw new Error(
                 `expected integer value or array containing two integer values for 'duration' property if defined for wait node at depth '${depth}'`
             );
