@@ -2132,11 +2132,11 @@ var mistreevous = (() => {
     constructor(definition, agent, options = {}) {
       this.agent = agent;
       this.options = options;
-      if (!definition) {
-        throw new Error("the tree definition must be a string ro");
+      if (isNullOrUndefined(definition)) {
+        throw new Error("tree definition not defined");
       }
       if (typeof agent !== "object" || agent === null) {
-        throw new Error("the agent must be defined and not null");
+        throw new Error("the agent must be an object and not null");
       }
       try {
         this.rootNode = this._createRootNode(definition);

@@ -12,6 +12,7 @@ import { convertMDSLToJSON } from "./mdsl/MDSLDefinitionParser";
 import { RootNodeDefinition } from "./BehaviourTreeDefinition";
 import { validateJSONDefinition } from "./BehaviourTreeDefinitionValidator";
 import buildRootNode from "./BehaviourTreeBuilder";
+import { isNullOrUndefined } from "./BehaviourTreeDefinitionUtilities";
 
 // Purely for outside inspection of the tree.
 export type FlattenedTreeNode = {
@@ -46,13 +47,13 @@ export class BehaviourTree {
         private options: BehaviourTreeOptions = {}
     ) {
         // The tree definition must be defined.
-        if (!definition) {
-            throw new Error("the tree definition must be a string ro");
+        if (isNullOrUndefined(definition)) {
+            throw new Error("tree definition not defined");
         }
 
         // The agent must be defined and not null.
         if (typeof agent !== "object" || agent === null) {
-            throw new Error("the agent must be defined and not null");
+            throw new Error("the agent must be an object and not null");
         }
 
         try {

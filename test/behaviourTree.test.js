@@ -9,37 +9,46 @@ const findNode = (tree, type, caption) =>
 describe("A BehaviourTree instance", () => {
     describe("has initialisation logic that", () => {
         describe("should error when", () => {
-            it("the tree definition argument is not a string", () => {
-                assert.throws(
-                    () => new mistreevous.BehaviourTree(null, {}),
-                    Error,
-                    "the tree definition must be a string"
-                );
-            });
-
-            it("the tree definition argument is not a valid tree definition", () => {
-                assert.throws(
-                    () => new mistreevous.BehaviourTree("", {}),
-                    Error,
-                    "error parsing tree: invalid token count"
-                );
-            });
-
-            it("the tree definition argument contains unexpected tokens", () => {
-                assert.throws(
-                    () => new mistreevous.BehaviourTree("invalid-token { }", {}),
-                    Error,
-                    "error parsing tree: unexpected token 'invalid-token'"
-                );
+            it("the tree definition argument is not defined", () => {
+                assert.throws(() => new mistreevous.BehaviourTree(null, {}), Error, "tree definition not defined");
+                assert.throws(() => new mistreevous.BehaviourTree(undefined, {}), Error, "tree definition not defined");
             });
 
             it("the agent object is not defined", () => {
-                assert.throws(() => new mistreevous.BehaviourTree("", undefined), Error, "the agent must be defined");
+                assert.throws(
+                    () => new mistreevous.BehaviourTree("", undefined),
+                    Error,
+                    "the agent must be an object and not null"
+                );
+                assert.throws(
+                    () => new mistreevous.BehaviourTree("", null),
+                    Error,
+                    "the agent must be an object and not null"
+                );
+                assert.throws(
+                    () => new mistreevous.BehaviourTree("", 42),
+                    Error,
+                    "the agent must be an object and not null"
+                );
             });
         });
 
-        it("should not error when the tree definition argument is a valid definition", () => {
-            assert.doesNotThrow(() => new mistreevous.BehaviourTree("root { action [test] }", {}), Error);
+        describe("should not error when the tree definition argument is a valid definition", () => {
+            it("(MDSL)", () => {
+                const definition = "root { action [test] }";
+                assert.doesNotThrow(() => new mistreevous.BehaviourTree(definition, {}), Error);
+            });
+
+            it("(JSON)", () => {
+                const definition = {
+                    type: "root",
+                    child: {
+                        type: "action",
+                        call: "test"
+                    }
+                };
+                assert.doesNotThrow(() => new mistreevous.BehaviourTree(definition, {}), Error);
+            });
         });
     });
 
