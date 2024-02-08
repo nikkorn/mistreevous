@@ -733,7 +733,7 @@ function createWaitNode(tokens, stringLiteralPlaceholders) {
   const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
   if (nodeArguments.length) {
     nodeArguments.filter((arg) => arg.type !== "number" || !arg.isInteger).forEach(() => {
-      throw new Error(`wait node duration arguments must be integer values`);
+      throw new Error(`wait node durations must be integer values`);
     });
     if (nodeArguments.length === 1) {
       node.duration = nodeArguments[0].value;
@@ -787,8 +787,8 @@ function validateMDSLDefinition(definition) {
   let rootNodeDefinitions;
   try {
     rootNodeDefinitions = convertMDSLToJSON(definition);
-  } catch (error) {
-    return createValidationFailureResult(`invalid MDSL: ${error}`);
+  } catch (exception) {
+    return createValidationFailureResult(exception.message);
   }
   const mainRootNodeDefinitions = rootNodeDefinitions.filter(({ id }) => typeof id === "undefined");
   const subRootNodeDefinitions = rootNodeDefinitions.filter(({ id }) => typeof id === "string" && id.length > 0);
@@ -2138,6 +2138,10 @@ var BehaviourTree = class {
     if (typeof agent !== "object" || agent === null) {
       throw new Error("the agent must be an object and not null");
     }
+    const { succeeded, errorMessage } = validateDefinition(definition);
+    if (!succeeded) {
+      throw new Error(`invalid definition: ${errorMessage}`);
+    }
     try {
       this.rootNode = this._createRootNode(definition);
     } catch (exception) {
@@ -2231,16 +2235,7 @@ var BehaviourTree = class {
     Lookup.empty();
   }
   _createRootNode(definition) {
-    let resolvedDefinition;
-    if (typeof definition === "string") {
-      try {
-        resolvedDefinition = convertMDSLToJSON(definition);
-      } catch (exception) {
-        throw new Error(`invalid mdsl definition: ${exception.message}`);
-      }
-    } else {
-      resolvedDefinition = definition;
-    }
+    const resolvedDefinition = typeof definition === "string" ? convertMDSLToJSON(definition) : definition;
     return buildRootNode(Array.isArray(resolvedDefinition) ? resolvedDefinition : [resolvedDefinition]);
   }
 };

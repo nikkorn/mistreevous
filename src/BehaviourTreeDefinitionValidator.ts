@@ -54,9 +54,9 @@ export function validateMDSLDefinition(definition: string): DefinitionValidation
     try {
         // The definition is a string which we can assume is MDSL, so attempt to parse it to a JSON definition in the form of an array of root node definitions.
         rootNodeDefinitions = convertMDSLToJSON(definition);
-    } catch (error) {
+    } catch (exception) {
         // We failed to parse the JSON from the MDSL, this is likely to be the result of it not being a valid MDSL string.
-        return createValidationFailureResult(`invalid MDSL: ${error}`);
+        return createValidationFailureResult((exception as Error).message);
     }
 
     // Unpack all of the root node definitions into arrays of main ('id' defined) and sub ('id' not defined) root node definitions.

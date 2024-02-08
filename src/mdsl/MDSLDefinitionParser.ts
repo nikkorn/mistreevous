@@ -669,7 +669,7 @@ function createWaitNode(tokens: string[], stringLiteralPlaceholders: StringLiter
         nodeArguments
             .filter((arg) => arg.type !== "number" || !arg.isInteger)
             .forEach(() => {
-                throw new Error(`wait node duration arguments must be integer values`);
+                throw new Error(`wait node durations must be integer values`);
             });
 
         // We may have:

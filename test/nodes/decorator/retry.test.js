@@ -14,7 +14,7 @@ describe("A Retry node", () => {
             assert.throws(
                 () => new mistreevous.BehaviourTree(definition, {}),
                 Error,
-                "error parsing tree: a retry node must have a single child"
+                "invalid definition: a retry node must have a single child"
             );
         });
     });

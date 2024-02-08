@@ -13,7 +13,7 @@ describe("A Fail node", () => {
             assert.throws(
                 () => new mistreevous.BehaviourTree(definition, {}),
                 Error,
-                "error parsing tree: a fail node must have a single child"
+                "invalid definition: a fail node must have a single child"
             );
         });
     });

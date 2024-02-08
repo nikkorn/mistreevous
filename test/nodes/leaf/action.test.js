@@ -13,7 +13,7 @@ describe("An Action node", () => {
             assert.throws(
                 () => new mistreevous.BehaviourTree(definition, {}),
                 Error,
-                "error parsing tree: expected action name identifier argument"
+                "invalid definition: expected action name identifier argument"
             );
         });
     });

@@ -15,7 +15,7 @@ describe("A Wait node", () => {
                 assert.throws(
                     () => new mistreevous.BehaviourTree(definition, {}),
                     Error,
-                    "error parsing tree: wait node durations must be integer values"
+                    "invalid definition: wait node durations must be integer values"
                 );
             });
 
@@ -24,7 +24,7 @@ describe("A Wait node", () => {
                 assert.throws(
                     () => new mistreevous.BehaviourTree(definition, {}),
                     Error,
-                    "error parsing tree: a wait node must have a positive duration"
+                    "invalid definition: a wait node must have a positive duration"
                 );
             });
 
@@ -33,7 +33,7 @@ describe("A Wait node", () => {
                 assert.throws(
                     () => new mistreevous.BehaviourTree(definition, {}),
                     Error,
-                    "error parsing tree: invalid number of wait node duration arguments defined"
+                    "invalid definition: invalid number of wait node duration arguments defined"
                 );
             });
 
@@ -42,7 +42,7 @@ describe("A Wait node", () => {
                 assert.throws(
                     () => new mistreevous.BehaviourTree(definition, {}),
                     Error,
-                    "error parsing tree: a wait node must not have a minimum duration that exceeds the maximum duration"
+                    "invalid definition: a wait node must not have a minimum duration that exceeds the maximum duration"
                 );
             });
         });

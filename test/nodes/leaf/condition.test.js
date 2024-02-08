@@ -13,7 +13,7 @@ describe("A Condition node", () => {
             assert.throws(
                 () => new mistreevous.BehaviourTree(definition, {}),
                 Error,
-                "error parsing tree: expected condition name identifier argument"
+                "invalid definition: expected condition name identifier argument"
             );
         });
     });

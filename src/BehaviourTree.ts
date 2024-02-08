@@ -10,7 +10,7 @@ import { GuardAttributeDetails } from "./attributes/guards/Guard";
 import { BehaviourTreeOptions } from "./BehaviourTreeOptions";
 import { convertMDSLToJSON } from "./mdsl/MDSLDefinitionParser";
 import { RootNodeDefinition } from "./BehaviourTreeDefinition";
-import { validateJSONDefinition } from "./BehaviourTreeDefinitionValidator";
+import { validateDefinition, validateJSONDefinition } from "./BehaviourTreeDefinitionValidator";
 import buildRootNode from "./BehaviourTreeBuilder";
 import { isNullOrUndefined } from "./BehaviourTreeDefinitionUtilities";
 
@@ -54,6 +54,14 @@ export class BehaviourTree {
         // The agent must be defined and not null.
         if (typeof agent !== "object" || agent === null) {
             throw new Error("the agent must be an object and not null");
+        }
+
+        // We should validate the definition before we try to build the tree nodes.
+        const { succeeded, errorMessage } = validateDefinition(definition);
+
+        // Did our validation fail without error?
+        if (!succeeded) {
+            throw new Error(`invalid definition: ${errorMessage}`);
         }
 
         try {
@@ -244,19 +252,9 @@ export class BehaviourTree {
      * @returns The root behaviour tree node.
      */
     private _createRootNode(definition: string | RootNodeDefinition | RootNodeDefinition[]): Root {
-        let resolvedDefinition: RootNodeDefinition | RootNodeDefinition[];
-
-        // If the definition is a string then we will assume that it is an mdsl string which needs to be converted to a JSON definition.
-        if (typeof definition === "string") {
-            try {
-                resolvedDefinition = convertMDSLToJSON(definition);
-            } catch (exception) {
-                throw new Error(`invalid mdsl definition: ${(exception as Error).message}`);
-            }
-        } else {
-            // The definition is not a string, so we should assume that it is already a JSON definition.
-            resolvedDefinition = definition;
-        }
+        // Our definition will have to be converted to JSON if it is a MDSL string.
+        // TODO convertMDSLToJSON is called TWICE, once for validation and once here. Maybe return the JSON as part of the validation result?
+        const resolvedDefinition = typeof definition === "string" ? convertMDSLToJSON(definition) : definition;
 
         // Build and populate the root node.
         return buildRootNode(Array.isArray(resolvedDefinition) ? resolvedDefinition : [resolvedDefinition]);

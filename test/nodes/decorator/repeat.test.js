@@ -14,7 +14,7 @@ describe("A Repeat node", () => {
             assert.throws(
                 () => new mistreevous.BehaviourTree(definition, {}),
                 Error,
-                "error parsing tree: a repeat node must have a single child"
+                "invalid definition: a repeat node must have a single child"
             );
         });
     });

@@ -52,101 +52,264 @@ describe("A BehaviourTree instance", () => {
         });
     });
 
-    it("has a 'getState' function that returns the state of the root node", () => {
-        let actionResult = undefined;
+    describe("has a 'getState' function that returns the state of the root node", () => {
+        it("(MDSL)", () => {
+            let actionResult = undefined;
 
-        const definition = "root { action [getActionResult] }";
-        const agent = { getActionResult: () => actionResult };
-        const tree = new mistreevous.BehaviourTree(definition, agent);
+            const definition = "root { action [getActionResult] }";
+            const agent = { getActionResult: () => actionResult };
+            const tree = new mistreevous.BehaviourTree(definition, agent);
 
-        assert.strictEqual(tree.getState(), mistreevous.State.READY);
+            assert.strictEqual(tree.getState(), mistreevous.State.READY);
 
-        tree.step();
+            tree.step();
 
-        assert.strictEqual(tree.getState(), mistreevous.State.RUNNING);
+            assert.strictEqual(tree.getState(), mistreevous.State.RUNNING);
 
-        actionResult = mistreevous.State.SUCCEEDED;
+            actionResult = mistreevous.State.SUCCEEDED;
 
-        tree.step();
+            tree.step();
 
-        assert.strictEqual(tree.getState(), mistreevous.State.SUCCEEDED);
+            assert.strictEqual(tree.getState(), mistreevous.State.SUCCEEDED);
+        });
+
+        it("(JSON)", () => {
+            let actionResult = undefined;
+
+            const definition = {
+                type: "root",
+                child: {
+                    type: "action",
+                    call: "getActionResult"
+                }
+            };
+            const agent = { getActionResult: () => actionResult };
+            const tree = new mistreevous.BehaviourTree(definition, agent);
+
+            assert.strictEqual(tree.getState(), mistreevous.State.READY);
+
+            tree.step();
+
+            assert.strictEqual(tree.getState(), mistreevous.State.RUNNING);
+
+            actionResult = mistreevous.State.SUCCEEDED;
+
+            tree.step();
+
+            assert.strictEqual(tree.getState(), mistreevous.State.SUCCEEDED);
+        });
     });
 
-    it("has an 'isRunning' function that returns a flag defining whether the tree is in a running state", () => {
-        let actionResult = undefined;
+    describe("has an 'isRunning' function that returns a flag defining whether the tree is in a running state", () => {
+        it("(MDSL)", () => {
+            let actionResult = undefined;
 
-        const definition = "root { action [getActionResult] }";
-        const agent = { getActionResult: () => actionResult };
-        const tree = new mistreevous.BehaviourTree(definition, agent);
+            const definition = "root { action [getActionResult] }";
+            const agent = { getActionResult: () => actionResult };
+            const tree = new mistreevous.BehaviourTree(definition, agent);
 
-        assert.strictEqual(tree.isRunning(), false);
+            assert.strictEqual(tree.isRunning(), false);
 
-        tree.step();
+            tree.step();
 
-        assert.strictEqual(tree.isRunning(), true);
+            assert.strictEqual(tree.isRunning(), true);
 
-        actionResult = mistreevous.State.SUCCEEDED;
+            actionResult = mistreevous.State.SUCCEEDED;
 
-        tree.step();
+            tree.step();
 
-        assert.strictEqual(tree.isRunning(), false);
+            assert.strictEqual(tree.isRunning(), false);
+        });
+
+        it("(JSON)", () => {
+            let actionResult = undefined;
+
+            const definition = {
+                type: "root",
+                child: {
+                    type: "action",
+                    call: "getActionResult"
+                }
+            };
+            const agent = { getActionResult: () => actionResult };
+            const tree = new mistreevous.BehaviourTree(definition, agent);
+
+            assert.strictEqual(tree.isRunning(), false);
+
+            tree.step();
+
+            assert.strictEqual(tree.isRunning(), true);
+
+            actionResult = mistreevous.State.SUCCEEDED;
+
+            tree.step();
+
+            assert.strictEqual(tree.isRunning(), false);
+        });
     });
 
-    it("has a 'reset' function that resets the tree from the root node outwards to each nested node, giving each a state of READY", () => {
-        const definition = "root { action [getActionResult] }";
-        const agent = { getActionResult: () => mistreevous.State.SUCCEEDED };
-        const tree = new mistreevous.BehaviourTree(definition, agent);
+    describe("has a 'reset' function that resets the tree from the root node outwards to each nested node, giving each a state of READY", () => {
+        it("(MDSL)", () => {
+            const definition = "root { sequence { action [getActionResult] } }";
+            const agent = { getActionResult: () => mistreevous.State.SUCCEEDED };
+            const tree = new mistreevous.BehaviourTree(definition, agent);
 
-        assert.strictEqual(tree.getState(), mistreevous.State.READY);
+            assert.strictEqual(findNode(tree, "root", "ROOT").state, mistreevous.State.READY);
+            assert.strictEqual(findNode(tree, "sequence", "SEQUENCE").state, mistreevous.State.READY);
+            assert.strictEqual(findNode(tree, "action", "getActionResult").state, mistreevous.State.READY);
 
-        tree.step();
+            tree.step();
 
-        assert.strictEqual(tree.getState(), mistreevous.State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "root", "ROOT").state, mistreevous.State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "sequence", "SEQUENCE").state, mistreevous.State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "action", "getActionResult").state, mistreevous.State.SUCCEEDED);
 
-        tree.reset();
+            tree.reset();
 
-        assert.strictEqual(tree.getState(), mistreevous.State.READY);
+            assert.strictEqual(findNode(tree, "root", "ROOT").state, mistreevous.State.READY);
+            assert.strictEqual(findNode(tree, "sequence", "SEQUENCE").state, mistreevous.State.READY);
+            assert.strictEqual(findNode(tree, "action", "getActionResult").state, mistreevous.State.READY);
+        });
+
+        it("(JSON)", () => {
+            const definition = {
+                type: "root",
+                child: {
+                    type: "sequence",
+                    children: [
+                        {
+                            type: "action",
+                            call: "getActionResult"
+                        }
+                    ]
+                }
+            };
+            const agent = { getActionResult: () => mistreevous.State.SUCCEEDED };
+            const tree = new mistreevous.BehaviourTree(definition, agent);
+
+            assert.strictEqual(findNode(tree, "root", "ROOT").state, mistreevous.State.READY);
+            assert.strictEqual(findNode(tree, "sequence", "SEQUENCE").state, mistreevous.State.READY);
+            assert.strictEqual(findNode(tree, "action", "getActionResult").state, mistreevous.State.READY);
+
+            tree.step();
+
+            assert.strictEqual(findNode(tree, "root", "ROOT").state, mistreevous.State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "sequence", "SEQUENCE").state, mistreevous.State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "action", "getActionResult").state, mistreevous.State.SUCCEEDED);
+
+            tree.reset();
+
+            assert.strictEqual(findNode(tree, "root", "ROOT").state, mistreevous.State.READY);
+            assert.strictEqual(findNode(tree, "sequence", "SEQUENCE").state, mistreevous.State.READY);
+            assert.strictEqual(findNode(tree, "action", "getActionResult").state, mistreevous.State.READY);
+        });
     });
 
-    it("has a 'step' function that .....", () => {
-        const definition =
-            "root { sequence { action [getActionResult0] action [getActionResult1] action [getActionResult2] action [getActionResult3] } }";
-        const agent = {
-            getActionResult0: () => mistreevous.State.SUCCEEDED,
-            getActionResult1: () => mistreevous.State.SUCCEEDED,
-            getActionResult2: () => undefined,
-            getActionResult3: () => mistreevous.State.SUCCEEDED
-        };
-        const tree = new mistreevous.BehaviourTree(definition, agent);
+    describe("has a 'step' function that updates all nodes in sequence unless a node is left in the running state", () => {
+        it("(MDSL)", () => {
+            const definition =
+                "root { sequence { action [getActionResult0] action [getActionResult1] action [getActionResult2] action [getActionResult3] } }";
+            const agent = {
+                getActionResult0: () => mistreevous.State.SUCCEEDED,
+                getActionResult1: () => mistreevous.State.SUCCEEDED,
+                getActionResult2: () => undefined,
+                getActionResult3: () => mistreevous.State.SUCCEEDED
+            };
+            const tree = new mistreevous.BehaviourTree(definition, agent);
 
-        assert.strictEqual(findNode(tree, "action", "getActionResult0").state, mistreevous.State.READY);
-        assert.strictEqual(findNode(tree, "action", "getActionResult1").state, mistreevous.State.READY);
-        assert.strictEqual(findNode(tree, "action", "getActionResult2").state, mistreevous.State.READY);
-        assert.strictEqual(findNode(tree, "action", "getActionResult3").state, mistreevous.State.READY);
+            assert.strictEqual(findNode(tree, "action", "getActionResult0").state, mistreevous.State.READY);
+            assert.strictEqual(findNode(tree, "action", "getActionResult1").state, mistreevous.State.READY);
+            assert.strictEqual(findNode(tree, "action", "getActionResult2").state, mistreevous.State.READY);
+            assert.strictEqual(findNode(tree, "action", "getActionResult3").state, mistreevous.State.READY);
 
-        tree.step();
+            tree.step();
 
-        assert.strictEqual(findNode(tree, "action", "getActionResult0").state, mistreevous.State.SUCCEEDED);
-        assert.strictEqual(findNode(tree, "action", "getActionResult1").state, mistreevous.State.SUCCEEDED);
-        assert.strictEqual(findNode(tree, "action", "getActionResult2").state, mistreevous.State.RUNNING);
-        assert.strictEqual(findNode(tree, "action", "getActionResult3").state, mistreevous.State.READY);
+            assert.strictEqual(findNode(tree, "action", "getActionResult0").state, mistreevous.State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "action", "getActionResult1").state, mistreevous.State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "action", "getActionResult2").state, mistreevous.State.RUNNING);
+            assert.strictEqual(findNode(tree, "action", "getActionResult3").state, mistreevous.State.READY);
 
-        agent.getActionResult2 = () => mistreevous.State.SUCCEEDED;
+            agent.getActionResult2 = () => mistreevous.State.SUCCEEDED;
 
-        tree.step();
+            tree.step();
 
-        assert.strictEqual(findNode(tree, "action", "getActionResult0").state, mistreevous.State.SUCCEEDED);
-        assert.strictEqual(findNode(tree, "action", "getActionResult1").state, mistreevous.State.SUCCEEDED);
-        assert.strictEqual(findNode(tree, "action", "getActionResult2").state, mistreevous.State.SUCCEEDED);
-        assert.strictEqual(findNode(tree, "action", "getActionResult3").state, mistreevous.State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "action", "getActionResult0").state, mistreevous.State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "action", "getActionResult1").state, mistreevous.State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "action", "getActionResult2").state, mistreevous.State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "action", "getActionResult3").state, mistreevous.State.SUCCEEDED);
 
-        agent.getActionResult2 = () => undefined;
+            agent.getActionResult2 = () => undefined;
 
-        tree.step();
+            tree.step();
 
-        assert.strictEqual(findNode(tree, "action", "getActionResult0").state, mistreevous.State.SUCCEEDED);
-        assert.strictEqual(findNode(tree, "action", "getActionResult1").state, mistreevous.State.SUCCEEDED);
-        assert.strictEqual(findNode(tree, "action", "getActionResult2").state, mistreevous.State.RUNNING);
-        assert.strictEqual(findNode(tree, "action", "getActionResult3").state, mistreevous.State.READY);
+            assert.strictEqual(findNode(tree, "action", "getActionResult0").state, mistreevous.State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "action", "getActionResult1").state, mistreevous.State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "action", "getActionResult2").state, mistreevous.State.RUNNING);
+            assert.strictEqual(findNode(tree, "action", "getActionResult3").state, mistreevous.State.READY);
+        });
+
+        it("(JSON)", () => {
+            const definition = {
+                type: "root",
+                child: {
+                    type: "sequence",
+                    children: [
+                        {
+                            type: "action",
+                            call: "getActionResult0"
+                        },
+                        {
+                            type: "action",
+                            call: "getActionResult1"
+                        },
+                        {
+                            type: "action",
+                            call: "getActionResult2"
+                        },
+                        {
+                            type: "action",
+                            call: "getActionResult3"
+                        }
+                    ]
+                }
+            };
+            const agent = {
+                getActionResult0: () => mistreevous.State.SUCCEEDED,
+                getActionResult1: () => mistreevous.State.SUCCEEDED,
+                getActionResult2: () => undefined,
+                getActionResult3: () => mistreevous.State.SUCCEEDED
+            };
+            const tree = new mistreevous.BehaviourTree(definition, agent);
+
+            assert.strictEqual(findNode(tree, "action", "getActionResult0").state, mistreevous.State.READY);
+            assert.strictEqual(findNode(tree, "action", "getActionResult1").state, mistreevous.State.READY);
+            assert.strictEqual(findNode(tree, "action", "getActionResult2").state, mistreevous.State.READY);
+            assert.strictEqual(findNode(tree, "action", "getActionResult3").state, mistreevous.State.READY);
+
+            tree.step();
+
+            assert.strictEqual(findNode(tree, "action", "getActionResult0").state, mistreevous.State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "action", "getActionResult1").state, mistreevous.State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "action", "getActionResult2").state, mistreevous.State.RUNNING);
+            assert.strictEqual(findNode(tree, "action", "getActionResult3").state, mistreevous.State.READY);
+
+            agent.getActionResult2 = () => mistreevous.State.SUCCEEDED;
+
+            tree.step();
+
+            assert.strictEqual(findNode(tree, "action", "getActionResult0").state, mistreevous.State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "action", "getActionResult1").state, mistreevous.State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "action", "getActionResult2").state, mistreevous.State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "action", "getActionResult3").state, mistreevous.State.SUCCEEDED);
+
+            agent.getActionResult2 = () => undefined;
+
+            tree.step();
+
+            assert.strictEqual(findNode(tree, "action", "getActionResult0").state, mistreevous.State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "action", "getActionResult1").state, mistreevous.State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "action", "getActionResult2").state, mistreevous.State.RUNNING);
+            assert.strictEqual(findNode(tree, "action", "getActionResult3").state, mistreevous.State.READY);
+        });
     });
 });

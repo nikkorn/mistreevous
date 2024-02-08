@@ -13,7 +13,7 @@ describe("A Flip node", () => {
             assert.throws(
                 () => new mistreevous.BehaviourTree(definition, {}),
                 Error,
-                "error parsing tree: a flip node must have a single child"
+                "invalid definition: a flip node must have a single child"
             );
         });
     });

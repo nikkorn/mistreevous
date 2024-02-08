@@ -12,7 +12,7 @@ describe("A Lotto node", () => {
             assert.throws(
                 () => new mistreevous.BehaviourTree(definition, {}),
                 Error,
-                "error parsing tree: a lotto node must have at least a single child"
+                "invalid definition: a lotto node must have at least a single child"
             );
         });
     });

@@ -18,9 +18,9 @@
     "sinon": "^14.0.1"
   },
   "scripts": {
-    "build": "npm-run-all build:node build:web build:typecheck",
+    "build": "npm-run-all build:format build:node build:web build:typecheck",
     "watch": "npm run build:node -- --watch",
-    "test": "npm-run-all build:format build test:unit-test",
+    "test": "npm-run-all build test:unit-test",
     "build:format": "prettier --write \"src/**/*.ts\" \"test/**/*.js\"",
     "build:node": "esbuild ./src/index.js --bundle --sourcemap --outdir=dist --platform=node",
     "build:web": "esbuild ./src/index.js --bundle --sourcemap --platform=browser --global-name=mistreevous --outfile=dist/bundle.js",

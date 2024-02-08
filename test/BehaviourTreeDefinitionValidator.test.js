@@ -14,11 +14,11 @@ describe("The validateDefinition function takes a tree definition as an argument
     };
 
     describe("where the type of that definition is", () => {
-        describe("mdsl", () => {
+        describe("MDSL", () => {
             // TODO Add better validation to mdsl parsing to better match the json validation.
         });
 
-        describe("json", () => {
+        describe("JSON", () => {
             describe("returns a validation failure when", () => {
                 it("the definition doesn't contain a main root node (has no root node identifier defined)", () => {
                     const definition = {
