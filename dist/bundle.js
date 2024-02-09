@@ -683,12 +683,12 @@ var mistreevous = (() => {
   }
   function createLottoNode(tokens, stringLiteralPlaceholders) {
     const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
-    nodeArguments.filter((arg) => arg.type !== "number" || !arg.isInteger).forEach(() => {
-      throw new Error(`lotto node weight arguments must be integer values`);
+    nodeArguments.filter((arg) => arg.type !== "number" || !arg.isInteger || arg.value < 0).forEach(() => {
+      throw new Error(`lotto node weight arguments must be positive integer values`);
     });
     const node = {
       type: "lotto",
-      weights: nodeArguments.map(({ value }) => value),
+      weights: nodeArguments.length ? nodeArguments.map(({ value }) => value) : void 0,
       ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
     };
     popAndCheck(tokens, "{");
@@ -761,12 +761,21 @@ var mistreevous = (() => {
     }
     return { type: "branch", ref: nodeArguments[0].value };
   }
-  function validatePoppedNode(node) {
-    if (isDecoratorNode(node) && isNullOrUndefined(node.child)) {
-      throw new Error(`a ${node.type} node must have a single child node defined`);
+  function validatePoppedNode(definition) {
+    if (isDecoratorNode(definition) && isNullOrUndefined(definition.child)) {
+      throw new Error(`a ${definition.type} node must have a single child node defined`);
     }
-    if (isCompositeNode(node) && !node.children?.length) {
-      throw new Error(`a ${node.type} node must have at least a single child node defined`);
+    if (isCompositeNode(definition) && !definition.children?.length) {
+      throw new Error(`a ${definition.type} node must have at least a single child node defined`);
+    }
+    if (definition.type === "lotto") {
+      if (typeof definition.weights !== "undefined") {
+        if (definition.weights.length !== definition.children.length) {
+          throw new Error(
+            "expected a number of weight arguments matching the number of child nodes for lotto node"
+          );
+        }
+      }
     }
   }
 
@@ -892,8 +901,8 @@ var mistreevous = (() => {
       case "root":
         validateRootNode(definition, depth);
         break;
-      case "success":
-        validateSuccessNode(definition, depth);
+      case "succeed":
+        validateSucceedNode(definition, depth);
         break;
       case "fail":
         validateFailNode(definition, depth);
@@ -915,6 +924,9 @@ var mistreevous = (() => {
         break;
       case "parallel":
         validateParallelNode(definition, depth);
+        break;
+      case "lotto":
+        validateLottoNode(definition, depth);
         break;
       default:
         throw new Error(`unexpected node type of '${definition.type}' at depth '${depth}'`);
@@ -959,12 +971,12 @@ var mistreevous = (() => {
     validateNodeAttributes(definition, depth);
     validateNode(definition.child, depth + 1);
   }
-  function validateSuccessNode(definition, depth) {
-    if (definition.type !== "success") {
-      throw new Error(`expected node type of 'success' for success node at depth '${depth}'`);
+  function validateSucceedNode(definition, depth) {
+    if (definition.type !== "succeed") {
+      throw new Error(`expected node type of 'succeed' for succeed node at depth '${depth}'`);
     }
     if (typeof definition.child === "undefined") {
-      throw new Error(`expected property 'child' to be defined for success node at depth '${depth}'`);
+      throw new Error(`expected property 'child' to be defined for succeed node at depth '${depth}'`);
     }
     validateNodeAttributes(definition, depth);
     validateNode(definition.child, depth + 1);
@@ -998,7 +1010,7 @@ var mistreevous = (() => {
     }
     if (typeof definition.iterations !== "undefined") {
       if (Array.isArray(definition.iterations)) {
-        const containsNonInteger = !!definition.iterations.find((value) => !isInteger(value));
+        const containsNonInteger = !!definition.iterations.filter((value) => !isInteger(value)).length;
         if (definition.iterations.length !== 2 || containsNonInteger) {
           throw new Error(
             `expected array containing two integer values for 'iterations' property if defined for repeat node at depth '${depth}'`
@@ -1038,7 +1050,7 @@ var mistreevous = (() => {
     }
     if (typeof definition.attempts !== "undefined") {
       if (Array.isArray(definition.attempts)) {
-        const containsNonInteger = !!definition.attempts.find((value) => !isInteger(value));
+        const containsNonInteger = !!definition.attempts.filter((value) => !isInteger(value)).length;
         if (definition.attempts.length !== 2 || containsNonInteger) {
           throw new Error(
             `expected array containing two integer values for 'attempts' property if defined for retry node at depth '${depth}'`
@@ -1121,7 +1133,7 @@ var mistreevous = (() => {
     }
     if (typeof definition.duration !== "undefined") {
       if (Array.isArray(definition.duration)) {
-        const containsNonInteger = !!definition.duration.find((value) => !isInteger(value));
+        const containsNonInteger = !!definition.duration.filter((value) => !isInteger(value)).length;
         if (definition.duration.length !== 2 || containsNonInteger) {
           throw new Error(
             `expected array containing two integer values for 'duration' property if defined for wait node at depth '${depth}'`
@@ -1177,6 +1189,23 @@ var mistreevous = (() => {
     }
     if (!Array.isArray(definition.children) || definition.children.length === 0) {
       throw new Error(`expected non-empty 'children' array to be defined for parallel node at depth '${depth}'`);
+    }
+    validateNodeAttributes(definition, depth);
+    definition.children.forEach((child) => validateNode(child, depth + 1));
+  }
+  function validateLottoNode(definition, depth) {
+    if (definition.type !== "lotto") {
+      throw new Error(`expected node type of 'lotto' for lotto node at depth '${depth}'`);
+    }
+    if (!Array.isArray(definition.children) || definition.children.length === 0) {
+      throw new Error(`expected non-empty 'children' array to be defined for lotto node at depth '${depth}'`);
+    }
+    if (typeof definition.weights !== "undefined") {
+      if (!Array.isArray(definition.weights) || definition.weights.length !== definition.children.length || definition.weights.filter((value) => !isInteger(value)).length || definition.weights.filter((value) => value < 0).length) {
+        throw new Error(
+          `expected an array of positive integer weight values with a length matching the number of child nodes for 'weights' property if defined for lotto node at depth '${depth}'`
+        );
+      }
     }
     validateNodeAttributes(definition, depth);
     definition.children.forEach((child) => validateNode(child, depth + 1));

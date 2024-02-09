@@ -242,8 +242,8 @@ function validateNode(definition: any, depth: number): void {
             validateRootNode(definition, depth);
             break;
 
-        case "success":
-            validateSuccessNode(definition, depth);
+        case "succeed":
+            validateSucceedNode(definition, depth);
             break;
 
         case "fail":
@@ -272,6 +272,10 @@ function validateNode(definition: any, depth: number): void {
 
         case "parallel":
             validateParallelNode(definition, depth);
+            break;
+
+        case "lotto":
+            validateLottoNode(definition, depth);
             break;
 
         default:
@@ -352,19 +356,19 @@ function validateRootNode(definition: any, depth: number): void {
 }
 
 /**
- * Validate an object that we expect to be a success node definition.
- * @param definition An object that we expect to be a success node definition.
+ * Validate an object that we expect to be a succeed node definition.
+ * @param definition An object that we expect to be a succeed node definition.
  * @param depth The depth of the node in the definition tree.
  */
-function validateSuccessNode(definition: any, depth: number): void {
+function validateSucceedNode(definition: any, depth: number): void {
     // Check that the node type is correct.
-    if (definition.type !== "success") {
-        throw new Error(`expected node type of 'success' for success node at depth '${depth}'`);
+    if (definition.type !== "succeed") {
+        throw new Error(`expected node type of 'succeed' for succeed node at depth '${depth}'`);
     }
 
-    // A success node is a decorator node, so must have a child node defined.
+    // A succeed node is a decorator node, so must have a child node defined.
     if (typeof definition.child === "undefined") {
-        throw new Error(`expected property 'child' to be defined for success node at depth '${depth}'`);
+        throw new Error(`expected property 'child' to be defined for succeed node at depth '${depth}'`);
     }
 
     // Validate the node attributes.
@@ -440,7 +444,7 @@ function validateRepeatNode(definition: any, depth: number): void {
     if (typeof definition.iterations !== "undefined") {
         if (Array.isArray(definition.iterations)) {
             // Check whether any elements of the array are not integer values.
-            const containsNonInteger = !!definition.iterations.find((value: unknown) => !isInteger(value));
+            const containsNonInteger = !!definition.iterations.filter((value: unknown) => !isInteger(value)).length;
 
             // If the 'iterations' property is an array then it MUST contain two integer values.
             if (definition.iterations.length !== 2 || containsNonInteger) {
@@ -503,7 +507,7 @@ function validateRetryNode(definition: any, depth: number): void {
     if (typeof definition.attempts !== "undefined") {
         if (Array.isArray(definition.attempts)) {
             // Check whether any elements of the array are not integer values.
-            const containsNonInteger = !!definition.attempts.find((value: unknown) => !isInteger(value));
+            const containsNonInteger = !!definition.attempts.filter((value: unknown) => !isInteger(value)).length;
 
             // If the 'attempts' property is an array then it MUST contain two integer values.
             if (definition.attempts.length !== 2 || containsNonInteger) {
@@ -646,7 +650,7 @@ function validateWaitNode(definition: any, depth: number): void {
     if (typeof definition.duration !== "undefined") {
         if (Array.isArray(definition.duration)) {
             // Check whether any elements of the array are not integer values.
-            const containsNonInteger = !!definition.duration.find((value: unknown) => !isInteger(value));
+            const containsNonInteger = !!definition.duration.filter((value: unknown) => !isInteger(value)).length;
 
             // If the 'duration' property is an array then it MUST contain two integer values.
             if (definition.duration.length !== 2 || containsNonInteger) {
@@ -746,6 +750,44 @@ function validateParallelNode(definition: any, depth: number): void {
     // A parallel node is a composite node, so must have a children nodes array defined.
     if (!Array.isArray(definition.children) || definition.children.length === 0) {
         throw new Error(`expected non-empty 'children' array to be defined for parallel node at depth '${depth}'`);
+    }
+
+    // Validate the node attributes.
+    validateNodeAttributes(definition, depth);
+
+    // Validate the child nodes of this composite node.
+    definition.children.forEach((child: any) => validateNode(child, depth + 1));
+}
+
+/**
+ * Validate an object that we expect to be a lotto node definition.
+ * @param definition An object that we expect to be a lotto node definition.
+ * @param depth The depth of the node in the definition tree.
+ */
+function validateLottoNode(definition: any, depth: number): void {
+    // Check that the node type is correct.
+    if (definition.type !== "lotto") {
+        throw new Error(`expected node type of 'lotto' for lotto node at depth '${depth}'`);
+    }
+
+    // A lotto node is a composite node, so must have a children nodes array defined.
+    if (!Array.isArray(definition.children) || definition.children.length === 0) {
+        throw new Error(`expected non-empty 'children' array to be defined for lotto node at depth '${depth}'`);
+    }
+
+    // Check whether a 'weights' property has been defined, if it has we expect it to be an array of weights.
+    if (typeof definition.weights !== "undefined") {
+        // Check that the weights property is an array of positive integers with an element for each child node element.
+        if (
+            !Array.isArray(definition.weights) ||
+            definition.weights.length !== definition.children.length ||
+            definition.weights.filter((value: unknown) => !isInteger(value)).length ||
+            definition.weights.filter((value: number) => value < 0).length
+        ) {
+            throw new Error(
+                `expected an array of positive integer weight values with a length matching the number of child nodes for 'weights' property if defined for lotto node at depth '${depth}'`
+            );
+        }
     }
 
     // Validate the node attributes.

@@ -554,16 +554,16 @@ function createLottoNode(tokens: string[], stringLiteralPlaceholders: StringLite
     // If any node arguments have been defined then they must be our weights.
     const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
 
-    // All lotto node arguments MUST be of type number and must be integer.
+    // All lotto node arguments MUST be of type number and must be positive integers.
     nodeArguments
-        .filter((arg) => arg.type !== "number" || !arg.isInteger)
+        .filter((arg) => arg.type !== "number" || !arg.isInteger || arg.value < 0)
         .forEach(() => {
-            throw new Error(`lotto node weight arguments must be integer values`);
+            throw new Error(`lotto node weight arguments must be positive integer values`);
         });
 
     const node = {
         type: "lotto",
-        weights: nodeArguments.map(({ value }) => value),
+        weights: nodeArguments.length ? nodeArguments.map(({ value }) => value) : undefined,
         ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
     } as LottoNodeDefinition;
 
@@ -731,16 +731,29 @@ function createBranchNode(
 
 /**
  * Validate a fully-populated node definition that was popped off of the tree stack.
- * @param node The popped node to validate.
+ * @param definition The popped node to validate.
  */
-function validatePoppedNode(node: AnyNodeDefinition): void {
+function validatePoppedNode(definition: AnyNodeDefinition): void {
     // Decorators MUST have a child defined.
-    if (isDecoratorNode(node) && isNullOrUndefined(node.child)) {
-        throw new Error(`a ${node.type} node must have a single child node defined`);
+    if (isDecoratorNode(definition) && isNullOrUndefined(definition.child)) {
+        throw new Error(`a ${definition.type} node must have a single child node defined`);
     }
 
     // Composites MUST have at least one child defined.
-    if (isCompositeNode(node) && !node.children?.length) {
-        throw new Error(`a ${node.type} node must have at least a single child node defined`);
+    if (isCompositeNode(definition) && !definition.children?.length) {
+        throw new Error(`a ${definition.type} node must have at least a single child node defined`);
+    }
+
+    // We need to make sure that lotto nodes that have weights defined have a number of weights matching the number of child nodes.
+    if (definition.type === "lotto") {
+        // Check whether a 'weights' property has been defined, if it has we expect it to be an array of weights.
+        if (typeof definition.weights !== "undefined") {
+            // Check that the weights property is an array of positive integers with an element for each child node element.
+            if (definition.weights.length !== definition.children.length) {
+                throw new Error(
+                    "expected a number of weight arguments matching the number of child nodes for lotto node"
+                );
+            }
+        }
     }
 }
