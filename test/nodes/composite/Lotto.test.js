@@ -418,7 +418,7 @@ describe("A Lotto node", () => {
             });
         });
 
-        describe("move to the RUNNING state if the selected child node does not move to the SUCCESS or FAILED state", () => {
+        describe("move to the RUNNING state if the selected child node is in the RUNNING state", () => {
             it("(MDSL)", () => {
                 const definition = "root { lotto { action [someAction] } }";
                 const agent = { someAction: () => {} };

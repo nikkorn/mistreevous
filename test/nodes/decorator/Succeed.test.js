@@ -115,7 +115,7 @@ describe("A Succeed node", () => {
             });
         });
 
-        describe("move to the RUNNING state if the child node does not move to the SUCCESS or FAILED state", () => {
+        describe("move to the RUNNING state if the child node moves to the RUNNING state", () => {
             it("(MDSL)", () => {
                 const definition = "root { succeed { action [someAction] } }";
                 const agent = { someAction: () => {} };

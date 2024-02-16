@@ -22,8 +22,8 @@
     "watch": "npm run build:node -- --watch",
     "test": "npm-run-all build test:unit-test",
     "build:format": "prettier --write \"src/**/*.ts\" \"test/**/*.js\"",
-    "build:node": "esbuild ./src/index.js --bundle --sourcemap --outdir=dist --platform=node",
-    "build:web": "esbuild ./src/index.js --bundle --sourcemap --platform=browser --global-name=mistreevous --outfile=dist/bundle.js",
+    "build:node": "esbuild ./src/index.ts --bundle --sourcemap --outdir=dist --platform=node",
+    "build:web": "esbuild ./src/index.ts --bundle --sourcemap --platform=browser --global-name=mistreevous --outfile=dist/bundle.js",
     "build:typecheck": "tsc --emitDeclarationOnly",
     "test:unit-test": "mocha \"test/**/*.js\""
   },
