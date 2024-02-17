@@ -1,17 +1,17 @@
-const mistreevous = require("../../../dist/index");
-const chai = require("chai");
+import { assert } from "chai";
 
-var assert = chai.assert;
+import { BehaviourTree, State } from "../../../src/index";
+import { RootNodeDefinition } from "../../../src/BehaviourTreeDefinition";
+import { Agent } from "../../../src/Agent";
 
-const findNode = (tree, type, caption) =>
-    tree.getFlattenedNodeDetails().find((node) => node.type === type && node.caption === caption);
+import { findNode } from "../../TestUtilities";
 
 describe("A Condition node", () => {
     describe("on tree initialisation", () => {
         it("will error if a condition name identifier is not the first node argument", () => {
             const definition = "root { condition [] }";
             assert.throws(
-                () => new mistreevous.BehaviourTree(definition, {}),
+                () => new BehaviourTree(definition, {}),
                 Error,
                 "invalid definition: expected condition name identifier argument"
             );
@@ -22,35 +22,35 @@ describe("A Condition node", () => {
         describe("will call the function defined by the first node argument", () => {
             describe("when the referenced function is", () => {
                 it("a registered function", () => {
-                    mistreevous.BehaviourTree.register("someCondition", () => {
+                    BehaviourTree.register("someCondition", () => {
                         return true;
                     });
 
                     const definition = "root { condition [someCondition] }";
-                    const tree = new mistreevous.BehaviourTree(definition, {});
+                    const tree = new BehaviourTree(definition, {});
 
                     tree.step();
 
-                    node = findNode(tree, "condition", "someCondition");
-                    assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
+                    const node = findNode(tree, "condition", "someCondition");
+                    assert.strictEqual(node.state, State.SUCCEEDED);
                 });
 
                 it("an agent function", () => {
                     const definition = "root { condition [someCondition] }";
                     const agent = { someCondition: () => true };
-                    const tree = new mistreevous.BehaviourTree(definition, agent);
+                    const tree = new BehaviourTree(definition, agent);
 
                     tree.step();
 
-                    node = findNode(tree, "condition", "someCondition");
-                    assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
+                    const node = findNode(tree, "condition", "someCondition");
+                    assert.strictEqual(node.state, State.SUCCEEDED);
                 });
             });
 
             it("and will error if there is no agent function or registered function that matches the condition name", () => {
                 const definition = "root { condition [someCondition] }";
-                let tree;
-                assert.doesNotThrow(() => (tree = new mistreevous.BehaviourTree(definition, {})), Error);
+                let tree: BehaviourTree;
+                assert.doesNotThrow(() => (tree = new BehaviourTree(definition, {})), Error);
                 assert.throws(
                     () => tree.step(),
                     Error,
@@ -62,29 +62,29 @@ describe("A Condition node", () => {
                 it("the SUCCESS state if the function returns a truthy value", () => {
                     const definition = "root { condition [someCondition] }";
                     const agent = { someCondition: () => true };
-                    const tree = new mistreevous.BehaviourTree(definition, agent);
+                    const tree = new BehaviourTree(definition, agent);
 
                     let node = findNode(tree, "condition", "someCondition");
-                    assert.strictEqual(node.state, mistreevous.State.READY);
+                    assert.strictEqual(node.state, State.READY);
 
                     tree.step();
 
                     node = findNode(tree, "condition", "someCondition");
-                    assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
+                    assert.strictEqual(node.state, State.SUCCEEDED);
                 });
 
                 it("the FAILED state if the function returns a falsy value", () => {
                     const definition = "root { condition [someCondition] }";
                     const agent = { someCondition: () => false };
-                    const tree = new mistreevous.BehaviourTree(definition, agent);
+                    const tree = new BehaviourTree(definition, agent);
 
                     let node = findNode(tree, "condition", "someCondition");
-                    assert.strictEqual(node.state, mistreevous.State.READY);
+                    assert.strictEqual(node.state, State.READY);
 
                     tree.step();
 
                     node = findNode(tree, "condition", "someCondition");
-                    assert.strictEqual(node.state, mistreevous.State.FAILED);
+                    assert.strictEqual(node.state, State.FAILED);
                 });
             });
 
@@ -93,9 +93,9 @@ describe("A Condition node", () => {
                     it("string", () => {
                         const definition = 'root { condition [someCondition, "hello world!"] }';
                         const agent = {
-                            someCondition: (arg) => assert.strictEqual(arg, "hello world!")
+                            someCondition: (arg: any) => assert.strictEqual(arg, "hello world!")
                         };
-                        const tree = new mistreevous.BehaviourTree(definition, agent);
+                        const tree = new BehaviourTree(definition, agent);
 
                         tree.step();
                     });
@@ -103,9 +103,9 @@ describe("A Condition node", () => {
                     it("string with escaped quotes", () => {
                         const definition = 'root { condition [someCondition, "hello \\" world!"] }';
                         const agent = {
-                            someCondition: (arg) => assert.strictEqual(arg, 'hello " world!')
+                            someCondition: (arg: any) => assert.strictEqual(arg, 'hello " world!')
                         };
-                        const tree = new mistreevous.BehaviourTree(definition, agent);
+                        const tree = new BehaviourTree(definition, agent);
 
                         tree.step();
                     });
@@ -113,9 +113,9 @@ describe("A Condition node", () => {
                     it("number", () => {
                         const definition = "root { condition [someCondition, 23.4567] }";
                         const agent = {
-                            someCondition: (arg) => assert.strictEqual(arg, 23.4567)
+                            someCondition: (arg: any) => assert.strictEqual(arg, 23.4567)
                         };
-                        const tree = new mistreevous.BehaviourTree(definition, agent);
+                        const tree = new BehaviourTree(definition, agent);
 
                         tree.step();
                     });
@@ -123,9 +123,9 @@ describe("A Condition node", () => {
                     it("boolean 'true' literal", () => {
                         const definition = "root { condition [someCondition, true] }";
                         const agent = {
-                            someCondition: (arg) => assert.strictEqual(arg, true)
+                            someCondition: (arg: any) => assert.strictEqual(arg, true)
                         };
-                        const tree = new mistreevous.BehaviourTree(definition, agent);
+                        const tree = new BehaviourTree(definition, agent);
 
                         tree.step();
                     });
@@ -133,9 +133,9 @@ describe("A Condition node", () => {
                     it("boolean 'false' literal", () => {
                         const definition = "root { condition [someCondition, false] }";
                         const agent = {
-                            someCondition: (arg) => assert.strictEqual(arg, false)
+                            someCondition: (arg: any) => assert.strictEqual(arg, false)
                         };
-                        const tree = new mistreevous.BehaviourTree(definition, agent);
+                        const tree = new BehaviourTree(definition, agent);
 
                         tree.step();
                     });
@@ -143,9 +143,9 @@ describe("A Condition node", () => {
                     it("null", () => {
                         const definition = "root { condition [someCondition, null] }";
                         const agent = {
-                            someCondition: (arg) => assert.isNull(arg)
+                            someCondition: (arg: any) => assert.isNull(arg)
                         };
-                        const tree = new mistreevous.BehaviourTree(definition, agent);
+                        const tree = new BehaviourTree(definition, agent);
 
                         tree.step();
                     });
@@ -154,14 +154,14 @@ describe("A Condition node", () => {
                 it("there are multiple arguments", () => {
                     const definition = 'root { condition [someCondition, 1.23, "hello world!", false, null] }';
                     const agent = {
-                        someCondition: (arg0, arg1, arg2, arg3) => {
+                        someCondition: (arg0: any, arg1: any, arg2: any, arg3: any) => {
                             assert.strictEqual(arg0, 1.23);
                             assert.strictEqual(arg1, "hello world!");
                             assert.strictEqual(arg2, false);
                             assert.strictEqual(arg3, null);
                         }
                     };
-                    const tree = new mistreevous.BehaviourTree(definition, agent);
+                    const tree = new BehaviourTree(definition, agent);
 
                     tree.step();
                 });

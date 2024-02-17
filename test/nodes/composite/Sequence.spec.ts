@@ -1,7 +1,9 @@
-const mistreevous = require("../../../dist/index");
-const chai = require("chai");
+import { assert } from "chai";
 
-var assert = chai.assert;
+import { BehaviourTree, State } from "../../../src/index";
+import { RootNodeDefinition } from "../../../src/BehaviourTreeDefinition";
+
+import { findNode } from "../../TestUtilities";
 
 describe("A Sequence node", () => {
     describe("on tree initialisation", () => {
@@ -9,14 +11,14 @@ describe("A Sequence node", () => {
             it("(MDSL)", () => {
                 const definition = "root { sequence {} }";
                 assert.throws(
-                    () => new mistreevous.BehaviourTree(definition, {}),
+                    () => new BehaviourTree(definition, {}),
                     Error,
                     "invalid definition: a sequence node must have at least a single child"
                 );
             });
 
             it("(JSON)", () => {
-                const definition = {
+                const definition: RootNodeDefinition = {
                     type: "root",
                     child: {
                         type: "sequence",
@@ -24,7 +26,7 @@ describe("A Sequence node", () => {
                     }
                 };
                 assert.throws(
-                    () => new mistreevous.BehaviourTree(definition, {}),
+                    () => new BehaviourTree(definition, {}),
                     Error,
                     "invalid definition: expected non-empty 'children' array to be defined for sequence node at depth '1'"
                 );

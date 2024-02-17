@@ -1,5 +1,4 @@
 import { AnyState } from "./State";
-import Root from "./nodes/decorator/Root";
 import { Agent, GlobalFunction } from "./Agent";
 import { CallbackAttributeDetails } from "./attributes/callbacks/Callback";
 import { GuardAttributeDetails } from "./attributes/guards/Guard";
@@ -24,7 +23,7 @@ export declare class BehaviourTree {
     /**
      * The main root tree node.
      */
-    readonly rootNode: Root;
+    private readonly _rootNode;
     /**
      * Creates a new instance of the BehaviourTree class.
      * @param definition The behaviour tree definition as either an MDSL string, root node definition object or array of root node definition objects.

@@ -1,17 +1,17 @@
-const mistreevous = require("../../../dist/index");
-const chai = require("chai");
+import { assert } from "chai";
 
-var assert = chai.assert;
+import { BehaviourTree, State } from "../../../src/index";
+import { RootNodeDefinition } from "../../../src/BehaviourTreeDefinition";
+import { Agent } from "../../../src/Agent";
 
-const findNode = (tree, type, caption) =>
-    tree.getFlattenedNodeDetails().find((node) => node.type === type && node.caption === caption);
+import { findNode } from "../../TestUtilities";
 
 describe("An Action node", () => {
     describe("on tree initialisation", () => {
         it("will error if an action name identifier is not the first node argument", () => {
             const definition = "root { action [] }";
             assert.throws(
-                () => new mistreevous.BehaviourTree(definition, {}),
+                () => new BehaviourTree(definition, {}),
                 Error,
                 "invalid definition: expected action name identifier argument"
             );
@@ -22,35 +22,35 @@ describe("An Action node", () => {
         describe("will call the function defined by the first node argument", () => {
             describe("when the referenced function is", () => {
                 it("a registered function", () => {
-                    mistreevous.BehaviourTree.register("doAction", () => {
-                        return mistreevous.State.SUCCEEDED;
+                    BehaviourTree.register("doAction", () => {
+                        return State.SUCCEEDED;
                     });
 
                     const definition = "root { action [doAction] }";
-                    const tree = new mistreevous.BehaviourTree(definition, {});
+                    const tree = new BehaviourTree(definition, {});
 
                     tree.step();
 
-                    node = findNode(tree, "action", "doAction");
-                    assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
+                    const node = findNode(tree, "action", "doAction");
+                    assert.strictEqual(node.state, State.SUCCEEDED);
                 });
 
                 it("an agent function", () => {
                     const definition = "root { action [doAction] }";
-                    const agent = { doAction: () => mistreevous.State.SUCCEEDED };
-                    const tree = new mistreevous.BehaviourTree(definition, agent);
+                    const agent: Agent = { doAction: () => State.SUCCEEDED };
+                    const tree = new BehaviourTree(definition, agent);
 
                     tree.step();
 
-                    node = findNode(tree, "action", "doAction");
-                    assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
+                    const node = findNode(tree, "action", "doAction");
+                    assert.strictEqual(node.state, State.SUCCEEDED);
                 });
             });
 
             it("and will error if there is no agent function or registered function that matches the action name", () => {
                 const definition = "root { action [DoTheThing] }";
-                let tree;
-                assert.doesNotThrow(() => (tree = new mistreevous.BehaviourTree(definition, {})), Error);
+                let tree: BehaviourTree;
+                assert.doesNotThrow(() => (tree = new BehaviourTree(definition, {})), Error);
                 assert.throws(
                     () => tree.step(),
                     Error,
@@ -61,56 +61,56 @@ describe("An Action node", () => {
             describe("and move to", () => {
                 it("the SUCCESS state if the function returns a value of State.SUCCEEDED", () => {
                     const definition = "root { action [doAction] }";
-                    const agent = { doAction: () => mistreevous.State.SUCCEEDED };
-                    const tree = new mistreevous.BehaviourTree(definition, agent);
+                    const agent: Agent = { doAction: () => State.SUCCEEDED };
+                    const tree = new BehaviourTree(definition, agent);
 
                     let node = findNode(tree, "action", "doAction");
-                    assert.strictEqual(node.state, mistreevous.State.READY);
+                    assert.strictEqual(node.state, State.READY);
 
                     tree.step();
 
                     node = findNode(tree, "action", "doAction");
-                    assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
+                    assert.strictEqual(node.state, State.SUCCEEDED);
                 });
 
                 it("the FAILED state if the function returns a value of State.FAILED", () => {
                     const definition = "root { action [doAction] }";
-                    const agent = { doAction: () => mistreevous.State.FAILED };
-                    const tree = new mistreevous.BehaviourTree(definition, agent);
+                    const agent: Agent = { doAction: () => State.FAILED };
+                    const tree = new BehaviourTree(definition, agent);
 
                     let node = findNode(tree, "action", "doAction");
-                    assert.strictEqual(node.state, mistreevous.State.READY);
+                    assert.strictEqual(node.state, State.READY);
 
                     tree.step();
 
                     node = findNode(tree, "action", "doAction");
-                    assert.strictEqual(node.state, mistreevous.State.FAILED);
+                    assert.strictEqual(node.state, State.FAILED);
                 });
 
                 describe("the RUNNING state if", () => {
                     it("the function returns undefined", () => {
                         const definition = "root { action [doAction] }";
                         const agent = { doAction: () => {} };
-                        const tree = new mistreevous.BehaviourTree(definition, agent);
+                        const tree = new BehaviourTree(definition, agent);
 
                         let node = findNode(tree, "action", "doAction");
-                        assert.strictEqual(node.state, mistreevous.State.READY);
+                        assert.strictEqual(node.state, State.READY);
 
                         tree.step();
 
                         node = findNode(tree, "action", "doAction");
-                        assert.strictEqual(node.state, mistreevous.State.RUNNING);
+                        assert.strictEqual(node.state, State.RUNNING);
                     });
 
                     it("the function returns a promise to return a value of State.SUCCEEDED or State.FAILED", (done) => {
-                        const result = new Promise((resolve) => resolve(mistreevous.State.SUCCEEDED));
+                        const result: Promise<State.SUCCEEDED> = new Promise((resolve) => resolve(State.SUCCEEDED));
 
                         const definition = "root { action [doAction] }";
-                        const agent = { doAction: () => result };
-                        const tree = new mistreevous.BehaviourTree(definition, agent);
+                        const agent: Agent = { doAction: () => result };
+                        const tree = new BehaviourTree(definition, agent);
 
                         let node = findNode(tree, "action", "doAction");
-                        assert.strictEqual(node.state, mistreevous.State.READY);
+                        assert.strictEqual(node.state, State.READY);
 
                         tree.step();
 
@@ -118,7 +118,7 @@ describe("An Action node", () => {
                             .then(() => tree.step())
                             .then(() => {
                                 node = findNode(tree, "action", "doAction");
-                                assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
+                                assert.strictEqual(node.state, State.SUCCEEDED);
                             })
                             .then(done);
                     });
@@ -130,9 +130,9 @@ describe("An Action node", () => {
                     it("string", () => {
                         const definition = 'root { action [doAction, "hello world!"] }';
                         const agent = {
-                            doAction: (arg) => assert.strictEqual(arg, "hello world!")
+                            doAction: (arg: any) => assert.strictEqual(arg, "hello world!")
                         };
-                        const tree = new mistreevous.BehaviourTree(definition, agent);
+                        const tree = new BehaviourTree(definition, agent);
 
                         tree.step();
                     });
@@ -140,9 +140,9 @@ describe("An Action node", () => {
                     it("string with escaped quotes", () => {
                         const definition = 'root { action [doAction, "hello \\" world!"] }';
                         const agent = {
-                            doAction: (arg) => assert.strictEqual(arg, 'hello " world!')
+                            doAction: (arg: any) => assert.strictEqual(arg, 'hello " world!')
                         };
-                        const tree = new mistreevous.BehaviourTree(definition, agent);
+                        const tree = new BehaviourTree(definition, agent);
 
                         tree.step();
                     });
@@ -150,9 +150,9 @@ describe("An Action node", () => {
                     it("number", () => {
                         const definition = "root { action [doAction, 23.4567] }";
                         const agent = {
-                            doAction: (arg) => assert.strictEqual(arg, 23.4567)
+                            doAction: (arg: any) => assert.strictEqual(arg, 23.4567)
                         };
-                        const tree = new mistreevous.BehaviourTree(definition, agent);
+                        const tree = new BehaviourTree(definition, agent);
 
                         tree.step();
                     });
@@ -160,9 +160,9 @@ describe("An Action node", () => {
                     it("boolean 'true' literal", () => {
                         const definition = "root { action [doAction, true] }";
                         const agent = {
-                            doAction: (arg) => assert.strictEqual(arg, true)
+                            doAction: (arg: any) => assert.strictEqual(arg, true)
                         };
-                        const tree = new mistreevous.BehaviourTree(definition, agent);
+                        const tree = new BehaviourTree(definition, agent);
 
                         tree.step();
                     });
@@ -170,9 +170,9 @@ describe("An Action node", () => {
                     it("boolean 'false' literal", () => {
                         const definition = "root { action [doAction, false] }";
                         const agent = {
-                            doAction: (arg) => assert.strictEqual(arg, false)
+                            doAction: (arg: any) => assert.strictEqual(arg, false)
                         };
-                        const tree = new mistreevous.BehaviourTree(definition, agent);
+                        const tree = new BehaviourTree(definition, agent);
 
                         tree.step();
                     });
@@ -180,9 +180,9 @@ describe("An Action node", () => {
                     it("null", () => {
                         const definition = "root { action [doAction, null] }";
                         const agent = {
-                            doAction: (arg) => assert.isNull(arg)
+                            doAction: (arg: any) => assert.isNull(arg)
                         };
-                        const tree = new mistreevous.BehaviourTree(definition, agent);
+                        const tree = new BehaviourTree(definition, agent);
 
                         tree.step();
                     });
@@ -191,14 +191,14 @@ describe("An Action node", () => {
                 it("there are multiple arguments", () => {
                     const definition = 'root { action [doAction, 1.23, "hello world!", false, null] }';
                     const agent = {
-                        doAction: (arg0, arg1, arg2, arg3) => {
+                        doAction: (arg0: any, arg1: any, arg2: any, arg3: any) => {
                             assert.strictEqual(arg0, 1.23);
                             assert.strictEqual(arg1, "hello world!");
                             assert.strictEqual(arg2, false);
                             assert.strictEqual(arg3, null);
                         }
                     };
-                    const tree = new mistreevous.BehaviourTree(definition, agent);
+                    const tree = new BehaviourTree(definition, agent);
 
                     tree.step();
                 });

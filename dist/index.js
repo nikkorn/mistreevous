@@ -2183,30 +2183,30 @@ var BehaviourTree = class {
       );
     }
     try {
-      this.rootNode = buildRootNode(json);
+      this._rootNode = buildRootNode(json);
     } catch (exception) {
       throw new Error(`error building tree: ${exception.message}`);
     }
   }
-  rootNode;
+  _rootNode;
   isRunning() {
-    return this.rootNode.getState() === "mistreevous.running" /* RUNNING */;
+    return this._rootNode.getState() === "mistreevous.running" /* RUNNING */;
   }
   getState() {
-    return this.rootNode.getState();
+    return this._rootNode.getState();
   }
   step() {
-    if (this.rootNode.getState() === "mistreevous.succeeded" /* SUCCEEDED */ || this.rootNode.getState() === "mistreevous.failed" /* FAILED */) {
-      this.rootNode.reset();
+    if (this._rootNode.getState() === "mistreevous.succeeded" /* SUCCEEDED */ || this._rootNode.getState() === "mistreevous.failed" /* FAILED */) {
+      this._rootNode.reset();
     }
     try {
-      this.rootNode.update(this.agent, this.options);
+      this._rootNode.update(this.agent, this.options);
     } catch (exception) {
       throw new Error(`error stepping tree: ${exception.message}`);
     }
   }
   reset() {
-    this.rootNode.reset();
+    this._rootNode.reset();
   }
   getFlattenedNodeDetails() {
     const flattenedTreeNodes = [];
@@ -2227,7 +2227,7 @@ var BehaviourTree = class {
         node.getChildren().forEach((child) => processNode(child, node.getUid()));
       }
     };
-    processNode(this.rootNode, null);
+    processNode(this._rootNode, null);
     return flattenedTreeNodes;
   }
   static register(name, value) {

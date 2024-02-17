@@ -1,18 +1,18 @@
-const mistreevous = require("../../../dist/index");
-const chai = require("chai");
-const sinon = require("sinon");
+import { assert } from "chai";
+import sinon, { SinonSandbox } from "sinon";
 
-var assert = chai.assert;
+import { BehaviourTree, State } from "../../../src/index";
+import { RootNodeDefinition } from "../../../src/BehaviourTreeDefinition";
+import { Agent } from "../../../src/Agent";
 
-const findNode = (tree, type, caption) =>
-    tree.getFlattenedNodeDetails().find((node) => node.type === type && node.caption === caption);
+import { findNode } from "../../TestUtilities";
 
 describe("A Retry node", () => {
     describe("on tree initialisation", () => {
         it("will error if the node does not have a single child", () => {
             const definition = "root { retry {} }";
             assert.throws(
-                () => new mistreevous.BehaviourTree(definition, {}),
+                () => new BehaviourTree(definition, {}),
                 Error,
                 "invalid definition: a retry node must have a single child"
             );
@@ -20,7 +20,7 @@ describe("A Retry node", () => {
     });
 
     describe("when updated as part of a tree step", () => {
-        var sandbox;
+        var sandbox: SinonSandbox;
 
         beforeEach(() => {
             sandbox = sinon.createSandbox();
@@ -32,61 +32,61 @@ describe("A Retry node", () => {
         it("will move to the SUCCEEDED state if the child node moves to the SUCCEEDED state", () => {
             const definition = "root { retry { condition [someCondition] } }";
             const agent = { someCondition: () => true };
-            const tree = new mistreevous.BehaviourTree(definition, agent);
+            const tree = new BehaviourTree(definition, agent);
 
             let node = findNode(tree, "retry", "RETRY");
             assert.exists(node);
-            assert.strictEqual(node.state, mistreevous.State.READY);
+            assert.strictEqual(node.state, State.READY);
 
             tree.step();
 
             node = findNode(tree, "retry", "RETRY");
-            assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
+            assert.strictEqual(node.state, State.SUCCEEDED);
         });
 
         it("will move to the RUNNING state if the child node moves to the FAILED state", () => {
             const definition = "root { retry { condition [someCondition] } }";
             const agent = { someCondition: () => false };
-            const tree = new mistreevous.BehaviourTree(definition, agent);
+            const tree = new BehaviourTree(definition, agent);
 
             let node = findNode(tree, "retry", "RETRY");
             assert.exists(node);
-            assert.strictEqual(node.state, mistreevous.State.READY);
+            assert.strictEqual(node.state, State.READY);
 
             tree.step();
 
             node = findNode(tree, "retry", "RETRY");
-            assert.strictEqual(node.state, mistreevous.State.RUNNING);
+            assert.strictEqual(node.state, State.RUNNING);
         });
 
         it("and an attempt count node argument is defined will attempt to re-run the child node until the attempt count is reached", () => {
             const definition = "root { retry [3] { condition [someCondition] } }";
             const agent = { someCondition: () => false };
-            const tree = new mistreevous.BehaviourTree(definition, agent);
+            const tree = new BehaviourTree(definition, agent);
 
             let node = findNode(tree, "retry", "RETRY 3x");
             assert.exists(node);
-            assert.strictEqual(node.state, mistreevous.State.READY);
+            assert.strictEqual(node.state, State.READY);
 
             tree.step();
 
             node = findNode(tree, "retry", "RETRY 3x");
-            assert.strictEqual(node.state, mistreevous.State.RUNNING);
+            assert.strictEqual(node.state, State.RUNNING);
 
             tree.step();
 
             node = findNode(tree, "retry", "RETRY 3x");
-            assert.strictEqual(node.state, mistreevous.State.RUNNING);
+            assert.strictEqual(node.state, State.RUNNING);
 
             tree.step();
 
             node = findNode(tree, "retry", "RETRY 3x");
-            assert.strictEqual(node.state, mistreevous.State.RUNNING);
+            assert.strictEqual(node.state, State.RUNNING);
 
             tree.step();
 
             node = findNode(tree, "retry", "RETRY 3x");
-            assert.strictEqual(node.state, mistreevous.State.FAILED);
+            assert.strictEqual(node.state, State.FAILED);
         });
 
         describe("and minumum and maximum attempt count node arguments are defined", () => {
@@ -94,36 +94,36 @@ describe("A Retry node", () => {
                 // We have spied on Math.random to always return 0.5 for the sake of this test, so our attempt count should always be 4.
                 const definition = "root { retry [2, 6] { condition [someCondition] } }";
                 const agent = { someCondition: () => false };
-                const tree = new mistreevous.BehaviourTree(definition, agent);
+                const tree = new BehaviourTree(definition, agent);
 
                 let node = findNode(tree, "retry", "RETRY 2x-6x");
                 assert.exists(node);
-                assert.strictEqual(node.state, mistreevous.State.READY);
+                assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
                 node = findNode(tree, "retry", "RETRY 2x-6x");
-                assert.strictEqual(node.state, mistreevous.State.RUNNING);
+                assert.strictEqual(node.state, State.RUNNING);
 
                 tree.step();
 
                 node = findNode(tree, "retry", "RETRY 2x-6x");
-                assert.strictEqual(node.state, mistreevous.State.RUNNING);
+                assert.strictEqual(node.state, State.RUNNING);
 
                 tree.step();
 
                 node = findNode(tree, "retry", "RETRY 2x-6x");
-                assert.strictEqual(node.state, mistreevous.State.RUNNING);
+                assert.strictEqual(node.state, State.RUNNING);
 
                 tree.step();
 
                 node = findNode(tree, "retry", "RETRY 2x-6x");
-                assert.strictEqual(node.state, mistreevous.State.RUNNING);
+                assert.strictEqual(node.state, State.RUNNING);
 
                 tree.step();
 
                 node = findNode(tree, "retry", "RETRY 2x-6x");
-                assert.strictEqual(node.state, mistreevous.State.FAILED);
+                assert.strictEqual(node.state, State.FAILED);
             });
 
             it("and if the 'random' behaviour tree option is defined will use it to pick an attempt count from between the minimum and maximum bounds", () => {
@@ -135,31 +135,31 @@ describe("A Retry node", () => {
                     // A value of 0.2 should always result in an attempt count of 3.
                     random: () => 0.2
                 };
-                const tree = new mistreevous.BehaviourTree(definition, agent, options);
+                const tree = new BehaviourTree(definition, agent, options);
 
                 let node = findNode(tree, "retry", "RETRY 2x-10x");
                 assert.exists(node);
-                assert.strictEqual(node.state, mistreevous.State.READY);
+                assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
                 node = findNode(tree, "retry", "RETRY 2x-10x");
-                assert.strictEqual(node.state, mistreevous.State.RUNNING);
+                assert.strictEqual(node.state, State.RUNNING);
 
                 tree.step();
 
                 node = findNode(tree, "retry", "RETRY 2x-10x");
-                assert.strictEqual(node.state, mistreevous.State.RUNNING);
+                assert.strictEqual(node.state, State.RUNNING);
 
                 tree.step();
 
                 node = findNode(tree, "retry", "RETRY 2x-10x");
-                assert.strictEqual(node.state, mistreevous.State.RUNNING);
+                assert.strictEqual(node.state, State.RUNNING);
 
                 tree.step();
 
                 node = findNode(tree, "retry", "RETRY 2x-10x");
-                assert.strictEqual(node.state, mistreevous.State.FAILED);
+                assert.strictEqual(node.state, State.FAILED);
             });
         });
     });

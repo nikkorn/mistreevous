@@ -1,10 +1,10 @@
-const mistreevous = require("../../../dist/index");
-const chai = require("chai");
+import { assert } from "chai";
 
-var assert = chai.assert;
+import { BehaviourTree, State } from "../../../src/index";
+import { RootNodeDefinition } from "../../../src/BehaviourTreeDefinition";
+import { Agent } from "../../../src/Agent";
 
-const findNode = (tree, type, caption) =>
-    tree.getFlattenedNodeDetails().find((node) => node.type === type && node.caption === caption);
+import { findNode } from "../../TestUtilities";
 
 describe("A Flip node", () => {
     describe("on tree initialisation", () => {
@@ -12,7 +12,7 @@ describe("A Flip node", () => {
             it("(MDSL)", () => {
                 const definition = "root { flip {} }";
                 assert.throws(
-                    () => new mistreevous.BehaviourTree(definition, {}),
+                    () => new BehaviourTree(definition, {}),
                     Error,
                     "invalid definition: a flip node must have a single child"
                 );
@@ -24,9 +24,9 @@ describe("A Flip node", () => {
                     child: {
                         type: "flip"
                     }
-                };
+                } as any;
                 assert.throws(
-                    () => new mistreevous.BehaviourTree(definition, {}),
+                    () => new BehaviourTree(definition, {}),
                     Error,
                     "invalid definition: expected property 'child' to be defined for flip node at depth '1'"
                 );
@@ -39,19 +39,19 @@ describe("A Flip node", () => {
             it("(MDSL)", () => {
                 const definition = "root { flip { condition [someCondition] } }";
                 const agent = { someCondition: () => false };
-                const tree = new mistreevous.BehaviourTree(definition, agent);
+                const tree = new BehaviourTree(definition, agent);
 
                 let node = findNode(tree, "flip", "FLIP");
-                assert.strictEqual(node.state, mistreevous.State.READY);
+                assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
                 node = findNode(tree, "flip", "FLIP");
-                assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
+                assert.strictEqual(node.state, State.SUCCEEDED);
             });
 
             it("(JSON)", () => {
-                const definition = {
+                const definition: RootNodeDefinition = {
                     type: "root",
                     child: {
                         type: "flip",
@@ -62,15 +62,15 @@ describe("A Flip node", () => {
                     }
                 };
                 const agent = { someCondition: () => false };
-                const tree = new mistreevous.BehaviourTree(definition, agent);
+                const tree = new BehaviourTree(definition, agent);
 
                 let node = findNode(tree, "flip", "FLIP");
-                assert.strictEqual(node.state, mistreevous.State.READY);
+                assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
                 node = findNode(tree, "flip", "FLIP");
-                assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
+                assert.strictEqual(node.state, State.SUCCEEDED);
             });
         });
 
@@ -78,19 +78,19 @@ describe("A Flip node", () => {
             it("(MDSL)", () => {
                 const definition = "root { flip { condition [someCondition] } }";
                 const agent = { someCondition: () => true };
-                const tree = new mistreevous.BehaviourTree(definition, agent);
+                const tree = new BehaviourTree(definition, agent);
 
                 let node = findNode(tree, "flip", "FLIP");
-                assert.strictEqual(node.state, mistreevous.State.READY);
+                assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
                 node = findNode(tree, "flip", "FLIP");
-                assert.strictEqual(node.state, mistreevous.State.FAILED);
+                assert.strictEqual(node.state, State.FAILED);
             });
 
             it("(JSON)", () => {
-                const definition = {
+                const definition: RootNodeDefinition = {
                     type: "root",
                     child: {
                         type: "flip",
@@ -101,15 +101,15 @@ describe("A Flip node", () => {
                     }
                 };
                 const agent = { someCondition: () => true };
-                const tree = new mistreevous.BehaviourTree(definition, agent);
+                const tree = new BehaviourTree(definition, agent);
 
                 let node = findNode(tree, "flip", "FLIP");
-                assert.strictEqual(node.state, mistreevous.State.READY);
+                assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
                 node = findNode(tree, "flip", "FLIP");
-                assert.strictEqual(node.state, mistreevous.State.FAILED);
+                assert.strictEqual(node.state, State.FAILED);
             });
         });
 
@@ -117,19 +117,19 @@ describe("A Flip node", () => {
             it("(MDSL)", () => {
                 const definition = "root { flip { action [someAction] } }";
                 const agent = { someAction: () => {} };
-                const tree = new mistreevous.BehaviourTree(definition, agent);
+                const tree = new BehaviourTree(definition, agent);
 
                 let node = findNode(tree, "flip", "FLIP");
-                assert.strictEqual(node.state, mistreevous.State.READY);
+                assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
                 node = findNode(tree, "flip", "FLIP");
-                assert.strictEqual(node.state, mistreevous.State.RUNNING);
+                assert.strictEqual(node.state, State.RUNNING);
             });
 
             it("(JSON)", () => {
-                const definition = {
+                const definition: RootNodeDefinition = {
                     type: "root",
                     child: {
                         type: "flip",
@@ -140,15 +140,15 @@ describe("A Flip node", () => {
                     }
                 };
                 const agent = { someAction: () => {} };
-                const tree = new mistreevous.BehaviourTree(definition, agent);
+                const tree = new BehaviourTree(definition, agent);
 
                 let node = findNode(tree, "flip", "FLIP");
-                assert.strictEqual(node.state, mistreevous.State.READY);
+                assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
                 node = findNode(tree, "flip", "FLIP");
-                assert.strictEqual(node.state, mistreevous.State.RUNNING);
+                assert.strictEqual(node.state, State.RUNNING);
             });
         });
     });

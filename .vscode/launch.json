@@ -13,20 +13,20 @@
             ],
             "program": "${workspaceFolder}\\dist\\index.js"
         }, {
+            "type": "node",
+            "request": "launch",
+            "name": "Mocha Tests",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "args": [
+                "-r",
+                "ts-node/register",
                 "--timeout",
                 "999999",
                 "--colors",
-                "${workspaceFolder}/test/**/*.js"
+                "${workspaceFolder}/test/**/*spec.ts",
             ],
-            "internalConsoleOptions": "openOnSessionStart",
-            "name": "Mocha Tests",
-            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-            "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "type": "node"
-        }
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
     ]
 }

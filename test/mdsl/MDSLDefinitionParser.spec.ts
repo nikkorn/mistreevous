@@ -1,7 +1,6 @@
-const mistreevous = require("../../dist/index");
-const chai = require("chai");
+import { assert } from "chai";
 
-var assert = chai.assert;
+import { findNode } from "../TestUtilities";
 
 describe("The convertMDSLToJSON function", () => {
     it("does stuff", () => {

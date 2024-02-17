@@ -10,6 +10,6 @@ export type ExitFunctionArg = {
     aborted: boolean;
 };
 export type FunctionArg = number | string | boolean | null | ExitFunctionArg;
-export type ActionResult = CompleteState | Promise<CompleteState> | boolean;
+export type ActionResult = CompleteState | Promise<CompleteState> | boolean | void;
 export type AgentFunction = (this: Agent, ...args: FunctionArg[]) => ActionResult;
 export type GlobalFunction = (agent: Agent, ...args: FunctionArg[]) => ActionResult;

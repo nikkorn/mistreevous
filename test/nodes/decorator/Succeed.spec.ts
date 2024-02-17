@@ -1,10 +1,10 @@
-const mistreevous = require("../../../dist/index");
-const chai = require("chai");
+import { assert } from "chai";
 
-var assert = chai.assert;
+import { BehaviourTree, State } from "../../../src/index";
+import { RootNodeDefinition } from "../../../src/BehaviourTreeDefinition";
+import { Agent } from "../../../src/Agent";
 
-const findNode = (tree, type, caption) =>
-    tree.getFlattenedNodeDetails().find((node) => node.type === type && node.caption === caption);
+import { findNode } from "../../TestUtilities";
 
 describe("A Succeed node", () => {
     describe("on tree initialisation", () => {
@@ -12,7 +12,7 @@ describe("A Succeed node", () => {
             it("(MDSL)", () => {
                 const definition = "root { succeed {} }";
                 assert.throws(
-                    () => new mistreevous.BehaviourTree(definition, {}),
+                    () => new BehaviourTree(definition, {}),
                     Error,
                     "invalid definition: a succeed node must have a single child"
                 );
@@ -24,9 +24,9 @@ describe("A Succeed node", () => {
                     child: {
                         type: "succeed"
                     }
-                };
+                } as any;
                 assert.throws(
-                    () => new mistreevous.BehaviourTree(definition, {}),
+                    () => new BehaviourTree(definition, {}),
                     Error,
                     "invalid definition: expected property 'child' to be defined for succeed node at depth '1'"
                 );
@@ -40,19 +40,19 @@ describe("A Succeed node", () => {
                 it("(MDSL)", () => {
                     const definition = "root { succeed { condition [someCondition] } }";
                     const agent = { someCondition: () => false };
-                    const tree = new mistreevous.BehaviourTree(definition, agent);
+                    const tree = new BehaviourTree(definition, agent);
 
                     let node = findNode(tree, "succeed", "SUCCEED");
-                    assert.strictEqual(node.state, mistreevous.State.READY);
+                    assert.strictEqual(node.state, State.READY);
 
                     tree.step();
 
                     node = findNode(tree, "succeed", "SUCCEED");
-                    assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
+                    assert.strictEqual(node.state, State.SUCCEEDED);
                 });
 
                 it("(JSON)", () => {
-                    const definition = {
+                    const definition: RootNodeDefinition = {
                         type: "root",
                         child: {
                             type: "succeed",
@@ -63,15 +63,15 @@ describe("A Succeed node", () => {
                         }
                     };
                     const agent = { someCondition: () => false };
-                    const tree = new mistreevous.BehaviourTree(definition, agent);
+                    const tree = new BehaviourTree(definition, agent);
 
                     let node = findNode(tree, "succeed", "SUCCEED");
-                    assert.strictEqual(node.state, mistreevous.State.READY);
+                    assert.strictEqual(node.state, State.READY);
 
                     tree.step();
 
                     node = findNode(tree, "succeed", "SUCCEED");
-                    assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
+                    assert.strictEqual(node.state, State.SUCCEEDED);
                 });
             });
 
@@ -79,19 +79,19 @@ describe("A Succeed node", () => {
                 it("(MDSL)", () => {
                     const definition = "root { succeed { condition [someCondition] } }";
                     const agent = { someCondition: () => true };
-                    const tree = new mistreevous.BehaviourTree(definition, agent);
+                    const tree = new BehaviourTree(definition, agent);
 
                     let node = findNode(tree, "succeed", "SUCCEED");
-                    assert.strictEqual(node.state, mistreevous.State.READY);
+                    assert.strictEqual(node.state, State.READY);
 
                     tree.step();
 
                     node = findNode(tree, "succeed", "SUCCEED");
-                    assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
+                    assert.strictEqual(node.state, State.SUCCEEDED);
                 });
 
                 it("(JSON)", () => {
-                    const definition = {
+                    const definition: RootNodeDefinition = {
                         type: "root",
                         child: {
                             type: "succeed",
@@ -102,15 +102,15 @@ describe("A Succeed node", () => {
                         }
                     };
                     const agent = { someCondition: () => true };
-                    const tree = new mistreevous.BehaviourTree(definition, agent);
+                    const tree = new BehaviourTree(definition, agent);
 
                     let node = findNode(tree, "succeed", "SUCCEED");
-                    assert.strictEqual(node.state, mistreevous.State.READY);
+                    assert.strictEqual(node.state, State.READY);
 
                     tree.step();
 
                     node = findNode(tree, "succeed", "SUCCEED");
-                    assert.strictEqual(node.state, mistreevous.State.SUCCEEDED);
+                    assert.strictEqual(node.state, State.SUCCEEDED);
                 });
             });
         });
@@ -119,19 +119,19 @@ describe("A Succeed node", () => {
             it("(MDSL)", () => {
                 const definition = "root { succeed { action [someAction] } }";
                 const agent = { someAction: () => {} };
-                const tree = new mistreevous.BehaviourTree(definition, agent);
+                const tree = new BehaviourTree(definition, agent);
 
                 let node = findNode(tree, "succeed", "SUCCEED");
-                assert.strictEqual(node.state, mistreevous.State.READY);
+                assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
                 node = findNode(tree, "succeed", "SUCCEED");
-                assert.strictEqual(node.state, mistreevous.State.RUNNING);
+                assert.strictEqual(node.state, State.RUNNING);
             });
 
             it("(JSON)", () => {
-                const definition = {
+                const definition: RootNodeDefinition = {
                     type: "root",
                     child: {
                         type: "succeed",
@@ -142,15 +142,15 @@ describe("A Succeed node", () => {
                     }
                 };
                 const agent = { someAction: () => {} };
-                const tree = new mistreevous.BehaviourTree(definition, agent);
+                const tree = new BehaviourTree(definition, agent);
 
                 let node = findNode(tree, "succeed", "SUCCEED");
-                assert.strictEqual(node.state, mistreevous.State.READY);
+                assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
                 node = findNode(tree, "succeed", "SUCCEED");
-                assert.strictEqual(node.state, mistreevous.State.RUNNING);
+                assert.strictEqual(node.state, State.RUNNING);
             });
         });
     });

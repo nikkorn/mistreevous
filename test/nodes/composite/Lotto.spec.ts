@@ -1,9 +1,9 @@
-const mistreevous = require("../../../dist/index");
-const chai = require("chai");
+import { assert } from "chai";
 
-var assert = chai.assert;
+import { BehaviourTree, State } from "../../../src/index";
+import { RootNodeDefinition } from "../../../src/BehaviourTreeDefinition";
 
-const findNode = (tree, type, caption) => tree.getFlattenedNodeDetails().find((node) => node.type === type);
+import { findNode } from "../../TestUtilities";
 
 describe("A Lotto node", () => {
     describe("on tree initialisation", () => {
@@ -11,14 +11,14 @@ describe("A Lotto node", () => {
             it("(MDSL)", () => {
                 const definition = "root { lotto {} }";
                 assert.throws(
-                    () => new mistreevous.BehaviourTree(definition, {}),
+                    () => new BehaviourTree(definition, {}),
                     Error,
                     "invalid definition: a lotto node must have at least a single child"
                 );
             });
 
             it("(JSON)", () => {
-                const definition = {
+                const definition: RootNodeDefinition = {
                     type: "root",
                     child: {
                         type: "lotto",
@@ -26,7 +26,7 @@ describe("A Lotto node", () => {
                     }
                 };
                 assert.throws(
-                    () => new mistreevous.BehaviourTree(definition, {}),
+                    () => new BehaviourTree(definition, {}),
                     Error,
                     "invalid definition: expected non-empty 'children' array to be defined for lotto node at depth '1'"
                 );
@@ -38,35 +38,35 @@ describe("A Lotto node", () => {
                 it("(MDSL)", () => {
                     let definition = "root { lotto [-1] { action [SomeAction] } }";
                     assert.throws(
-                        () => new mistreevous.BehaviourTree(definition, {}),
+                        () => new BehaviourTree(definition, {}),
                         Error,
                         "invalid definition: lotto node weight arguments must be positive integer values"
                     );
 
                     definition = "root { lotto [1.234] { action [SomeAction] } }";
                     assert.throws(
-                        () => new mistreevous.BehaviourTree(definition, {}),
+                        () => new BehaviourTree(definition, {}),
                         Error,
                         "invalid definition: lotto node weight arguments must be positive integer values"
                     );
 
                     definition = 'root { lotto ["some-string"] { action [SomeAction] } }';
                     assert.throws(
-                        () => new mistreevous.BehaviourTree(definition, {}),
+                        () => new BehaviourTree(definition, {}),
                         Error,
                         "invalid definition: lotto node weight arguments must be positive integer values"
                     );
 
                     definition = "root { lotto [false] { action [SomeAction] } }";
                     assert.throws(
-                        () => new mistreevous.BehaviourTree(definition, {}),
+                        () => new BehaviourTree(definition, {}),
                         Error,
                         "invalid definition: lotto node weight arguments must be positive integer values"
                     );
                 });
 
                 it("(JSON)", () => {
-                    let definition = {
+                    let definition: RootNodeDefinition = {
                         type: "root",
                         child: {
                             type: "lotto",
@@ -80,7 +80,7 @@ describe("A Lotto node", () => {
                         }
                     };
                     assert.throws(
-                        () => new mistreevous.BehaviourTree(definition, {}),
+                        () => new BehaviourTree(definition, {}),
                         Error,
                         "invalid definition: expected an array of positive integer weight values with a length matching the number of child nodes for 'weights' property if defined for lotto node at depth '1'"
                     );
@@ -99,7 +99,7 @@ describe("A Lotto node", () => {
                         }
                     };
                     assert.throws(
-                        () => new mistreevous.BehaviourTree(definition, {}),
+                        () => new BehaviourTree(definition, {}),
                         Error,
                         "invalid definition: expected an array of positive integer weight values with a length matching the number of child nodes for 'weights' property if defined for lotto node at depth '1'"
                     );
@@ -116,9 +116,9 @@ describe("A Lotto node", () => {
                                 }
                             ]
                         }
-                    };
+                    } as any;
                     assert.throws(
-                        () => new mistreevous.BehaviourTree(definition, {}),
+                        () => new BehaviourTree(definition, {}),
                         Error,
                         "invalid definition: expected an array of positive integer weight values with a length matching the number of child nodes for 'weights' property if defined for lotto node at depth '1'"
                     );
@@ -135,9 +135,9 @@ describe("A Lotto node", () => {
                                 }
                             ]
                         }
-                    };
+                    } as any;
                     assert.throws(
-                        () => new mistreevous.BehaviourTree(definition, {}),
+                        () => new BehaviourTree(definition, {}),
                         Error,
                         "invalid definition: expected an array of positive integer weight values with a length matching the number of child nodes for 'weights' property if defined for lotto node at depth '1'"
                     );
@@ -148,14 +148,14 @@ describe("A Lotto node", () => {
                 it("(MDSL)", () => {
                     const definition = "root { lotto [1] { action [SomeAction] action [SomeOtherAction] } }";
                     assert.throws(
-                        () => new mistreevous.BehaviourTree(definition, {}),
+                        () => new BehaviourTree(definition, {}),
                         Error,
                         "invalid definition: expected a number of weight arguments matching the number of child nodes for lotto node"
                     );
                 });
 
                 it("(JSON)", () => {
-                    const definition = {
+                    const definition: RootNodeDefinition = {
                         type: "root",
                         child: {
                             type: "lotto",
@@ -173,7 +173,7 @@ describe("A Lotto node", () => {
                         }
                     };
                     assert.throws(
-                        () => new mistreevous.BehaviourTree(definition, {}),
+                        () => new BehaviourTree(definition, {}),
                         Error,
                         "invalid definition: expected an array of positive integer weight values with a length matching the number of child nodes for 'weights' property if defined for lotto node at depth '1'"
                     );
@@ -187,23 +187,23 @@ describe("A Lotto node", () => {
             it("(MDSL)", () => {
                 const definition = "root { lotto { condition [IsTrue] } }";
                 const agent = { IsTrue: () => true };
-                const tree = new mistreevous.BehaviourTree(definition, agent);
+                const tree = new BehaviourTree(definition, agent);
 
                 let lottoNode = findNode(tree, "lotto");
                 let childNode = findNode(tree, "condition");
-                assert.strictEqual(lottoNode.state, mistreevous.State.READY);
-                assert.strictEqual(childNode.state, mistreevous.State.READY);
+                assert.strictEqual(lottoNode.state, State.READY);
+                assert.strictEqual(childNode.state, State.READY);
 
                 tree.step();
 
                 lottoNode = findNode(tree, "lotto");
                 childNode = findNode(tree, "condition");
-                assert.strictEqual(lottoNode.state, mistreevous.State.SUCCEEDED);
-                assert.strictEqual(childNode.state, mistreevous.State.SUCCEEDED);
+                assert.strictEqual(lottoNode.state, State.SUCCEEDED);
+                assert.strictEqual(childNode.state, State.SUCCEEDED);
             });
 
             it("(JSON)", () => {
-                const definition = {
+                const definition: RootNodeDefinition = {
                     type: "root",
                     child: {
                         type: "lotto",
@@ -216,19 +216,19 @@ describe("A Lotto node", () => {
                     }
                 };
                 const agent = { IsTrue: () => true };
-                const tree = new mistreevous.BehaviourTree(definition, agent);
+                const tree = new BehaviourTree(definition, agent);
 
                 let lottoNode = findNode(tree, "lotto");
                 let childNode = findNode(tree, "condition");
-                assert.strictEqual(lottoNode.state, mistreevous.State.READY);
-                assert.strictEqual(childNode.state, mistreevous.State.READY);
+                assert.strictEqual(lottoNode.state, State.READY);
+                assert.strictEqual(childNode.state, State.READY);
 
                 tree.step();
 
                 lottoNode = findNode(tree, "lotto");
                 childNode = findNode(tree, "condition");
-                assert.strictEqual(lottoNode.state, mistreevous.State.SUCCEEDED);
-                assert.strictEqual(childNode.state, mistreevous.State.SUCCEEDED);
+                assert.strictEqual(lottoNode.state, State.SUCCEEDED);
+                assert.strictEqual(childNode.state, State.SUCCEEDED);
             });
         });
 
@@ -246,21 +246,21 @@ describe("A Lotto node", () => {
                     // lotto node is selected. A value of 0.6 should always result in the fourth child out of six being picked.
                     random: () => 0.6
                 };
-                const tree = new mistreevous.BehaviourTree(definition, agent, options);
+                const tree = new BehaviourTree(definition, agent, options);
 
                 let lottoNode = findNode(tree, "lotto");
-                assert.strictEqual(lottoNode.state, mistreevous.State.READY);
+                assert.strictEqual(lottoNode.state, State.READY);
 
                 tree.step();
 
                 // Check that the lotto node has moved into the SUCCEEDED state. This would only
                 // have happened if the fourth condition node was selected by the lotto node.
                 lottoNode = findNode(tree, "lotto");
-                assert.strictEqual(lottoNode.state, mistreevous.State.SUCCEEDED);
+                assert.strictEqual(lottoNode.state, State.SUCCEEDED);
             });
 
             it("(JSON)", () => {
-                const definition = {
+                const definition: RootNodeDefinition = {
                     type: "root",
                     child: {
                         type: "lotto",
@@ -302,17 +302,17 @@ describe("A Lotto node", () => {
                     // lotto node is selected. A value of 0.6 should always result in the fourth child out of six being picked.
                     random: () => 0.6
                 };
-                const tree = new mistreevous.BehaviourTree(definition, agent, options);
+                const tree = new BehaviourTree(definition, agent, options);
 
                 let lottoNode = findNode(tree, "lotto");
-                assert.strictEqual(lottoNode.state, mistreevous.State.READY);
+                assert.strictEqual(lottoNode.state, State.READY);
 
                 tree.step();
 
                 // Check that the lotto node has moved into the SUCCEEDED state. This would only
                 // have happened if the fourth condition node was selected by the lotto node.
                 lottoNode = findNode(tree, "lotto");
-                assert.strictEqual(lottoNode.state, mistreevous.State.SUCCEEDED);
+                assert.strictEqual(lottoNode.state, State.SUCCEEDED);
             });
         });
 
@@ -324,23 +324,23 @@ describe("A Lotto node", () => {
             it("(MDSL)", () => {
                 const definition = "root { lotto { condition [IsTrue] } }";
                 const agent = { IsTrue: () => true };
-                const tree = new mistreevous.BehaviourTree(definition, agent);
+                const tree = new BehaviourTree(definition, agent);
 
                 let lottoNode = findNode(tree, "lotto");
                 let childNode = findNode(tree, "condition");
-                assert.strictEqual(lottoNode.state, mistreevous.State.READY);
-                assert.strictEqual(childNode.state, mistreevous.State.READY);
+                assert.strictEqual(lottoNode.state, State.READY);
+                assert.strictEqual(childNode.state, State.READY);
 
                 tree.step();
 
                 lottoNode = findNode(tree, "lotto");
                 childNode = findNode(tree, "condition");
-                assert.strictEqual(lottoNode.state, mistreevous.State.SUCCEEDED);
-                assert.strictEqual(childNode.state, mistreevous.State.SUCCEEDED);
+                assert.strictEqual(lottoNode.state, State.SUCCEEDED);
+                assert.strictEqual(childNode.state, State.SUCCEEDED);
             });
 
             it("(JSON)", () => {
-                const definition = {
+                const definition: RootNodeDefinition = {
                     type: "root",
                     child: {
                         type: "lotto",
@@ -353,19 +353,19 @@ describe("A Lotto node", () => {
                     }
                 };
                 const agent = { IsTrue: () => true };
-                const tree = new mistreevous.BehaviourTree(definition, agent);
+                const tree = new BehaviourTree(definition, agent);
 
                 let lottoNode = findNode(tree, "lotto");
                 let childNode = findNode(tree, "condition");
-                assert.strictEqual(lottoNode.state, mistreevous.State.READY);
-                assert.strictEqual(childNode.state, mistreevous.State.READY);
+                assert.strictEqual(lottoNode.state, State.READY);
+                assert.strictEqual(childNode.state, State.READY);
 
                 tree.step();
 
                 lottoNode = findNode(tree, "lotto");
                 childNode = findNode(tree, "condition");
-                assert.strictEqual(lottoNode.state, mistreevous.State.SUCCEEDED);
-                assert.strictEqual(childNode.state, mistreevous.State.SUCCEEDED);
+                assert.strictEqual(lottoNode.state, State.SUCCEEDED);
+                assert.strictEqual(childNode.state, State.SUCCEEDED);
             });
         });
 
@@ -373,23 +373,23 @@ describe("A Lotto node", () => {
             it("(MDSL)", () => {
                 const definition = "root { lotto { condition [IsFalse] } }";
                 const agent = { IsFalse: () => false };
-                const tree = new mistreevous.BehaviourTree(definition, agent);
+                const tree = new BehaviourTree(definition, agent);
 
                 let lottoNode = findNode(tree, "lotto");
                 let childNode = findNode(tree, "condition");
-                assert.strictEqual(lottoNode.state, mistreevous.State.READY);
-                assert.strictEqual(childNode.state, mistreevous.State.READY);
+                assert.strictEqual(lottoNode.state, State.READY);
+                assert.strictEqual(childNode.state, State.READY);
 
                 tree.step();
 
                 lottoNode = findNode(tree, "lotto");
                 childNode = findNode(tree, "condition");
-                assert.strictEqual(lottoNode.state, mistreevous.State.FAILED);
-                assert.strictEqual(childNode.state, mistreevous.State.FAILED);
+                assert.strictEqual(lottoNode.state, State.FAILED);
+                assert.strictEqual(childNode.state, State.FAILED);
             });
 
             it("(JSON)", () => {
-                const definition = {
+                const definition: RootNodeDefinition = {
                     type: "root",
                     child: {
                         type: "lotto",
@@ -402,19 +402,19 @@ describe("A Lotto node", () => {
                     }
                 };
                 const agent = { IsFalse: () => false };
-                const tree = new mistreevous.BehaviourTree(definition, agent);
+                const tree = new BehaviourTree(definition, agent);
 
                 let lottoNode = findNode(tree, "lotto");
                 let childNode = findNode(tree, "condition");
-                assert.strictEqual(lottoNode.state, mistreevous.State.READY);
-                assert.strictEqual(childNode.state, mistreevous.State.READY);
+                assert.strictEqual(lottoNode.state, State.READY);
+                assert.strictEqual(childNode.state, State.READY);
 
                 tree.step();
 
                 lottoNode = findNode(tree, "lotto");
                 childNode = findNode(tree, "condition");
-                assert.strictEqual(lottoNode.state, mistreevous.State.FAILED);
-                assert.strictEqual(childNode.state, mistreevous.State.FAILED);
+                assert.strictEqual(lottoNode.state, State.FAILED);
+                assert.strictEqual(childNode.state, State.FAILED);
             });
         });
 
@@ -422,23 +422,23 @@ describe("A Lotto node", () => {
             it("(MDSL)", () => {
                 const definition = "root { lotto { action [someAction] } }";
                 const agent = { someAction: () => {} };
-                const tree = new mistreevous.BehaviourTree(definition, agent);
+                const tree = new BehaviourTree(definition, agent);
 
                 let lottoNode = findNode(tree, "lotto");
                 let actionNode = findNode(tree, "action");
-                assert.strictEqual(lottoNode.state, mistreevous.State.READY);
-                assert.strictEqual(actionNode.state, mistreevous.State.READY);
+                assert.strictEqual(lottoNode.state, State.READY);
+                assert.strictEqual(actionNode.state, State.READY);
 
                 tree.step();
 
                 lottoNode = findNode(tree, "lotto");
                 actionNode = findNode(tree, "action");
-                assert.strictEqual(lottoNode.state, mistreevous.State.RUNNING);
-                assert.strictEqual(actionNode.state, mistreevous.State.RUNNING);
+                assert.strictEqual(lottoNode.state, State.RUNNING);
+                assert.strictEqual(actionNode.state, State.RUNNING);
             });
 
             it("(JSON)", () => {
-                const definition = {
+                const definition: RootNodeDefinition = {
                     type: "root",
                     child: {
                         type: "lotto",
@@ -451,19 +451,19 @@ describe("A Lotto node", () => {
                     }
                 };
                 const agent = { someAction: () => {} };
-                const tree = new mistreevous.BehaviourTree(definition, agent);
+                const tree = new BehaviourTree(definition, agent);
 
                 let lottoNode = findNode(tree, "lotto");
                 let actionNode = findNode(tree, "action");
-                assert.strictEqual(lottoNode.state, mistreevous.State.READY);
-                assert.strictEqual(actionNode.state, mistreevous.State.READY);
+                assert.strictEqual(lottoNode.state, State.READY);
+                assert.strictEqual(actionNode.state, State.READY);
 
                 tree.step();
 
                 lottoNode = findNode(tree, "lotto");
                 actionNode = findNode(tree, "action");
-                assert.strictEqual(lottoNode.state, mistreevous.State.RUNNING);
-                assert.strictEqual(actionNode.state, mistreevous.State.RUNNING);
+                assert.strictEqual(lottoNode.state, State.RUNNING);
+                assert.strictEqual(actionNode.state, State.RUNNING);
             });
         });
     });

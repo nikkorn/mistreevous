@@ -1,13 +1,15 @@
-const mistreevous = require("../dist/index");
-const chai = require("chai");
+import { assert } from "chai";
+import sinon from "sinon";
 
-var assert = chai.assert;
+import { BehaviourTree, State, validateDefinition } from "../src/index";
+import { RootNodeDefinition } from "../src/BehaviourTreeDefinition";
+import { Agent } from "../src/Agent";
 
 describe("The validateDefinition function takes a tree definition as an argument and", () => {
     // Helper function to carry out the validation and verify the expected result.
-    const verifyResult = (definition, success, errorMessage) => {
+    const verifyResult = (definition: any, success: boolean, errorMessage: string) => {
         // Do the actual validation.
-        const result = mistreevous.validateDefinition(definition);
+        const result = validateDefinition(definition);
 
         // Verify the result matches the expected succeeded state and error message.
         assert.deepEqual(result, success ? { succeeded: true } : { succeeded: false, errorMessage });

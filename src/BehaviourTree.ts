@@ -33,7 +33,7 @@ export class BehaviourTree {
     /**
      * The main root tree node.
      */
-    public readonly rootNode: Root;
+    private readonly _rootNode: Root;
 
     /**
      * Creates a new instance of the BehaviourTree class.
@@ -73,7 +73,7 @@ export class BehaviourTree {
 
         try {
             // Create the populated tree of behaviour tree nodes and get the root node.
-            this.rootNode = buildRootNode(json);
+            this._rootNode = buildRootNode(json);
         } catch (exception) {
             // There was an issue in trying build and populate the behaviour tree.
             throw new Error(`error building tree: ${(exception as Error).message}`);
@@ -85,7 +85,7 @@ export class BehaviourTree {
      * @returns true if the tree is in the RUNNING state, otherwise false.
      */
     isRunning() {
-        return this.rootNode.getState() === State.RUNNING;
+        return this._rootNode.getState() === State.RUNNING;
     }
 
     /**
@@ -93,7 +93,7 @@ export class BehaviourTree {
      * @returns The current tree state.
      */
     getState() {
-        return this.rootNode.getState();
+        return this._rootNode.getState();
     }
 
     /**
@@ -106,12 +106,12 @@ export class BehaviourTree {
      */
     step() {
         // If the root node has already been stepped to completion then we need to reset it.
-        if (this.rootNode.getState() === State.SUCCEEDED || this.rootNode.getState() === State.FAILED) {
-            this.rootNode.reset();
+        if (this._rootNode.getState() === State.SUCCEEDED || this._rootNode.getState() === State.FAILED) {
+            this._rootNode.reset();
         }
 
         try {
-            this.rootNode.update(this.agent, this.options);
+            this._rootNode.update(this.agent, this.options);
         } catch (exception) {
             throw new Error(`error stepping tree: ${(exception as Error).message}`);
         }
@@ -121,7 +121,7 @@ export class BehaviourTree {
      * Resets the tree from the root node outwards to each nested node, giving each a state of READY.
      */
     reset() {
-        this.rootNode.reset();
+        this._rootNode.reset();
     }
 
     /**
@@ -169,7 +169,7 @@ export class BehaviourTree {
         };
 
         // Convert the nested node structure into a flattened array of node details.
-        processNode(this.rootNode, null);
+        processNode(this._rootNode, null);
 
         return flattenedTreeNodes;
     }
