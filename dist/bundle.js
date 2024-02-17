@@ -818,7 +818,10 @@ var mistreevous = (() => {
     } catch (exception) {
       return createValidationFailureResult(exception.message);
     }
-    return { succeeded: true };
+    return {
+      succeeded: true,
+      json: rootNodeDefinitions
+    };
   }
   function validateJSONDefinition(definition) {
     const rootNodeDefinitions = Array.isArray(definition) ? definition : [definition];
@@ -851,7 +854,10 @@ var mistreevous = (() => {
     } catch (exception) {
       return createValidationFailureResult(exception.message);
     }
-    return { succeeded: true };
+    return {
+      succeeded: true,
+      json: rootNodeDefinitions
+    };
   }
   function validateBranchSubtreeLinks(rootNodeDefinitions, includesGlobalSubtrees) {
     const rootNodeMappings = rootNodeDefinitions.map(
@@ -2167,12 +2173,17 @@ var mistreevous = (() => {
       if (typeof agent !== "object" || agent === null) {
         throw new Error("the agent must be an object and not null");
       }
-      const { succeeded, errorMessage } = validateDefinition(definition);
+      const { succeeded, errorMessage, json } = validateDefinition(definition);
       if (!succeeded) {
         throw new Error(`invalid definition: ${errorMessage}`);
       }
+      if (!json) {
+        throw new Error(
+          "expected json definition to be returned as part of successful definition validation response"
+        );
+      }
       try {
-        this.rootNode = this._createRootNode(definition);
+        this.rootNode = buildRootNode(json);
       } catch (exception) {
         throw new Error(`error building tree: ${exception.message}`);
       }
@@ -2262,10 +2273,6 @@ var mistreevous = (() => {
     }
     static unregisterAll() {
       Lookup.empty();
-    }
-    _createRootNode(definition) {
-      const resolvedDefinition = typeof definition === "string" ? convertMDSLToJSON(definition) : definition;
-      return buildRootNode(Array.isArray(resolvedDefinition) ? resolvedDefinition : [resolvedDefinition]);
     }
   };
   return __toCommonJS(src_exports);

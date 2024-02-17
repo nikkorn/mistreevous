@@ -75,10 +75,4 @@ export declare class BehaviourTree {
      * Unregister all registered action/condition/guard/callback functions and subtrees.
      */
     static unregisterAll(): void;
-    /**
-     * Parses a behaviour tree definition and creates a tree of behaviour tree nodes populated at a root.
-     * @param {string | RootNodeDefinition | RootNodeDefinition[]} definition The behaviour tree definition.
-     * @returns The root behaviour tree node.
-     */
-    private _createRootNode;
 }

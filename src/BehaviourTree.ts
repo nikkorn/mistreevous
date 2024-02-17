@@ -57,16 +57,23 @@ export class BehaviourTree {
         }
 
         // We should validate the definition before we try to build the tree nodes.
-        const { succeeded, errorMessage } = validateDefinition(definition);
+        const { succeeded, errorMessage, json } = validateDefinition(definition);
 
         // Did our validation fail without error?
         if (!succeeded) {
             throw new Error(`invalid definition: ${errorMessage}`);
         }
 
+        // Double check that we did actually get our json definition as part of our definition validtion.
+        if (!json) {
+            throw new Error(
+                "expected json definition to be returned as part of successful definition validation response"
+            );
+        }
+
         try {
-            // Parse the behaviour tree definition, create the populated tree of behaviour tree nodes, and get the root.
-            this.rootNode = this._createRootNode(definition);
+            // Create the populated tree of behaviour tree nodes and get the root node.
+            this.rootNode = buildRootNode(json!);
         } catch (exception) {
             // There was an issue in trying build and populate the behaviour tree.
             throw new Error(`error building tree: ${(exception as Error).message}`);
@@ -244,19 +251,5 @@ export class BehaviourTree {
      */
     static unregisterAll(): void {
         Lookup.empty();
-    }
-
-    /**
-     * Parses a behaviour tree definition and creates a tree of behaviour tree nodes populated at a root.
-     * @param {string | RootNodeDefinition | RootNodeDefinition[]} definition The behaviour tree definition.
-     * @returns The root behaviour tree node.
-     */
-    private _createRootNode(definition: string | RootNodeDefinition | RootNodeDefinition[]): Root {
-        // Our definition will have to be converted to JSON if it is a MDSL string.
-        // TODO convertMDSLToJSON is called TWICE, once for validation and once here. Maybe return the JSON as part of the validation result?
-        const resolvedDefinition = typeof definition === "string" ? convertMDSLToJSON(definition) : definition;
-
-        // Build and populate the root node.
-        return buildRootNode(Array.isArray(resolvedDefinition) ? resolvedDefinition : [resolvedDefinition]);
     }
 }

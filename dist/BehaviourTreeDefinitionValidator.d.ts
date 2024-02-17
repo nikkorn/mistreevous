@@ -11,6 +11,10 @@ export type DefinitionValidationResult = {
      * A string containing the error message if validation did not succeed.
      */
     errorMessage?: string;
+    /**
+     * The definition as json if the validation was successful, or undefined if validation did not succeed.
+     */
+    json?: RootNodeDefinition[];
 };
 /**
  * Validates the specified behaviour tree definition in the form of JSON or MDSL, not taking any globally registered subtrees into consideration.
@@ -18,12 +22,6 @@ export type DefinitionValidationResult = {
  * @returns An object representing the result of validating the given tree definition.
  */
 export declare function validateDefinition(definition: any): DefinitionValidationResult;
-/**
- * Validates the specified behaviour tree definition in the form of MDSL.
- * @param definition The behaviour tree definition in the form of MDSL.
- * @returns An object representing the result of validating the given tree definition.
- */
-export declare function validateMDSLDefinition(definition: string): DefinitionValidationResult;
 /**
  * Validates the specified behaviour tree definition in the form of JSON.
  * @param definition The behaviour tree definition in the form of JSON.
