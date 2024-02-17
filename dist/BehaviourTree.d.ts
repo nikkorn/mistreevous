@@ -27,7 +27,7 @@ export declare class BehaviourTree {
     readonly rootNode: Root;
     /**
      * Creates a new instance of the BehaviourTree class.
-     * @param definition The behaviour tree definition.
+     * @param definition The behaviour tree definition as either an MDSL string, root node definition object or array of root node definition objects.
      * @param agent The agent instance that this behaviour tree is modelling behaviour for.
      * @param options The behaviour tree options object.
      */

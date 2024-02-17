@@ -37,7 +37,7 @@ export class BehaviourTree {
 
     /**
      * Creates a new instance of the BehaviourTree class.
-     * @param definition The behaviour tree definition.
+     * @param definition The behaviour tree definition as either an MDSL string, root node definition object or array of root node definition objects.
      * @param agent The agent instance that this behaviour tree is modelling behaviour for.
      * @param options The behaviour tree options object.
      */
@@ -73,7 +73,7 @@ export class BehaviourTree {
 
         try {
             // Create the populated tree of behaviour tree nodes and get the root node.
-            this.rootNode = buildRootNode(json!);
+            this.rootNode = buildRootNode(json);
         } catch (exception) {
             // There was an issue in trying build and populate the behaviour tree.
             throw new Error(`error building tree: ${(exception as Error).message}`);
