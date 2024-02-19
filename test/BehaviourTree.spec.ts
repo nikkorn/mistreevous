@@ -56,7 +56,7 @@ describe("A BehaviourTree instance", () => {
     describe("has a 'getState' function that returns the state of the root node", () => {
         it("(MDSL)", () => {
             const definition = "root { action [getActionResult] }";
-            const agent: Agent = { getActionResult: () => {} };
+            const agent = { getActionResult: () => {} };
             const tree = new BehaviourTree(definition, agent);
 
             assert.strictEqual(tree.getState(), State.READY);
@@ -144,7 +144,7 @@ describe("A BehaviourTree instance", () => {
     describe("has a 'reset' function that resets the tree from the root node outwards to each nested node, giving each a state of READY", () => {
         it("(MDSL)", () => {
             const definition = "root { sequence { action [getActionResult] } }";
-            const agent: Agent = { getActionResult: () => State.SUCCEEDED };
+            const agent = { getActionResult: () => State.SUCCEEDED };
             const tree = new BehaviourTree(definition, agent);
 
             assert.strictEqual(findNode(tree, "root", "ROOT").state, State.READY);
@@ -177,7 +177,7 @@ describe("A BehaviourTree instance", () => {
                     ]
                 }
             };
-            const agent: Agent = { getActionResult: () => State.SUCCEEDED };
+            const agent = { getActionResult: () => State.SUCCEEDED };
             const tree = new BehaviourTree(definition, agent);
 
             assert.strictEqual(findNode(tree, "root", "ROOT").state, State.READY);
@@ -202,7 +202,7 @@ describe("A BehaviourTree instance", () => {
         it("(MDSL)", () => {
             const definition =
                 "root { sequence { action [getActionResult0] action [getActionResult1] action [getActionResult2] action [getActionResult3] } }";
-            const agent: Agent = {
+            const agent = {
                 getActionResult0: () => State.SUCCEEDED,
                 getActionResult1: () => State.SUCCEEDED,
                 getActionResult2: () => {},
@@ -266,7 +266,7 @@ describe("A BehaviourTree instance", () => {
                     ]
                 }
             };
-            const agent: Agent = {
+            const agent = {
                 getActionResult0: () => State.SUCCEEDED,
                 getActionResult1: () => State.SUCCEEDED,
                 getActionResult2: () => {},

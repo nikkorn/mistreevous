@@ -37,7 +37,7 @@ describe("An Action node", () => {
 
                 it("an agent function", () => {
                     const definition = "root { action [doAction] }";
-                    const agent: Agent = { doAction: () => State.SUCCEEDED };
+                    const agent = { doAction: () => State.SUCCEEDED };
                     const tree = new BehaviourTree(definition, agent);
 
                     tree.step();
@@ -61,7 +61,7 @@ describe("An Action node", () => {
             describe("and move to", () => {
                 it("the SUCCESS state if the function returns a value of State.SUCCEEDED", () => {
                     const definition = "root { action [doAction] }";
-                    const agent: Agent = { doAction: () => State.SUCCEEDED };
+                    const agent = { doAction: () => State.SUCCEEDED };
                     const tree = new BehaviourTree(definition, agent);
 
                     let node = findNode(tree, "action", "doAction");
@@ -75,7 +75,7 @@ describe("An Action node", () => {
 
                 it("the FAILED state if the function returns a value of State.FAILED", () => {
                     const definition = "root { action [doAction] }";
-                    const agent: Agent = { doAction: () => State.FAILED };
+                    const agent = { doAction: () => State.FAILED };
                     const tree = new BehaviourTree(definition, agent);
 
                     let node = findNode(tree, "action", "doAction");
@@ -106,7 +106,7 @@ describe("An Action node", () => {
                         const result: Promise<State.SUCCEEDED> = new Promise((resolve) => resolve(State.SUCCEEDED));
 
                         const definition = "root { action [doAction] }";
-                        const agent: Agent = { doAction: () => result };
+                        const agent = { doAction: () => result };
                         const tree = new BehaviourTree(definition, agent);
 
                         let node = findNode(tree, "action", "doAction");

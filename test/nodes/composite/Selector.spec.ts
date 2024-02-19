@@ -44,7 +44,7 @@ describe("A Selector node", () => {
             it("(MDSL)", () => {
                 const definition =
                     "root { selector { action [actionFail] action [actionRunning] action [actionSucceed] } }";
-                const agent: Agent = {
+                const agent = {
                     actionSucceed: () => State.SUCCEEDED,
                     actionRunning: () => {},
                     actionFail: () => State.FAILED
@@ -87,7 +87,7 @@ describe("A Selector node", () => {
                         ]
                     }
                 };
-                const agent: Agent = {
+                const agent = {
                     actionSucceed: () => State.SUCCEEDED,
                     actionRunning: () => {},
                     actionFail: () => State.FAILED
