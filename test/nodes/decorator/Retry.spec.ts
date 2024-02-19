@@ -9,13 +9,29 @@ import { findNode } from "../../TestUtilities";
 
 describe("A Retry node", () => {
     describe("on tree initialisation", () => {
-        it("will error if the node does not have a single child", () => {
-            const definition = "root { retry {} }";
-            assert.throws(
-                () => new BehaviourTree(definition, {}),
-                Error,
-                "invalid definition: a retry node must have a single child"
-            );
+        describe("will error if the node does not have a single child", () => {
+            it("(MDSL)", () => {
+                const definition = "root { retry {} }";
+                assert.throws(
+                    () => new BehaviourTree(definition, {}),
+                    Error,
+                    "invalid definition: a retry node must have a single child"
+                );
+            });
+
+            it("(JSON)", () => {
+                const definition = {
+                    type: "root",
+                    child: {
+                        type: "retry"
+                    }
+                } as any;
+                assert.throws(
+                    () => new BehaviourTree(definition, {}),
+                    Error,
+                    "invalid definition: expected property 'child' to be defined for retry node at depth '1'"
+                );
+            });
         });
     });
 
@@ -29,137 +45,327 @@ describe("A Retry node", () => {
 
         afterEach(() => sandbox.restore());
 
-        it("will move to the SUCCEEDED state if the child node moves to the SUCCEEDED state", () => {
-            const definition = "root { retry { condition [someCondition] } }";
-            const agent = { someCondition: () => true };
-            const tree = new BehaviourTree(definition, agent);
+        describe("will move to the SUCCEEDED state if the child node moves to the SUCCEEDED state", () => {
+            it("(MDSL)", () => {
+                const definition = "root { retry { condition [someCondition] } }";
+                const agent = { someCondition: () => true };
+                const tree = new BehaviourTree(definition, agent);
 
-            let node = findNode(tree, "retry", "RETRY");
-            assert.exists(node);
-            assert.strictEqual(node.state, State.READY);
+                let node = findNode(tree, "retry", "RETRY");
+                assert.exists(node);
+                assert.strictEqual(node.state, State.READY);
 
-            tree.step();
+                tree.step();
 
-            node = findNode(tree, "retry", "RETRY");
-            assert.strictEqual(node.state, State.SUCCEEDED);
+                node = findNode(tree, "retry", "RETRY");
+                assert.strictEqual(node.state, State.SUCCEEDED);
+            });
+
+            it("(JSON)", () => {
+                const definition: RootNodeDefinition = {
+                    type: "root",
+                    child: {
+                        type: "retry",
+                        child: {
+                            type: "condition",
+                            call: "someCondition"
+                        }
+                    }
+                };
+                const agent = { someCondition: () => true };
+                const tree = new BehaviourTree(definition, agent);
+
+                let node = findNode(tree, "retry", "RETRY");
+                assert.exists(node);
+                assert.strictEqual(node.state, State.READY);
+
+                tree.step();
+
+                node = findNode(tree, "retry", "RETRY");
+                assert.strictEqual(node.state, State.SUCCEEDED);
+            });
         });
 
-        it("will move to the RUNNING state if the child node moves to the FAILED state", () => {
-            const definition = "root { retry { condition [someCondition] } }";
-            const agent = { someCondition: () => false };
-            const tree = new BehaviourTree(definition, agent);
-
-            let node = findNode(tree, "retry", "RETRY");
-            assert.exists(node);
-            assert.strictEqual(node.state, State.READY);
-
-            tree.step();
-
-            node = findNode(tree, "retry", "RETRY");
-            assert.strictEqual(node.state, State.RUNNING);
-        });
-
-        it("and an attempt count node argument is defined will attempt to re-run the child node until the attempt count is reached", () => {
-            const definition = "root { retry [3] { condition [someCondition] } }";
-            const agent = { someCondition: () => false };
-            const tree = new BehaviourTree(definition, agent);
-
-            let node = findNode(tree, "retry", "RETRY 3x");
-            assert.exists(node);
-            assert.strictEqual(node.state, State.READY);
-
-            tree.step();
-
-            node = findNode(tree, "retry", "RETRY 3x");
-            assert.strictEqual(node.state, State.RUNNING);
-
-            tree.step();
-
-            node = findNode(tree, "retry", "RETRY 3x");
-            assert.strictEqual(node.state, State.RUNNING);
-
-            tree.step();
-
-            node = findNode(tree, "retry", "RETRY 3x");
-            assert.strictEqual(node.state, State.RUNNING);
-
-            tree.step();
-
-            node = findNode(tree, "retry", "RETRY 3x");
-            assert.strictEqual(node.state, State.FAILED);
-        });
-
-        describe("and minumum and maximum attempt count node arguments are defined", () => {
-            it("and if the 'random' behaviour tree option is not defined will pick an attempt count from between the minimum and maximum bounds using Math.random", () => {
-                // We have spied on Math.random to always return 0.5 for the sake of this test, so our attempt count should always be 4.
-                const definition = "root { retry [2, 6] { condition [someCondition] } }";
+        describe("will move to the RUNNING state if the child node moves to the FAILED state", () => {
+            it("(MDSL)", () => {
+                const definition = "root { retry { condition [someCondition] } }";
                 const agent = { someCondition: () => false };
                 const tree = new BehaviourTree(definition, agent);
 
-                let node = findNode(tree, "retry", "RETRY 2x-6x");
+                let node = findNode(tree, "retry", "RETRY");
                 assert.exists(node);
                 assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
-                node = findNode(tree, "retry", "RETRY 2x-6x");
+                node = findNode(tree, "retry", "RETRY");
+                assert.strictEqual(node.state, State.RUNNING);
+            });
+
+            it("(JSON)", () => {
+                const definition: RootNodeDefinition = {
+                    type: "root",
+                    child: {
+                        type: "retry",
+                        child: {
+                            type: "condition",
+                            call: "someCondition"
+                        }
+                    }
+                };
+                const agent = { someCondition: () => false };
+                const tree = new BehaviourTree(definition, agent);
+
+                let node = findNode(tree, "retry", "RETRY");
+                assert.exists(node);
+                assert.strictEqual(node.state, State.READY);
+
+                tree.step();
+
+                node = findNode(tree, "retry", "RETRY");
+                assert.strictEqual(node.state, State.RUNNING);
+            });
+        });
+
+        describe("and an attempt count node argument is defined will attempt to re-run the child node until the attempt count is reached", () => {
+            it("(MDSL)", () => {
+                const definition = "root { retry [3] { condition [someCondition] } }";
+                const agent = { someCondition: () => false };
+                const tree = new BehaviourTree(definition, agent);
+
+                let node = findNode(tree, "retry", "RETRY 3x");
+                assert.exists(node);
+                assert.strictEqual(node.state, State.READY);
+
+                tree.step();
+
+                node = findNode(tree, "retry", "RETRY 3x");
                 assert.strictEqual(node.state, State.RUNNING);
 
                 tree.step();
 
-                node = findNode(tree, "retry", "RETRY 2x-6x");
+                node = findNode(tree, "retry", "RETRY 3x");
                 assert.strictEqual(node.state, State.RUNNING);
 
                 tree.step();
 
-                node = findNode(tree, "retry", "RETRY 2x-6x");
+                node = findNode(tree, "retry", "RETRY 3x");
                 assert.strictEqual(node.state, State.RUNNING);
 
                 tree.step();
 
-                node = findNode(tree, "retry", "RETRY 2x-6x");
-                assert.strictEqual(node.state, State.RUNNING);
-
-                tree.step();
-
-                node = findNode(tree, "retry", "RETRY 2x-6x");
+                node = findNode(tree, "retry", "RETRY 3x");
                 assert.strictEqual(node.state, State.FAILED);
             });
 
-            it("and if the 'random' behaviour tree option is defined will use it to pick an attempt count from between the minimum and maximum bounds", () => {
-                const definition = "root { retry [2, 10] { condition [someCondition] } }";
-                const agent = { someCondition: () => false };
-                const options = {
-                    // Usually this would return a new pseudo-random number each time, but for the sake of this test we
-                    // just want to make sure that the number we return actually has an impact on the attempt count picked.
-                    // A value of 0.2 should always result in an attempt count of 3.
-                    random: () => 0.2
+            it("(JSON)", () => {
+                const definition: RootNodeDefinition = {
+                    type: "root",
+                    child: {
+                        type: "retry",
+                        attempts: 3,
+                        child: {
+                            type: "condition",
+                            call: "someCondition"
+                        }
+                    }
                 };
-                const tree = new BehaviourTree(definition, agent, options);
+                const agent = { someCondition: () => false };
+                const tree = new BehaviourTree(definition, agent);
 
-                let node = findNode(tree, "retry", "RETRY 2x-10x");
+                let node = findNode(tree, "retry", "RETRY 3x");
                 assert.exists(node);
                 assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
-                node = findNode(tree, "retry", "RETRY 2x-10x");
+                node = findNode(tree, "retry", "RETRY 3x");
                 assert.strictEqual(node.state, State.RUNNING);
 
                 tree.step();
 
-                node = findNode(tree, "retry", "RETRY 2x-10x");
+                node = findNode(tree, "retry", "RETRY 3x");
                 assert.strictEqual(node.state, State.RUNNING);
 
                 tree.step();
 
-                node = findNode(tree, "retry", "RETRY 2x-10x");
+                node = findNode(tree, "retry", "RETRY 3x");
                 assert.strictEqual(node.state, State.RUNNING);
 
                 tree.step();
 
-                node = findNode(tree, "retry", "RETRY 2x-10x");
+                node = findNode(tree, "retry", "RETRY 3x");
                 assert.strictEqual(node.state, State.FAILED);
+            });
+        });
+
+        describe("and minumum and maximum attempt count node arguments are defined", () => {
+            describe("and if the 'random' behaviour tree option is not defined will pick an attempt count from between the minimum and maximum bounds using Math.random", () => {
+                it("(MDSL)", () => {
+                    // We have spied on Math.random to always return 0.5 for the sake of this test, so our attempt count should always be 4.
+                    const definition = "root { retry [2, 6] { condition [someCondition] } }";
+                    const agent = { someCondition: () => false };
+                    const tree = new BehaviourTree(definition, agent);
+
+                    let node = findNode(tree, "retry", "RETRY 2x-6x");
+                    assert.exists(node);
+                    assert.strictEqual(node.state, State.READY);
+
+                    tree.step();
+
+                    node = findNode(tree, "retry", "RETRY 2x-6x");
+                    assert.strictEqual(node.state, State.RUNNING);
+
+                    tree.step();
+
+                    node = findNode(tree, "retry", "RETRY 2x-6x");
+                    assert.strictEqual(node.state, State.RUNNING);
+
+                    tree.step();
+
+                    node = findNode(tree, "retry", "RETRY 2x-6x");
+                    assert.strictEqual(node.state, State.RUNNING);
+
+                    tree.step();
+
+                    node = findNode(tree, "retry", "RETRY 2x-6x");
+                    assert.strictEqual(node.state, State.RUNNING);
+
+                    tree.step();
+
+                    node = findNode(tree, "retry", "RETRY 2x-6x");
+                    assert.strictEqual(node.state, State.FAILED);
+                });
+
+                it("(JSON)", () => {
+                    // We have spied on Math.random to always return 0.5 for the sake of this test, so our attempt count should always be 4.
+                    const definition: RootNodeDefinition = {
+                        type: "root",
+                        child: {
+                            type: "retry",
+                            attempts: [2, 6],
+                            child: {
+                                type: "condition",
+                                call: "someCondition"
+                            }
+                        }
+                    };
+                    const agent = { someCondition: () => false };
+                    const tree = new BehaviourTree(definition, agent);
+
+                    let node = findNode(tree, "retry", "RETRY 2x-6x");
+                    assert.exists(node);
+                    assert.strictEqual(node.state, State.READY);
+
+                    tree.step();
+
+                    node = findNode(tree, "retry", "RETRY 2x-6x");
+                    assert.strictEqual(node.state, State.RUNNING);
+
+                    tree.step();
+
+                    node = findNode(tree, "retry", "RETRY 2x-6x");
+                    assert.strictEqual(node.state, State.RUNNING);
+
+                    tree.step();
+
+                    node = findNode(tree, "retry", "RETRY 2x-6x");
+                    assert.strictEqual(node.state, State.RUNNING);
+
+                    tree.step();
+
+                    node = findNode(tree, "retry", "RETRY 2x-6x");
+                    assert.strictEqual(node.state, State.RUNNING);
+
+                    tree.step();
+
+                    node = findNode(tree, "retry", "RETRY 2x-6x");
+                    assert.strictEqual(node.state, State.FAILED);
+                });
+            });
+
+            describe("and if the 'random' behaviour tree option is defined will use it to pick an attempt count from between the minimum and maximum bounds", () => {
+                it("(MDSL)", () => {
+                    const definition = "root { retry [2, 10] { condition [someCondition] } }";
+                    const agent = { someCondition: () => false };
+                    const options = {
+                        // Usually this would return a new pseudo-random number each time, but for the sake of this test we
+                        // just want to make sure that the number we return actually has an impact on the attempt count picked.
+                        // A value of 0.2 should always result in an attempt count of 3.
+                        random: () => 0.2
+                    };
+                    const tree = new BehaviourTree(definition, agent, options);
+
+                    let node = findNode(tree, "retry", "RETRY 2x-10x");
+                    assert.exists(node);
+                    assert.strictEqual(node.state, State.READY);
+
+                    tree.step();
+
+                    node = findNode(tree, "retry", "RETRY 2x-10x");
+                    assert.strictEqual(node.state, State.RUNNING);
+
+                    tree.step();
+
+                    node = findNode(tree, "retry", "RETRY 2x-10x");
+                    assert.strictEqual(node.state, State.RUNNING);
+
+                    tree.step();
+
+                    node = findNode(tree, "retry", "RETRY 2x-10x");
+                    assert.strictEqual(node.state, State.RUNNING);
+
+                    tree.step();
+
+                    node = findNode(tree, "retry", "RETRY 2x-10x");
+                    assert.strictEqual(node.state, State.FAILED);
+                });
+
+                it("(JSON)", () => {
+                    const definition: RootNodeDefinition = {
+                        type: "root",
+                        child: {
+                            type: "retry",
+                            attempts: [2, 10],
+                            child: {
+                                type: "condition",
+                                call: "someCondition"
+                            }
+                        }
+                    };
+                    const agent = { someCondition: () => false };
+                    const options = {
+                        // Usually this would return a new pseudo-random number each time, but for the sake of this test we
+                        // just want to make sure that the number we return actually has an impact on the attempt count picked.
+                        // A value of 0.2 should always result in an attempt count of 3.
+                        random: () => 0.2
+                    };
+                    const tree = new BehaviourTree(definition, agent, options);
+
+                    let node = findNode(tree, "retry", "RETRY 2x-10x");
+                    assert.exists(node);
+                    assert.strictEqual(node.state, State.READY);
+
+                    tree.step();
+
+                    node = findNode(tree, "retry", "RETRY 2x-10x");
+                    assert.strictEqual(node.state, State.RUNNING);
+
+                    tree.step();
+
+                    node = findNode(tree, "retry", "RETRY 2x-10x");
+                    assert.strictEqual(node.state, State.RUNNING);
+
+                    tree.step();
+
+                    node = findNode(tree, "retry", "RETRY 2x-10x");
+                    assert.strictEqual(node.state, State.RUNNING);
+
+                    tree.step();
+
+                    node = findNode(tree, "retry", "RETRY 2x-10x");
+                    assert.strictEqual(node.state, State.FAILED);
+                });
             });
         });
     });
