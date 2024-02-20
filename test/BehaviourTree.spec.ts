@@ -1,9 +1,7 @@
 import { assert } from "chai";
-import sinon from "sinon";
 
 import { BehaviourTree, State } from "../src/index";
 import { RootNodeDefinition } from "../src/BehaviourTreeDefinition";
-import { Agent } from "../src/Agent";
 
 import { findNode } from "./TestUtilities";
 
@@ -147,20 +145,20 @@ describe("A BehaviourTree instance", () => {
             const agent = { getActionResult: () => State.SUCCEEDED };
             const tree = new BehaviourTree(definition, agent);
 
-            assert.strictEqual(findNode(tree, "root", "ROOT").state, State.READY);
-            assert.strictEqual(findNode(tree, "sequence", "SEQUENCE").state, State.READY);
+            assert.strictEqual(findNode(tree, "root").state, State.READY);
+            assert.strictEqual(findNode(tree, "sequence").state, State.READY);
             assert.strictEqual(findNode(tree, "action", "getActionResult").state, State.READY);
 
             tree.step();
 
-            assert.strictEqual(findNode(tree, "root", "ROOT").state, State.SUCCEEDED);
-            assert.strictEqual(findNode(tree, "sequence", "SEQUENCE").state, State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "root").state, State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "sequence").state, State.SUCCEEDED);
             assert.strictEqual(findNode(tree, "action", "getActionResult").state, State.SUCCEEDED);
 
             tree.reset();
 
-            assert.strictEqual(findNode(tree, "root", "ROOT").state, State.READY);
-            assert.strictEqual(findNode(tree, "sequence", "SEQUENCE").state, State.READY);
+            assert.strictEqual(findNode(tree, "root").state, State.READY);
+            assert.strictEqual(findNode(tree, "sequence").state, State.READY);
             assert.strictEqual(findNode(tree, "action", "getActionResult").state, State.READY);
         });
 
@@ -180,20 +178,20 @@ describe("A BehaviourTree instance", () => {
             const agent = { getActionResult: () => State.SUCCEEDED };
             const tree = new BehaviourTree(definition, agent);
 
-            assert.strictEqual(findNode(tree, "root", "ROOT").state, State.READY);
-            assert.strictEqual(findNode(tree, "sequence", "SEQUENCE").state, State.READY);
+            assert.strictEqual(findNode(tree, "root").state, State.READY);
+            assert.strictEqual(findNode(tree, "sequence").state, State.READY);
             assert.strictEqual(findNode(tree, "action", "getActionResult").state, State.READY);
 
             tree.step();
 
-            assert.strictEqual(findNode(tree, "root", "ROOT").state, State.SUCCEEDED);
-            assert.strictEqual(findNode(tree, "sequence", "SEQUENCE").state, State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "root").state, State.SUCCEEDED);
+            assert.strictEqual(findNode(tree, "sequence").state, State.SUCCEEDED);
             assert.strictEqual(findNode(tree, "action", "getActionResult").state, State.SUCCEEDED);
 
             tree.reset();
 
-            assert.strictEqual(findNode(tree, "root", "ROOT").state, State.READY);
-            assert.strictEqual(findNode(tree, "sequence", "SEQUENCE").state, State.READY);
+            assert.strictEqual(findNode(tree, "root").state, State.READY);
+            assert.strictEqual(findNode(tree, "sequence").state, State.READY);
             assert.strictEqual(findNode(tree, "action", "getActionResult").state, State.READY);
         });
     });

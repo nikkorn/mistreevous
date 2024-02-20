@@ -9,28 +9,150 @@ import { findNode } from "../../TestUtilities";
 
 describe("A Retry node", () => {
     describe("on tree initialisation", () => {
-        describe("will error if the node does not have a single child", () => {
-            it("(MDSL)", () => {
-                const definition = "root { retry {} }";
-                assert.throws(
-                    () => new BehaviourTree(definition, {}),
-                    Error,
-                    "invalid definition: a retry node must have a single child"
-                );
+        describe("will error if", () => {
+            describe("the node does not have a single child", () => {
+                it("(MDSL)", () => {
+                    const definition = "root { retry {} }";
+                    assert.throws(
+                        () => new BehaviourTree(definition, {}),
+                        Error,
+                        "invalid definition: a retry node must have a single child"
+                    );
+                });
+
+                it("(JSON)", () => {
+                    const definition = {
+                        type: "root",
+                        child: {
+                            type: "retry"
+                        }
+                    } as any;
+                    assert.throws(
+                        () => new BehaviourTree(definition, {}),
+                        Error,
+                        "invalid definition: expected property 'child' to be defined for retry node at depth '1'"
+                    );
+                });
             });
 
-            it("(JSON)", () => {
-                const definition = {
-                    type: "root",
-                    child: {
-                        type: "retry"
-                    }
-                } as any;
-                assert.throws(
-                    () => new BehaviourTree(definition, {}),
-                    Error,
-                    "invalid definition: expected property 'child' to be defined for retry node at depth '1'"
-                );
+            describe("the defined node arguments are not integers", () => {
+                it("(MDSL)", () => {
+                    const definition = "root { retry ['not', 'integers'] { condition [someCondition] } }";
+                    assert.throws(
+                        () => new BehaviourTree(definition, {}),
+                        Error,
+                        "invalid definition: retry node attempt counts must be integer values"
+                    );
+                });
+
+                it("(JSON)", () => {
+                    const definition = {
+                        type: "root",
+                        child: {
+                            type: "retry",
+                            attempts: ["not", "integers"],
+                            child: {
+                                type: "condition",
+                                call: "someCondition"
+                            }
+                        }
+                    } as any;
+                    assert.throws(
+                        () => new BehaviourTree(definition, {}),
+                        Error,
+                        "invalid definition: expected array containing two integer values for 'attempts' property if defined for retry node at depth '1'"
+                    );
+                });
+            });
+
+            describe("a negative attempts count node argument was defined", () => {
+                it("(MDSL)", () => {
+                    const definition = "root { retry [-1] { condition [someCondition] } }";
+                    assert.throws(
+                        () => new BehaviourTree(definition, {}),
+                        Error,
+                        "invalid definition: a retry node must have a positive number of attempts if defined"
+                    );
+                });
+
+                it("(JSON)", () => {
+                    const definition = {
+                        type: "root",
+                        child: {
+                            type: "retry",
+                            attempts: -1,
+                            child: {
+                                type: "condition",
+                                call: "someCondition"
+                            }
+                        }
+                    } as any;
+                    assert.throws(
+                        () => new BehaviourTree(definition, {}),
+                        Error,
+                        "invalid definition: expected positive attempts count for 'attempts' property if defined for retry node at depth '1'"
+                    );
+                });
+            });
+
+            describe("more than two node arguments are defined", () => {
+                it("(MDSL)", () => {
+                    const definition = "root { retry [0, 10, 20] { condition [someCondition] } }";
+                    assert.throws(
+                        () => new BehaviourTree(definition, {}),
+                        Error,
+                        "invalid definition: invalid number of retry node attempt count arguments defined"
+                    );
+                });
+
+                it("(JSON)", () => {
+                    const definition = {
+                        type: "root",
+                        child: {
+                            type: "retry",
+                            attempts: [0, 10, 20],
+                            child: {
+                                type: "condition",
+                                call: "someCondition"
+                            }
+                        }
+                    } as any;
+                    assert.throws(
+                        () => new BehaviourTree(definition, {}),
+                        Error,
+                        "invalid definition: expected array containing two integer values for 'attempts' property if defined for retry node at depth '1'"
+                    );
+                });
+            });
+
+            describe("a minimum iteration count node argument is defined that is greater than the maximum iteration count node argument", () => {
+                it("(MDSL)", () => {
+                    const definition = "root { retry [10, 5] { condition [someCondition] } }";
+                    assert.throws(
+                        () => new BehaviourTree(definition, {}),
+                        Error,
+                        "invalid definition: a retry node must not have a minimum attempt count that exceeds the maximum attempt count"
+                    );
+                });
+
+                it("(JSON)", () => {
+                    const definition = {
+                        type: "root",
+                        child: {
+                            type: "retry",
+                            attempts: [10, 5],
+                            child: {
+                                type: "condition",
+                                call: "someCondition"
+                            }
+                        }
+                    } as any;
+                    assert.throws(
+                        () => new BehaviourTree(definition, {}),
+                        Error,
+                        "invalid definition: expected minimum attempts count that does not exceed the maximum attempts count for 'attempts' property if defined for retry node at depth '1'"
+                    );
+                });
             });
         });
     });
