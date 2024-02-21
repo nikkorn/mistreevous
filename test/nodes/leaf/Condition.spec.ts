@@ -8,42 +8,99 @@ import { findNode } from "../../TestUtilities";
 
 describe("A Condition node", () => {
     describe("on tree initialisation", () => {
-        it("will error if a condition name identifier is not the first node argument", () => {
-            const definition = "root { condition [] }";
-            assert.throws(
-                () => new BehaviourTree(definition, {}),
-                Error,
-                "invalid definition: expected condition name identifier argument"
-            );
+        describe("will error if no condition function name is defined", () => {
+            it("(MDSL)", () => {
+                const definition = "root { condition [] }";
+                assert.throws(
+                    () => new BehaviourTree(definition, {}),
+                    Error,
+                    "invalid definition: expected condition name identifier argument"
+                );
+            });
+
+            it("(JSON)", () => {
+                const definition = {
+                    type: "root",
+                    child: {
+                        type: "condition"
+                    }
+                } as any;
+                assert.throws(
+                    () => new BehaviourTree(definition, {}),
+                    Error,
+                    "invalid definition: expected non-empty string for 'call' property of condition node at depth '1'"
+                );
+            });
         });
     });
 
     describe("when updated as part of a tree step", () => {
-        describe("will call the function defined by the first node argument", () => {
+        describe("will call the condition function", () => {
             describe("when the referenced function is", () => {
-                it("a registered function", () => {
-                    BehaviourTree.register("someCondition", () => {
-                        return true;
+                describe("a registered function", () => {
+                    it("(MDSL)", () => {
+                        BehaviourTree.register("someCondition", () => {
+                            return true;
+                        });
+
+                        const definition = "root { condition [someCondition] }";
+                        const tree = new BehaviourTree(definition, {});
+
+                        tree.step();
+
+                        const node = findNode(tree, "condition", "someCondition");
+                        assert.strictEqual(node.state, State.SUCCEEDED);
                     });
 
-                    const definition = "root { condition [someCondition] }";
-                    const tree = new BehaviourTree(definition, {});
+                    it("(JSON)", () => {
+                        BehaviourTree.register("someCondition", () => {
+                            return true;
+                        });
 
-                    tree.step();
+                        const definition: RootNodeDefinition = {
+                            type: "root",
+                            child: {
+                                type: "condition",
+                                call: "someCondition"
+                            }
+                        };
+                        const tree = new BehaviourTree(definition, {});
 
-                    const node = findNode(tree, "condition", "someCondition");
-                    assert.strictEqual(node.state, State.SUCCEEDED);
+                        tree.step();
+
+                        const node = findNode(tree, "condition", "someCondition");
+                        assert.strictEqual(node.state, State.SUCCEEDED);
+                    });
                 });
 
-                it("an agent function", () => {
-                    const definition = "root { condition [someCondition] }";
-                    const agent = { someCondition: () => true };
-                    const tree = new BehaviourTree(definition, agent);
+                describe("an agent function", () => {
+                    it("(MDSL)", () => {
+                        const definition = "root { condition [someCondition] }";
+                        const agent = { someCondition: () => true };
+                        const tree = new BehaviourTree(definition, agent);
 
-                    tree.step();
+                        tree.step();
 
-                    const node = findNode(tree, "condition", "someCondition");
-                    assert.strictEqual(node.state, State.SUCCEEDED);
+                        const node = findNode(tree, "condition", "someCondition");
+                        assert.strictEqual(node.state, State.SUCCEEDED);
+                    });
+
+                    it("(JSON)", () => {
+                        const definition: RootNodeDefinition = {
+                            type: "root",
+                            child: {
+                                type: "condition",
+                                call: "someCondition"
+                            }
+                        };
+                        const agent = { someCondition: () => true };
+                        const tree = new BehaviourTree(definition, agent);
+
+                        tree.step();
+
+                        const node = findNode(tree, "condition", "someCondition");
+                        assert.strictEqual(node.state, State.SUCCEEDED);
+                    });
                 });
             });
 
