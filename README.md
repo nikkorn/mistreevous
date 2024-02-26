@@ -2,9 +2,9 @@
 [![npm version](https://badge.fury.io/js/mistreevous.svg)](https://badge.fury.io/js/mistreevous)
 [![Node.js CI](https://github.com/nikkorn/mistreevous/actions/workflows/node.js.yml/badge.svg?branch=master)](https://github.com/nikkorn/mistreevous/actions/workflows/node.js.yml)
 
-A tool to declaratively define and generate behaviour trees, built using Typescript. Behaviour trees are used to create complex AI via the modular heirarchical composition of individual tasks.
+A library to declaratively define, build and execute behaviour trees, written in Typescript. Behaviour trees are used to create complex AI via the modular heirarchical composition of individual tasks.
 
-Using this tool, trees can be defined with a simple and minimal built-in DSL, avoiding the need to write verbose definitions in JSON.
+Using this tool, trees can be defined with either JSON or a simple and minimal built-in DSL (MDSL), avoiding the need to write verbose definitions in JSON.
 
 ![Sorting Lunch](resources/images/sorting-lunch-example.png?raw=true "Sorting Lunch")
 
@@ -97,6 +97,7 @@ Composite nodes wrap one or more child nodes, each of which will be processed in
 This composite node will update each child node in sequence. It will succeed if all of its children have succeeded and will fail if any of its children fail. This node will remain in the running state if one of its children is running.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=sequence)
 
+*MDSL*
 ```
 root {
     sequence {
@@ -107,10 +108,35 @@ root {
 }
 ```
 
+*JSON*
+```js
+{
+    "type": "root",
+    "child": {
+        "type": "sequence",
+        "children": [
+            {
+                "type": "action",
+                "call": "Walk"
+            },
+            {
+                "type": "action",
+                "call": "Fall"
+            },
+            {
+                "type": "action",
+                "call": "Laugh"
+            }
+        ]
+    }
+}
+```
+
 ### Selector
 This composite node will update each child node in sequence. It will fail if all of its children have failed and will succeed if any of its children succeed. This node will remain in the running state if one of its children is running.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=selector)
 
+*MDSL*
 ```
 root {
     selector {
@@ -121,10 +147,35 @@ root {
 }
 ```
 
+*JSON*
+```js
+{
+    "type": "root",
+    "child": {
+        "type": "selector",
+        "children": [
+            {
+                "type": "action",
+                "call": "TryThis"
+            },
+            {
+                "type": "action",
+                "call": "ThenTryThis"
+            },
+            {
+                "type": "action",
+                "call": "TryThisLast"
+            }
+        ]
+    }
+}
+```
+
 ### Parallel
 This composite node will update each child node concurrently. It will succeed if all of its children have succeeded and will fail if any of its children fail. This node will remain in the running state if any of its children are running.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=parallel)
 
+*MDSL*
 ```
 root {
     parallel {
@@ -134,10 +185,31 @@ root {
 }
 ```
 
+*JSON*
+```js
+{
+    "type": "root",
+    "child": {
+        "type": "parallel",
+        "children": [
+            {
+                "type": "action",
+                "call": "RubBelly"
+            },
+            {
+                "type": "action",
+                "call": "PatHead"
+            }
+        ]
+    }
+}
+```
+
 ### Lotto
 This composite node will select a single child at random to run as the active running node. The state of this node will reflect the state of the active child.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=lotto)
 
+*MDSL*
 ```
 root {
     lotto {
@@ -147,9 +219,30 @@ root {
 }
 ```
 
+*JSON*
+```js
+{
+    "type": "root",
+    "child": {
+        "type": "lotto",
+        "children": [
+            {
+                "type": "action",
+                "call": "MoveLeft"
+            },
+            {
+                "type": "action",
+                "call": "MoveRight"
+            }
+        ]
+    }
+}
+```
+
 A probability weight can be defined for each child node as an optional integer node argument, influencing the likelihood that a particular child will be picked.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=weighted-lotto)
 
+*MDSL*
 ```
 root {
     lotto [10,5,3,1] {
@@ -157,6 +250,35 @@ root {
         action [UncommonAction]
         action [RareAction]
         action [VeryRareAction]
+    }
+}
+```
+
+*JSON*
+```js
+{
+    "type": "root",
+    "child": {
+        "type": "lotto",
+        "children": [
+            {
+                "type": "action",
+                "call": "CommonAction"
+            },
+            {
+                "type": "action",
+                "call": "UncommonAction"
+            },
+            {
+                "type": "action",
+                "call": "RareAction"
+            },
+            {
+                "type": "action",
+                "call": "VeryRareAction"
+            }
+        ],
+        "weights": [10, 5, 3, 1]
     }
 }
 ```
@@ -169,14 +291,27 @@ This decorator node represents the root of a behaviour tree and cannot be the ch
 
 The state of a root node will reflect the state of its child node.
 
+*MDSL*
 ```
 root {
     action [Dance]
 }
 ```
 
+*JSON*
+```js
+{
+    "type": "root",
+    "child": {
+        "type": "action",
+        "call": "Dance"
+    }
+}
+```
+
 Additional named root nodes can be defined and reused throughout a definition. Other root nodes can be referenced via the **branch** node. Exactly one root node must be left unnamed, this root node will be used as the main root node for the entire tree.
 
+*MDSL*
 ```
 root {
     branch [SomeOtherTree]

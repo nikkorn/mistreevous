@@ -16,7 +16,7 @@ describe("A Retry node", () => {
                     assert.throws(
                         () => new BehaviourTree(definition, {}),
                         Error,
-                        "invalid definition: a retry node must have a single child"
+                        "invalid definition: a retry node must have a single child node defined"
                     );
                 });
 

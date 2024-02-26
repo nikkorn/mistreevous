@@ -1757,13 +1757,24 @@ var Action = class extends Leaf {
     this.actionArguments = actionArguments;
   }
   isUsingUpdatePromise = false;
-  updatePromiseStateResult = null;
+  updatePromiseResult = null;
   onUpdate(agent, options) {
     if (this.isUsingUpdatePromise) {
-      if (this.updatePromiseStateResult) {
-        this.setState(this.updatePromiseStateResult);
+      if (!this.updatePromiseResult) {
+        return;
       }
-      return;
+      const { isResolved, value } = this.updatePromiseResult;
+      if (isResolved) {
+        if (value !== "mistreevous.succeeded" /* SUCCEEDED */ && value !== "mistreevous.failed" /* FAILED */) {
+          throw new Error(
+            "action node promise resolved with an invalid value, expected a State.SUCCEEDED or State.FAILED value to be returned"
+          );
+        }
+        this.setState(value);
+        return;
+      } else {
+        throw new Error(`action function '${this.actionName}' promise rejected with '${value}'`);
+      }
     }
     const actionFuncInvoker = Lookup.getFuncInvoker(agent, this.actionName);
     if (actionFuncInvoker === null) {
@@ -1783,18 +1794,19 @@ var Action = class extends Leaf {
           if (!this.isUsingUpdatePromise) {
             return;
           }
-          if (result !== "mistreevous.succeeded" /* SUCCEEDED */ && result !== "mistreevous.failed" /* FAILED */) {
-            throw new Error(
-              "action node promise resolved with an invalid value, expected a State.SUCCEEDED or State.FAILED value to be returned"
-            );
-          }
-          this.updatePromiseStateResult = result;
+          this.updatePromiseResult = {
+            isResolved: true,
+            value: result
+          };
         },
         (reason) => {
           if (!this.isUsingUpdatePromise) {
             return;
           }
-          throw new Error(`action function '${this.actionName}' promise rejected with reason '${reason}'`);
+          this.updatePromiseResult = {
+            isResolved: false,
+            value: reason
+          };
         }
       );
       this.setState("mistreevous.running" /* RUNNING */);
@@ -1808,7 +1820,7 @@ var Action = class extends Leaf {
   reset = () => {
     this.setState("mistreevous.ready" /* READY */);
     this.isUsingUpdatePromise = false;
-    this.updatePromiseStateResult = null;
+    this.updatePromiseResult = null;
   };
   validateUpdateResult = (result) => {
     switch (result) {

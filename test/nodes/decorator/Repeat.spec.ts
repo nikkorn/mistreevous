@@ -16,7 +16,7 @@ describe("A Repeat node", () => {
                     assert.throws(
                         () => new BehaviourTree(definition, {}),
                         Error,
-                        "invalid definition: a repeat node must have a single child"
+                        "invalid definition: a repeat node must have a single child node defined"
                     );
                 });
 

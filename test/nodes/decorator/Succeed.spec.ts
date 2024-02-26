@@ -14,7 +14,7 @@ describe("A Succeed node", () => {
                 assert.throws(
                     () => new BehaviourTree(definition, {}),
                     Error,
-                    "invalid definition: a succeed node must have a single child"
+                    "invalid definition: a succeed node must have a single child node defined"
                 );
             });
 

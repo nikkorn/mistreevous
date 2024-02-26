@@ -22,7 +22,7 @@ export default class Action extends Leaf {
     /**
      * The finished state result of an update promise.
      */
-    private updatePromiseStateResult;
+    private updatePromiseResult;
     /**
      * Called when the node is being updated.
      * @param agent The agent.

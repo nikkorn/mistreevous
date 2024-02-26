@@ -221,7 +221,61 @@ describe("An Action node", () => {
                     });
 
                     describe("returns a rejected promise", () => {
-                        it("(MDSL)", () => {});
+                        it("(MDSL)", (done) => {
+                            const definition = "root { action [doAction] }";
+                            const result: Promise<State.SUCCEEDED> = new Promise(() => {
+                                throw new Error("some-error");
+                            });
+                            const agent = { doAction: () => result };
+                            const tree = new BehaviourTree(definition, agent);
+
+                            assert.strictEqual(findNode(tree, "action", "doAction").state, State.READY);
+
+                            tree.step();
+
+                            assert.strictEqual(findNode(tree, "action", "doAction").state, State.RUNNING);
+
+                            setTimeout(() => {
+                                assert.throws(
+                                    () => tree.step(),
+                                    Error,
+                                    "error stepping tree: action function 'doAction' promise rejected with 'Error: some-error'"
+                                );
+
+                                done();
+                            }, 0);
+                        });
+
+                        it("(JSON)", (done) => {
+                            const definition: RootNodeDefinition = {
+                                type: "root",
+                                child: {
+                                    type: "action",
+                                    call: "doAction"
+                                }
+                            };
+                            const result: Promise<State.SUCCEEDED> = new Promise(() => {
+                                throw new Error("some-error");
+                            });
+                            const agent = { doAction: () => result };
+                            const tree = new BehaviourTree(definition, agent);
+
+                            assert.strictEqual(findNode(tree, "action", "doAction").state, State.READY);
+
+                            tree.step();
+
+                            assert.strictEqual(findNode(tree, "action", "doAction").state, State.RUNNING);
+
+                            setTimeout(() => {
+                                assert.throws(
+                                    () => tree.step(),
+                                    Error,
+                                    "error stepping tree: action function 'doAction' promise rejected with 'Error: some-error'"
+                                );
+
+                                done();
+                            }, 0);
+                        });
                     });
                 });
             });
@@ -344,18 +398,19 @@ describe("An Action node", () => {
                             const agent = { doAction: () => result };
                             const tree = new BehaviourTree(definition, agent);
 
-                            let node = findNode(tree, "action", "doAction");
-                            assert.strictEqual(node.state, State.READY);
+                            assert.strictEqual(findNode(tree, "action", "doAction").state, State.READY);
 
                             tree.step();
 
-                            result
-                                .then(() => tree.step())
-                                .then(() => {
-                                    node = findNode(tree, "action", "doAction");
-                                    assert.strictEqual(node.state, State.SUCCEEDED);
-                                })
-                                .then(done);
+                            assert.strictEqual(findNode(tree, "action", "doAction").state, State.RUNNING);
+
+                            setTimeout(() => {
+                                tree.step();
+
+                                assert.strictEqual(findNode(tree, "action", "doAction").state, State.SUCCEEDED);
+
+                                done();
+                            }, 0);
                         });
 
                         it("(JSON)", (done) => {
@@ -371,18 +426,19 @@ describe("An Action node", () => {
                             const agent = { doAction: () => result };
                             const tree = new BehaviourTree(definition, agent);
 
-                            let node = findNode(tree, "action", "doAction");
-                            assert.strictEqual(node.state, State.READY);
+                            assert.strictEqual(findNode(tree, "action", "doAction").state, State.READY);
 
                             tree.step();
 
-                            result
-                                .then(() => tree.step())
-                                .then(() => {
-                                    node = findNode(tree, "action", "doAction");
-                                    assert.strictEqual(node.state, State.SUCCEEDED);
-                                })
-                                .then(done);
+                            assert.strictEqual(findNode(tree, "action", "doAction").state, State.RUNNING);
+
+                            setTimeout(() => {
+                                tree.step();
+
+                                assert.strictEqual(findNode(tree, "action", "doAction").state, State.SUCCEEDED);
+
+                                done();
+                            }, 0);
                         });
                     });
                 });

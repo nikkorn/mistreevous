@@ -14,7 +14,7 @@ describe("A Flip node", () => {
                 assert.throws(
                     () => new BehaviourTree(definition, {}),
                     Error,
-                    "invalid definition: a flip node must have a single child"
+                    "invalid definition: a flip node must have a single child node defined"
                 );
             });
 
