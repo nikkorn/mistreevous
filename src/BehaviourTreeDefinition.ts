@@ -85,11 +85,11 @@ export interface ActionNodeDefinition extends NodeDefinition {
      */
     type: "action";
     /**
-     * The name of the agent function to invoke.
+     * The name of the agent function or registered function to invoke.
      */
     call: string;
     /**
-     * An array of arguments to pass when invoking the agent function.
+     * An array of arguments to pass when invoking the action function.
      */
     args?: any[];
 }
@@ -103,11 +103,11 @@ export interface ConditionNodeDefinition extends NodeDefinition {
      */
     type: "condition";
     /**
-     * The name of the agent function to invoke.
+     * The name of the agent function or registered function to invoke.
      */
     call: string;
     /**
-     * An array of arguments to pass when invoking the agent function.
+     * An array of arguments to pass when invoking the condition function.
      */
     args?: any[];
 }

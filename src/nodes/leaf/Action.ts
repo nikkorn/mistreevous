@@ -57,14 +57,21 @@ export default class Action extends Leaf {
             );
         }
 
-        // Call the action function, the result of which may be:
-        // - The finished state of this action node.
-        // - A promise to return a finished node state.
-        // - Undefined if the node should remain in the running state.
-        const updateResult = actionFuncInvoker(this.actionArguments) as CompleteState | Promise<CompleteState>;
+        let actionFunctionResult;
 
-        if (updateResult instanceof Promise) {
-            updateResult.then(
+        try {
+            // Call the action function, the result of which may be:
+            // - The finished state of this action node.
+            // - A promise to return a finished node state.
+            // - Undefined if the node should remain in the running state.
+            actionFunctionResult = actionFuncInvoker(this.actionArguments) as CompleteState | Promise<CompleteState>;
+        } catch (error) {
+            // The user was naughty and threw something.
+            throw new Error(`action function '${this.actionName}' threw '${error}'`);
+        }
+
+        if (actionFunctionResult instanceof Promise) {
+            actionFunctionResult.then(
                 (result) => {
                     // If 'isUpdatePromisePending' is null then the promise was cleared as it was resolving, probably via an abort of reset.
                     if (!this.isUsingUpdatePromise) {
@@ -82,13 +89,15 @@ export default class Action extends Leaf {
                     this.updatePromiseStateResult = result;
                 },
                 (reason) => {
-                    // If 'isUpdatePromisePending' is null then the promise was cleared as it was resolving, probably via an abort of reset.
+                    // If 'isUpdatePromisePending' is null then the promise was cleared as it was resolving, probably via an abort or reset.
                     if (!this.isUsingUpdatePromise) {
                         return;
                     }
 
-                    // Just throw whatever was returned as the rejection argument.
-                    throw new Error(reason);
+                    // TODO We shouldn't throw an error here, we actually need to set this.updatePromiseRejectionReason so that it can be thrown on the next tree.step() call.
+
+                    // The promise was rejected, which isn't great.
+                    throw new Error(`action function '${this.actionName}' promise rejected with reason '${reason}'`);
                 }
             );
 
@@ -99,10 +108,10 @@ export default class Action extends Leaf {
             this.isUsingUpdatePromise = true;
         } else {
             // Validate the returned value.
-            this.validateUpdateResult(updateResult);
+            this.validateUpdateResult(actionFunctionResult);
 
             // Set the state of this node, this may be undefined, which just means that the node is still in the 'RUNNING' state.
-            this.setState(updateResult || State.RUNNING);
+            this.setState(actionFunctionResult || State.RUNNING);
         }
     }
 

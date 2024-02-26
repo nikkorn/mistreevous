@@ -106,33 +106,67 @@ describe("A Condition node", () => {
                 });
             });
 
-            describe("and will error if there is no agent function or registered function that matches the condition name", () => {
-                it("(MDSL)", () => {
-                    const definition = "root { condition [someCondition] }";
-                    let tree: BehaviourTree;
-                    assert.doesNotThrow(() => (tree = new BehaviourTree(definition, {})), Error);
-                    assert.throws(
-                        () => tree.step(),
-                        Error,
-                        "error stepping tree: cannot update condition node as the condition 'someCondition' function is not defined on the agent and has not been registered"
-                    );
+            describe("and will error if", () => {
+                describe("there is no agent function or registered function that matches the condition name", () => {
+                    it("(MDSL)", () => {
+                        const definition = "root { condition [someCondition] }";
+                        let tree: BehaviourTree;
+                        assert.doesNotThrow(() => (tree = new BehaviourTree(definition, {})), Error);
+                        assert.throws(
+                            () => tree.step(),
+                            Error,
+                            "error stepping tree: cannot update condition node as the condition 'someCondition' function is not defined on the agent and has not been registered"
+                        );
+                    });
+
+                    it("(JSON)", () => {
+                        const definition: RootNodeDefinition = {
+                            type: "root",
+                            child: {
+                                type: "condition",
+                                call: "someCondition"
+                            }
+                        };
+                        let tree: BehaviourTree;
+                        assert.doesNotThrow(() => (tree = new BehaviourTree(definition, {})), Error);
+                        assert.throws(
+                            () => tree.step(),
+                            Error,
+                            "error stepping tree: cannot update condition node as the condition 'someCondition' function is not defined on the agent and has not been registered"
+                        );
+                    });
                 });
 
-                it("(JSON)", () => {
-                    const definition: RootNodeDefinition = {
-                        type: "root",
-                        child: {
-                            type: "condition",
-                            call: "someCondition"
-                        }
-                    };
-                    let tree: BehaviourTree;
-                    assert.doesNotThrow(() => (tree = new BehaviourTree(definition, {})), Error);
-                    assert.throws(
-                        () => tree.step(),
-                        Error,
-                        "error stepping tree: cannot update condition node as the condition 'someCondition' function is not defined on the agent and has not been registered"
-                    );
+                describe("the agent function does not return a boolean value", () => {
+                    it("(MDSL)", () => {
+                        const definition = "root { condition [someCondition] }";
+                        const agent = { someCondition: () => null };
+                        const tree = new BehaviourTree(definition, agent);
+
+                        assert.throws(
+                            () => tree.step(),
+                            Error,
+                            "error stepping tree: expected condition function 'someCondition' to return a boolean but returned 'null'"
+                        );
+                    });
+
+                    it("(JSON)", () => {
+                        const definition: RootNodeDefinition = {
+                            type: "root",
+                            child: {
+                                type: "condition",
+                                call: "someCondition"
+                            }
+                        };
+                        const agent = { someCondition: () => null };
+                        const tree = new BehaviourTree(definition, agent);
+
+                        assert.throws(
+                            () => tree.step(),
+                            Error,
+                            "error stepping tree: expected condition function 'someCondition' to return a boolean but returned 'null'"
+                        );
+                    });
                 });
             });
 
@@ -216,7 +250,10 @@ describe("A Condition node", () => {
                         it("(MDSL)", () => {
                             const definition = 'root { condition [someCondition, "hello world!"] }';
                             const agent = {
-                                someCondition: (arg: any) => assert.strictEqual(arg, "hello world!")
+                                someCondition: (arg: any) => {
+                                    assert.strictEqual(arg, "hello world!");
+                                    return true;
+                                }
                             };
                             const tree = new BehaviourTree(definition, agent);
 
@@ -233,7 +270,10 @@ describe("A Condition node", () => {
                                 }
                             };
                             const agent = {
-                                someCondition: (arg: any) => assert.strictEqual(arg, "hello world!")
+                                someCondition: (arg: any) => {
+                                    assert.strictEqual(arg, "hello world!");
+                                    return true;
+                                }
                             };
                             const tree = new BehaviourTree(definition, agent);
 
@@ -245,7 +285,10 @@ describe("A Condition node", () => {
                         it("(MDSL)", () => {
                             const definition = 'root { condition [someCondition, "hello \\" world!"] }';
                             const agent = {
-                                someCondition: (arg: any) => assert.strictEqual(arg, 'hello " world!')
+                                someCondition: (arg: any) => {
+                                    assert.strictEqual(arg, 'hello " world!');
+                                    return true;
+                                }
                             };
                             const tree = new BehaviourTree(definition, agent);
 
@@ -262,7 +305,10 @@ describe("A Condition node", () => {
                                 }
                             };
                             const agent = {
-                                someCondition: (arg: any) => assert.strictEqual(arg, 'hello " world!')
+                                someCondition: (arg: any) => {
+                                    assert.strictEqual(arg, 'hello " world!');
+                                    return true;
+                                }
                             };
                             const tree = new BehaviourTree(definition, agent);
 
@@ -274,7 +320,10 @@ describe("A Condition node", () => {
                         it("(MDSL)", () => {
                             const definition = "root { condition [someCondition, 23.4567] }";
                             const agent = {
-                                someCondition: (arg: any) => assert.strictEqual(arg, 23.4567)
+                                someCondition: (arg: any) => {
+                                    assert.strictEqual(arg, 23.4567);
+                                    return true;
+                                }
                             };
                             const tree = new BehaviourTree(definition, agent);
 
@@ -291,7 +340,10 @@ describe("A Condition node", () => {
                                 }
                             };
                             const agent = {
-                                someCondition: (arg: any) => assert.strictEqual(arg, 23.4567)
+                                someCondition: (arg: any) => {
+                                    assert.strictEqual(arg, 23.4567);
+                                    return true;
+                                }
                             };
                             const tree = new BehaviourTree(definition, agent);
 
@@ -303,7 +355,10 @@ describe("A Condition node", () => {
                         it("(MDSL)", () => {
                             const definition = "root { condition [someCondition, true] }";
                             const agent = {
-                                someCondition: (arg: any) => assert.strictEqual(arg, true)
+                                someCondition: (arg: any) => {
+                                    assert.strictEqual(arg, true);
+                                    return true;
+                                }
                             };
                             const tree = new BehaviourTree(definition, agent);
 
@@ -320,7 +375,10 @@ describe("A Condition node", () => {
                                 }
                             };
                             const agent = {
-                                someCondition: (arg: any) => assert.strictEqual(arg, true)
+                                someCondition: (arg: any) => {
+                                    assert.strictEqual(arg, true);
+                                    return true;
+                                }
                             };
                             const tree = new BehaviourTree(definition, agent);
 
@@ -332,7 +390,10 @@ describe("A Condition node", () => {
                         it("(MDSL)", () => {
                             const definition = "root { condition [someCondition, false] }";
                             const agent = {
-                                someCondition: (arg: any) => assert.strictEqual(arg, false)
+                                someCondition: (arg: any) => {
+                                    assert.strictEqual(arg, false);
+                                    return true;
+                                }
                             };
                             const tree = new BehaviourTree(definition, agent);
 
@@ -349,7 +410,10 @@ describe("A Condition node", () => {
                                 }
                             };
                             const agent = {
-                                someCondition: (arg: any) => assert.strictEqual(arg, false)
+                                someCondition: (arg: any) => {
+                                    assert.strictEqual(arg, false);
+                                    return true;
+                                }
                             };
                             const tree = new BehaviourTree(definition, agent);
 
@@ -361,7 +425,10 @@ describe("A Condition node", () => {
                         it("(MDSL)", () => {
                             const definition = "root { condition [someCondition, null] }";
                             const agent = {
-                                someCondition: (arg: any) => assert.isNull(arg)
+                                someCondition: (arg: any) => {
+                                    assert.isNull(arg);
+                                    return true;
+                                }
                             };
                             const tree = new BehaviourTree(definition, agent);
 
@@ -378,7 +445,10 @@ describe("A Condition node", () => {
                                 }
                             };
                             const agent = {
-                                someCondition: (arg: any) => assert.isNull(arg)
+                                someCondition: (arg: any) => {
+                                    assert.isNull(arg);
+                                    return true;
+                                }
                             };
                             const tree = new BehaviourTree(definition, agent);
 
@@ -396,6 +466,7 @@ describe("A Condition node", () => {
                                 assert.strictEqual(arg1, "hello world!");
                                 assert.strictEqual(arg2, false);
                                 assert.strictEqual(arg3, null);
+                                return true;
                             }
                         };
                         const tree = new BehaviourTree(definition, agent);
@@ -418,6 +489,7 @@ describe("A Condition node", () => {
                                 assert.strictEqual(arg1, "hello world!");
                                 assert.strictEqual(arg2, false);
                                 assert.strictEqual(arg3, null);
+                                return true;
                             }
                         };
                         const tree = new BehaviourTree(definition, agent);

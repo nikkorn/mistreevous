@@ -1771,9 +1771,14 @@ var mistreevous = (() => {
           `cannot update action node as the action '${this.actionName}' function is not defined on the agent and has not been registered`
         );
       }
-      const updateResult = actionFuncInvoker(this.actionArguments);
-      if (updateResult instanceof Promise) {
-        updateResult.then(
+      let actionFunctionResult;
+      try {
+        actionFunctionResult = actionFuncInvoker(this.actionArguments);
+      } catch (error) {
+        throw new Error(`action function '${this.actionName}' threw '${error}'`);
+      }
+      if (actionFunctionResult instanceof Promise) {
+        actionFunctionResult.then(
           (result) => {
             if (!this.isUsingUpdatePromise) {
               return;
@@ -1789,14 +1794,14 @@ var mistreevous = (() => {
             if (!this.isUsingUpdatePromise) {
               return;
             }
-            throw new Error(reason);
+            throw new Error(`action function '${this.actionName}' promise rejected with reason '${reason}'`);
           }
         );
         this.setState("mistreevous.running" /* RUNNING */);
         this.isUsingUpdatePromise = true;
       } else {
-        this.validateUpdateResult(updateResult);
-        this.setState(updateResult || "mistreevous.running" /* RUNNING */);
+        this.validateUpdateResult(actionFunctionResult);
+        this.setState(actionFunctionResult || "mistreevous.running" /* RUNNING */);
       }
     }
     getName = () => this.actionName;
@@ -1833,7 +1838,18 @@ var mistreevous = (() => {
           `cannot update condition node as the condition '${this.conditionName}' function is not defined on the agent and has not been registered`
         );
       }
-      this.setState(!!conditionFuncInvoker(this.conditionArguments) ? "mistreevous.succeeded" /* SUCCEEDED */ : "mistreevous.failed" /* FAILED */);
+      let conditionFunctionResult;
+      try {
+        conditionFunctionResult = conditionFuncInvoker(this.conditionArguments);
+      } catch (error) {
+        throw new Error(`condition function '${this.conditionName}' threw '${error}'`);
+      }
+      if (typeof conditionFunctionResult !== "boolean") {
+        throw new Error(
+          `expected condition function '${this.conditionName}' to return a boolean but returned '${conditionFunctionResult}'`
+        );
+      }
+      this.setState(!!conditionFunctionResult ? "mistreevous.succeeded" /* SUCCEEDED */ : "mistreevous.failed" /* FAILED */);
     }
     getName = () => this.conditionName;
   };
