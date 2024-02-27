@@ -259,9 +259,8 @@ function convertTokensToJSONDefinition(
 function createRootNode(tokens: string[], stringLiteralPlaceholders: StringLiteralPlaceholders): RootNodeDefinition {
     // Create the root node definition.
     let node = {
-        type: "root",
-        id: undefined
-    } as RootNodeDefinition;
+        type: "root"
+    } as Partial<RootNodeDefinition>;
 
     // Parse any node arguments, we should only have one if any which will be an identifier argument for the root identifier.
     const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
@@ -284,7 +283,7 @@ function createRootNode(tokens: string[], stringLiteralPlaceholders: StringLiter
     popAndCheck(tokens, "{");
 
     // Return the root node definition.
-    return node;
+    return node as RootNodeDefinition;
 }
 
 /**
@@ -563,9 +562,13 @@ function createLottoNode(tokens: string[], stringLiteralPlaceholders: StringLite
 
     const node = {
         type: "lotto",
-        weights: nodeArguments.length ? nodeArguments.map(({ value }) => value) : undefined,
         ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
     } as LottoNodeDefinition;
+
+    // Apply the weights if any were defined.
+    if (nodeArguments.length) {
+        node.weights = nodeArguments.map(({ value }) => value) as number[];
+    }
 
     // This is a composite node, so we expect an opening '{'.
     popAndCheck(tokens, "{");

@@ -1,6 +1,6 @@
 import { ActionResult, Agent, GlobalFunction } from "./Agent";
 import { RootNodeDefinition } from "./BehaviourTreeDefinition";
-export type InvokerFunction = (args: any[]) => ActionResult;
+export type InvokerFunction = (args: any[]) => ActionResult | boolean;
 /**
  * A singleton used to store and lookup registered functions and subtrees.
  */
@@ -8,11 +8,11 @@ export default class Lookup {
     /**
      * The object holding any registered functions keyed on function name.
      */
-    private static functionTable;
+    private static registeredFunctions;
     /**
      * The object holding any registered subtree root node definitions keyed on tree name.
      */
-    private static subtreeTable;
+    private static registeredSubtrees;
     /**
      * Gets the function with the specified name.
      * @param name The name of the function.

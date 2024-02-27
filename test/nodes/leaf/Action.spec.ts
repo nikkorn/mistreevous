@@ -390,6 +390,42 @@ describe("An Action node", () => {
                         });
                     });
 
+                    describe("the function returns a value of State.RUNNING", () => {
+                        it("(MDSL)", () => {
+                            const definition = "root { action [doAction] }";
+                            const agent = { doAction: () => State.RUNNING };
+                            const tree = new BehaviourTree(definition, agent);
+
+                            let node = findNode(tree, "action", "doAction");
+                            assert.strictEqual(node.state, State.READY);
+
+                            tree.step();
+
+                            node = findNode(tree, "action", "doAction");
+                            assert.strictEqual(node.state, State.RUNNING);
+                        });
+
+                        it("(JSON)", () => {
+                            const definition: RootNodeDefinition = {
+                                type: "root",
+                                child: {
+                                    type: "action",
+                                    call: "doAction"
+                                }
+                            };
+                            const agent = { doAction: () => State.RUNNING };
+                            const tree = new BehaviourTree(definition, agent);
+
+                            let node = findNode(tree, "action", "doAction");
+                            assert.strictEqual(node.state, State.READY);
+
+                            tree.step();
+
+                            node = findNode(tree, "action", "doAction");
+                            assert.strictEqual(node.state, State.RUNNING);
+                        });
+                    });
+
                     describe("the function returns a promise to return a value of State.SUCCEEDED or State.FAILED", () => {
                         it("(MDSL)", (done) => {
                             const definition = "root { action [doAction] }";

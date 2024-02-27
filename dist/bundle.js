@@ -414,7 +414,7 @@ var mistreevous = (() => {
         stringArgumentPlaceholders
       );
       if (attributeCallIdentifier?.type !== "identifier") {
-        throw new Error("expected agent function name identifier argument for attribute");
+        throw new Error("expected agent function or registered function name identifier argument for attribute");
       }
       attributeArguments.filter((arg) => arg.type === "identifier").forEach((arg) => {
         throw new Error(
@@ -558,8 +558,7 @@ var mistreevous = (() => {
   }
   function createRootNode(tokens, stringLiteralPlaceholders) {
     let node = {
-      type: "root",
-      id: void 0
+      type: "root"
     };
     const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
     if (nodeArguments.length) {
@@ -688,9 +687,11 @@ var mistreevous = (() => {
     });
     const node = {
       type: "lotto",
-      weights: nodeArguments.length ? nodeArguments.map(({ value }) => value) : void 0,
       ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
     };
+    if (nodeArguments.length) {
+      node.weights = nodeArguments.map(({ value }) => value);
+    }
     popAndCheck(tokens, "{");
     return node;
   }
@@ -1223,38 +1224,39 @@ var mistreevous = (() => {
   // src/Lookup.ts
   var Lookup = class {
     static getFunc(name) {
-      return this.functionTable[name];
+      return this.registeredFunctions[name];
     }
     static setFunc(name, func) {
-      this.functionTable[name] = func;
+      this.registeredFunctions[name] = func;
     }
     static getFuncInvoker(agent, name) {
-      const foundOnAgent = agent[name];
-      if (foundOnAgent && typeof foundOnAgent === "function") {
-        return (args) => foundOnAgent.apply(agent, args);
+      const agentFunction = agent[name];
+      if (agentFunction && typeof agentFunction === "function") {
+        return (args) => agentFunction.apply(agent, args);
       }
-      if (this.functionTable[name] && typeof this.functionTable[name] === "function") {
-        return (args) => this.functionTable[name](agent, ...args.map((arg) => arg.value));
+      if (this.registeredFunctions[name] && typeof this.registeredFunctions[name] === "function") {
+        const registeredFunction = this.registeredFunctions[name];
+        return (args) => registeredFunction(agent, ...args.map((arg) => arg.value));
       }
       return null;
     }
     static getSubtrees() {
-      return this.subtreeTable;
+      return this.registeredSubtrees;
     }
     static setSubtree(name, subtree) {
-      this.subtreeTable[name] = subtree;
+      this.registeredSubtrees[name] = subtree;
     }
     static remove(name) {
-      delete this.functionTable[name];
-      delete this.subtreeTable[name];
+      delete this.registeredFunctions[name];
+      delete this.registeredSubtrees[name];
     }
     static empty() {
-      this.functionTable = {};
-      this.subtreeTable = {};
+      this.registeredFunctions = {};
+      this.registeredSubtrees = {};
     }
   };
-  __publicField(Lookup, "functionTable", {});
-  __publicField(Lookup, "subtreeTable", {});
+  __publicField(Lookup, "registeredFunctions", {});
+  __publicField(Lookup, "registeredSubtrees", {});
 
   // src/attributes/guards/GuardUnsatisifedException.ts
   var GuardUnsatisifedException = class extends Error {
@@ -1826,11 +1828,12 @@ var mistreevous = (() => {
       switch (result) {
         case "mistreevous.succeeded" /* SUCCEEDED */:
         case "mistreevous.failed" /* FAILED */:
+        case "mistreevous.running" /* RUNNING */:
         case void 0:
           return;
         default:
           throw new Error(
-            `action '${this.actionName}' 'onUpdate' returned an invalid response, expected an optional State.SUCCEEDED or State.FAILED value to be returned`
+            `expected action function '${this.actionName}' to return an optional State.SUCCEEDED or State.FAILED value but returned '${result}'`
           );
       }
     };
@@ -2046,7 +2049,10 @@ var mistreevous = (() => {
   var MAIN_ROOT_NODE_KEY = Symbol("__root__");
   function buildRootNode(definition) {
     const rootNodeDefinitionMap = createRootNodeDefinitionMap(definition);
-    validateBranchSubtreeLinks(definition, true);
+    validateBranchSubtreeLinks(
+      [rootNodeDefinitionMap[MAIN_ROOT_NODE_KEY], ...Object.values(rootNodeDefinitionMap)],
+      true
+    );
     const rootNode = nodeFactory(rootNodeDefinitionMap[MAIN_ROOT_NODE_KEY], rootNodeDefinitionMap);
     applyLeafNodeGuardPaths(rootNode);
     return rootNode;

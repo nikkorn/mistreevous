@@ -49,7 +49,7 @@ export function parseAttributeTokens(
 
         // The first attribute argument has to be an identifer, this will reference an agent function.
         if (attributeCallIdentifier?.type !== "identifier") {
-            throw new Error("expected agent function name identifier argument for attribute");
+            throw new Error("expected agent function or registered function name identifier argument for attribute");
         }
 
         // Any attribute arguments (other than the expected call identifier) must have a type of string, number, boolean or null.

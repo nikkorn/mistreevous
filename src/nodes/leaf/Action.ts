@@ -164,15 +164,16 @@ export default class Action extends Leaf {
      * Validate the result of an update function call.
      * @param result The result of an update function call.
      */
-    private validateUpdateResult = (result: CompleteState | boolean) => {
+    private validateUpdateResult = (result: CompleteState | State.RUNNING) => {
         switch (result) {
             case State.SUCCEEDED:
             case State.FAILED:
+            case State.RUNNING:
             case undefined:
                 return;
             default:
                 throw new Error(
-                    `action '${this.actionName}' 'onUpdate' returned an invalid response, expected an optional State.SUCCEEDED or State.FAILED value to be returned`
+                    `expected action function '${this.actionName}' to return an optional State.SUCCEEDED or State.FAILED value but returned '${result}'`
                 );
         }
     };

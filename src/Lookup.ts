@@ -1,7 +1,7 @@
 import { ActionResult, Agent, GlobalFunction } from "./Agent";
 import { RootNodeDefinition } from "./BehaviourTreeDefinition";
 
-export type InvokerFunction = (args: any[]) => ActionResult;
+export type InvokerFunction = (args: any[]) => ActionResult | boolean;
 
 /**
  * A singleton used to store and lookup registered functions and subtrees.
@@ -10,11 +10,11 @@ export default class Lookup {
     /**
      * The object holding any registered functions keyed on function name.
      */
-    private static functionTable: { [key: string]: GlobalFunction } = {};
+    private static registeredFunctions: { [key: string]: GlobalFunction } = {};
     /**
      * The object holding any registered subtree root node definitions keyed on tree name.
      */
-    private static subtreeTable: { [key: string]: RootNodeDefinition } = {};
+    private static registeredSubtrees: { [key: string]: RootNodeDefinition } = {};
 
     /**
      * Gets the function with the specified name.
@@ -22,7 +22,7 @@ export default class Lookup {
      * @returns The function with the specified name.
      */
     public static getFunc(name: string): GlobalFunction {
-        return this.functionTable[name];
+        return this.registeredFunctions[name];
     }
 
     /**
@@ -31,7 +31,7 @@ export default class Lookup {
      * @param func The function.
      */
     public static setFunc(name: string, func: GlobalFunction): void {
-        this.functionTable[name] = func;
+        this.registeredFunctions[name] = func;
     }
 
     /**
@@ -44,14 +44,15 @@ export default class Lookup {
      */
     static getFuncInvoker(agent: Agent, name: string): InvokerFunction | null {
         // Check whether the agent contains the specified function.
-        const foundOnAgent = agent[name];
-        if (foundOnAgent && typeof foundOnAgent === "function") {
-            return (args: any[]): boolean | ActionResult => foundOnAgent.apply(agent, args);
+        const agentFunction = agent[name];
+        if (agentFunction && typeof agentFunction === "function") {
+            return (args: any[]) => agentFunction.apply(agent, args);
         }
 
         // The agent does not contain the specified function but it may have been registered at some point.
-        if (this.functionTable[name] && typeof this.functionTable[name] === "function") {
-            return (args: any[]) => this.functionTable[name](agent, ...args.map((arg) => arg.value));
+        if (this.registeredFunctions[name] && typeof this.registeredFunctions[name] === "function") {
+            const registeredFunction = this.registeredFunctions[name];
+            return (args: any[]) => registeredFunction(agent, ...args.map((arg) => arg.value));
         }
 
         // We have no function to invoke.
@@ -62,7 +63,7 @@ export default class Lookup {
      * Gets all registered subtree root node definitions.
      */
     static getSubtrees(): { [key: string]: RootNodeDefinition } {
-        return this.subtreeTable;
+        return this.registeredSubtrees;
     }
 
     /**
@@ -71,7 +72,7 @@ export default class Lookup {
      * @param subtree The subtree.
      */
     static setSubtree(name: string, subtree: RootNodeDefinition) {
-        this.subtreeTable[name] = subtree;
+        this.registeredSubtrees[name] = subtree;
     }
 
     /**
@@ -79,15 +80,15 @@ export default class Lookup {
      * @param name The name of the registered function or subtree.
      */
     static remove(name: string) {
-        delete this.functionTable[name];
-        delete this.subtreeTable[name];
+        delete this.registeredFunctions[name];
+        delete this.registeredSubtrees[name];
     }
 
     /**
      * Remove all registered functions and subtrees.
      */
     static empty() {
-        this.functionTable = {};
-        this.subtreeTable = {};
+        this.registeredFunctions = {};
+        this.registeredSubtrees = {};
     }
 }

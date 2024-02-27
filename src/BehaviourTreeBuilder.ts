@@ -63,10 +63,13 @@ export default function buildRootNode(definition: RootNodeDefinition[]): Root {
     // Create a mapping of root node identifers to root node definitions, including globally registered subtree root node definitions.
     const rootNodeDefinitionMap = createRootNodeDefinitionMap(definition);
 
-    // Now that we have all of our root node definitons (those part of the tree definition and those globally
-    // registered) we should validate the definition. This will also double-check that we dont have any circular
-    // dependencies in our branch -> subtree references and that we have no broken branch -> subtree links.
-    validateBranchSubtreeLinks(definition, true);
+    // Now that we have all of our root node definitions (those part of the tree definition and those globally registered)
+    // we should validate the branch-subtree links. This will also double-check that we dont have any circular dependencies
+    // in our branch-subtree references and that we have no broken branch-subtree links.
+    validateBranchSubtreeLinks(
+        [rootNodeDefinitionMap[MAIN_ROOT_NODE_KEY], ...Object.values(rootNodeDefinitionMap)],
+        true
+    );
 
     // Create our populated tree of node instances, starting with our main root node.
     const rootNode = nodeFactory(rootNodeDefinitionMap[MAIN_ROOT_NODE_KEY], rootNodeDefinitionMap) as Root;
