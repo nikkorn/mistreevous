@@ -220,6 +220,42 @@ describe("An Action node", () => {
                         });
                     });
 
+                    describe("returns an unexpected value", () => {
+                        it("(MDSL)", () => {
+                            const definition = "root { action [doAction] }";
+                            const agent = {
+                                doAction: () => "invalid-result"
+                            };
+                            const tree = new BehaviourTree(definition, agent);
+
+                            assert.throws(
+                                () => tree.step(),
+                                Error,
+                                "error stepping tree: expected action function 'doAction' to return an optional State.SUCCEEDED or State.FAILED value but returned 'invalid-result'"
+                            );
+                        });
+
+                        it("(JSON)", () => {
+                            const definition: RootNodeDefinition = {
+                                type: "root",
+                                child: {
+                                    type: "action",
+                                    call: "doAction"
+                                }
+                            };
+                            const agent = {
+                                doAction: () => "invalid-result"
+                            };
+                            const tree = new BehaviourTree(definition, agent);
+
+                            assert.throws(
+                                () => tree.step(),
+                                Error,
+                                "error stepping tree: expected action function 'doAction' to return an optional State.SUCCEEDED or State.FAILED value but returned 'invalid-result'"
+                            );
+                        });
+                    });
+
                     describe("returns a rejected promise", () => {
                         it("(MDSL)", (done) => {
                             const definition = "root { action [doAction] }";
