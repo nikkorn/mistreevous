@@ -1,9 +1,6 @@
 import { assert } from "chai";
-import sinon from "sinon";
 
-import { BehaviourTree, State, validateDefinition } from "../src/index";
-import { RootNodeDefinition } from "../src/BehaviourTreeDefinition";
-import { Agent } from "../src/Agent";
+import { validateDefinition } from "../src/index";
 
 describe("The validateDefinition function takes a tree definition as an argument and", () => {
     // Helper function to carry out the validation and verify the expected result.
@@ -15,107 +12,129 @@ describe("The validateDefinition function takes a tree definition as an argument
         assert.deepEqual(result, success ? { succeeded: true } : { succeeded: false, errorMessage });
     };
 
-    describe("where the type of that definition is", () => {
-        describe("MDSL", () => {
-            // TODO Add better validation to mdsl parsing to better match the json validation.
+    describe("returns a validation failure when", () => {
+        describe("the definition doesn't contain a main root node (has no root node identifier defined)", () => {
+            it("(MDSL)", () => {
+                verifyResult(
+                    "root [not-main-root] { action [noop] }",
+                    false,
+                    "expected single unnamed root node at base of definition to act as main root"
+                );
+            });
+
+            it("(JSON)", () => {
+                const definition = {
+                    id: "not-main-root",
+                    type: "root",
+                    child: {
+                        type: "action",
+                        call: "noop"
+                    }
+                };
+
+                // The definition can be either an array (of root node definitions) or an object (the single primary root node definition), verify both.
+                verifyResult(
+                    definition,
+                    false,
+                    "expected single root node without 'id' property defined to act as main root"
+                );
+                verifyResult(
+                    [definition],
+                    false,
+                    "expected single root node without 'id' property defined to act as main root"
+                );
+            });
         });
 
-        describe("JSON", () => {
-            describe("returns a validation failure when", () => {
-                it("the definition doesn't contain a main root node (has no root node identifier defined)", () => {
-                    const definition = {
-                        id: "not-main-root",
-                        type: "root",
-                        child: {
-                            type: "action",
-                            call: "noop"
+        describe("there are duplicate root node identifiers", () => {
+            it("(MDSL)", () => {
+                verifyResult(
+                    "root { action [noop] } root [sub-root-node] { action [noop] } root [sub-root-node] { action [noop] }",
+                    false,
+                    "multiple root nodes found with duplicate name 'sub-root-node'"
+                );
+            });
+
+            it("(JSON)", () => {
+                verifyResult(
+                    [
+                        {
+                            type: "root",
+                            child: {
+                                type: "action",
+                                call: "noop"
+                            }
+                        },
+                        {
+                            id: "sub-root-node",
+                            type: "root",
+                            child: {
+                                type: "action",
+                                call: "noop"
+                            }
+                        },
+                        {
+                            id: "sub-root-node",
+                            type: "root",
+                            child: {
+                                type: "action",
+                                call: "noop"
+                            }
                         }
-                    };
+                    ],
+                    false,
+                    "multiple root nodes found with duplicate 'id' property value of 'sub-root-node'"
+                );
+            });
+        });
 
-                    // The definition can be either an array (of root node definitions) or an object (the single primary root node definition), verify both.
-                    verifyResult(
-                        definition,
-                        false,
-                        "expected single root node without 'id' property defined to act as main root"
-                    );
-                    verifyResult(
-                        [definition],
-                        false,
-                        "expected single root node without 'id' property defined to act as main root"
-                    );
-                });
+        describe("there are circular dependencies found in any branch node references", () => {
+            it("(MDSL)", () => {
+                verifyResult(
+                    "root { branch [RN_A] } root [RN_A] { branch [RN_B] } root [RN_B] { branch [RN_C] } root [RN_C] { branch [RN_A] }",
+                    false,
+                    "circular dependency found in branch node references: RN_A => RN_B => RN_C => RN_A"
+                );
+            });
 
-                it("there are duplicate root node identifiers", () => {
-                    verifyResult(
-                        [
-                            {
-                                type: "root",
-                                child: {
-                                    type: "action",
-                                    call: "noop"
-                                }
-                            },
-                            {
-                                id: "sub-root-node",
-                                type: "root",
-                                child: {
-                                    type: "action",
-                                    call: "noop"
-                                }
-                            },
-                            {
-                                id: "sub-root-node",
-                                type: "root",
-                                child: {
-                                    type: "action",
-                                    call: "noop"
-                                }
+            it("(JSON)", () => {
+                verifyResult(
+                    [
+                        {
+                            type: "root",
+                            child: {
+                                type: "branch",
+                                ref: "RN_A"
                             }
-                        ],
-                        false,
-                        "multiple root nodes found with duplicate 'id' property value of 'sub-root-node'"
-                    );
-                });
-
-                it("there are circular dependencies found in any branch node references", () => {
-                    verifyResult(
-                        [
-                            {
-                                type: "root",
-                                child: {
-                                    type: "branch",
-                                    ref: "RN_A"
-                                }
-                            },
-                            {
-                                id: "RN_A",
-                                type: "root",
-                                child: {
-                                    type: "branch",
-                                    ref: "RN_B"
-                                }
-                            },
-                            {
-                                id: "RN_B",
-                                type: "root",
-                                child: {
-                                    type: "branch",
-                                    ref: "RN_C"
-                                }
-                            },
-                            {
-                                id: "RN_C",
-                                type: "root",
-                                child: {
-                                    type: "branch",
-                                    ref: "RN_A"
-                                }
+                        },
+                        {
+                            id: "RN_A",
+                            type: "root",
+                            child: {
+                                type: "branch",
+                                ref: "RN_B"
                             }
-                        ],
-                        false,
-                        "circular dependency found in branch node references: RN_A => RN_B => RN_C => RN_A"
-                    );
-                });
+                        },
+                        {
+                            id: "RN_B",
+                            type: "root",
+                            child: {
+                                type: "branch",
+                                ref: "RN_C"
+                            }
+                        },
+                        {
+                            id: "RN_C",
+                            type: "root",
+                            child: {
+                                type: "branch",
+                                ref: "RN_A"
+                            }
+                        }
+                    ],
+                    false,
+                    "circular dependency found in branch node references: RN_A => RN_B => RN_C => RN_A"
+                );
             });
         });
     });
