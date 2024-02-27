@@ -393,7 +393,7 @@ describe("An Action node", () => {
                     describe("the function returns undefined", () => {
                         it("(MDSL)", () => {
                             const definition = "root { action [doAction] }";
-                            const agent = { doAction: () => {} };
+                            const agent = { doAction: () => State.RUNNING };
                             const tree = new BehaviourTree(definition, agent);
 
                             let node = findNode(tree, "action", "doAction");
@@ -413,7 +413,7 @@ describe("An Action node", () => {
                                     call: "doAction"
                                 }
                             };
-                            const agent = { doAction: () => {} };
+                            const agent = { doAction: () => State.RUNNING };
                             const tree = new BehaviourTree(definition, agent);
 
                             let node = findNode(tree, "action", "doAction");

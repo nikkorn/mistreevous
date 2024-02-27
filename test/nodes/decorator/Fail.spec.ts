@@ -118,7 +118,7 @@ describe("A Fail node", () => {
         describe("move to the RUNNING state if the child node moves to the RUNNING state", () => {
             it("(MDSL)", () => {
                 const definition = "root { fail { action [someAction] } }";
-                const agent = { someAction: () => {} };
+                const agent = { someAction: () => State.RUNNING };
                 const tree = new BehaviourTree(definition, agent);
 
                 let node = findNode(tree, "fail", "FAIL");
@@ -141,7 +141,7 @@ describe("A Fail node", () => {
                         }
                     }
                 };
-                const agent = { someAction: () => {} };
+                const agent = { someAction: () => State.RUNNING };
                 const tree = new BehaviourTree(definition, agent);
 
                 let node = findNode(tree, "fail", "FAIL");

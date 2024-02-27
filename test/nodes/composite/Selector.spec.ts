@@ -170,7 +170,7 @@ describe("A Selector node", () => {
                     "root { selector { action [actionFail] action [actionRunning] action [actionSucceed] } }";
                 const agent = {
                     actionSucceed: () => State.SUCCEEDED,
-                    actionRunning: () => {},
+                    actionRunning: () => State.RUNNING,
                     actionFail: () => State.FAILED
                 };
                 const tree = new BehaviourTree(definition, agent);
@@ -213,7 +213,7 @@ describe("A Selector node", () => {
                 };
                 const agent = {
                     actionSucceed: () => State.SUCCEEDED,
-                    actionRunning: () => {},
+                    actionRunning: () => State.RUNNING,
                     actionFail: () => State.FAILED
                 };
                 const tree = new BehaviourTree(definition, agent);

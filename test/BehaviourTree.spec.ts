@@ -54,7 +54,7 @@ describe("A BehaviourTree instance", () => {
     describe("has a 'getState' function that returns the state of the root node", () => {
         it("(MDSL)", () => {
             const definition = "root { action [getActionResult] }";
-            const agent = { getActionResult: () => {} };
+            const agent = { getActionResult: () => State.RUNNING };
             const tree = new BehaviourTree(definition, agent);
 
             assert.strictEqual(tree.getState(), State.READY);
@@ -78,7 +78,7 @@ describe("A BehaviourTree instance", () => {
                     call: "getActionResult"
                 }
             };
-            const agent = { getActionResult: () => {} };
+            const agent = { getActionResult: () => State.RUNNING };
             const tree = new BehaviourTree(definition, agent);
 
             assert.strictEqual(tree.getState(), State.READY);
@@ -98,7 +98,7 @@ describe("A BehaviourTree instance", () => {
     describe("has an 'isRunning' function that returns a flag defining whether the tree is in a running state", () => {
         it("(MDSL)", () => {
             const definition = "root { action [getActionResult] }";
-            const agent = { getActionResult: () => {} };
+            const agent = { getActionResult: () => State.RUNNING };
             const tree = new BehaviourTree(definition, agent);
 
             assert.strictEqual(tree.isRunning(), false);
@@ -122,7 +122,7 @@ describe("A BehaviourTree instance", () => {
                     call: "getActionResult"
                 }
             };
-            const agent = { getActionResult: () => {} };
+            const agent = { getActionResult: () => State.RUNNING };
             const tree = new BehaviourTree(definition, agent);
 
             assert.strictEqual(tree.isRunning(), false);
@@ -203,7 +203,7 @@ describe("A BehaviourTree instance", () => {
             const agent = {
                 getActionResult0: () => State.SUCCEEDED,
                 getActionResult1: () => State.SUCCEEDED,
-                getActionResult2: () => {},
+                getActionResult2: () => State.RUNNING,
                 getActionResult3: () => State.SUCCEEDED
             };
             const tree = new BehaviourTree(definition, agent);
@@ -229,7 +229,7 @@ describe("A BehaviourTree instance", () => {
             assert.strictEqual(findNode(tree, "action", "getActionResult2").state, State.SUCCEEDED);
             assert.strictEqual(findNode(tree, "action", "getActionResult3").state, State.SUCCEEDED);
 
-            agent.getActionResult2 = () => undefined;
+            agent.getActionResult2 = () => State.RUNNING;
 
             tree.step();
 
@@ -267,7 +267,7 @@ describe("A BehaviourTree instance", () => {
             const agent = {
                 getActionResult0: () => State.SUCCEEDED,
                 getActionResult1: () => State.SUCCEEDED,
-                getActionResult2: () => {},
+                getActionResult2: () => State.RUNNING,
                 getActionResult3: () => State.SUCCEEDED
             };
             const tree = new BehaviourTree(definition, agent);
@@ -293,7 +293,7 @@ describe("A BehaviourTree instance", () => {
             assert.strictEqual(findNode(tree, "action", "getActionResult2").state, State.SUCCEEDED);
             assert.strictEqual(findNode(tree, "action", "getActionResult3").state, State.SUCCEEDED);
 
-            agent.getActionResult2 = () => undefined;
+            agent.getActionResult2 = () => State.RUNNING;
 
             tree.step();
 

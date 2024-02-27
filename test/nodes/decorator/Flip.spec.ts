@@ -116,7 +116,7 @@ describe("A Flip node", () => {
         describe("move to the RUNNING state if the child node does not move to the SUCCESS or FAILED state", () => {
             it("(MDSL)", () => {
                 const definition = "root { flip { action [someAction] } }";
-                const agent = { someAction: () => {} };
+                const agent = { someAction: () => State.RUNNING };
                 const tree = new BehaviourTree(definition, agent);
 
                 let node = findNode(tree, "flip", "FLIP");
@@ -139,7 +139,7 @@ describe("A Flip node", () => {
                         }
                     }
                 };
-                const agent = { someAction: () => {} };
+                const agent = { someAction: () => State.RUNNING };
                 const tree = new BehaviourTree(definition, agent);
 
                 let node = findNode(tree, "flip", "FLIP");

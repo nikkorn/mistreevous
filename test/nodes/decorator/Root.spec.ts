@@ -99,7 +99,7 @@ describe("A Root node", () => {
         describe("move to the RUNNING state if the child node does not move to the SUCCESS or FAILED state", () => {
             it("(MDSL)", () => {
                 const definition = "root { action [someAction] }";
-                const agent = { someAction: () => {} };
+                const agent = { someAction: () => State.RUNNING };
                 const tree = new BehaviourTree(definition, agent);
 
                 assert.strictEqual(findNode(tree, "root").state, State.READY);
@@ -117,7 +117,7 @@ describe("A Root node", () => {
                         call: "someAction"
                     }
                 };
-                const agent = { someAction: () => {} };
+                const agent = { someAction: () => State.RUNNING };
                 const tree = new BehaviourTree(definition, agent);
 
                 assert.strictEqual(findNode(tree, "root").state, State.READY);

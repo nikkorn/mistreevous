@@ -39,8 +39,8 @@ describe("A Parallel node", () => {
             it("(MDSL)", () => {
                 const definition = "root { parallel { action [actionRunning1] action [actionRunning2] } }";
                 const agent = {
-                    actionRunning1: () => {},
-                    actionRunning2: () => {}
+                    actionRunning1: () => State.RUNNING,
+                    actionRunning2: () => State.RUNNING
                 };
                 const tree = new BehaviourTree(definition, agent);
 
@@ -75,8 +75,8 @@ describe("A Parallel node", () => {
                     }
                 };
                 const agent = {
-                    actionRunning1: () => {},
-                    actionRunning2: () => {}
+                    actionRunning1: () => State.RUNNING,
+                    actionRunning2: () => State.RUNNING
                 };
                 const tree = new BehaviourTree(definition, agent);
 
@@ -98,8 +98,8 @@ describe("A Parallel node", () => {
             it("(MDSL)", () => {
                 const definition = "root { parallel { action [action1] action [action2] } }";
                 const agent = {
-                    action1: () => {},
-                    action2: () => {}
+                    action1: () => State.RUNNING,
+                    action2: () => State.RUNNING
                 };
                 const tree = new BehaviourTree(definition, agent);
 
@@ -143,8 +143,8 @@ describe("A Parallel node", () => {
                     }
                 };
                 const agent = {
-                    action1: () => {},
-                    action2: () => {}
+                    action1: () => State.RUNNING,
+                    action2: () => State.RUNNING
                 };
                 const tree = new BehaviourTree(definition, agent);
 
@@ -175,8 +175,8 @@ describe("A Parallel node", () => {
             it("(MDSL)", () => {
                 const definition = "root { parallel { action [action1] action [action2] } }";
                 const agent = {
-                    action1: () => {},
-                    action2: () => {}
+                    action1: () => State.RUNNING,
+                    action2: () => State.RUNNING
                 };
                 const tree = new BehaviourTree(definition, agent);
 
@@ -229,8 +229,8 @@ describe("A Parallel node", () => {
                     }
                 };
                 const agent = {
-                    action1: () => {},
-                    action2: () => {}
+                    action1: () => State.RUNNING,
+                    action2: () => State.RUNNING
                 };
                 const tree = new BehaviourTree(definition, agent);
 

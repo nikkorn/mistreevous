@@ -159,7 +159,7 @@ describe("A Sequence node", () => {
                     "root { sequence { action [actionSucceed] action [actionRunning] action [actionFail] } }";
                 const agent = {
                     actionSucceed: () => State.SUCCEEDED,
-                    actionRunning: () => {},
+                    actionRunning: () => State.RUNNING,
                     actionFail: () => State.FAILED
                 };
                 const tree = new BehaviourTree(definition, agent);
@@ -202,7 +202,7 @@ describe("A Sequence node", () => {
                 };
                 const agent = {
                     actionSucceed: () => State.SUCCEEDED,
-                    actionRunning: () => {},
+                    actionRunning: () => State.RUNNING,
                     actionFail: () => State.FAILED
                 };
                 const tree = new BehaviourTree(definition, agent);

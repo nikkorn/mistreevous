@@ -421,7 +421,7 @@ describe("A Lotto node", () => {
         describe("move to the RUNNING state if the selected child node is in the RUNNING state", () => {
             it("(MDSL)", () => {
                 const definition = "root { lotto { action [someAction] } }";
-                const agent = { someAction: () => {} };
+                const agent = { someAction: () => State.RUNNING };
                 const tree = new BehaviourTree(definition, agent);
 
                 let lottoNode = findNode(tree, "lotto");
@@ -450,7 +450,7 @@ describe("A Lotto node", () => {
                         ]
                     }
                 };
-                const agent = { someAction: () => {} };
+                const agent = { someAction: () => State.RUNNING };
                 const tree = new BehaviourTree(definition, agent);
 
                 let lottoNode = findNode(tree, "lotto");
