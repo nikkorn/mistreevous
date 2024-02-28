@@ -81,12 +81,12 @@ describe("A Fail node", () => {
                     const agent = { someCondition: () => true };
                     const tree = new BehaviourTree(definition, agent);
 
-                    let node = findNode(tree, "fail", "FAIL");
+                    let node = findNode(tree, "fail");
                     assert.strictEqual(node.state, State.READY);
 
                     tree.step();
 
-                    node = findNode(tree, "fail", "FAIL");
+                    node = findNode(tree, "fail");
                     assert.strictEqual(node.state, State.FAILED);
                 });
 
@@ -104,12 +104,12 @@ describe("A Fail node", () => {
                     const agent = { someCondition: () => true };
                     const tree = new BehaviourTree(definition, agent);
 
-                    let node = findNode(tree, "fail", "FAIL");
+                    let node = findNode(tree, "fail");
                     assert.strictEqual(node.state, State.READY);
 
                     tree.step();
 
-                    node = findNode(tree, "fail", "FAIL");
+                    node = findNode(tree, "fail");
                     assert.strictEqual(node.state, State.FAILED);
                 });
             });
@@ -121,12 +121,12 @@ describe("A Fail node", () => {
                 const agent = { someAction: () => State.RUNNING };
                 const tree = new BehaviourTree(definition, agent);
 
-                let node = findNode(tree, "fail", "FAIL");
+                let node = findNode(tree, "fail");
                 assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
-                node = findNode(tree, "fail", "FAIL");
+                node = findNode(tree, "fail");
                 assert.strictEqual(node.state, State.RUNNING);
             });
 
@@ -144,12 +144,12 @@ describe("A Fail node", () => {
                 const agent = { someAction: () => State.RUNNING };
                 const tree = new BehaviourTree(definition, agent);
 
-                let node = findNode(tree, "fail", "FAIL");
+                let node = findNode(tree, "fail");
                 assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
-                node = findNode(tree, "fail", "FAIL");
+                node = findNode(tree, "fail");
                 assert.strictEqual(node.state, State.RUNNING);
             });
         });

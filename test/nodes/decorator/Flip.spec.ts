@@ -2,7 +2,6 @@ import { assert } from "chai";
 
 import { BehaviourTree, State } from "../../../src/index";
 import { RootNodeDefinition } from "../../../src/BehaviourTreeDefinition";
-import { Agent } from "../../../src/Agent";
 
 import { findNode } from "../../TestUtilities";
 
@@ -41,12 +40,12 @@ describe("A Flip node", () => {
                 const agent = { someCondition: () => false };
                 const tree = new BehaviourTree(definition, agent);
 
-                let node = findNode(tree, "flip", "FLIP");
+                let node = findNode(tree, "flip");
                 assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
-                node = findNode(tree, "flip", "FLIP");
+                node = findNode(tree, "flip");
                 assert.strictEqual(node.state, State.SUCCEEDED);
             });
 
@@ -64,12 +63,12 @@ describe("A Flip node", () => {
                 const agent = { someCondition: () => false };
                 const tree = new BehaviourTree(definition, agent);
 
-                let node = findNode(tree, "flip", "FLIP");
+                let node = findNode(tree, "flip");
                 assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
-                node = findNode(tree, "flip", "FLIP");
+                node = findNode(tree, "flip");
                 assert.strictEqual(node.state, State.SUCCEEDED);
             });
         });
@@ -80,12 +79,12 @@ describe("A Flip node", () => {
                 const agent = { someCondition: () => true };
                 const tree = new BehaviourTree(definition, agent);
 
-                let node = findNode(tree, "flip", "FLIP");
+                let node = findNode(tree, "flip");
                 assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
-                node = findNode(tree, "flip", "FLIP");
+                node = findNode(tree, "flip");
                 assert.strictEqual(node.state, State.FAILED);
             });
 
@@ -103,12 +102,12 @@ describe("A Flip node", () => {
                 const agent = { someCondition: () => true };
                 const tree = new BehaviourTree(definition, agent);
 
-                let node = findNode(tree, "flip", "FLIP");
+                let node = findNode(tree, "flip");
                 assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
-                node = findNode(tree, "flip", "FLIP");
+                node = findNode(tree, "flip");
                 assert.strictEqual(node.state, State.FAILED);
             });
         });
@@ -119,12 +118,12 @@ describe("A Flip node", () => {
                 const agent = { someAction: () => State.RUNNING };
                 const tree = new BehaviourTree(definition, agent);
 
-                let node = findNode(tree, "flip", "FLIP");
+                let node = findNode(tree, "flip");
                 assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
-                node = findNode(tree, "flip", "FLIP");
+                node = findNode(tree, "flip");
                 assert.strictEqual(node.state, State.RUNNING);
             });
 
@@ -142,12 +141,12 @@ describe("A Flip node", () => {
                 const agent = { someAction: () => State.RUNNING };
                 const tree = new BehaviourTree(definition, agent);
 
-                let node = findNode(tree, "flip", "FLIP");
+                let node = findNode(tree, "flip");
                 assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
-                node = findNode(tree, "flip", "FLIP");
+                node = findNode(tree, "flip");
                 assert.strictEqual(node.state, State.RUNNING);
             });
         });

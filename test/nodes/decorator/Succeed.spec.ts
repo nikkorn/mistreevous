@@ -42,12 +42,12 @@ describe("A Succeed node", () => {
                     const agent = { someCondition: () => false };
                     const tree = new BehaviourTree(definition, agent);
 
-                    let node = findNode(tree, "succeed", "SUCCEED");
+                    let node = findNode(tree, "succeed");
                     assert.strictEqual(node.state, State.READY);
 
                     tree.step();
 
-                    node = findNode(tree, "succeed", "SUCCEED");
+                    node = findNode(tree, "succeed");
                     assert.strictEqual(node.state, State.SUCCEEDED);
                 });
 
@@ -65,12 +65,12 @@ describe("A Succeed node", () => {
                     const agent = { someCondition: () => false };
                     const tree = new BehaviourTree(definition, agent);
 
-                    let node = findNode(tree, "succeed", "SUCCEED");
+                    let node = findNode(tree, "succeed");
                     assert.strictEqual(node.state, State.READY);
 
                     tree.step();
 
-                    node = findNode(tree, "succeed", "SUCCEED");
+                    node = findNode(tree, "succeed");
                     assert.strictEqual(node.state, State.SUCCEEDED);
                 });
             });
@@ -81,12 +81,12 @@ describe("A Succeed node", () => {
                     const agent = { someCondition: () => true };
                     const tree = new BehaviourTree(definition, agent);
 
-                    let node = findNode(tree, "succeed", "SUCCEED");
+                    let node = findNode(tree, "succeed");
                     assert.strictEqual(node.state, State.READY);
 
                     tree.step();
 
-                    node = findNode(tree, "succeed", "SUCCEED");
+                    node = findNode(tree, "succeed");
                     assert.strictEqual(node.state, State.SUCCEEDED);
                 });
 
@@ -104,12 +104,12 @@ describe("A Succeed node", () => {
                     const agent = { someCondition: () => true };
                     const tree = new BehaviourTree(definition, agent);
 
-                    let node = findNode(tree, "succeed", "SUCCEED");
+                    let node = findNode(tree, "succeed");
                     assert.strictEqual(node.state, State.READY);
 
                     tree.step();
 
-                    node = findNode(tree, "succeed", "SUCCEED");
+                    node = findNode(tree, "succeed");
                     assert.strictEqual(node.state, State.SUCCEEDED);
                 });
             });
@@ -121,12 +121,12 @@ describe("A Succeed node", () => {
                 const agent = { someAction: () => State.RUNNING };
                 const tree = new BehaviourTree(definition, agent);
 
-                let node = findNode(tree, "succeed", "SUCCEED");
+                let node = findNode(tree, "succeed");
                 assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
-                node = findNode(tree, "succeed", "SUCCEED");
+                node = findNode(tree, "succeed");
                 assert.strictEqual(node.state, State.RUNNING);
             });
 
@@ -144,12 +144,12 @@ describe("A Succeed node", () => {
                 const agent = { someAction: () => State.RUNNING };
                 const tree = new BehaviourTree(definition, agent);
 
-                let node = findNode(tree, "succeed", "SUCCEED");
+                let node = findNode(tree, "succeed");
                 assert.strictEqual(node.state, State.READY);
 
                 tree.step();
 
-                node = findNode(tree, "succeed", "SUCCEED");
+                node = findNode(tree, "succeed");
                 assert.strictEqual(node.state, State.RUNNING);
             });
         });
