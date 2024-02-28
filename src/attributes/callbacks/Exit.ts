@@ -32,6 +32,6 @@ export default class Exit extends Callback {
         }
 
         // Call the callback function
-        callbackFuncInvoker([{ value: { succeeded: isSuccess, aborted: isAborted } }, ...this.args]);
+        callbackFuncInvoker([{ succeeded: isSuccess, aborted: isAborted }, ...this.args]);
     };
 }

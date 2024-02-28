@@ -2041,7 +2041,7 @@ var Exit = class extends Callback {
         `cannot call exit function '${this.getFunctionName()}' as is not defined on the agent and has not been registered`
       );
     }
-    callbackFuncInvoker([{ value: { succeeded: isSuccess, aborted: isAborted } }, ...this.args]);
+    callbackFuncInvoker([{ succeeded: isSuccess, aborted: isAborted }, ...this.args]);
   };
 };
 

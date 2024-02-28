@@ -12,7 +12,7 @@ describe("An Entry callback node attribute", () => {
                 assert.throws(
                     () => new BehaviourTree(definition, {}),
                     Error,
-                    "expected agent function or registered function name identifier argument for attribute"
+                    "invalid definition: expected agent function or registered function name identifier argument for attribute"
                 );
             });
 
@@ -28,7 +28,7 @@ describe("An Entry callback node attribute", () => {
                 assert.throws(
                     () => new BehaviourTree(definition, {}),
                     Error,
-                    "expected 'call' property for attribute 'entry' to be a non-empty string for 'action' node at depth '1'"
+                    "invalid definition: expected 'call' property for attribute 'entry' to be a non-empty string for 'action' node at depth '1'"
                 );
             });
         });
@@ -60,7 +60,7 @@ describe("An Entry callback node attribute", () => {
             assert.isTrue(agent.onEntry.calledTwice);
         });
 
-        it("(MDSL)", () => {
+        it("(JSON)", () => {
             const definition: RootNodeDefinition = {
                 type: "root",
                 entry: {
