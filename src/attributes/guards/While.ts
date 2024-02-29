@@ -30,7 +30,24 @@ export default class While extends Guard {
             );
         }
 
-        // Call the condition function to determine whether this guard is satisfied.
-        return !!conditionFuncInvoker(this.args);
+        let conditionFunctionResult;
+
+        try {
+            // Call the guard condition function to determine the state of this node, the result of which should be a boolean.
+            conditionFunctionResult = conditionFuncInvoker(this.args);
+        } catch (error) {
+            // The user was naughty and threw something.
+            throw new Error(`guard condition function '${this.getCondition()}' threw '${error}'`);
+        }
+
+        // The result of calling the guard condition function must be a boolean value.
+        if (typeof conditionFunctionResult !== "boolean") {
+            throw new Error(
+                `expected guard condition function '${this.getCondition()}' to return a boolean but returned '${conditionFunctionResult}'`
+            );
+        }
+
+        // Return whether this guard is satisfied.
+        return conditionFunctionResult;
     };
 }

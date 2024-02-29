@@ -1960,7 +1960,18 @@ var mistreevous = (() => {
           `cannot evaluate node guard as the condition '${this.getCondition()}' function is not defined on the agent and has not been registered`
         );
       }
-      return !!conditionFuncInvoker(this.args);
+      let conditionFunctionResult;
+      try {
+        conditionFunctionResult = conditionFuncInvoker(this.args);
+      } catch (error) {
+        throw new Error(`guard condition function '${this.getCondition()}' threw '${error}'`);
+      }
+      if (typeof conditionFunctionResult !== "boolean") {
+        throw new Error(
+          `expected guard condition function '${this.getCondition()}' to return a boolean but returned '${conditionFunctionResult}'`
+        );
+      }
+      return conditionFunctionResult;
     };
   };
 
@@ -1976,7 +1987,18 @@ var mistreevous = (() => {
           `cannot evaluate node guard as the condition '${this.getCondition()}' function is not defined on the agent and has not been registered`
         );
       }
-      return !!!conditionFuncInvoker(this.args);
+      let conditionFunctionResult;
+      try {
+        conditionFunctionResult = conditionFuncInvoker(this.args);
+      } catch (error) {
+        throw new Error(`guard condition function '${this.getCondition()}' threw '${error}'`);
+      }
+      if (typeof conditionFunctionResult !== "boolean") {
+        throw new Error(
+          `expected guard condition function '${this.getCondition()}' to return a boolean but returned '${conditionFunctionResult}'`
+        );
+      }
+      return !conditionFunctionResult;
     };
   };
 
