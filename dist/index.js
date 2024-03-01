@@ -1788,7 +1788,11 @@ var Action = class extends Leaf {
     try {
       actionFunctionResult = actionFuncInvoker(this.actionArguments);
     } catch (error) {
-      throw new Error(`action function '${this.actionName}' threw '${error}'`);
+      if (error instanceof Error) {
+        throw new Error(`action function '${this.actionName}' threw: ${error.stack}`);
+      } else {
+        throw new Error(`action function '${this.actionName}' threw: ${error}`);
+      }
     }
     if (actionFunctionResult instanceof Promise) {
       actionFunctionResult.then(
@@ -1857,7 +1861,11 @@ var Condition = class extends Leaf {
     try {
       conditionFunctionResult = conditionFuncInvoker(this.conditionArguments);
     } catch (error) {
-      throw new Error(`condition function '${this.conditionName}' threw '${error}'`);
+      if (error instanceof Error) {
+        throw new Error(`condition function '${this.conditionName}' threw: ${error.stack}`);
+      } else {
+        throw new Error(`condition function '${this.conditionName}' threw: ${error}`);
+      }
     }
     if (typeof conditionFunctionResult !== "boolean") {
       throw new Error(
@@ -1964,7 +1972,11 @@ var While = class extends Guard {
     try {
       conditionFunctionResult = conditionFuncInvoker(this.args);
     } catch (error) {
-      throw new Error(`guard condition function '${this.getCondition()}' threw '${error}'`);
+      if (error instanceof Error) {
+        throw new Error(`guard condition function '${this.getCondition()}' threw: ${error.stack}`);
+      } else {
+        throw new Error(`guard condition function '${this.getCondition()}' threw: ${error}`);
+      }
     }
     if (typeof conditionFunctionResult !== "boolean") {
       throw new Error(
@@ -1991,7 +2003,11 @@ var Until = class extends Guard {
     try {
       conditionFunctionResult = conditionFuncInvoker(this.args);
     } catch (error) {
-      throw new Error(`guard condition function '${this.getCondition()}' threw '${error}'`);
+      if (error instanceof Error) {
+        throw new Error(`guard condition function '${this.getCondition()}' threw: ${error.stack}`);
+      } else {
+        throw new Error(`guard condition function '${this.getCondition()}' threw: ${error}`);
+      }
     }
     if (typeof conditionFunctionResult !== "boolean") {
       throw new Error(

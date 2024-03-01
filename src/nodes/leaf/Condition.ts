@@ -41,8 +41,12 @@ export default class Condition extends Leaf {
             // Call the condition function to determine the state of this node, the result of which should be a boolean.
             conditionFunctionResult = conditionFuncInvoker(this.conditionArguments);
         } catch (error) {
-            // The user was naughty and threw something.
-            throw new Error(`condition function '${this.conditionName}' threw '${error}'`);
+            // An uncaught error was thrown.
+            if (error instanceof Error) {
+                throw new Error(`condition function '${this.conditionName}' threw: ${error.stack}`);
+            } else {
+                throw new Error(`condition function '${this.conditionName}' threw: ${error}`);
+            }
         }
 
         // The result of calling the condition function must be a boolean value.

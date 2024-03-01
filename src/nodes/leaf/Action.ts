@@ -97,8 +97,12 @@ export default class Action extends Leaf {
             // - Undefined if the node should remain in the running state.
             actionFunctionResult = actionFuncInvoker(this.actionArguments) as CompleteState | Promise<CompleteState>;
         } catch (error) {
-            // The user was naughty and threw something.
-            throw new Error(`action function '${this.actionName}' threw '${error}'`);
+            // An uncaught error was thrown.
+            if (error instanceof Error) {
+                throw new Error(`action function '${this.actionName}' threw: ${error.stack}`);
+            } else {
+                throw new Error(`action function '${this.actionName}' threw: ${error}`);
+            }
         }
 
         if (actionFunctionResult instanceof Promise) {

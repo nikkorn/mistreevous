@@ -153,7 +153,7 @@ describe("An Action node", () => {
                             assert.throws(
                                 () => tree.step(),
                                 Error,
-                                "error stepping tree: action function 'doAction' threw 'Error: some-error'"
+                                "error stepping tree: action function 'doAction' threw: Error: some-error"
                             );
                         });
 
@@ -175,7 +175,7 @@ describe("An Action node", () => {
                             assert.throws(
                                 () => tree.step(),
                                 Error,
-                                "error stepping tree: action function 'doAction' threw 'Error: some-error'"
+                                "error stepping tree: action function 'doAction' threw: Error: some-error"
                             );
                         });
                     });
@@ -185,7 +185,7 @@ describe("An Action node", () => {
                             const definition = "root { action [doAction] }";
                             const agent = {
                                 doAction: () => {
-                                    throw "Disaster!";
+                                    throw "some-error";
                                 }
                             };
                             const tree = new BehaviourTree(definition, agent);
@@ -193,7 +193,7 @@ describe("An Action node", () => {
                             assert.throws(
                                 () => tree.step(),
                                 Error,
-                                "error stepping tree: action function 'doAction' threw 'Disaster!'"
+                                "error stepping tree: action function 'doAction' threw: some-error"
                             );
                         });
 
@@ -207,7 +207,7 @@ describe("An Action node", () => {
                             };
                             const agent = {
                                 doAction: () => {
-                                    throw "Disaster!";
+                                    throw "some-error";
                                 }
                             };
                             const tree = new BehaviourTree(definition, agent);
@@ -215,7 +215,7 @@ describe("An Action node", () => {
                             assert.throws(
                                 () => tree.step(),
                                 Error,
-                                "error stepping tree: action function 'doAction' threw 'Disaster!'"
+                                "error stepping tree: action function 'doAction' threw: some-error"
                             );
                         });
                     });

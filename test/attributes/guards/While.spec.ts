@@ -275,7 +275,7 @@ describe("A While guard node attribute", () => {
                     assert.throws(
                         () => tree.step(),
                         Error,
-                        "error stepping tree: guard condition function 'someCondition' threw 'Error: some-error'"
+                        "error stepping tree: guard condition function 'someCondition' threw: Error: some-error"
                     );
                 });
 
@@ -307,7 +307,7 @@ describe("A While guard node attribute", () => {
                     assert.throws(
                         () => tree.step(),
                         Error,
-                        "error stepping tree: guard condition function 'someCondition' threw 'Error: some-error'"
+                        "error stepping tree: guard condition function 'someCondition' threw: Error: some-error"
                     );
                 });
             });

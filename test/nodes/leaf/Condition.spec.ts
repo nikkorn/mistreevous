@@ -137,35 +137,117 @@ describe("A Condition node", () => {
                     });
                 });
 
-                describe("the agent function does not return a boolean value", () => {
-                    it("(MDSL)", () => {
-                        const definition = "root { condition [someCondition] }";
-                        const agent = { someCondition: () => null };
-                        const tree = new BehaviourTree(definition, agent);
+                describe("the agent function", () => {
+                    describe("throws an error object", () => {
+                        it("(MDSL)", () => {
+                            const definition = "root { condition [someCondition] }";
+                            const agent = {
+                                someCondition: () => {
+                                    throw new Error("some-error");
+                                }
+                            };
+                            const tree = new BehaviourTree(definition, agent);
 
-                        assert.throws(
-                            () => tree.step(),
-                            Error,
-                            "error stepping tree: expected condition function 'someCondition' to return a boolean but returned 'null'"
-                        );
+                            assert.throws(
+                                () => tree.step(),
+                                Error,
+                                "error stepping tree: condition function 'someCondition' threw: Error: some-error"
+                            );
+                        });
+
+                        it("(JSON)", () => {
+                            const definition: RootNodeDefinition = {
+                                type: "root",
+                                child: {
+                                    type: "condition",
+                                    call: "someCondition"
+                                }
+                            };
+                            const agent = {
+                                someCondition: () => {
+                                    throw new Error("some-error");
+                                }
+                            };
+                            const tree = new BehaviourTree(definition, agent);
+
+                            assert.throws(
+                                () => tree.step(),
+                                Error,
+                                "error stepping tree: condition function 'someCondition' threw: Error: some-error"
+                            );
+                        });
                     });
 
-                    it("(JSON)", () => {
-                        const definition: RootNodeDefinition = {
-                            type: "root",
-                            child: {
-                                type: "condition",
-                                call: "someCondition"
-                            }
-                        };
-                        const agent = { someCondition: () => null };
-                        const tree = new BehaviourTree(definition, agent);
+                    describe("throws something that isn't an error object", () => {
+                        it("(MDSL)", () => {
+                            const definition = "root { condition [someCondition] }";
+                            const agent = {
+                                someCondition: () => {
+                                    throw "some-error";
+                                }
+                            };
+                            const tree = new BehaviourTree(definition, agent);
 
-                        assert.throws(
-                            () => tree.step(),
-                            Error,
-                            "error stepping tree: expected condition function 'someCondition' to return a boolean but returned 'null'"
-                        );
+                            assert.throws(
+                                () => tree.step(),
+                                Error,
+                                "error stepping tree: condition function 'someCondition' threw: some-error"
+                            );
+                        });
+
+                        it("(JSON)", () => {
+                            const definition: RootNodeDefinition = {
+                                type: "root",
+                                child: {
+                                    type: "condition",
+                                    call: "someCondition"
+                                }
+                            };
+                            const agent = {
+                                someCondition: () => {
+                                    throw "some-error";
+                                }
+                            };
+                            const tree = new BehaviourTree(definition, agent);
+
+                            assert.throws(
+                                () => tree.step(),
+                                Error,
+                                "error stepping tree: condition function 'someCondition' threw: some-error"
+                            );
+                        });
+                    });
+
+                    describe("does not return a boolean value", () => {
+                        it("(MDSL)", () => {
+                            const definition = "root { condition [someCondition] }";
+                            const agent = { someCondition: () => null };
+                            const tree = new BehaviourTree(definition, agent);
+
+                            assert.throws(
+                                () => tree.step(),
+                                Error,
+                                "error stepping tree: expected condition function 'someCondition' to return a boolean but returned 'null'"
+                            );
+                        });
+
+                        it("(JSON)", () => {
+                            const definition: RootNodeDefinition = {
+                                type: "root",
+                                child: {
+                                    type: "condition",
+                                    call: "someCondition"
+                                }
+                            };
+                            const agent = { someCondition: () => null };
+                            const tree = new BehaviourTree(definition, agent);
+
+                            assert.throws(
+                                () => tree.step(),
+                                Error,
+                                "error stepping tree: expected condition function 'someCondition' to return a boolean but returned 'null'"
+                            );
+                        });
                     });
                 });
             });
