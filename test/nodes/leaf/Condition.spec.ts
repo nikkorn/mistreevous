@@ -1,8 +1,8 @@
 import { assert } from "chai";
+import sinon from "sinon";
 
 import { BehaviourTree, State } from "../../../src/index";
 import { RootNodeDefinition } from "../../../src/BehaviourTreeDefinition";
-import { Agent } from "../../../src/Agent";
 
 import { findNode } from "../../TestUtilities";
 
@@ -41,37 +41,40 @@ describe("A Condition node", () => {
             describe("when the referenced function is", () => {
                 describe("a registered function", () => {
                     it("(MDSL)", () => {
-                        BehaviourTree.register("someCondition", () => {
-                            return true;
-                        });
+                        const registeredConditionFunction = sinon.stub().returns(true);
+                        BehaviourTree.register("someCondition", registeredConditionFunction);
 
-                        const definition = "root { condition [someCondition] }";
-                        const tree = new BehaviourTree(definition, {});
+                        const definition = `root { condition [someCondition, "some-argument"] }`;
+                        const agent = { mock: "agent" };
+                        const tree = new BehaviourTree(definition, agent);
 
                         tree.step();
 
                         const node = findNode(tree, "condition", "someCondition");
                         assert.strictEqual(node.state, State.SUCCEEDED);
+                        assert.isTrue(registeredConditionFunction.calledWith(agent, "some-argument"));
                     });
 
                     it("(JSON)", () => {
-                        BehaviourTree.register("someCondition", () => {
-                            return true;
-                        });
+                        const registeredConditionFunction = sinon.stub().returns(true);
+                        BehaviourTree.register("someCondition", registeredConditionFunction);
 
                         const definition: RootNodeDefinition = {
                             type: "root",
                             child: {
                                 type: "condition",
-                                call: "someCondition"
+                                call: "someCondition",
+                                args: ["some-argument"]
                             }
                         };
-                        const tree = new BehaviourTree(definition, {});
+                        const agent = { mock: "agent" };
+                        const tree = new BehaviourTree(definition, agent);
 
                         tree.step();
 
                         const node = findNode(tree, "condition", "someCondition");
                         assert.strictEqual(node.state, State.SUCCEEDED);
+                        assert.isTrue(registeredConditionFunction.calledWith(agent, "some-argument"));
                     });
                 });
 

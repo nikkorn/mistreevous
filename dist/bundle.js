@@ -1236,7 +1236,7 @@ var mistreevous = (() => {
       }
       if (this.registeredFunctions[name] && typeof this.registeredFunctions[name] === "function") {
         const registeredFunction = this.registeredFunctions[name];
-        return (args) => registeredFunction(agent, ...args.map((arg) => arg.value));
+        return (args) => registeredFunction(agent, ...args);
       }
       return null;
     }
@@ -2314,7 +2314,7 @@ var mistreevous = (() => {
         } catch (exception) {
           throw new Error(`error registering definition, invalid MDSL: ${exception.message}`);
         }
-        if (rootNodeDefinitions.length != 1 || rootNodeDefinitions[0].id !== null) {
+        if (rootNodeDefinitions.length != 1 || typeof rootNodeDefinitions[0].id !== "undefined") {
           throw new Error("error registering definition: expected a single unnamed root node");
         }
         try {

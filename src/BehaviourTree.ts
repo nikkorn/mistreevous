@@ -198,7 +198,7 @@ export class BehaviourTree {
             }
 
             // This function should only ever be called with a definition containing a single unnamed root node.
-            if (rootNodeDefinitions.length != 1 || rootNodeDefinitions[0].id !== null) {
+            if (rootNodeDefinitions.length != 1 || typeof rootNodeDefinitions[0].id !== "undefined") {
                 throw new Error("error registering definition: expected a single unnamed root node");
             }
 

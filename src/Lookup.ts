@@ -52,7 +52,7 @@ export default class Lookup {
         // The agent does not contain the specified function but it may have been registered at some point.
         if (this.registeredFunctions[name] && typeof this.registeredFunctions[name] === "function") {
             const registeredFunction = this.registeredFunctions[name];
-            return (args: any[]) => registeredFunction(agent, ...args.map((arg) => arg.value));
+            return (args: any[]) => registeredFunction(agent, ...args);
         }
 
         // We have no function to invoke.

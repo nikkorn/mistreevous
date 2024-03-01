@@ -1,8 +1,8 @@
 import { assert } from "chai";
+import sinon from "sinon";
 
 import { BehaviourTree, State } from "../../../src/index";
 import { RootNodeDefinition } from "../../../src/BehaviourTreeDefinition";
-import { Agent } from "../../../src/Agent";
 
 import { findNode } from "../../TestUtilities";
 
@@ -41,39 +41,40 @@ describe("An Action node", () => {
             describe("when the referenced function is", () => {
                 describe("a registered function", () => {
                     it("(MDSL)", () => {
-                        const definition = "root { action [doAction] }";
+                        const registeredActionFunction = sinon.stub().returns(State.SUCCEEDED);
+                        BehaviourTree.register("doAction", registeredActionFunction);
 
-                        BehaviourTree.register("doAction", () => {
-                            return State.SUCCEEDED;
-                        });
-
-                        const tree = new BehaviourTree(definition, {});
+                        const definition = `root { action [doAction, "some-argument"] }`;
+                        const agent = { mock: "agent" };
+                        const tree = new BehaviourTree(definition, agent);
 
                         tree.step();
 
                         const node = findNode(tree, "action", "doAction");
                         assert.strictEqual(node.state, State.SUCCEEDED);
+                        assert.isTrue(registeredActionFunction.calledWith(agent, "some-argument"));
                     });
 
                     it("(JSON)", () => {
+                        const registeredActionFunction = sinon.stub().returns(State.SUCCEEDED);
+                        BehaviourTree.register("doAction", registeredActionFunction);
+
                         const definition: RootNodeDefinition = {
                             type: "root",
                             child: {
                                 type: "action",
-                                call: "doAction"
+                                call: "doAction",
+                                args: ["some-argument"]
                             }
                         };
-
-                        BehaviourTree.register("doAction", () => {
-                            return State.SUCCEEDED;
-                        });
-
-                        const tree = new BehaviourTree(definition, {});
+                        const agent = { mock: "agent" };
+                        const tree = new BehaviourTree(definition, agent);
 
                         tree.step();
 
                         const node = findNode(tree, "action", "doAction");
                         assert.strictEqual(node.state, State.SUCCEEDED);
+                        assert.isTrue(registeredActionFunction.calledWith(agent, "some-argument"));
                     });
                 });
 
