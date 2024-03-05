@@ -230,6 +230,11 @@ function validateNode(definition: any, depth: number): void {
         );
     }
 
+    // If this node is at the very base of the definition then it MUST be a root node.
+    if (depth === 0 && definition.type !== "root") {
+        throw new Error(`expected root node at base of definition but got node of type '${definition.type}'`);
+    }
+
     // How we validate this node definition will depend on its type.
     switch (definition.type) {
         case "action":

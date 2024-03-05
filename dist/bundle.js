@@ -892,6 +892,9 @@ var mistreevous = (() => {
         `node definition is not an object or 'type' property is not a non-empty string at depth '${depth}'`
       );
     }
+    if (depth === 0 && definition.type !== "root") {
+      throw new Error(`expected root node at base of definition but got node of type '${definition.type}'`);
+    }
     switch (definition.type) {
       case "action":
         validateActionNode(definition, depth);

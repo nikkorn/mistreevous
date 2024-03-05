@@ -46,6 +46,31 @@ describe("The validateDefinition function takes a tree definition as an argument
             });
         });
 
+        describe("the root node in the definition is not actually a root node", () => {
+            it("(MDSL)", () => {
+                verifyResult("action [noop]", false, "expected root node at base of definition");
+            });
+
+            it("(JSON)", () => {
+                const definition = {
+                    type: "action",
+                    call: "noop"
+                };
+
+                // The definition can be either an array (of root node definitions) or an object (the single primary root node definition), verify both.
+                verifyResult(
+                    definition,
+                    false,
+                    "expected root node at base of definition but got node of type 'action'"
+                );
+                verifyResult(
+                    [definition],
+                    false,
+                    "expected root node at base of definition but got node of type 'action'"
+                );
+            });
+        });
+
         describe("there are duplicate root node identifiers", () => {
             it("(MDSL)", () => {
                 verifyResult(
