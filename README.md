@@ -600,6 +600,7 @@ root {
 
 ### Branch
 Named root nodes can be referenced using the **branch** node. This node acts as a placeholder that will be replaced by the child node of the referenced root node. The two definitions below are synonymous.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=branch)
 
 ```
 root {
@@ -801,6 +802,15 @@ A practical look at behaviour trees and a good example of modelling behaviour fo
 ## Version History
 | Version        | Notes |
 | -------------- |:----------------------------------------------------------------------------------------|
+| 4.0.0          | Added support for JSON tree defintions |
+|                | Added validateDefintion function to use in validating JSON/MDSL definitons | 
+|                | Added convertMDSLToJSON function to convert existing MDSL definitions to JSON | 
+|                | Tidied up error handling for agent and registered function invocation | 
+|                | Action functions can now explictly return a value of State.RUNNING instead of having to return undefined  | 
+|                | Fixed issue where rejected action function promises were not handled correctly |
+|                | Fixed issue where registered functions were called with incorrect arguments |
+|                | Fixed some typings | 
+|                | Added a BUNCH of tests | 
 | 3.2.0          | The 'random' function option is used for iteration and attempt selection for `repeat` and `retry` nodes respectively when minimum and maximum bounds are defined | 
 | 3.1.0          | Added 'random' function option to allow users to provide psuedo-random numbers for use in operations such as `lotto` node child selection and wait node duration selection when a minimum and maximum duration are defined. Wait nodes will now remain in the running state indefinitely until they are aborted if no duration is defined for them | 
 | 3.0.0          | Converted to Typescript | 
