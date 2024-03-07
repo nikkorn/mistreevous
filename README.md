@@ -84,17 +84,17 @@ The `BehaviourTree` constructor can take an options object as an argument, the p
 
 ## States
 Behaviour tree nodes can be in one of the following states:
-- **READY** A node is in a ready state when it has not been visited yet in the execution of the tree.
-- **RUNNING** A node is in a running state when it is is still being processed, these nodes will usually represent or encompass a long running action.
-- **SUCCEEDED** A node is in a succeeded state when it is no longer being processed and has succeeded.
-- **FAILED** A node is in a failed state when it is no longer being processed but has failed.
+- **READY** A node is in the `READY` state when it has not been visited yet in the execution of the tree.
+- **RUNNING** A node is in the `RUNNING` state when it is is still being processed, these nodes will usually represent or encompass a long running action.
+- **SUCCEEDED** A node is in a `SUCCEEDED` state when it is no longer being processed and has succeeded.
+- **FAILED** A node is in the `FAILED` state when it is no longer being processed but has failed.
 
 
 ## Composite Nodes
-Composite nodes wrap one or more child nodes, each of which will be processed in a sequence determined by the type of the composite node. A composite node will remain in the running state until it is finished processing the child nodes, after which the state of the composite node will reflect the success or failure of the child nodes.
+Composite nodes wrap one or more child nodes, each of which will be processed in a sequence determined by the type of the composite node. A composite node will remain in the `RUNNING` state until it is finished processing the child nodes, after which the state of the composite node will reflect the success or failure of the child nodes.
 
 ### Sequence
-This composite node will update each child node in sequence. It will succeed if all of its children have succeeded and will fail if any of its children fail. This node will remain in the running state if one of its children is running.
+This composite node will update each child node in sequence. It will move to the `SUCCEEDED` state if all of its children have moved to the `SUCCEEDED` state and and will move to the `FAILED` state if any of its children move to the `FAILED` state. This node will remain in the `RUNNING` state if one of its children remains in the `RUNNING` state.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=sequence)
 
 *MDSL*
@@ -109,7 +109,7 @@ root {
 ```
 
 *JSON*
-```js
+```json
 {
     "type": "root",
     "child": {
@@ -133,7 +133,7 @@ root {
 ```
 
 ### Selector
-This composite node will update each child node in sequence. It will fail if all of its children have failed and will succeed if any of its children succeed. This node will remain in the running state if one of its children is running.
+This composite node will update each child node in sequence. It will move to the `FAILED` state if all of its children have moved to the `FAILED` state and will move to the `SUCCEEDED` state if any of its children move to the `SUCCEEDED` state. This node will remain in the `RUNNING` state if one of its children is in the `RUNNING` state.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=selector)
 
 *MDSL*
@@ -148,7 +148,7 @@ root {
 ```
 
 *JSON*
-```js
+```json
 {
     "type": "root",
     "child": {
@@ -172,7 +172,7 @@ root {
 ```
 
 ### Parallel
-This composite node will update each child node concurrently. It will succeed if all of its children have succeeded and will fail if any of its children fail. This node will remain in the running state if any of its children are running.
+This composite node will update each child node concurrently. It will move to the `SUCCEEDED` state if all of its children have moved to the `SUCCEEDED` state and will move to the `FAILED` state if any of its children move to the `FAILED` state. This node will remain in the `RUNNING` state if any of its children are in the `RUNNING` state.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=parallel)
 
 *MDSL*
@@ -186,7 +186,7 @@ root {
 ```
 
 *JSON*
-```js
+```json
 {
     "type": "root",
     "child": {
@@ -220,7 +220,7 @@ root {
 ```
 
 *JSON*
-```js
+```json
 {
     "type": "root",
     "child": {
@@ -255,7 +255,7 @@ root {
 ```
 
 *JSON*
-```js
+```json
 {
     "type": "root",
     "child": {
@@ -299,7 +299,7 @@ root {
 ```
 
 *JSON*
-```js
+```json
 {
     "type": "root",
     "child": {
@@ -322,12 +322,35 @@ root [SomeOtherTree] {
 }
 ```
 
+*JSON*
+```json
+[
+    {
+        "type": "root",
+        "child": {
+            "type": "branch",
+            "ref": "SomeOtherTree"
+        }
+    },
+    {
+        "type": "root",
+        "id": "SomeOtherTree",
+        "child": {
+            "type": "action",
+            "call": "Dance",
+            "args": []
+        }
+    }
+]
+```
+
 ### Repeat
-This decorator node will repeat the execution of its child node if the child moves to the succeeded state. It will do this until either the child fails, at which point the repeat node will fail, or the maximum number of iterations is reached, which moves the repeat node to a succeeded state. This node will be in a running state if its child is also in a running state, or if further iterations need to be made.
+This decorator node will repeat the execution of its child node if the child moves to the `SUCCEEDED` state. It will do this until either the child moves to the `FAILED` state, at which point the repeat node will move to the `FAILED` state, or the maximum number of iterations is reached, which moves the repeat node to the `SUCCEEDED` state. This node will be in the `RUNNING` state if its child is also in the `RUNNING` state, or if further iterations need to be made.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=repeat)
 
-The maximum number of iterations can be defined as a single integer node argument. In the example below, we would be repeating the action **SomeAction** 5 times.
+The maximum number of iterations can be defined as a single integer iteration argument. In the example below, we would be repeating the action **SomeAction** 5 times.
 
+*MDSL*
 ```
 root {
     repeat [5] {
@@ -335,8 +358,25 @@ root {
     }
 }
 ```
-The number of iterations to make can be selected at random within a lower and upper bound if these are defined as two integer node arguments. In the example below, we would be repeating the action **SomeAction** between 1 and 5 times.
 
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "repeat",
+        "iterations": 5,
+        "child": {
+            "type": "action",
+            "call": "SomeAction"
+        }
+    }
+}
+```
+
+The number of iterations to make can be selected at random within a lower and upper bound if these are defined as two integer arguments. In the example below, we would be repeating the action **SomeAction** between 1 and 5 times.
+
+*MDSL*
 ```
 root {
     repeat [1,5] {
@@ -344,8 +384,25 @@ root {
     }
 }
 ```
-The maximum number of iterations to make can be omitted as a node argument. This would result in the child node being run infinitely, as can be seen in the example below.
 
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "repeat",
+        "iterations": [1, 5],
+        "child": {
+            "type": "action",
+            "call": "SomeAction"
+        }
+    }
+}
+```
+
+The maximum number of iterations to make can be omitted. This would result in the child node being run infinitely, as can be seen in the example below.
+
+*MDSL*
 ```
 root {
     repeat {
@@ -354,11 +411,26 @@ root {
 }
 ```
 
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "repeat",
+        "child": {
+            "type": "action",
+            "call": "SomeAction"
+        }
+    }
+}
+```
+
 ### Retry
-This decorator node will repeat the execution of its child node if the child moves to the failed state. It will do this until either the child succeeds, at which point the retry node will succeed, or the maximum number of attempts is reached, which moves the retry node to a failed state. This node will be in a running state if its child is also in a running state, or if further attempts need to be made.
+This decorator node will repeat the execution of its child node if the child moves to the `FAILED` state. It will do this until either the child moves to the `SUCCEEDED` state, at which point the retry node will move to the `SUCCEEDED` state, or the maximum number of attempts is reached, which moves the retry node to the `FAILED` state. This node will be in a `RUNNING` state if its child is also in the `RUNNING` state, or if further attempts need to be made.
 
-The maximum number of attempts can be defined as a single integer node argument. In the example below, we would be retrying the action **SomeAction** 5 times.
+The maximum number of attempts can be defined as a single integer attempt argument. In the example below, we would be retrying the action **SomeAction** 5 times.
 
+*MDSL*
 ```
 root {
     retry [5] {
@@ -366,8 +438,25 @@ root {
     }
 }
 ```
-The number of attempts to make can be selected at random within a lower and upper bound if these are defined as two integer node arguments. In the example below, we would be retrying the action **SomeAction** between 1 and 5 times.
 
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "retry",
+        "attempts": 5,
+        "child": {
+            "type": "action",
+            "call": "SomeAction"
+        }
+    }
+}
+```
+
+The number of attempts to make can be selected at random within a lower and upper bound if these are defined as two integer arguments. In the example below, we would be retrying the action **SomeAction** between 1 and 5 times.
+
+*MDSL*
 ```
 root {
     retry [1,5] {
@@ -375,8 +464,25 @@ root {
     }
 }
 ```
-The maximum number of attempts to make can be omitted as a node argument. This would result in the child node being run infinitely until it moves to the succeeded state, as can be seen in the example below.
 
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "retry",
+        "attempts": [1, 5],
+        "child": {
+            "type": "action",
+            "call": "SomeAction"
+        }
+    }
+}
+```
+
+The maximum number of attempts to make can be omitted. This would result in the child node being run infinitely until it moves to the `SUCCEEDED` state, as can be seen in the example below.
+
+*MDSL*
 ```
 root {
     retry {
@@ -385,10 +491,25 @@ root {
 }
 ```
 
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "retry",
+        "child": {
+            "type": "action",
+            "call": "SomeAction"
+        }
+    }
+}
+```
+
 ### Flip
-This decorator node will move to the succeed state when its child moves to the failed state, and it will fail if its child moves to the succeeded state. This node will remain in the running state if its child is in the running state.
+This decorator node will move to the `SUCCEEDED` state when its child moves to the `FAILED` state, and it will move to the `FAILED` if its child moves to the `SUCCEEDED` state. This node will remain in the `RUNNING` state if its child is in the `RUNNING` state.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=flip)
 
+*MDSL*
 ```
 root {
     flip {
@@ -397,10 +518,25 @@ root {
 }
 ```
 
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "flip",
+        "child": {
+            "type": "action",
+            "call": "SomeAction"
+        }
+    }
+}
+```
+
 ### Succeed
-This decorator node will move to the succeed state when its child moves to the either the failed state or the succeeded state. This node will remain in the running state if its child is in the running state.
+This decorator node will move to the `SUCCEEDED` state when its child moves to either the `FAILED` state or the `SUCCEEDED` state. This node will remain in the `RUNNING` state if its child is in the `RUNNING` state.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=succeed)
 
+*MDSL*
 ```
 root {
     succeed {
@@ -409,10 +545,25 @@ root {
 }
 ```
 
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "succeed",
+        "child": {
+            "type": "action",
+            "call": "SomeAction"
+        }
+    }
+}
+```
+
 ### Fail
-This decorator node will move to the failed state when its child moves to the either the failed state or the succeeded state. This node will remain in the running state if its child is in the running state.
+This decorator node will move to the `FAILED` state when its child moves to either the `FAILED` state or the `SUCCEEDED` state. This node will remain in the `RUNNING` state if its child is in the `RUNNING` state.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=fail)
 
+*MDSL*
 ```
 root {
     fail {
@@ -421,19 +572,45 @@ root {
 }
 ```
 
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "fail",
+        "child": {
+            "type": "action",
+            "call": "SomeAction"
+        }
+    }
+}
+```
+
 ## Leaf Nodes
 Leaf nodes are the lowest level node type and cannot be the parent of other child nodes.
 
 ### Action
-An action node represents an action that can be completed immediately as part of a single tree step, or ongoing behaviour that can take a prolonged amount of time and may take multiple tree steps to complete. Each action node will correspond to some action that can be carried out by the agent, where the first action node argument will be an identifier matching the name of the corresponding agent action function.
+An action node represents an action that can be completed immediately as part of a single tree step, or ongoing behaviour that can take a prolonged amount of time and may take multiple tree steps to complete. Each action node will correspond to some action that can be carried out by the agent, where the first action node argument will be an identifier matching the name of the corresponding agent action function. It may also reference a globally registered function.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=action)
 
-An agent action function can optionally return a finished action state of **succeeded** or **failed**. If the **succeeded** or **failed** state is returned, then the action will move into that state.
+An agent action function can optionally return a value of **State.SUCCEEDED**, **State.FAILED** or **State.RUNNING**. If the **State.SUCCEEDED** or **State.FAILED** state is returned, then the action will move to that state.
 
 
+*MDSL*
 ```
 root {
     action [Attack]
+}
+```
+
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "action",
+        "call": "Attack"
+    }
 }
 ```
 
@@ -456,7 +633,7 @@ const agent = {
 };
 ```
 
-If no value or undefined is returned from the action function the action node will move into the **running** state and no following nodes will be processed as part of the current tree step. In the example below, any action node that references **WalkToPosition** will remain in the **running** state until the target position is reached.
+If no value or a value of **State.RUNNING** is returned from the action function the action node will move into the `RUNNING` state and no following nodes will be processed as part of the current tree step. In the example below, any action node that references **WalkToPosition** will remain in the `RUNNING` state until the target position is reached.
 
 ```js
 const agent = {
@@ -469,15 +646,18 @@ const agent = {
             // We have finally reached the target position!
             return Mistreevous.State.SUCCEEDED;
         }
+
+        // We have not reached the target position yet.
+        return Mistreevous.State.RUNNING;
     }
     // ...
 };
 ```
 
-Further steps of the tree will resume processing from leaf nodes that were left in the **running** state until those nodes succeed, fail, or processing of the running branch is aborted via a guard.
+Further steps of the tree will resume processing from leaf nodes that were left in the `RUNNING` state until those nodes move to either the `SUCCEEDED` or `FAILED` state or processing of the running branch is aborted via a guard.
 
 #### Promise-based Actions
-As well as returning a finished action state from an action function, you can also return a promise that should eventually resolve with a finished state as its value. The action will remain in the running state until the promise is fulfilled, and any following tree steps will not call the action function again.
+As well as returning a finished action state from an action function, you can also return a promise that should eventually resolve with a finished state of **State.SUCCEEDED** or **State.FAILED** as its value. The action will remain in the `RUNNING` state until the promise is fulfilled, and any following tree steps will not call the action function again.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=async-action)
 
 ```js
@@ -495,12 +675,25 @@ const agent = {
 ```
 
 #### Optional Arguments
-Arguments can optionally be passed to agent action functions. This is done by including them in the action node argument list in the definition. These optional arguments must be defined after the action name identifier argument, and can be  a `number`, `string`, `boolean` or `null`.
+Arguments can optionally be passed to agent action functions. In MDSL these optional arguments must be defined after the action name identifier argument, and can be  a `number`, `string`, `boolean` or `null`. If using JSON then these arguments are defined in an `args` array and these arguments can be any valid JSON.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=action-with-args)
 
+*MDSL*
 ```
 root {
     action [Say, "hello world", 5, true]
+}
+```
+
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "action",
+        "call": "Say",
+        "args": ["hello world", 5, true]
+    }
 }
 ```
 
@@ -520,9 +713,10 @@ const agent = {
 ```
 
 ### Condition
-A Condition node will immediately move into either a **succeeded** or **failed** state based on the boolean result of calling a function on the agent. Each condition node will correspond to functionality defined on the agent, where the first condition node argument will be an identifier matching the name of the corresponding agent condition function.
+A Condition node will immediately move into either a `SUCCEEDED` or `FAILED` state based on the boolean result of calling either a function on the agent or a globally registered function. Each condition node will correspond to functionality defined on the agent, where the first condition node argument will be an identifier matching the name of the corresponding agent condition function.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=condition)
 
+*MDSL*
 ```
 root {
     sequence {
@@ -531,6 +725,27 @@ root {
     }
 }
 ```
+
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "sequence",
+        "children": [
+            {
+                "type": "condition",
+                "call": "HasWeapon"
+            },
+            {
+                "type": "action",
+                "call": "Attack"
+            }
+        ]
+    }
+}
+```
+
 ```js
 const agent = {
     //...
@@ -542,9 +757,10 @@ const agent = {
 ```
 
 #### Optional Arguments
-Arguments can optionally be passed to agent condition functions in the same was as action nodes. This is done by including them in the condition node argument list in the definition. These optional arguments must be defined after the condition name identifier argument, and can be a `number`, `string`, `boolean` or `null`.
+Arguments can optionally be passed to agent condition functions in the same was as action nodes. This is done by including them in the condition node argument list in the definition. These optional arguments must be defined after the condition name identifier argument, and can be a `number`, `string`, `boolean` or `null` if using MDSL, or any valid JSON when using a JSON definition.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=condition-with-args)
 
+*MDSL*
 ```
 root {
     sequence {
@@ -552,6 +768,24 @@ root {
     }
 }
 ```
+
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "sequence",
+        "children": [
+            {
+                "type": "condition",
+                "call": "HasItem",
+                "args": ["potion"]
+            }
+        ]
+    }
+}
+```
+
 ```js
 const agent = {
     //...
@@ -564,6 +798,7 @@ const agent = {
 A wait node will remain in a running state for a specified duration, after which it will move into the succeeded state. The duration in milliseconds can be defined as a single integer node argument.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=wait)
 
+*MDSL*
 ```
 root {
     repeat {
@@ -574,11 +809,36 @@ root {
     }
 }
 ```
+
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "repeat",
+        "child": {
+            "type": "sequence",
+            "children": [
+                {
+                    "type": "action",
+                    "call": "FireWeapon"
+                },
+                {
+                    "type": "wait",
+                    "duration": 2000
+                }
+            ]
+        }
+    }
+}
+```
+
 In the above example, we are using a wait node to wait 2 seconds between each run of the **FireWeapon** action.
 
 The duration to wait in milliseconds can also be selected at random within a lower and upper bound if these are defined as two integer node arguments. In the example below, we would run the **PickUpProjectile** action and then wait for 2 to 8 seconds before running the **ThrowProjectile** action.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=wait)
 
+*MDSL*
 ```
 root {
     sequence {
@@ -589,19 +849,55 @@ root {
 }
 ```
 
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "sequence",
+        "children": [
+            {
+                "type": "action",
+                "call": "PickUpProjectile"
+            },
+            {
+                "type": "wait",
+                "duration": [2000, 8000]
+            },
+            {
+                "type": "action",
+                "call": "ThrowProjectile"
+            }
+        ]
+    }
+}
+```
+
 If no node arguments are defined then the wait node will remain in the running state indefinitely until it is aborted.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=wait)
 
+*MDSL*
 ```
 root {
     wait
 }
 ```
 
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "wait"
+    }
+}
+```
+
 ### Branch
-Named root nodes can be referenced using the **branch** node. This node acts as a placeholder that will be replaced by the child node of the referenced root node. The two definitions below are synonymous.
+Named root nodes can be referenced using the **branch** node. This node acts as a placeholder that will be replaced by the child node of the referenced root node. All definitions below are synonymous.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=branch)
 
+*MDSL*
 ```
 root {
     branch [SomeOtherTree]
@@ -618,6 +914,38 @@ root {
 }
 ```
 
+*JSON*
+```json
+[
+    {
+        "type": "root",
+        "child": {
+            "type": "branch",
+            "ref": "SomeOtherTree"
+        }
+    },
+    {
+        "type": "root",
+        "id": "SomeOtherTree",
+        "child": {
+            "type": "action",
+            "call": "Dance"
+        }
+    }
+]
+```
+
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "action",
+        "call": "Dance"
+    }
+}
+
+```
+
 ## Callbacks
 Callbacks can be defined for tree nodes and will be invoked as the node is processed during a tree step. Any number of callbacks can be attached to a node as long as there are not multiple callbacks of the same type.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=callbacks)
@@ -627,6 +955,7 @@ Optional arguments can be defined for callback functions in the same way as acti
 ### Entry
 An entry callback defines a function to call whenever the associated node moves out of the **ready** state when it is first visited.
 
+*MDSL*
 ```
 root {
     sequence entry(StartWalkingAnimation)  {
@@ -641,6 +970,7 @@ root {
 ### Exit
 An exit callback defines a function to call whenever the associated node moves to a finished state or is aborted. A results object is passed to the referenced function containing the **succeeded** and **aborted** boolean properties.
 
+*MDSL*
 ```
 root {
     sequence entry(StartWalkingAnimation) exit(StopWalkingAnimation) {
@@ -652,9 +982,44 @@ root {
 }
 ```
 
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "sequence",
+        "entry": {
+            "call": "StartWalkingAnimation"
+        },
+        "exit": {
+            "call": "StopWalkingAnimation"
+        },
+        "children": [
+            {
+                "type": "action",
+                "call": "WalkNorthOneSpace"
+            },
+            {
+                "type": "action",
+                "call": "WalkEastOneSpace"
+            },
+            {
+                "type": "action",
+                "call": "WalkSouthOneSpace"
+            },
+            {
+                "type": "action",
+                "call": "WalkWestOneSpace"
+            }
+        ]
+    }
+}
+```
+
 ### Step
 A step callback defines a function to call whenever the associated node is updated as part of a tree step.
 
+*MDSL*
 ```
 root {
     sequence step(OnMoving) {
@@ -666,12 +1031,61 @@ root {
 }
 ```
 
-#### Optional Arguments
-Arguments can optionally be passed to agent callback functions and can be a `number`, `string`, `boolean` or `null`.
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "sequence",
+        "step": {
+            "call": "OnMoving"
+        },
+        "children": [
+            {
+                "type": "action",
+                "call": "WalkNorthOneSpace"
+            },
+            {
+                "type": "action",
+                "call": "WalkEastOneSpace"
+            },
+            {
+                "type": "action",
+                "call": "WalkSouthOneSpace"
+            },
+            {
+                "type": "action",
+                "call": "WalkWestOneSpace"
+            }
+        ]
+    }
+}
+```
 
+#### Optional Arguments
+Arguments can optionally be passed to agent callback functions and can be a `number`, `string`, `boolean` or `null` if using MDSL, or any valid JSON when using a JSON definition.
+
+*MDSL*
 ```
 root {
     action [Walk] entry(OnMovementStart, "walking")
+}
+```
+
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "action",
+        "call": "Walk",
+        "entry": {
+            "call": "OnMovementStart",
+            "args": [
+                "walking"
+            ]
+        }
+    }
 }
 ```
 
@@ -681,30 +1095,79 @@ A guard defines a condition that must be met in order for the associated node to
 
 This functionality is useful as a means of aborting long running actions or branches that span across multiple steps of the tree.
 
+*MDSL*
 ```
 root {
     wait while(CanWait)
 }
 ```
 
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "wait",
+        "while": {
+            "call": "CanWait"
+        }
+    }
+}
+```
+
 In the above example, we have a **wait** node that waits for 10 seconds before moving to a succeeded state. We are using a **while** guard to give up on waiting this long if the guard function **CanWait** returns false during a tree step.
 
 #### Optional Arguments
-Arguments can optionally be passed to agent guard functions and can be a `number`, `string`, `boolean` or `null`.
+Arguments can optionally be passed to agent guard functions and can be a `number`, `string`, `boolean` or `null` if using MDSL, or any valid JSON when using a JSON definition.
 
+*MDSL*
 ```
 root {
     action [Run] while(HasItemEquipped, "running-shoes")
 }
-
+```
+```
 root {
     action [Gamble] until(HasGold, 1000)
+}
+```
+
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "action",
+        "call": "Run",
+        "while": {
+            "call": "HasItemEquipped",
+            "args": [
+                "running-shoes"
+            ]
+        }
+    }
+}
+```
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "action",
+        "call": "Gamble",
+        "until": {
+            "call": "HasGold",
+            "args": [
+                1000
+            ]
+        }
+    }
 }
 ```
 
 ### While
 A while guard will be satisfied as long as its condition evaluates to true.
 
+*MDSL*
 ```
 root {
     sequence while(IsWandering) {
@@ -716,9 +1179,41 @@ root {
 }
 ```
 
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "sequence",
+        "while": {
+            "call": "IsWandering"
+        },
+        "children": [
+            {
+                "type": "action",
+                "call": "Whistle"
+            },
+            {
+                "type": "wait",
+                "duration": 5000
+            },
+            {
+                "type": "action",
+                "call": "Yawn"
+            },
+            {
+                "type": "wait",
+                "duration": 5000
+            }
+        ]
+    }
+}
+```
+
 ### Until
 An until guard will be satisfied as long as its condition evaluates to false.
 
+*MDSL*
 ```
 root {
     sequence until(CanSeePlayer) {
@@ -726,6 +1221,37 @@ root {
         wait [5000]
         action [LookRight]
         wait [5000]
+    }
+}
+```
+
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "sequence",
+        "until": {
+            "call": "CanSeePlayer"
+        },
+        "children": [
+            {
+                "type": "action",
+                "call": "LookLeft"
+            },
+            {
+                "type": "wait",
+                "duration": 5000
+            },
+            {
+                "type": "action",
+                "call": "LookRight"
+            },
+            {
+                "type": "wait",
+                "duration": 5000
+            }
+        ]
     }
 }
 ```
