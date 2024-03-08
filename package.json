@@ -30,7 +30,7 @@
     "build:node": "esbuild ./src/index.ts --bundle --sourcemap --outdir=dist --platform=node",
     "build:web": "esbuild ./src/index.ts --bundle --sourcemap --platform=browser --global-name=mistreevous --outfile=dist/bundle.js",
     "build:typecheck": "tsc --emitDeclarationOnly",
-    "test:unit-test": "mocha --require ts-node/register test/**/*.spec.ts"
+    "test:unit-test": "mocha --require ts-node/register 'test/**/*.spec.ts'"
   },
   "repository": {
     "type": "git",
