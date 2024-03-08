@@ -2,7 +2,7 @@
 [![npm version](https://badge.fury.io/js/mistreevous.svg)](https://badge.fury.io/js/mistreevous)
 [![Node.js CI](https://github.com/nikkorn/mistreevous/actions/workflows/node.js.yml/badge.svg?branch=master)](https://github.com/nikkorn/mistreevous/actions/workflows/node.js.yml)
 
-A library to declaratively define, build and execute behaviour trees, written in Typescript. Behaviour trees are used to create complex AI via the modular heirarchical composition of individual tasks.
+A library to declaratively define, build and execute behaviour trees, written in Typescript for Node and browsers. Behaviour trees are used to create complex AI via the modular hierarchical composition of individual tasks.
 
 Using this tool, trees can be defined with either JSON or a simple and minimal built-in DSL (MDSL), avoiding the need to write verbose definitions in JSON.
 
@@ -15,7 +15,7 @@ There is an in-browser editor and tree visualiser that you can try [HERE](https:
 ```sh
 $ npm install --save mistreevous
 ```
-This package is built using esbuild to target both node and browsers. If you would like to use this package in a browser you can just reference `dist/build.js` in a `<script>` tag.
+This package is built using esbuild to target both Node and browsers. If you would like to use this package in a browser you can just reference `dist/build.js` in a `<script>` tag.
 
 # Example
 ```js
@@ -85,7 +85,7 @@ The `BehaviourTree` constructor can take an options object as an argument, the p
 ## States
 Behaviour tree nodes can be in one of the following states:
 - **READY** A node is in the `READY` state when it has not been visited yet in the execution of the tree.
-- **RUNNING** A node is in the `RUNNING` state when it is is still being processed, these nodes will usually represent or encompass a long running action.
+- **RUNNING** A node is in the `RUNNING` state when it is still being processed, these nodes will usually represent or encompass a long-running action.
 - **SUCCEEDED** A node is in a `SUCCEEDED` state when it is no longer being processed and has succeeded.
 - **FAILED** A node is in the `FAILED` state when it is no longer being processed but has failed.
 
@@ -94,7 +94,7 @@ Behaviour tree nodes can be in one of the following states:
 Composite nodes wrap one or more child nodes, each of which will be processed in a sequence determined by the type of the composite node. A composite node will remain in the `RUNNING` state until it is finished processing the child nodes, after which the state of the composite node will reflect the success or failure of the child nodes.
 
 ### Sequence
-This composite node will update each child node in sequence. It will move to the `SUCCEEDED` state if all of its children have moved to the `SUCCEEDED` state and and will move to the `FAILED` state if any of its children move to the `FAILED` state. This node will remain in the `RUNNING` state if one of its children remains in the `RUNNING` state.
+This composite node will update each child node in sequence. It will move to the `SUCCEEDED` state if all of its children have moved to the `SUCCEEDED` state and will move to the `FAILED` state if any of its children move to the `FAILED` state. This node will remain in the `RUNNING` state if one of its children remains in the `RUNNING` state.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=sequence)
 
 *MDSL*
@@ -239,7 +239,7 @@ root {
 }
 ```
 
-A probability weight can be defined for each child node as an optional integer node argument, influencing the likelihood that a particular child will be picked.
+A probability weight can be defined for each child node as an optional integer node argument in MDSL, influencing the likelihood that a particular child will be picked. In JSON this would be done by setting a value of an array containing the integer weight values for the `weights` property.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=weighted-lotto)
 
 *MDSL*
@@ -284,7 +284,7 @@ root {
 ```
 
 ## Decorator Nodes
-A decorator node is similar to a composite node, but it can only have a single child node. The state of a decorator node is usually some transformation of the state of the child node. Decorator nodes are also used to repeat or terminate execution of a particular node.
+A decorator node is similar to a composite node, but it can only have a single child node. The state of a decorator node is usually some transformation of the state of the child node. Decorator nodes are also used to repeat or terminate the execution of a particular node.
 
 ### Root
 This decorator node represents the root of a behaviour tree and cannot be the child of another composite node.
@@ -348,7 +348,7 @@ root [SomeOtherTree] {
 This decorator node will repeat the execution of its child node if the child moves to the `SUCCEEDED` state. It will do this until either the child moves to the `FAILED` state, at which point the repeat node will move to the `FAILED` state, or the maximum number of iterations is reached, which moves the repeat node to the `SUCCEEDED` state. This node will be in the `RUNNING` state if its child is also in the `RUNNING` state, or if further iterations need to be made.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=repeat)
 
-The maximum number of iterations can be defined as a single integer iteration argument. In the example below, we would be repeating the action **SomeAction** 5 times.
+The maximum number of iterations can be defined as a single integer iteration argument in MDSL, or by setting the `iterations` property in JSON. In the example below, we would be repeating the action **SomeAction** 5 times.
 
 *MDSL*
 ```
@@ -374,7 +374,7 @@ root {
 }
 ```
 
-The number of iterations to make can be selected at random within a lower and upper bound if these are defined as two integer arguments. In the example below, we would be repeating the action **SomeAction** between 1 and 5 times.
+The number of iterations to make can be selected at random within a lower and upper bound if these are defined as two integer arguments in MDSL, or by setting a value of an array containing two integer values for the `iterations` property in JSON. In the example below, we would be repeating the action **SomeAction** between 1 and 5 times.
 
 *MDSL*
 ```
@@ -426,9 +426,9 @@ root {
 ```
 
 ### Retry
-This decorator node will repeat the execution of its child node if the child moves to the `FAILED` state. It will do this until either the child moves to the `SUCCEEDED` state, at which point the retry node will move to the `SUCCEEDED` state, or the maximum number of attempts is reached, which moves the retry node to the `FAILED` state. This node will be in a `RUNNING` state if its child is also in the `RUNNING` state, or if further attempts need to be made.
+This decorator node will repeat the execution of its child node if the child moves to the `FAILED` state. It will do this until either the child moves to the `SUCCEEDED` state, at which point the retry node will move to the `SUCCEEDED` state or the maximum number of attempts is reached, which moves the retry node to the `FAILED` state. This node will be in a `RUNNING` state if its child is also in the `RUNNING` state, or if further attempts need to be made.
 
-The maximum number of attempts can be defined as a single integer attempt argument. In the example below, we would be retrying the action **SomeAction** 5 times.
+The maximum number of attempts can be defined as a single integer attempt argument in MDSL, or by setting the `attempts` property in JSON. In the example below, we would be retrying the action **SomeAction** 5 times.
 
 *MDSL*
 ```
@@ -454,7 +454,7 @@ root {
 }
 ```
 
-The number of attempts to make can be selected at random within a lower and upper bound if these are defined as two integer arguments. In the example below, we would be retrying the action **SomeAction** between 1 and 5 times.
+The number of attempts to make can be selected at random within a lower and upper bound if these are defined as two integer arguments in MDSL, or by setting a value of an array containing two integer values for the `attempts` property in JSON. In the example below, we would be retrying the action **SomeAction** between 1 and 5 times.
 
 *MDSL*
 ```
@@ -587,10 +587,10 @@ root {
 ```
 
 ## Leaf Nodes
-Leaf nodes are the lowest level node type and cannot be the parent of other child nodes.
+Leaf nodes are the lowest-level node type and cannot be the parent of other child nodes.
 
 ### Action
-An action node represents an action that can be completed immediately as part of a single tree step, or ongoing behaviour that can take a prolonged amount of time and may take multiple tree steps to complete. Each action node will correspond to some action that can be carried out by the agent, where the first action node argument will be an identifier matching the name of the corresponding agent action function. It may also reference a globally registered function.
+An action node represents an action that can be completed immediately as part of a single tree step, or ongoing behaviour that can take a prolonged amount of time and may take multiple tree steps to complete. Each action node will correspond to some action that can be carried out by the agent, where the first action node argument (if using MDSL, or the `call` property if using JSON) will be an identifier matching the name of the corresponding agent action function or globally registered function.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=action)
 
 An agent action function can optionally return a value of **State.SUCCEEDED**, **State.FAILED** or **State.RUNNING**. If the **State.SUCCEEDED** or **State.FAILED** state is returned, then the action will move to that state.
@@ -675,7 +675,7 @@ const agent = {
 ```
 
 #### Optional Arguments
-Arguments can optionally be passed to agent action functions. In MDSL these optional arguments must be defined after the action name identifier argument, and can be  a `number`, `string`, `boolean` or `null`. If using JSON then these arguments are defined in an `args` array and these arguments can be any valid JSON.
+Arguments can optionally be passed to agent action functions. In MDSL these optional arguments must be defined after the action name identifier argument and can be a `number`, `string`, `boolean` or `null`. If using JSON then these arguments are defined in an `args` array and these arguments can be any valid JSON.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=action-with-args)
 
 *MDSL*
@@ -713,7 +713,7 @@ const agent = {
 ```
 
 ### Condition
-A Condition node will immediately move into either a `SUCCEEDED` or `FAILED` state based on the boolean result of calling either a function on the agent or a globally registered function. Each condition node will correspond to functionality defined on the agent, where the first condition node argument will be an identifier matching the name of the corresponding agent condition function.
+A Condition node will immediately move into either a `SUCCEEDED` or `FAILED` state based on the boolean result of calling either an agent function or globally registered function. The first condition node argument will be an identifier matching the name of the corresponding agent condition function or globally registered function (if using MDSL, or the `call` property if using JSON).
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=condition)
 
 *MDSL*
@@ -757,7 +757,7 @@ const agent = {
 ```
 
 #### Optional Arguments
-Arguments can optionally be passed to agent condition functions in the same was as action nodes. This is done by including them in the condition node argument list in the definition. These optional arguments must be defined after the condition name identifier argument, and can be a `number`, `string`, `boolean` or `null` if using MDSL, or any valid JSON when using a JSON definition.
+Arguments can optionally be passed to agent condition functions in the same way as action nodes. In MDSL these optional arguments must be defined after the condition name identifier argument, and can be a `number`, `string`, `boolean` or `null`, or can be any valid JSON when using a JSON definition.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=condition-with-args)
 
 *MDSL*
@@ -795,7 +795,7 @@ const agent = {
 ```
 
 ### Wait
-A wait node will remain in a running state for a specified duration, after which it will move into the succeeded state. The duration in milliseconds can be defined as a single integer node argument.
+A wait node will remain in a `RUNNING` state for a specified duration, after which it will move into the `SUCCEEDED` state. The duration in milliseconds can be defined as an optional single integer node argument in MDSL, or by setting a value for the `duration` property in JSON.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=wait)
 
 *MDSL*
@@ -835,7 +835,7 @@ root {
 
 In the above example, we are using a wait node to wait 2 seconds between each run of the **FireWeapon** action.
 
-The duration to wait in milliseconds can also be selected at random within a lower and upper bound if these are defined as two integer node arguments. In the example below, we would run the **PickUpProjectile** action and then wait for 2 to 8 seconds before running the **ThrowProjectile** action.
+The duration to wait in milliseconds can also be selected at random within a lower and upper bound if these are defined as two integer node arguments in MDSL, or by setting a value of an array containing two integer values for the `duration` property in JSON. In the example below, we would run the **PickUpProjectile** action and then wait for 2 to 8 seconds before running the **ThrowProjectile** action.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=wait)
 
 *MDSL*
@@ -873,7 +873,7 @@ root {
 }
 ```
 
-If no node arguments are defined then the wait node will remain in the running state indefinitely until it is aborted.
+If no duration is defined then the wait node will remain in the `RUNNING` state indefinitely until it is aborted.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=wait)
 
 *MDSL*
@@ -953,7 +953,7 @@ Callbacks can be defined for tree nodes and will be invoked as the node is proce
 Optional arguments can be defined for callback functions in the same way as action and condition functions.
 
 ### Entry
-An entry callback defines a function to call whenever the associated node moves out of the **ready** state when it is first visited.
+An **entry** callback defines an agent function or globally registered function to call whenever the associated node moves into the `RUNNING` state when it is first visited.
 
 *MDSL*
 ```
@@ -967,8 +967,39 @@ root {
 }
 ```
 
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "sequence",
+        "entry": {
+            "call": "StartWalkingAnimation"
+        },
+        "children": [
+            {
+                "type": "action",
+                "call": "WalkNorthOneSpace"
+            },
+            {
+                "type": "action",
+                "call": "WalkEastOneSpace"
+            },
+            {
+                "type": "action",
+                "call": "WalkSouthOneSpace"
+            },
+            {
+                "type": "action",
+                "call": "WalkWestOneSpace"
+            }
+        ]
+    }
+}
+```
+
 ### Exit
-An exit callback defines a function to call whenever the associated node moves to a finished state or is aborted. A results object is passed to the referenced function containing the **succeeded** and **aborted** boolean properties.
+An **exit** callback defines an agent function or globally registered function to call whenever the associated node moves to a state of `SUCCEEDED` or `FAILED` or is aborted. A results object is passed to the referenced function containing the **succeeded** and **aborted** boolean properties.
 
 *MDSL*
 ```
@@ -1017,7 +1048,7 @@ root {
 ```
 
 ### Step
-A step callback defines a function to call whenever the associated node is updated as part of a tree step.
+A **step** callback defines an agent function or globally registered function to call whenever the associated node is updated as part of a tree step.
 
 *MDSL*
 ```
@@ -1090,10 +1121,10 @@ root {
 ```
 
 ## Guards
-A guard defines a condition that must be met in order for the associated node to remain active. Any running nodes will have their guard condition evaluated for each leaf node update, and will move to a failed state if the guard condition is not met.
+A guard defines a condition that must be met in order for the associated node to remain active. Any nodes in the `RUNNING` state will have their guard condition evaluated for each leaf node update and will move to the `FAILED` state if the guard condition is not met.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=guards)
 
-This functionality is useful as a means of aborting long running actions or branches that span across multiple steps of the tree.
+This functionality is useful as a means of aborting long-running actions or branches that span across multiple steps of the tree.
 
 *MDSL*
 ```
@@ -1115,7 +1146,7 @@ root {
 }
 ```
 
-In the above example, we have a **wait** node that waits for 10 seconds before moving to a succeeded state. We are using a **while** guard to give up on waiting this long if the guard function **CanWait** returns false during a tree step.
+In the above example, we have a **wait** node that waits for 10 seconds before moving to the `SUCCEEDED` state. We are using a **while** guard to give up on waiting this long if the guard function **CanWait** returns false during a tree step.
 
 #### Optional Arguments
 Arguments can optionally be passed to agent guard functions and can be a `number`, `string`, `boolean` or `null` if using MDSL, or any valid JSON when using a JSON definition.
@@ -1165,7 +1196,7 @@ root {
 ```
 
 ### While
-A while guard will be satisfied as long as its condition evaluates to true.
+A **while** guard will be satisfied as long as its condition evaluates to true.
 
 *MDSL*
 ```
@@ -1211,7 +1242,7 @@ root {
 ```
 
 ### Until
-An until guard will be satisfied as long as its condition evaluates to false.
+An **until** guard will be satisfied as long as its condition evaluates to false.
 
 *MDSL*
 ```
@@ -1258,14 +1289,14 @@ root {
 
 ## Globals
 
-When dealing with multiple agents, each with their own behaviour tree instance, it can often be useful to have functions and subtrees that can be registered globally once and referenced by each of them.
+When dealing with multiple agents, each with its own behaviour tree instance, it can often be useful to have functions and subtrees that can be registered globally once and referenced by any instance.
 
 ### Global Subtrees
 We can globally register a subtree that can be referenced from any behaviour tree via a **branch** node.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=global-subtrees)
 
 ```js
-/** Register the global subtree for some celebratory behaviour. */
+/** Register the global subtree for some celebratory behaviour. We can also pass a JSON defintion here. */
 BehaviourTree.register("Celebrate", `root {
     sequence {
         action [Jump]
