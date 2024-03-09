@@ -1,7 +1,6 @@
 import Guard from "./Guard";
 import Lookup from "../../Lookup";
 import { Agent } from "../../Agent";
-import { AnyArgument } from "../../RootAstNodesBuilder";
 
 /**
  * An UNTIL guard which is satisfied as long as the given condition remains false.
@@ -11,7 +10,7 @@ export default class Until extends Guard {
      * @param condition The name of the condition function that determines whether the guard is satisfied.
      * @param args The array of decorator argument definitions.
      */
-    constructor(condition: string, args: AnyArgument[]) {
+    constructor(condition: string, args: any[]) {
         super("until", args, condition);
     }
 
@@ -31,7 +30,28 @@ export default class Until extends Guard {
             );
         }
 
-        // Call the condition function to determine whether this guard is satisfied.
-        return !!!conditionFuncInvoker(this.args);
+        let conditionFunctionResult;
+
+        try {
+            // Call the guard condition function to determine the state of this node, the result of which should be a boolean.
+            conditionFunctionResult = conditionFuncInvoker(this.args);
+        } catch (error) {
+            // An uncaught error was thrown.
+            if (error instanceof Error) {
+                throw new Error(`guard condition function '${this.getCondition()}' threw: ${error.stack}`);
+            } else {
+                throw new Error(`guard condition function '${this.getCondition()}' threw: ${error}`);
+            }
+        }
+
+        // The result of calling the guard condition function must be a boolean value.
+        if (typeof conditionFunctionResult !== "boolean") {
+            throw new Error(
+                `expected guard condition function '${this.getCondition()}' to return a boolean but returned '${conditionFunctionResult}'`
+            );
+        }
+
+        // Return whether this guard is satisfied.
+        return !conditionFunctionResult;
     };
 }

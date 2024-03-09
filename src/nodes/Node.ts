@@ -1,4 +1,7 @@
+import { BehaviourTreeOptions } from "../BehaviourTreeOptions";
+import State, { AnyState } from "../State";
 import { Agent } from "../Agent";
+import Leaf from "./leaf/Leaf";
 import Attribute from "../attributes/Attribute";
 import Entry from "../attributes/callbacks/Entry";
 import Exit from "../attributes/callbacks/Exit";
@@ -6,10 +9,6 @@ import Step from "../attributes/callbacks/Step";
 import Guard from "../attributes/guards/Guard";
 import GuardPath from "../attributes/guards/GuardPath";
 import GuardUnsatisifedException from "../attributes/guards/GuardUnsatisifedException";
-import { BehaviourTreeOptions } from "../BehaviourTreeOptions";
-import { AnyArgument } from "../RootAstNodesBuilder";
-import State, { AnyState } from "../State";
-import Leaf from "./leaf/Leaf";
 
 /**
  * A base node.
@@ -33,7 +32,7 @@ export default abstract class Node {
      * @param attributes The node attributes.
      * @param args The node argument definitions.
      */
-    constructor(private type: string, private attributes: Attribute[], private args: AnyArgument[]) {}
+    constructor(private type: string, private attributes: Attribute[], private args: any[]) {}
 
     /**
      * Called when the node is being updated.
@@ -88,8 +87,7 @@ export default abstract class Node {
     getAttribute(type: "step" | "STEP"): Step;
     getAttribute(type: string): Attribute {
         return (
-            this.getAttributes().filter((decorator) => decorator.getType().toUpperCase() === type.toUpperCase())[0] ||
-            null
+            this.getAttributes().filter((decorator) => decorator.type.toUpperCase() === type.toUpperCase())[0] || null
         );
     }
 

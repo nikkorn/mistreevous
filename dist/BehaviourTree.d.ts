@@ -1,10 +1,9 @@
-import { AnyArgument } from "./RootAstNodesBuilder";
 import { AnyState } from "./State";
-import Root from "./nodes/decorator/Root";
 import { Agent, GlobalFunction } from "./Agent";
 import { CallbackAttributeDetails } from "./attributes/callbacks/Callback";
 import { GuardAttributeDetails } from "./attributes/guards/Guard";
 import { BehaviourTreeOptions } from "./BehaviourTreeOptions";
+import { RootNodeDefinition } from "./BehaviourTreeDefinition";
 export type FlattenedTreeNode = {
     id: string;
     type: string;
@@ -12,7 +11,7 @@ export type FlattenedTreeNode = {
     state: AnyState;
     guards: GuardAttributeDetails[];
     callbacks: CallbackAttributeDetails[];
-    args: AnyArgument[];
+    args: any[];
     parentId: string | null;
 };
 /**
@@ -24,14 +23,14 @@ export declare class BehaviourTree {
     /**
      * The main root tree node.
      */
-    readonly rootNode: Root;
+    private readonly _rootNode;
     /**
      * Creates a new instance of the BehaviourTree class.
-     * @param definition The behaviour tree definition.
+     * @param definition The behaviour tree definition as either an MDSL string, root node definition object or array of root node definition objects.
      * @param agent The agent instance that this behaviour tree is modelling behaviour for.
      * @param options The behaviour tree options object.
      */
-    constructor(definition: string, agent: Agent, options?: BehaviourTreeOptions);
+    constructor(definition: string | RootNodeDefinition | RootNodeDefinition[], agent: Agent, options?: BehaviourTreeOptions);
     /**
      * Gets whether the tree is in the RUNNING state.
      * @returns true if the tree is in the RUNNING state, otherwise false.
@@ -65,7 +64,7 @@ export declare class BehaviourTree {
      * @param name The name of the function or subtree to register.
      * @param value The function or subtree definition to register.
      */
-    static register(name: string, value: GlobalFunction | string): void;
+    static register(name: string, value: GlobalFunction | string | RootNodeDefinition): void;
     /**
      * Unregisters the registered action/condition/guard/callback function or subtree with the given name.
      * @param name The name of the registered action/condition/guard/callback function or subtree to unregister.
@@ -75,15 +74,4 @@ export declare class BehaviourTree {
      * Unregister all registered action/condition/guard/callback functions and subtrees.
      */
     static unregisterAll(): void;
-    /**
-     * Parses a behaviour tree definition and creates a tree of behaviour tree nodes.
-     * @param {string} definition The behaviour tree definition.
-     * @returns The root behaviour tree node.
-     */
-    private static createRootNode;
-    /**
-     * Applies a guard path to every leaf of the tree to evaluate as part of each update.
-     * @param rootNode The main root tree node.
-     */
-    private static applyLeafNodeGuardPaths;
 }

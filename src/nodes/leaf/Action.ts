@@ -1,10 +1,24 @@
-import Leaf from "./Leaf";
-import State, { CompleteState } from "../../State";
-import Lookup from "../../Lookup";
-import { Agent } from "../../Agent";
-import Attribute from "../../attributes/Attribute";
-import { AnyArgument } from "../../RootAstNodesBuilder";
 import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
+import State, { CompleteState } from "../../State";
+import { Agent } from "../../Agent";
+import Leaf from "./Leaf";
+import Lookup from "../../Lookup";
+import Attribute from "../../attributes/Attribute";
+
+/**
+ * The type representing a resolved/rejected update promise.
+ */
+type UpdatePromiseResult = {
+    /**
+     * Whether the promise was resolved rather than rejected.
+     */
+    isResolved: boolean;
+
+    /**
+     * The promise resolved value or rejection reason.
+     */
+    value: any;
+};
 
 /**
  * An Action leaf node.
@@ -16,7 +30,7 @@ export default class Action extends Leaf {
      * @param actionName The action name.
      * @param actionArguments The array of action argument definitions.
      */
-    constructor(attributes: Attribute[], private actionName: string, private actionArguments: AnyArgument[]) {
+    constructor(attributes: Attribute[], private actionName: string, private actionArguments: any[]) {
         super("action", attributes, actionArguments);
     }
 
@@ -28,7 +42,7 @@ export default class Action extends Leaf {
     /**
      * The finished state result of an update promise.
      */
-    private updatePromiseStateResult: CompleteState | null = null;
+    private updatePromiseResult: UpdatePromiseResult | null = null;
 
     /**
      * Called when the node is being updated.
@@ -36,16 +50,32 @@ export default class Action extends Leaf {
      * @param options The behaviour tree options object.
      */
     protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void {
-        // If the result of this action depends on an update promise then there is nothing to do until
-        // it resolves, unless there has been a value set as a result of the update promise resolving.
+        // If the result of this action depends on an update promise then there is nothing to do until it settles.
         if (this.isUsingUpdatePromise) {
-            // Check whether the update promise has resolved with a state value.
-            if (this.updatePromiseStateResult) {
-                // Set the state of this node to match the state returned by the promise.
-                this.setState(this.updatePromiseStateResult);
+            // Are we still waiting for our update promise to settle?
+            if (!this.updatePromiseResult) {
+                return;
             }
 
-            return;
+            const { isResolved, value } = this.updatePromiseResult;
+
+            // Our update promise settled, was it resolved or rejected?
+            if (isResolved) {
+                // Our promise resolved so check to make sure the result is a valid finished state.
+                if (value !== State.SUCCEEDED && value !== State.FAILED) {
+                    throw new Error(
+                        "action node promise resolved with an invalid value, expected a State.SUCCEEDED or State.FAILED value to be returned"
+                    );
+                }
+
+                // Set the state of this node to match the state returned by the promise.
+                this.setState(value);
+
+                return;
+            } else {
+                // The promise was rejected, which isn't great.
+                throw new Error(`action function '${this.actionName}' promise rejected with '${value}'`);
+            }
         }
 
         // Attempt to get the invoker for the action function.
@@ -58,38 +88,48 @@ export default class Action extends Leaf {
             );
         }
 
-        // Call the action function, the result of which may be:
-        // - The finished state of this action node.
-        // - A promise to return a finished node state.
-        // - Undefined if the node should remain in the running state.
-        const updateResult = actionFuncInvoker(this.actionArguments) as CompleteState | Promise<CompleteState>;
+        let actionFunctionResult;
 
-        if (updateResult instanceof Promise) {
-            updateResult.then(
+        try {
+            // Call the action function, the result of which may be:
+            // - The finished state of this action node.
+            // - A promise to return a finished node state.
+            // - Undefined if the node should remain in the running state.
+            actionFunctionResult = actionFuncInvoker(this.actionArguments) as CompleteState | Promise<CompleteState>;
+        } catch (error) {
+            // An uncaught error was thrown.
+            if (error instanceof Error) {
+                throw new Error(`action function '${this.actionName}' threw: ${error.stack}`);
+            } else {
+                throw new Error(`action function '${this.actionName}' threw: ${error}`);
+            }
+        }
+
+        if (actionFunctionResult instanceof Promise) {
+            actionFunctionResult.then(
                 (result) => {
-                    // If 'isUpdatePromisePending' is null then the promise was cleared as it was resolving, probably via an abort of reset.
+                    // If 'isUpdatePromisePending' is not set then the promise was cleared as it was resolving, probably via an abort of reset.
                     if (!this.isUsingUpdatePromise) {
                         return;
                     }
 
-                    // Check to make sure the result is a valid finished state.
-                    if (result !== State.SUCCEEDED && result !== State.FAILED) {
-                        throw new Error(
-                            "action node promise resolved with an invalid value, expected a State.SUCCEEDED or State.FAILED value to be returned"
-                        );
-                    }
-
-                    // Set pending update promise state result to be processed on next update.
-                    this.updatePromiseStateResult = result;
+                    // Set the resolved update promise result so that it can be handled on the next update of this node.
+                    this.updatePromiseResult = {
+                        isResolved: true,
+                        value: result
+                    };
                 },
                 (reason) => {
-                    // If 'isUpdatePromisePending' is null then the promise was cleared as it was resolving, probably via an abort of reset.
+                    // If 'isUpdatePromisePending' is not set then the promise was cleared as it was resolving, probably via an abort or reset.
                     if (!this.isUsingUpdatePromise) {
                         return;
                     }
 
-                    // Just throw whatever was returned as the rejection argument.
-                    throw new Error(reason);
+                    // Set the rejected update promise result so that it can be handled on the next update of this node.
+                    this.updatePromiseResult = {
+                        isResolved: false,
+                        value: reason
+                    };
                 }
             );
 
@@ -100,10 +140,10 @@ export default class Action extends Leaf {
             this.isUsingUpdatePromise = true;
         } else {
             // Validate the returned value.
-            this.validateUpdateResult(updateResult);
+            this.validateUpdateResult(actionFunctionResult);
 
             // Set the state of this node, this may be undefined, which just means that the node is still in the 'RUNNING' state.
-            this.setState(updateResult || State.RUNNING);
+            this.setState(actionFunctionResult || State.RUNNING);
         }
     }
 
@@ -121,22 +161,23 @@ export default class Action extends Leaf {
 
         // There is no longer an update promise that we care about.
         this.isUsingUpdatePromise = false;
-        this.updatePromiseStateResult = null;
+        this.updatePromiseResult = null;
     };
 
     /**
      * Validate the result of an update function call.
      * @param result The result of an update function call.
      */
-    private validateUpdateResult = (result: CompleteState | boolean) => {
+    private validateUpdateResult = (result: CompleteState | State.RUNNING) => {
         switch (result) {
             case State.SUCCEEDED:
             case State.FAILED:
+            case State.RUNNING:
             case undefined:
                 return;
             default:
                 throw new Error(
-                    `action '${this.actionName}' 'onUpdate' returned an invalid response, expected an optional State.SUCCEEDED or State.FAILED value to be returned`
+                    `expected action function '${this.actionName}' to return an optional State.SUCCEEDED or State.FAILED value but returned '${result}'`
                 );
         }
     };

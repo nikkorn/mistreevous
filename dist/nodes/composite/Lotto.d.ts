@@ -9,13 +9,13 @@ import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
  * The state of this node will match the state of the winning child.
  */
 export default class Lotto extends Composite {
-    private tickets;
+    private weights;
     /**
      * @param attributes The node attributes.
-     * @param tickets The child node tickets.
+     * @param weights The child node weights.
      * @param children The child nodes.
      */
-    constructor(attributes: Attribute[], tickets: number[], children: Node[]);
+    constructor(attributes: Attribute[], weights: number[] | undefined, children: Node[]);
     /**
      * The child node selected to be the active one.
      */

@@ -1,5 +1,4 @@
 import { Agent } from "../../Agent";
-import { AnyArgument } from "../../RootAstNodesBuilder";
 import Attribute, { AttributeDetails } from "../Attribute";
 export type GuardAttributeDetails = {
     /** The name of the condition function that determines whether the guard is satisfied. */
@@ -15,7 +14,7 @@ export default abstract class Guard extends Attribute<GuardAttributeDetails> {
      * @param args The array of decorator argument definitions.
      * @param condition The name of the condition function that determines whether the guard is satisfied.
      */
-    constructor(type: string, args: AnyArgument[], condition: string);
+    constructor(type: string, args: any[], condition: string);
     /**
      * Gets the name of the condition function that determines whether the guard is satisfied.
      */

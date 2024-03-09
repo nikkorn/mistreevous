@@ -1,10 +1,9 @@
-import Leaf from "./Leaf";
-import State from "../../State";
-import Lookup from "../../Lookup";
-import { Agent } from "../../Agent";
-import Attribute from "../../attributes/Attribute";
-import { AnyArgument } from "../../RootAstNodesBuilder";
 import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
+import State from "../../State";
+import { Agent } from "../../Agent";
+import Leaf from "./Leaf";
+import Lookup from "../../Lookup";
+import Attribute from "../../attributes/Attribute";
 
 /**
  * A Condition leaf node.
@@ -16,7 +15,7 @@ export default class Condition extends Leaf {
      * @param conditionName The name of the condition function.
      * @param conditionArguments The array of condition argument definitions.
      */
-    constructor(attributes: Attribute[], private conditionName: string, private conditionArguments: AnyArgument[]) {
+    constructor(attributes: Attribute[], private conditionName: string, private conditionArguments: any[]) {
         super("condition", attributes, conditionArguments);
     }
 
@@ -36,8 +35,29 @@ export default class Condition extends Leaf {
             );
         }
 
-        // Call the condition function to determine the state of this node.
-        this.setState(!!conditionFuncInvoker(this.conditionArguments) ? State.SUCCEEDED : State.FAILED);
+        let conditionFunctionResult;
+
+        try {
+            // Call the condition function to determine the state of this node, the result of which should be a boolean.
+            conditionFunctionResult = conditionFuncInvoker(this.conditionArguments);
+        } catch (error) {
+            // An uncaught error was thrown.
+            if (error instanceof Error) {
+                throw new Error(`condition function '${this.conditionName}' threw: ${error.stack}`);
+            } else {
+                throw new Error(`condition function '${this.conditionName}' threw: ${error}`);
+            }
+        }
+
+        // The result of calling the condition function must be a boolean value.
+        if (typeof conditionFunctionResult !== "boolean") {
+            throw new Error(
+                `expected condition function '${this.conditionName}' to return a boolean but returned '${conditionFunctionResult}'`
+            );
+        }
+
+        // Set the state of this node based on the result of calling the condition function.
+        this.setState(!!conditionFunctionResult ? State.SUCCEEDED : State.FAILED);
     }
 
     /**

@@ -1,10 +1,6 @@
-import { ActionResult, Agent, ExitFunctionArg, GlobalFunction } from "./Agent";
-import { AnyArgument, RootAstNode } from "./RootAstNodesBuilder";
-type ExitResultArg = {
-    value: ExitFunctionArg;
-};
-export type AnyExitArgument = AnyArgument | ExitResultArg;
-export type InvokerFunction = (args: AnyExitArgument[]) => ActionResult;
+import { ActionResult, Agent, GlobalFunction } from "./Agent";
+import { RootNodeDefinition } from "./BehaviourTreeDefinition";
+export type InvokerFunction = (args: any[]) => ActionResult | boolean;
 /**
  * A singleton used to store and lookup registered functions and subtrees.
  */
@@ -12,11 +8,11 @@ export default class Lookup {
     /**
      * The object holding any registered functions keyed on function name.
      */
-    private static functionTable;
+    private static registeredFunctions;
     /**
-     * The object holding any registered sub-trees keyed on tree name.
+     * The object holding any registered subtree root node definitions keyed on tree name.
      */
-    private static subtreeTable;
+    private static registeredSubtrees;
     /**
      * Gets the function with the specified name.
      * @param name The name of the function.
@@ -39,17 +35,17 @@ export default class Lookup {
      */
     static getFuncInvoker(agent: Agent, name: string): InvokerFunction | null;
     /**
-     * Gets the subtree with the specified name.
-     * @param name The name of the subtree.
-     * @returns The subtree with the specified name.
+     * Gets all registered subtree root node definitions.
      */
-    static getSubtree(name: string): RootAstNode;
+    static getSubtrees(): {
+        [key: string]: RootNodeDefinition;
+    };
     /**
      * Sets the subtree with the specified name for later lookup.
      * @param name The name of the subtree.
      * @param subtree The subtree.
      */
-    static setSubtree(name: string, subtree: RootAstNode): void;
+    static setSubtree(name: string, subtree: RootNodeDefinition): void;
     /**
      * Removes the registered function or subtree with the specified name.
      * @param name The name of the registered function or subtree.
@@ -60,4 +56,3 @@ export default class Lookup {
      */
     static empty(): void;
 }
-export {};

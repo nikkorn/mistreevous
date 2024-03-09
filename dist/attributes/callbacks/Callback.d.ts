@@ -1,5 +1,4 @@
 import { Agent } from "../../Agent";
-import { AnyArgument } from "../../RootAstNodesBuilder";
 import Attribute, { AttributeDetails } from "../Attribute";
 export type CallbackAttributeDetails = {
     /** The name of the agent function that is called. */
@@ -15,7 +14,7 @@ export default abstract class Callback extends Attribute<CallbackAttributeDetail
      * @param args The array of decorator argument definitions.
      * @param functionName The name of the agent function to call.
      */
-    constructor(type: string, args: AnyArgument[], functionName: string);
+    constructor(type: string, args: any[], functionName: string);
     /**
      * Gets the name of the agent function to call.
      */

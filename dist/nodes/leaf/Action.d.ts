@@ -1,8 +1,7 @@
-import Leaf from "./Leaf";
-import { Agent } from "../../Agent";
-import Attribute from "../../attributes/Attribute";
-import { AnyArgument } from "../../RootAstNodesBuilder";
 import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
+import { Agent } from "../../Agent";
+import Leaf from "./Leaf";
+import Attribute from "../../attributes/Attribute";
 /**
  * An Action leaf node.
  * This represents an immediate or ongoing state of behaviour.
@@ -15,7 +14,7 @@ export default class Action extends Leaf {
      * @param actionName The action name.
      * @param actionArguments The array of action argument definitions.
      */
-    constructor(attributes: Attribute[], actionName: string, actionArguments: AnyArgument[]);
+    constructor(attributes: Attribute[], actionName: string, actionArguments: any[]);
     /**
      * Whether there is a pending update promise.
      */
@@ -23,7 +22,7 @@ export default class Action extends Leaf {
     /**
      * The finished state result of an update promise.
      */
-    private updatePromiseStateResult;
+    private updatePromiseResult;
     /**
      * Called when the node is being updated.
      * @param agent The agent.
