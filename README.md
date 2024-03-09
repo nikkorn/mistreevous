@@ -77,8 +77,8 @@ The `BehaviourTree` constructor can take an options object as an argument, the p
 
 | Option          |Type | Description |
 | :--------------------|:- |:- |
-| getDeltaTime |() => number| A function returning a delta time in seconds that is used to calculate the elapsed duration of any `wait` nodes. If this function is not defined then `Date().getTime()` is used instead by default.  |
-| random |() => number| A function returning a floating-point number between 0 (inclusive) and 1 (exclusive). If defined, this function is used to source a pseudo-random number to use in operations such as the selection of active children for any `lotto` nodes as well as the selection of durations for `wait` nodes, iterations for `repeat` nodes and attempts for `retry` nodes when minimum and maximum bounds are defined. If not defined then `Math.random` will be used instead by default. This function can be useful in seeding all random numbers used in the running of a tree instance to make any behaviour completely deterministic. |
+| getDeltaTime |() => number| A function returning a delta time in seconds that is used to calculate the elapsed duration of any `wait` nodes. If this function is not defined then `Date.prototype.getTime()` is used instead by default.  |
+| random |() => number| A function returning a floating-point number between 0 (inclusive) and 1 (exclusive). If defined, this function is used to source a pseudo-random number to use in operations such as the selection of active children for any `lotto` nodes as well as the selection of durations for `wait` nodes, iterations for `repeat` nodes and attempts for `retry` nodes when minimum and maximum bounds are defined. If not defined then `Math.random()` will be used instead by default. This function can be useful in seeding all random numbers used in the running of a tree instance to make any behaviour completely deterministic. |
 
 # Nodes
 

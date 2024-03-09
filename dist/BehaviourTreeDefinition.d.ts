@@ -3,7 +3,7 @@
  */
 export interface NodeAttributeDefinition {
     /**
-     * The name of the agent function to invoke.
+     * The name of the agent function or globally registered function to invoke.
      */
     call: string;
     /**
@@ -80,7 +80,7 @@ export interface ActionNodeDefinition extends NodeDefinition {
      */
     type: "action";
     /**
-     * The name of the agent function or registered function to invoke.
+     * The name of the agent function or globally registered function to invoke.
      */
     call: string;
     /**
@@ -97,7 +97,7 @@ export interface ConditionNodeDefinition extends NodeDefinition {
      */
     type: "condition";
     /**
-     * The name of the agent function or registered function to invoke.
+     * The name of the agent function or globally registered function to invoke.
      */
     call: string;
     /**
@@ -113,6 +113,9 @@ export interface WaitNodeDefinition extends NodeDefinition {
      * The node type.
      */
     type: "wait";
+    /**
+     * The duration to wait in milliseconds if defined as a single integer, or the lower and upper duration bounds if defined as an array containing two integer values.
+     */
     duration?: number | [number, number];
 }
 /**
@@ -176,6 +179,9 @@ export interface RepeatNodeDefinition extends DecoratorNodeDefinition {
      * The node type.
      */
     type: "repeat";
+    /**
+     * The number of iterations to make if defined as a single number, or the lower and upper iteration bounds if defined as an array containing two integer values.
+     */
     iterations?: number | [number, number];
 }
 /**
@@ -186,6 +192,9 @@ export interface RetryNodeDefinition extends DecoratorNodeDefinition {
      * The node type.
      */
     type: "retry";
+    /**
+     * The number of attempts to make if defined as a single number, or the lower and upper attempt bounds if defined as an array containing two integer values.
+     */
     attempts?: number | [number, number];
 }
 /**

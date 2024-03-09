@@ -266,6 +266,43 @@ var State = /* @__PURE__ */ ((State2) => {
   return State2;
 })(State || {});
 
+// src/Lookup.ts
+var Lookup = class {
+  static getFunc(name) {
+    return this.registeredFunctions[name];
+  }
+  static setFunc(name, func) {
+    this.registeredFunctions[name] = func;
+  }
+  static getFuncInvoker(agent, name) {
+    const agentFunction = agent[name];
+    if (agentFunction && typeof agentFunction === "function") {
+      return (args) => agentFunction.apply(agent, args);
+    }
+    if (this.registeredFunctions[name] && typeof this.registeredFunctions[name] === "function") {
+      const registeredFunction = this.registeredFunctions[name];
+      return (args) => registeredFunction(agent, ...args);
+    }
+    return null;
+  }
+  static getSubtrees() {
+    return this.registeredSubtrees;
+  }
+  static setSubtree(name, subtree) {
+    this.registeredSubtrees[name] = subtree;
+  }
+  static remove(name) {
+    delete this.registeredFunctions[name];
+    delete this.registeredSubtrees[name];
+  }
+  static empty() {
+    this.registeredFunctions = {};
+    this.registeredSubtrees = {};
+  }
+};
+__publicField(Lookup, "registeredFunctions", {});
+__publicField(Lookup, "registeredSubtrees", {});
+
 // src/BehaviourTreeDefinitionUtilities.ts
 function isRootNode(node) {
   return node.type === "root";
@@ -1223,43 +1260,6 @@ function validateLottoNode(definition, depth) {
 function createValidationFailureResult(errorMessage) {
   return { succeeded: false, errorMessage };
 }
-
-// src/Lookup.ts
-var Lookup = class {
-  static getFunc(name) {
-    return this.registeredFunctions[name];
-  }
-  static setFunc(name, func) {
-    this.registeredFunctions[name] = func;
-  }
-  static getFuncInvoker(agent, name) {
-    const agentFunction = agent[name];
-    if (agentFunction && typeof agentFunction === "function") {
-      return (args) => agentFunction.apply(agent, args);
-    }
-    if (this.registeredFunctions[name] && typeof this.registeredFunctions[name] === "function") {
-      const registeredFunction = this.registeredFunctions[name];
-      return (args) => registeredFunction(agent, ...args);
-    }
-    return null;
-  }
-  static getSubtrees() {
-    return this.registeredSubtrees;
-  }
-  static setSubtree(name, subtree) {
-    this.registeredSubtrees[name] = subtree;
-  }
-  static remove(name) {
-    delete this.registeredFunctions[name];
-    delete this.registeredSubtrees[name];
-  }
-  static empty() {
-    this.registeredFunctions = {};
-    this.registeredSubtrees = {};
-  }
-};
-__publicField(Lookup, "registeredFunctions", {});
-__publicField(Lookup, "registeredSubtrees", {});
 
 // src/attributes/guards/GuardUnsatisifedException.ts
 var GuardUnsatisifedException = class extends Error {
