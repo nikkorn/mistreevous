@@ -1146,7 +1146,7 @@ root {
 }
 ```
 
-In the above example, we have a **wait** node that waits for 10 seconds before moving to the `SUCCEEDED` state. We are using a **while** guard to give up on waiting this long if the guard function **CanWait** returns false during a tree step.
+In the above example, we have a **wait** node that waits indefinitely. We are using a **while** guard to give up on waiting if the guard function **CanWait** returns false during a tree step.
 
 #### Optional Arguments
 Arguments can optionally be passed to agent guard functions and can be a `number`, `string`, `boolean` or `null` if using MDSL, or any valid JSON when using a JSON definition.
