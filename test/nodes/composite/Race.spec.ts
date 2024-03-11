@@ -5,15 +5,15 @@ import { RootNodeDefinition } from "../../../src/BehaviourTreeDefinition";
 
 import { findNode } from "../../TestUtilities";
 
-describe("A Parallel node", () => {
+describe("A Race node", () => {
     describe("on tree initialisation", () => {
         describe("will error if the node does not have at least one child", () => {
             it("(MDSL)", () => {
-                const definition = "root { parallel {} }";
+                const definition = "root { race {} }";
                 assert.throws(
                     () => new BehaviourTree(definition, {}),
                     Error,
-                    "invalid definition: a parallel node must have at least a single child"
+                    "invalid definition: a race node must have at least a single child"
                 );
             });
 
@@ -21,14 +21,14 @@ describe("A Parallel node", () => {
                 const definition: RootNodeDefinition = {
                     type: "root",
                     child: {
-                        type: "parallel",
+                        type: "race",
                         children: []
                     }
                 };
                 assert.throws(
                     () => new BehaviourTree(definition, {}),
                     Error,
-                    "invalid definition: expected non-empty 'children' array to be defined for parallel node at depth '1'"
+                    "invalid definition: expected non-empty 'children' array to be defined for race node at depth '1'"
                 );
             });
         });
@@ -37,7 +37,7 @@ describe("A Parallel node", () => {
     describe("when updated as part of a tree step will", () => {
         describe("update each child node concurrently", () => {
             it("(MDSL)", () => {
-                const definition = "root { parallel { action [actionRunning1] action [actionRunning2] } }";
+                const definition = "root { race { action [actionRunning1] action [actionRunning2] } }";
                 const agent = {
                     actionRunning1: () => State.RUNNING,
                     actionRunning2: () => State.RUNNING
@@ -45,14 +45,14 @@ describe("A Parallel node", () => {
                 const tree = new BehaviourTree(definition, agent);
 
                 assert.strictEqual(findNode(tree, "root").state, State.READY);
-                assert.strictEqual(findNode(tree, "parallel").state, State.READY);
+                assert.strictEqual(findNode(tree, "race").state, State.READY);
                 assert.strictEqual(findNode(tree, "action", "actionRunning1").state, State.READY);
                 assert.strictEqual(findNode(tree, "action", "actionRunning2").state, State.READY);
 
                 tree.step();
 
                 assert.strictEqual(findNode(tree, "root").state, State.RUNNING);
-                assert.strictEqual(findNode(tree, "parallel").state, State.RUNNING);
+                assert.strictEqual(findNode(tree, "race").state, State.RUNNING);
                 assert.strictEqual(findNode(tree, "action", "actionRunning1").state, State.RUNNING);
                 assert.strictEqual(findNode(tree, "action", "actionRunning2").state, State.RUNNING);
             });
@@ -61,7 +61,7 @@ describe("A Parallel node", () => {
                 const definition: RootNodeDefinition = {
                     type: "root",
                     child: {
-                        type: "parallel",
+                        type: "race",
                         children: [
                             {
                                 type: "action",
@@ -81,22 +81,22 @@ describe("A Parallel node", () => {
                 const tree = new BehaviourTree(definition, agent);
 
                 assert.strictEqual(findNode(tree, "root").state, State.READY);
-                assert.strictEqual(findNode(tree, "parallel").state, State.READY);
+                assert.strictEqual(findNode(tree, "race").state, State.READY);
                 assert.strictEqual(findNode(tree, "action", "actionRunning1").state, State.READY);
                 assert.strictEqual(findNode(tree, "action", "actionRunning2").state, State.READY);
 
                 tree.step();
 
                 assert.strictEqual(findNode(tree, "root").state, State.RUNNING);
-                assert.strictEqual(findNode(tree, "parallel").state, State.RUNNING);
+                assert.strictEqual(findNode(tree, "race").state, State.RUNNING);
                 assert.strictEqual(findNode(tree, "action", "actionRunning1").state, State.RUNNING);
                 assert.strictEqual(findNode(tree, "action", "actionRunning2").state, State.RUNNING);
             });
         });
 
-        describe("move to the FAILED state if any child node moves to the FAILED state", () => {
+        describe("move to the SUCCEEDED state if any child node moves to the SUCCEEDED state", () => {
             it("(MDSL)", () => {
-                const definition = "root { parallel { action [action1] action [action2] } }";
+                const definition = "root { race { action [action1] action [action2] } }";
                 const agent = {
                     action1: () => State.RUNNING,
                     action2: () => State.RUNNING
@@ -104,32 +104,32 @@ describe("A Parallel node", () => {
                 const tree = new BehaviourTree(definition, agent);
 
                 assert.strictEqual(findNode(tree, "root").state, State.READY);
-                assert.strictEqual(findNode(tree, "parallel").state, State.READY);
+                assert.strictEqual(findNode(tree, "race").state, State.READY);
                 assert.strictEqual(findNode(tree, "action", "action1").state, State.READY);
                 assert.strictEqual(findNode(tree, "action", "action2").state, State.READY);
 
                 tree.step();
 
                 assert.strictEqual(findNode(tree, "root").state, State.RUNNING);
-                assert.strictEqual(findNode(tree, "parallel").state, State.RUNNING);
+                assert.strictEqual(findNode(tree, "race").state, State.RUNNING);
                 assert.strictEqual(findNode(tree, "action", "action1").state, State.RUNNING);
                 assert.strictEqual(findNode(tree, "action", "action2").state, State.RUNNING);
 
-                agent.action2 = () => State.FAILED;
+                agent.action2 = () => State.SUCCEEDED;
 
                 tree.step();
 
-                assert.strictEqual(findNode(tree, "root").state, State.FAILED);
-                assert.strictEqual(findNode(tree, "parallel").state, State.FAILED);
+                assert.strictEqual(findNode(tree, "root").state, State.SUCCEEDED);
+                assert.strictEqual(findNode(tree, "race").state, State.SUCCEEDED);
                 assert.strictEqual(findNode(tree, "action", "action1").state, State.READY);
-                assert.strictEqual(findNode(tree, "action", "action2").state, State.FAILED);
+                assert.strictEqual(findNode(tree, "action", "action2").state, State.SUCCEEDED);
             });
 
             it("(JSON)", () => {
                 const definition: RootNodeDefinition = {
                     type: "root",
                     child: {
-                        type: "parallel",
+                        type: "race",
                         children: [
                             {
                                 type: "action",
@@ -149,31 +149,31 @@ describe("A Parallel node", () => {
                 const tree = new BehaviourTree(definition, agent);
 
                 assert.strictEqual(findNode(tree, "root").state, State.READY);
-                assert.strictEqual(findNode(tree, "parallel").state, State.READY);
+                assert.strictEqual(findNode(tree, "race").state, State.READY);
                 assert.strictEqual(findNode(tree, "action", "action1").state, State.READY);
                 assert.strictEqual(findNode(tree, "action", "action2").state, State.READY);
 
                 tree.step();
 
                 assert.strictEqual(findNode(tree, "root").state, State.RUNNING);
-                assert.strictEqual(findNode(tree, "parallel").state, State.RUNNING);
+                assert.strictEqual(findNode(tree, "race").state, State.RUNNING);
                 assert.strictEqual(findNode(tree, "action", "action1").state, State.RUNNING);
                 assert.strictEqual(findNode(tree, "action", "action2").state, State.RUNNING);
 
-                agent.action2 = () => State.FAILED;
+                agent.action2 = () => State.SUCCEEDED;
 
                 tree.step();
 
-                assert.strictEqual(findNode(tree, "root").state, State.FAILED);
-                assert.strictEqual(findNode(tree, "parallel").state, State.FAILED);
+                assert.strictEqual(findNode(tree, "root").state, State.SUCCEEDED);
+                assert.strictEqual(findNode(tree, "race").state, State.SUCCEEDED);
                 assert.strictEqual(findNode(tree, "action", "action1").state, State.READY);
-                assert.strictEqual(findNode(tree, "action", "action2").state, State.FAILED);
+                assert.strictEqual(findNode(tree, "action", "action2").state, State.SUCCEEDED);
             });
         });
 
-        describe("move to the SUCCEEDED state if all child nodes move to the SUCCEEDED state", () => {
+        describe("move to the FAILED state if all child nodes move to the FAILED state", () => {
             it("(MDSL)", () => {
-                const definition = "root { parallel { action [action1] action [action2] } }";
+                const definition = "root { race { action [action1] action [action2] } }";
                 const agent = {
                     action1: () => State.RUNNING,
                     action2: () => State.RUNNING
@@ -181,41 +181,41 @@ describe("A Parallel node", () => {
                 const tree = new BehaviourTree(definition, agent);
 
                 assert.strictEqual(findNode(tree, "root").state, State.READY);
-                assert.strictEqual(findNode(tree, "parallel").state, State.READY);
+                assert.strictEqual(findNode(tree, "race").state, State.READY);
                 assert.strictEqual(findNode(tree, "action", "action1").state, State.READY);
                 assert.strictEqual(findNode(tree, "action", "action2").state, State.READY);
 
                 tree.step();
 
                 assert.strictEqual(findNode(tree, "root").state, State.RUNNING);
-                assert.strictEqual(findNode(tree, "parallel").state, State.RUNNING);
+                assert.strictEqual(findNode(tree, "race").state, State.RUNNING);
                 assert.strictEqual(findNode(tree, "action", "action1").state, State.RUNNING);
                 assert.strictEqual(findNode(tree, "action", "action2").state, State.RUNNING);
 
-                agent.action1 = () => State.SUCCEEDED;
+                agent.action1 = () => State.FAILED;
 
                 tree.step();
 
                 assert.strictEqual(findNode(tree, "root").state, State.RUNNING);
-                assert.strictEqual(findNode(tree, "parallel").state, State.RUNNING);
-                assert.strictEqual(findNode(tree, "action", "action1").state, State.SUCCEEDED);
+                assert.strictEqual(findNode(tree, "race").state, State.RUNNING);
+                assert.strictEqual(findNode(tree, "action", "action1").state, State.FAILED);
                 assert.strictEqual(findNode(tree, "action", "action2").state, State.RUNNING);
 
-                agent.action2 = () => State.SUCCEEDED;
+                agent.action2 = () => State.FAILED;
 
                 tree.step();
 
-                assert.strictEqual(findNode(tree, "root").state, State.SUCCEEDED);
-                assert.strictEqual(findNode(tree, "parallel").state, State.SUCCEEDED);
-                assert.strictEqual(findNode(tree, "action", "action1").state, State.SUCCEEDED);
-                assert.strictEqual(findNode(tree, "action", "action2").state, State.SUCCEEDED);
+                assert.strictEqual(findNode(tree, "root").state, State.FAILED);
+                assert.strictEqual(findNode(tree, "race").state, State.FAILED);
+                assert.strictEqual(findNode(tree, "action", "action1").state, State.FAILED);
+                assert.strictEqual(findNode(tree, "action", "action2").state, State.FAILED);
             });
 
             it("(JSON)", () => {
                 const definition: RootNodeDefinition = {
                     type: "root",
                     child: {
-                        type: "parallel",
+                        type: "race",
                         children: [
                             {
                                 type: "action",
@@ -235,34 +235,34 @@ describe("A Parallel node", () => {
                 const tree = new BehaviourTree(definition, agent);
 
                 assert.strictEqual(findNode(tree, "root").state, State.READY);
-                assert.strictEqual(findNode(tree, "parallel").state, State.READY);
+                assert.strictEqual(findNode(tree, "race").state, State.READY);
                 assert.strictEqual(findNode(tree, "action", "action1").state, State.READY);
                 assert.strictEqual(findNode(tree, "action", "action2").state, State.READY);
 
                 tree.step();
 
                 assert.strictEqual(findNode(tree, "root").state, State.RUNNING);
-                assert.strictEqual(findNode(tree, "parallel").state, State.RUNNING);
+                assert.strictEqual(findNode(tree, "race").state, State.RUNNING);
                 assert.strictEqual(findNode(tree, "action", "action1").state, State.RUNNING);
                 assert.strictEqual(findNode(tree, "action", "action2").state, State.RUNNING);
 
-                agent.action1 = () => State.SUCCEEDED;
+                agent.action1 = () => State.FAILED;
 
                 tree.step();
 
                 assert.strictEqual(findNode(tree, "root").state, State.RUNNING);
-                assert.strictEqual(findNode(tree, "parallel").state, State.RUNNING);
-                assert.strictEqual(findNode(tree, "action", "action1").state, State.SUCCEEDED);
+                assert.strictEqual(findNode(tree, "race").state, State.RUNNING);
+                assert.strictEqual(findNode(tree, "action", "action1").state, State.FAILED);
                 assert.strictEqual(findNode(tree, "action", "action2").state, State.RUNNING);
 
-                agent.action2 = () => State.SUCCEEDED;
+                agent.action2 = () => State.FAILED;
 
                 tree.step();
 
-                assert.strictEqual(findNode(tree, "root").state, State.SUCCEEDED);
-                assert.strictEqual(findNode(tree, "parallel").state, State.SUCCEEDED);
-                assert.strictEqual(findNode(tree, "action", "action1").state, State.SUCCEEDED);
-                assert.strictEqual(findNode(tree, "action", "action2").state, State.SUCCEEDED);
+                assert.strictEqual(findNode(tree, "root").state, State.FAILED);
+                assert.strictEqual(findNode(tree, "race").state, State.FAILED);
+                assert.strictEqual(findNode(tree, "action", "action1").state, State.FAILED);
+                assert.strictEqual(findNode(tree, "action", "action2").state, State.FAILED);
             });
         });
     });

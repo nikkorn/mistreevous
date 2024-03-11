@@ -172,7 +172,7 @@ root {
 ```
 
 ### Parallel
-This composite node will update each child node concurrently. It will move to the `SUCCEEDED` state if all of its children have moved to the `SUCCEEDED` state and will move to the `FAILED` state if any of its children move to the `FAILED` state. This node will remain in the `RUNNING` state if any of its children are in the `RUNNING` state.
+This composite node will update each child node concurrently. It will move to the `SUCCEEDED` state if all of its children have moved to the `SUCCEEDED` state and will move to the `FAILED` state if any of its children move to the `FAILED` state, otherwise it will remain in the `RUNNING` state.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=parallel)
 
 *MDSL*
@@ -199,6 +199,40 @@ root {
             {
                 "type": "action",
                 "call": "PatHead"
+            }
+        ]
+    }
+}
+```
+
+### Race
+This composite node will update each child node concurrently. It will move to the `SUCCEEDED` state if any of its children have moved to the `SUCCEEDED` state and will move to the `FAILED` state if all of its children move to the `FAILED` state, otherwise it will remain in the `RUNNING` state.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=race)
+
+*MDSL*
+```
+root {
+    race {
+        action [UnlockDoor]
+        action [FindAlternativePath]
+    }
+}
+```
+
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "race",
+        "children": [
+            {
+                "type": "action",
+                "call": "UnlockDoor"
+            },
+            {
+                "type": "action",
+                "call": "FindAlternativePath"
             }
         ]
     }

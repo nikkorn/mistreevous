@@ -8,6 +8,7 @@ import {
     FlipNodeDefinition,
     LottoNodeDefinition,
     ParallelNodeDefinition,
+    RaceNodeDefinition,
     RepeatNodeDefinition,
     RetryNodeDefinition,
     RootNodeDefinition,
@@ -201,6 +202,11 @@ function convertTokensToJSONDefinition(
 
             case "PARALLEL": {
                 pushNode(createParallelNode(tokens, stringLiteralPlaceholders));
+                break;
+            }
+
+            case "RACE": {
+                pushNode(createRaceNode(tokens, stringLiteralPlaceholders));
                 break;
             }
 
@@ -540,6 +546,25 @@ function createParallelNode(
     popAndCheck(tokens, "{");
 
     // Return the parallel node definition.
+    return node;
+}
+
+/**
+ * Creates a race node JSON definition.
+ * @param tokens The tree definition tokens.
+ * @param stringLiteralPlaceholders The substituted string literal placeholders.
+ * @returns The race node JSON definition.
+ */
+function createRaceNode(tokens: string[], stringLiteralPlaceholders: StringLiteralPlaceholders): RaceNodeDefinition {
+    const node = {
+        type: "race",
+        ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+    } as RaceNodeDefinition;
+
+    // This is a composite node, so we expect an opening '{'.
+    popAndCheck(tokens, "{");
+
+    // Return the race node definition.
     return node;
 }
 

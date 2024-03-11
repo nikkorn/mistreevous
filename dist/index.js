@@ -317,7 +317,7 @@ function isDecoratorNode(node) {
   return ["root", "repeat", "retry", "flip", "succeed", "fail"].includes(node.type);
 }
 function isCompositeNode(node) {
-  return ["sequence", "selector", "lotto", "parallel"].includes(node.type);
+  return ["sequence", "selector", "lotto", "parallel", "race"].includes(node.type);
 }
 function flattenDefinition(nodeDefinition) {
   const nodes = [];
@@ -559,6 +559,10 @@ function convertTokensToJSONDefinition(tokens, stringLiteralPlaceholders) {
         pushNode(createParallelNode(tokens, stringLiteralPlaceholders));
         break;
       }
+      case "RACE": {
+        pushNode(createRaceNode(tokens, stringLiteralPlaceholders));
+        break;
+      }
       case "LOTTO": {
         pushNode(createLottoNode(tokens, stringLiteralPlaceholders));
         break;
@@ -712,6 +716,14 @@ function createSelectorNode(tokens, stringLiteralPlaceholders) {
 function createParallelNode(tokens, stringLiteralPlaceholders) {
   const node = {
     type: "parallel",
+    ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+  };
+  popAndCheck(tokens, "{");
+  return node;
+}
+function createRaceNode(tokens, stringLiteralPlaceholders) {
+  const node = {
+    type: "race",
     ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
   };
   popAndCheck(tokens, "{");
@@ -971,6 +983,9 @@ function validateNode(definition, depth) {
       break;
     case "parallel":
       validateParallelNode(definition, depth);
+      break;
+    case "race":
+      validateRaceNode(definition, depth);
       break;
     case "lotto":
       validateLottoNode(definition, depth);
@@ -1240,6 +1255,16 @@ function validateParallelNode(definition, depth) {
   validateNodeAttributes(definition, depth);
   definition.children.forEach((child) => validateNode(child, depth + 1));
 }
+function validateRaceNode(definition, depth) {
+  if (definition.type !== "race") {
+    throw new Error(`expected node type of 'race' for race node at depth '${depth}'`);
+  }
+  if (!Array.isArray(definition.children) || definition.children.length === 0) {
+    throw new Error(`expected non-empty 'children' array to be defined for race node at depth '${depth}'`);
+  }
+  validateNodeAttributes(definition, depth);
+  definition.children.forEach((child) => validateNode(child, depth + 1));
+}
 function validateLottoNode(definition, depth) {
   if (definition.type !== "lotto") {
     throw new Error(`expected node type of 'lotto' for lotto node at depth '${depth}'`);
@@ -1403,6 +1428,35 @@ var Parallel = class extends Composite {
     this.setState("mistreevous.running" /* RUNNING */);
   }
   getName = () => "PARALLEL";
+};
+
+// src/nodes/composite/Race.ts
+var Race = class extends Composite {
+  constructor(attributes, children) {
+    super("race", attributes, children);
+  }
+  onUpdate(agent, options) {
+    for (const child of this.children) {
+      if (child.getState() === "mistreevous.ready" /* READY */ || child.getState() === "mistreevous.running" /* RUNNING */) {
+        child.update(agent, options);
+      }
+    }
+    if (this.children.find((child) => child.is("mistreevous.succeeded" /* SUCCEEDED */))) {
+      this.setState("mistreevous.succeeded" /* SUCCEEDED */);
+      for (const child of this.children) {
+        if (child.getState() === "mistreevous.running" /* RUNNING */) {
+          child.abort(agent);
+        }
+      }
+      return;
+    }
+    if (this.children.every((child) => child.is("mistreevous.failed" /* FAILED */))) {
+      this.setState("mistreevous.failed" /* FAILED */);
+      return;
+    }
+    this.setState("mistreevous.running" /* RUNNING */);
+  }
+  getName = () => "RACE";
 };
 
 // src/nodes/composite/Selector.ts
@@ -2146,6 +2200,11 @@ function nodeFactory(definition, rootNodeDefinitionMap) {
       );
     case "parallel":
       return new Parallel(
+        attributes,
+        definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+      );
+    case "race":
+      return new Race(
         attributes,
         definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
       );

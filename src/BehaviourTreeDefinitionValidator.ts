@@ -289,6 +289,10 @@ function validateNode(definition: any, depth: number): void {
             validateParallelNode(definition, depth);
             break;
 
+        case "race":
+            validateRaceNode(definition, depth);
+            break;
+
         case "lotto":
             validateLottoNode(definition, depth);
             break;
@@ -765,6 +769,29 @@ function validateParallelNode(definition: any, depth: number): void {
     // A parallel node is a composite node, so must have a children nodes array defined.
     if (!Array.isArray(definition.children) || definition.children.length === 0) {
         throw new Error(`expected non-empty 'children' array to be defined for parallel node at depth '${depth}'`);
+    }
+
+    // Validate the node attributes.
+    validateNodeAttributes(definition, depth);
+
+    // Validate the child nodes of this composite node.
+    definition.children.forEach((child: any) => validateNode(child, depth + 1));
+}
+
+/**
+ * Validate an object that we expect to be a race node definition.
+ * @param definition An object that we expect to be a race node definition.
+ * @param depth The depth of the node in the definition tree.
+ */
+function validateRaceNode(definition: any, depth: number): void {
+    // Check that the node type is correct.
+    if (definition.type !== "race") {
+        throw new Error(`expected node type of 'race' for race node at depth '${depth}'`);
+    }
+
+    // A race node is a composite node, so must have a children nodes array defined.
+    if (!Array.isArray(definition.children) || definition.children.length === 0) {
+        throw new Error(`expected non-empty 'children' array to be defined for race node at depth '${depth}'`);
     }
 
     // Validate the node attributes.

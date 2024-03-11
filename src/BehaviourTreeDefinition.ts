@@ -171,6 +171,16 @@ export interface ParallelNodeDefinition extends CompositeNodeDefinition {
 }
 
 /**
+ * A race node.
+ */
+export interface RaceNodeDefinition extends CompositeNodeDefinition {
+    /**
+     * The node type.
+     */
+    type: "race";
+}
+
+/**
  * A root node.
  */
 export interface RootNodeDefinition extends DecoratorNodeDefinition {
@@ -254,6 +264,7 @@ export type AnyNodeDefinition =
     | SelectorNodeDefinition
     | LottoNodeDefinition
     | ParallelNodeDefinition
+    | RaceNodeDefinition
     | RootNodeDefinition
     | RepeatNodeDefinition
     | RetryNodeDefinition
