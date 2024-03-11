@@ -1382,34 +1382,25 @@ var mistreevous = (() => {
       super("parallel", attributes, children);
     }
     onUpdate(agent, options) {
-      let succeededCount = 0;
-      let hasChildFailed = false;
       for (const child of this.children) {
         if (child.getState() === "mistreevous.ready" /* READY */ || child.getState() === "mistreevous.running" /* RUNNING */) {
           child.update(agent, options);
         }
-        if (child.getState() === "mistreevous.succeeded" /* SUCCEEDED */) {
-          succeededCount++;
-          continue;
-        }
-        if (child.getState() === "mistreevous.failed" /* FAILED */) {
-          hasChildFailed = true;
-          break;
-        }
-        if (child.getState() !== "mistreevous.running" /* RUNNING */) {
-          throw new Error("child node was not in an expected state.");
-        }
       }
-      if (hasChildFailed) {
+      if (this.children.find((child) => child.is("mistreevous.failed" /* FAILED */))) {
         this.setState("mistreevous.failed" /* FAILED */);
         for (const child of this.children) {
           if (child.getState() === "mistreevous.running" /* RUNNING */) {
             child.abort(agent);
           }
         }
-      } else {
-        this.setState(succeededCount === this.children.length ? "mistreevous.succeeded" /* SUCCEEDED */ : "mistreevous.running" /* RUNNING */);
+        return;
       }
+      if (this.children.every((child) => child.is("mistreevous.succeeded" /* SUCCEEDED */))) {
+        this.setState("mistreevous.succeeded" /* SUCCEEDED */);
+        return;
+      }
+      this.setState("mistreevous.running" /* RUNNING */);
     }
     getName = () => "PARALLEL";
   };
