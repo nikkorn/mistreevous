@@ -2,6 +2,8 @@ import State, { AnyState } from "./State";
 import Lookup from "./Lookup";
 import Node from "./nodes/Node";
 import Root from "./nodes/decorator/Root";
+import Action from "./nodes/leaf/Action";
+import Condition from "./nodes/leaf/Condition";
 import Composite from "./nodes/composite/Composite";
 import Decorator from "./nodes/decorator/Decorator";
 import { Agent, GlobalFunction } from "./Agent";
@@ -20,9 +22,12 @@ export type FlattenedTreeNode = {
     type: string;
     caption: string;
     state: AnyState;
+    /**
+     * The array of agent or globally registered function arguments if this is an action or condition node.
+     */
+    args?: any[];
     guards: GuardAttributeDetails[];
     callbacks: CallbackAttributeDetails[];
-    args: any[];
     parentId: string | null;
 };
 
@@ -148,17 +153,26 @@ export class BehaviourTree {
                 .filter((attribute) => !attribute.isGuard())
                 .map((attribute) => attribute.getDetails()) as CallbackAttributeDetails[];
 
-            // Push the current node into the flattened nodes array.
-            flattenedTreeNodes.push({
+            // Create the node details.
+            const flattenedTreeNode: FlattenedTreeNode = {
                 id: node.getUid(),
                 type: node.getType(),
                 caption: node.getName(),
                 state: node.getState(),
                 guards,
                 callbacks,
-                args: node.getArguments(),
                 parentId: parentUid
-            });
+            };
+
+            // If this node is an action or condition node then we will be sticking the function arguments on there too.
+            if (node instanceof Action) {
+                flattenedTreeNode.args = node.actionArguments;
+            } else if (node instanceof Condition) {
+                flattenedTreeNode.args = node.conditionArguments;
+            }
+
+            // Push the current node into the flattened nodes array.
+            flattenedTreeNodes.push(flattenedTreeNode);
 
             // Process each of the nodes children if it is not a leaf node.
             if (!node.isLeafNode()) {

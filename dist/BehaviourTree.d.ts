@@ -9,9 +9,12 @@ export type FlattenedTreeNode = {
     type: string;
     caption: string;
     state: AnyState;
+    /**
+     * The array of agent or globally registered function arguments if this is an action or condition node.
+     */
+    args?: any[];
     guards: GuardAttributeDetails[];
     callbacks: CallbackAttributeDetails[];
-    args: any[];
     parentId: string | null;
 };
 /**

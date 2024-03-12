@@ -13,7 +13,7 @@ export default abstract class Decorator extends Node {
      * @param child The child node.
      */
     constructor(type: string, attributes: Attribute[], protected child: Node) {
-        super(type, attributes, []);
+        super(type, attributes);
     }
 
     /**

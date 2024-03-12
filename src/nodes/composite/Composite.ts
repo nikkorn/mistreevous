@@ -13,7 +13,7 @@ export default abstract class Composite extends Node {
      * @param children The child nodes.
      */
     constructor(type: string, attributes: Attribute[], protected children: Node[]) {
-        super(type, attributes, []);
+        super(type, attributes);
     }
 
     /**

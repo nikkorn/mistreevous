@@ -8,7 +8,7 @@ import Attribute from "../../attributes/Attribute";
  */
 export default class Condition extends Leaf {
     private conditionName;
-    private conditionArguments;
+    conditionArguments: any[];
     /**
      * @param attributes The node attributes.
      * @param conditionName The name of the condition function.

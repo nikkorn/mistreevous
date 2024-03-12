@@ -8,7 +8,7 @@ import Attribute from "../../attributes/Attribute";
  */
 export default class Action extends Leaf {
     private actionName;
-    private actionArguments;
+    actionArguments: any[];
     /**
      * @param attributes The node attributes.
      * @param actionName The action name.

@@ -1,3 +1,56 @@
+import { NodeAttributeDefinition } from "./BehaviourTreeDefinition";
+import { State } from "./State";
+
+/**
+ * An object representing a change in state for a node in a behaviour tree instance.
+ */
+export type NodeStateChange = {
+    /**
+     * The node unique identifier.
+     */
+    id: string;
+    /**
+     * The node type.
+     */
+    type: string;
+    /**
+     * The node caption.
+     */
+    caption: string;
+    /**
+     * The array of agent or globally registered function arguments if this is an action or condition node.
+     */
+    args?: any[];
+    /**
+     * The 'when' guard attribute configured for this node.
+     */
+    when?: NodeAttributeDefinition;
+    /**
+     * The 'until' guard attribute configured for this node.
+     */
+    until?: NodeAttributeDefinition;
+    /**
+     * The 'entry' callback attribute configured for this node.
+     */
+    entry?: NodeAttributeDefinition;
+    /**
+     * The 'step' callback attribute configured for this node.
+     */
+    step?: NodeAttributeDefinition;
+    /**
+     * The 'exit' callback attribute configured for this node.
+     */
+    exit?: NodeAttributeDefinition;
+    /**
+     * The previous state of the node.
+     */
+    previousState: State;
+    /**
+     * The current state of the node.
+     */
+    state: State;
+};
+
 /**
  * The options object that can be passed as an argument when instantiating the BehaviourTree class.
  */
@@ -18,4 +71,10 @@ export interface BehaviourTreeOptions {
      * @returns A floating-point number between 0 (inclusive) and 1 (exclusive)
      */
     random?(): number;
+
+    /**
+     * An event handler that is called whenever the state of a node changes.
+     * @param change The object representing a change in state for a node in a behaviour tree instance.
+     */
+    onNodeStateChange?(change: NodeStateChange): void;
 }

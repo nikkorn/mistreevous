@@ -9,15 +9,16 @@ import Step from "../attributes/callbacks/Step";
 import Guard from "../attributes/guards/Guard";
 import GuardPath from "../attributes/guards/GuardPath";
 import GuardUnsatisifedException from "../attributes/guards/GuardUnsatisifedException";
+import { createUid } from "../Utilities";
 
 /**
  * A base node.
  */
 export default abstract class Node {
     /**
-     * The node uid.
+     * The node unique identifier.
      */
-    private readonly uid: string = createNodeUid();
+    private readonly _uid: string;
     /**
      * The node state.
      */
@@ -30,9 +31,10 @@ export default abstract class Node {
     /**
      * @param type The node type.
      * @param attributes The node attributes.
-     * @param args The node argument definitions.
      */
-    constructor(private type: string, private attributes: Attribute[], private args: any[]) {}
+    constructor(private type: string, private attributes: Attribute[]) {
+        this._uid = createUid();
+    }
 
     /**
      * Called when the node is being updated.
@@ -62,7 +64,7 @@ export default abstract class Node {
     /**
      * Gets the unique id of the node.
      */
-    getUid = () => this.uid;
+    getUid = () => this._uid;
 
     /**
      * Gets the type of the node.
@@ -73,11 +75,6 @@ export default abstract class Node {
      * Gets the node attributes.
      */
     getAttributes = () => this.attributes;
-
-    /**
-     * Gets the node arguments.
-     */
-    getArguments = () => this.args;
 
     /**
      * Gets the node attribute with the specified type, or null if it does not exist.
@@ -180,15 +177,4 @@ export default abstract class Node {
             }
         }
     }
-}
-
-/**
- * Create a randomly generated node uid.
- * @returns A randomly generated node uid.
- */
-function createNodeUid(): string {
-    var S4 = function () {
-        return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
-    };
-    return S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
 }

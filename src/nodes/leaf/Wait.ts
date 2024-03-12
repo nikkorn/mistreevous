@@ -21,7 +21,7 @@ export default class Wait extends Leaf {
         private durationMin: number | null,
         private durationMax: number | null
     ) {
-        super("wait", attributes, []);
+        super("wait", attributes);
     }
 
     /**

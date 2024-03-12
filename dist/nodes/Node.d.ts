@@ -14,11 +14,10 @@ import GuardPath from "../attributes/guards/GuardPath";
 export default abstract class Node {
     private type;
     private attributes;
-    private args;
     /**
-     * The node uid.
+     * The node unique identifier.
      */
-    private readonly uid;
+    private readonly _uid;
     /**
      * The node state.
      */
@@ -30,9 +29,8 @@ export default abstract class Node {
     /**
      * @param type The node type.
      * @param attributes The node attributes.
-     * @param args The node argument definitions.
      */
-    constructor(type: string, attributes: Attribute[], args: any[]);
+    constructor(type: string, attributes: Attribute[]);
     /**
      * Called when the node is being updated.
      * @param agent The agent.
@@ -64,10 +62,6 @@ export default abstract class Node {
      * Gets the node attributes.
      */
     getAttributes: () => Attribute<import("../attributes/Attribute").AttributeDetails>[];
-    /**
-     * Gets the node arguments.
-     */
-    getArguments: () => any[];
     /**
      * Gets the node attribute with the specified type, or null if it does not exist.
      */
