@@ -6,16 +6,16 @@ import Attribute from "../../attributes/Attribute";
 import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 
 /**
- * A PARALLEL node.
- * The child nodes are executed concurrently until one fails or all succeed.
+ * A RACE node.
+ * The child nodes are executed concurrently until one succeeds or all fail.
  */
-export default class Parallel extends Composite {
+export default class Race extends Composite {
     /**
      * @param attributes The node attributes.
      * @param children The child nodes.
      */
     constructor(attributes: Attribute[], children: Node[]) {
-        super("parallel", attributes, children);
+        super("race", attributes, children);
     }
 
     /**
@@ -33,10 +33,10 @@ export default class Parallel extends Composite {
             }
         }
 
-        // If any of our child nodes have failed then this node has also failed.
-        if (this.children.find((child) => child.is(State.FAILED))) {
-            // This node is a 'FAILED' node.
-            this.setState(State.FAILED);
+        // If any of our child nodes have succeeded then this node has also succeeded
+        if (this.children.find((child) => child.is(State.SUCCEEDED))) {
+            // This node is a 'SUCCEEDED' node.
+            this.setState(State.SUCCEEDED);
 
             // Abort every running child.
             for (const child of this.children) {
@@ -48,10 +48,10 @@ export default class Parallel extends Composite {
             return;
         }
 
-        // A parallel node will move into the succeeded state if all child nodes move into the succeeded state.
-        if (this.children.every((child) => child.is(State.SUCCEEDED))) {
-            // This node is a 'SUCCEEDED' node.
-            this.setState(State.SUCCEEDED);
+        // A race node will move into the failed state if all child nodes move into the failed state as none can succeed.
+        if (this.children.every((child) => child.is(State.FAILED))) {
+            // This node is a 'FAILED' node.
+            this.setState(State.FAILED);
 
             return;
         }
@@ -63,5 +63,5 @@ export default class Parallel extends Composite {
     /**
      * Gets the name of the node.
      */
-    getName = () => "PARALLEL";
+    getName = () => "RACE";
 }
