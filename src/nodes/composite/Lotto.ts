@@ -15,11 +15,17 @@ import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 export default class Lotto extends Composite {
     /**
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param weights The child node weights.
      * @param children The child nodes.
      */
-    constructor(attributes: Attribute[], private weights: number[] | undefined, children: Node[]) {
-        super("lotto", attributes, children);
+    constructor(
+        attributes: Attribute[],
+        options: BehaviourTreeOptions,
+        private weights: number[] | undefined,
+        children: Node[]
+    ) {
+        super("lotto", attributes, options, children);
     }
 
     /**

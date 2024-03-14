@@ -17,12 +17,13 @@ export default class Retry extends Decorator {
     private attemptsMax;
     /**
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param attempts The number of attempts to retry the child node.
      * @param attemptsMin The minimum possible number of attempts to retry the child node.
      * @param attemptsMax The maximum possible number of attempts to retry the child node.
      * @param child The child node.
      */
-    constructor(attributes: Attribute[], attempts: number | null, attemptsMin: number | null, attemptsMax: number | null, child: Node);
+    constructor(attributes: Attribute[], options: BehaviourTreeOptions, attempts: number | null, attemptsMin: number | null, attemptsMax: number | null, child: Node);
     /**
      * The number of target attempts to make.
      */

@@ -12,10 +12,11 @@ import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 export default class Selector extends Composite {
     /**
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param children The child nodes.
      */
-    constructor(attributes: Attribute[], protected children: Node[]) {
-        super("selector", attributes, children);
+    constructor(attributes: Attribute[], options: BehaviourTreeOptions, protected children: Node[]) {
+        super("selector", attributes, options, children);
     }
 
     /**

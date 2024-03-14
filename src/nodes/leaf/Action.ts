@@ -27,11 +27,17 @@ type UpdatePromiseResult = {
 export default class Action extends Leaf {
     /**
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param actionName The action name.
      * @param actionArguments The array of action argument definitions.
      */
-    constructor(attributes: Attribute[], private actionName: string, public actionArguments: any[]) {
-        super("action", attributes);
+    constructor(
+        attributes: Attribute[],
+        options: BehaviourTreeOptions,
+        private actionName: string,
+        public actionArguments: any[]
+    ) {
+        super("action", attributes, options);
     }
 
     /**

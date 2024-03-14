@@ -12,11 +12,17 @@ import Attribute from "../../attributes/Attribute";
 export default class Condition extends Leaf {
     /**
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param conditionName The name of the condition function.
      * @param conditionArguments The array of condition argument definitions.
      */
-    constructor(attributes: Attribute[], private conditionName: string, public conditionArguments: any[]) {
-        super("condition", attributes);
+    constructor(
+        attributes: Attribute[],
+        options: BehaviourTreeOptions,
+        private conditionName: string,
+        public conditionArguments: any[]
+    ) {
+        super("condition", attributes, options);
     }
 
     /**

@@ -11,9 +11,10 @@ export default class Selector extends Composite {
     protected children: Node[];
     /**
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param children The child nodes.
      */
-    constructor(attributes: Attribute[], children: Node[]);
+    constructor(attributes: Attribute[], options: BehaviourTreeOptions, children: Node[]);
     /**
      * Called when the node is being updated.
      * @param agent The agent.

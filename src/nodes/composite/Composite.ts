@@ -2,6 +2,7 @@ import Node from "../Node";
 import State from "../../State";
 import { Agent } from "../../Agent";
 import Attribute from "../../attributes/Attribute";
+import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 
 /**
  * A composite node that wraps child nodes.
@@ -10,10 +11,11 @@ export default abstract class Composite extends Node {
     /**
      * @param type The node type.
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param children The child nodes.
      */
-    constructor(type: string, attributes: Attribute[], protected children: Node[]) {
-        super(type, attributes);
+    constructor(type: string, attributes: Attribute[], options: BehaviourTreeOptions, protected children: Node[]) {
+        super(type, attributes, options);
     }
 
     /**

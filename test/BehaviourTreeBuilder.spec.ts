@@ -26,7 +26,7 @@ describe("The BehaviourTreeBuilder class has a buildRootNode function which take
             }
         ];
 
-        const rootNode = buildRootNode(definition);
+        const rootNode = buildRootNode(definition, {});
 
         assert.isDefined(rootNode);
         assert.strictEqual(rootNode.getType(), "root");
@@ -65,7 +65,7 @@ describe("The BehaviourTreeBuilder class has a buildRootNode function which take
                     }
                 ];
 
-                const rootNode = buildRootNode(definition);
+                const rootNode = buildRootNode(definition, {});
 
                 assert.isDefined(rootNode);
                 assert.strictEqual(rootNode.getType(), "root");
@@ -102,7 +102,7 @@ describe("The BehaviourTreeBuilder class has a buildRootNode function which take
                     }
                 ];
 
-                const rootNode = buildRootNode(definition);
+                const rootNode = buildRootNode(definition, {});
 
                 assert.isDefined(rootNode);
                 assert.strictEqual(rootNode.getType(), "root");
@@ -133,7 +133,7 @@ describe("The BehaviourTreeBuilder class has a buildRootNode function which take
             ];
 
             assert.throws(
-                () => buildRootNode(definition),
+                () => buildRootNode(definition, {}),
                 Error,
                 "primary tree has branch node that references root node 'sub-tree' which has not been defined"
             );

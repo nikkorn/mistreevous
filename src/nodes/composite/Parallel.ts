@@ -12,10 +12,11 @@ import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 export default class Parallel extends Composite {
     /**
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param children The child nodes.
      */
-    constructor(attributes: Attribute[], children: Node[]) {
-        super("parallel", attributes, children);
+    constructor(attributes: Attribute[], options: BehaviourTreeOptions, children: Node[]) {
+        super("parallel", attributes, options, children);
     }
 
     /**

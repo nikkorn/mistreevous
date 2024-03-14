@@ -17,12 +17,13 @@ export default class Repeat extends Decorator {
     private iterationsMax;
     /**
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param iterations The number of iterations to repeat the child node.
      * @param iterationsMin The minimum possible number of iterations to repeat the child node.
      * @param iterationsMax The maximum possible number of iterations to repeat the child node.
      * @param child The child node.
      */
-    constructor(attributes: Attribute[], iterations: number | null, iterationsMin: number | null, iterationsMax: number | null, child: Node);
+    constructor(attributes: Attribute[], options: BehaviourTreeOptions, iterations: number | null, iterationsMin: number | null, iterationsMax: number | null, child: Node);
     /**
      * The number of target iterations to make.
      */

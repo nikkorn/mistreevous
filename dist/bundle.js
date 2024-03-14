@@ -322,9 +322,10 @@ var mistreevous = (() => {
 
   // src/nodes/Node.ts
   var Node = class {
-    constructor(type, attributes) {
+    constructor(type, attributes, options) {
       this.type = type;
       this.attributes = attributes;
+      this.options = options;
       this._uid = createUid();
     }
     _uid;
@@ -388,8 +389,8 @@ var mistreevous = (() => {
 
   // src/nodes/leaf/Action.ts
   var Action = class extends Leaf {
-    constructor(attributes, actionName, actionArguments) {
-      super("action", attributes);
+    constructor(attributes, options, actionName, actionArguments) {
+      super("action", attributes, options);
       this.actionName = actionName;
       this.actionArguments = actionArguments;
     }
@@ -480,8 +481,8 @@ var mistreevous = (() => {
 
   // src/nodes/leaf/Condition.ts
   var Condition = class extends Leaf {
-    constructor(attributes, conditionName, conditionArguments) {
-      super("condition", attributes);
+    constructor(attributes, options, conditionName, conditionArguments) {
+      super("condition", attributes, options);
       this.conditionName = conditionName;
       this.conditionArguments = conditionArguments;
     }
@@ -1513,8 +1514,8 @@ var mistreevous = (() => {
 
   // src/nodes/composite/Composite.ts
   var Composite = class extends Node {
-    constructor(type, attributes, children) {
-      super(type, attributes);
+    constructor(type, attributes, options, children) {
+      super(type, attributes, options);
       this.children = children;
     }
     isLeafNode = () => false;
@@ -1535,8 +1536,8 @@ var mistreevous = (() => {
 
   // src/nodes/composite/Parallel.ts
   var Parallel = class extends Composite {
-    constructor(attributes, children) {
-      super("parallel", attributes, children);
+    constructor(attributes, options, children) {
+      super("parallel", attributes, options, children);
     }
     onUpdate(agent, options) {
       for (const child of this.children) {
@@ -1564,8 +1565,8 @@ var mistreevous = (() => {
 
   // src/nodes/composite/Race.ts
   var Race = class extends Composite {
-    constructor(attributes, children) {
-      super("race", attributes, children);
+    constructor(attributes, options, children) {
+      super("race", attributes, options, children);
     }
     onUpdate(agent, options) {
       for (const child of this.children) {
@@ -1593,8 +1594,8 @@ var mistreevous = (() => {
 
   // src/nodes/composite/Selector.ts
   var Selector = class extends Composite {
-    constructor(attributes, children) {
-      super("selector", attributes, children);
+    constructor(attributes, options, children) {
+      super("selector", attributes, options, children);
       this.children = children;
     }
     onUpdate(agent, options) {
@@ -1626,8 +1627,8 @@ var mistreevous = (() => {
 
   // src/nodes/composite/Sequence.ts
   var Sequence = class extends Composite {
-    constructor(attributes, children) {
-      super("sequence", attributes, children);
+    constructor(attributes, options, children) {
+      super("sequence", attributes, options, children);
       this.children = children;
     }
     onUpdate(agent, options) {
@@ -1660,8 +1661,8 @@ var mistreevous = (() => {
   // src/nodes/composite/Lotto.ts
   var import_lotto_draw = __toESM(require_dist());
   var Lotto = class extends Composite {
-    constructor(attributes, weights, children) {
-      super("lotto", attributes, children);
+    constructor(attributes, options, weights, children) {
+      super("lotto", attributes, options, children);
       this.weights = weights;
     }
     selectedChild;
@@ -1686,8 +1687,8 @@ var mistreevous = (() => {
 
   // src/nodes/decorator/Decorator.ts
   var Decorator = class extends Node {
-    constructor(type, attributes, child) {
-      super(type, attributes);
+    constructor(type, attributes, options, child) {
+      super(type, attributes, options);
       this.child = child;
     }
     isLeafNode = () => false;
@@ -1708,8 +1709,8 @@ var mistreevous = (() => {
 
   // src/nodes/decorator/Fail.ts
   var Fail = class extends Decorator {
-    constructor(attributes, child) {
-      super("fail", attributes, child);
+    constructor(attributes, options, child) {
+      super("fail", attributes, options, child);
     }
     onUpdate(agent, options) {
       if (this.child.getState() === "mistreevous.ready" /* READY */ || this.child.getState() === "mistreevous.running" /* RUNNING */) {
@@ -1732,8 +1733,8 @@ var mistreevous = (() => {
 
   // src/nodes/decorator/Flip.ts
   var Flip = class extends Decorator {
-    constructor(attributes, child) {
-      super("flip", attributes, child);
+    constructor(attributes, options, child) {
+      super("flip", attributes, options, child);
     }
     onUpdate(agent, options) {
       if (this.child.getState() === "mistreevous.ready" /* READY */ || this.child.getState() === "mistreevous.running" /* RUNNING */) {
@@ -1758,8 +1759,8 @@ var mistreevous = (() => {
 
   // src/nodes/decorator/Repeat.ts
   var Repeat = class extends Decorator {
-    constructor(attributes, iterations, iterationsMin, iterationsMax, child) {
-      super("repeat", attributes, child);
+    constructor(attributes, options, iterations, iterationsMin, iterationsMax, child) {
+      super("repeat", attributes, options, child);
       this.iterations = iterations;
       this.iterationsMin = iterationsMin;
       this.iterationsMax = iterationsMax;
@@ -1824,8 +1825,8 @@ var mistreevous = (() => {
 
   // src/nodes/decorator/Retry.ts
   var Retry = class extends Decorator {
-    constructor(attributes, attempts, attemptsMin, attemptsMax, child) {
-      super("retry", attributes, child);
+    constructor(attributes, options, attempts, attemptsMin, attemptsMax, child) {
+      super("retry", attributes, options, child);
       this.attempts = attempts;
       this.attemptsMin = attemptsMin;
       this.attemptsMax = attemptsMax;
@@ -1890,8 +1891,8 @@ var mistreevous = (() => {
 
   // src/nodes/decorator/Root.ts
   var Root = class extends Decorator {
-    constructor(attributes, child) {
-      super("root", attributes, child);
+    constructor(attributes, options, child) {
+      super("root", attributes, options, child);
     }
     onUpdate(agent, options) {
       if (this.child.getState() === "mistreevous.ready" /* READY */ || this.child.getState() === "mistreevous.running" /* RUNNING */) {
@@ -1904,8 +1905,8 @@ var mistreevous = (() => {
 
   // src/nodes/decorator/Succeed.ts
   var Succeed = class extends Decorator {
-    constructor(attributes, child) {
-      super("succeed", attributes, child);
+    constructor(attributes, options, child) {
+      super("succeed", attributes, options, child);
     }
     onUpdate(agent, options) {
       if (this.child.getState() === "mistreevous.ready" /* READY */ || this.child.getState() === "mistreevous.running" /* RUNNING */) {
@@ -1928,8 +1929,8 @@ var mistreevous = (() => {
 
   // src/nodes/leaf/Wait.ts
   var Wait = class extends Leaf {
-    constructor(attributes, duration, durationMin, durationMax) {
-      super("wait", attributes);
+    constructor(attributes, options, duration, durationMin, durationMax) {
+      super("wait", attributes, options);
       this.duration = duration;
       this.durationMin = durationMin;
       this.durationMax = durationMax;
@@ -2134,21 +2135,21 @@ var mistreevous = (() => {
 
   // src/BehaviourTreeBuilder.ts
   var MAIN_ROOT_NODE_KEY = Symbol("__root__");
-  function buildRootNode(definition) {
+  function buildRootNode(definition, options) {
     const rootNodeDefinitionMap = createRootNodeDefinitionMap(definition);
     validateBranchSubtreeLinks(
       [rootNodeDefinitionMap[MAIN_ROOT_NODE_KEY], ...Object.values(rootNodeDefinitionMap)],
       true
     );
-    const rootNode = nodeFactory(rootNodeDefinitionMap[MAIN_ROOT_NODE_KEY], rootNodeDefinitionMap);
+    const rootNode = nodeFactory(rootNodeDefinitionMap[MAIN_ROOT_NODE_KEY], rootNodeDefinitionMap, options);
     applyLeafNodeGuardPaths(rootNode);
     return rootNode;
   }
-  function nodeFactory(definition, rootNodeDefinitionMap) {
+  function nodeFactory(definition, rootNodeDefinitionMap, options) {
     const attributes = nodeAttributesFactory(definition);
     switch (definition.type) {
       case "root":
-        return new Root(attributes, nodeFactory(definition.child, rootNodeDefinitionMap));
+        return new Root(attributes, options, nodeFactory(definition.child, rootNodeDefinitionMap, options));
       case "repeat":
         let iterations = null;
         let iterationsMin = null;
@@ -2161,10 +2162,11 @@ var mistreevous = (() => {
         }
         return new Repeat(
           attributes,
+          options,
           iterations,
           iterationsMin,
           iterationsMax,
-          nodeFactory(definition.child, rootNodeDefinitionMap)
+          nodeFactory(definition.child, rootNodeDefinitionMap, options)
         );
       case "retry":
         let attempts = null;
@@ -2178,49 +2180,55 @@ var mistreevous = (() => {
         }
         return new Retry(
           attributes,
+          options,
           attempts,
           attemptsMin,
           attemptsMax,
-          nodeFactory(definition.child, rootNodeDefinitionMap)
+          nodeFactory(definition.child, rootNodeDefinitionMap, options)
         );
       case "flip":
-        return new Flip(attributes, nodeFactory(definition.child, rootNodeDefinitionMap));
+        return new Flip(attributes, options, nodeFactory(definition.child, rootNodeDefinitionMap, options));
       case "succeed":
-        return new Succeed(attributes, nodeFactory(definition.child, rootNodeDefinitionMap));
+        return new Succeed(attributes, options, nodeFactory(definition.child, rootNodeDefinitionMap, options));
       case "fail":
-        return new Fail(attributes, nodeFactory(definition.child, rootNodeDefinitionMap));
+        return new Fail(attributes, options, nodeFactory(definition.child, rootNodeDefinitionMap, options));
       case "sequence":
         return new Sequence(
           attributes,
-          definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+          options,
+          definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap, options))
         );
       case "selector":
         return new Selector(
           attributes,
-          definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+          options,
+          definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap, options))
         );
       case "parallel":
         return new Parallel(
           attributes,
-          definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+          options,
+          definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap, options))
         );
       case "race":
         return new Race(
           attributes,
-          definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+          options,
+          definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap, options))
         );
       case "lotto":
         return new Lotto(
           attributes,
+          options,
           definition.weights,
-          definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+          definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap, options))
         );
       case "branch":
-        return nodeFactory(rootNodeDefinitionMap[definition.ref].child, rootNodeDefinitionMap);
+        return nodeFactory(rootNodeDefinitionMap[definition.ref].child, rootNodeDefinitionMap, options);
       case "action":
-        return new Action(attributes, definition.call, definition.args || []);
+        return new Action(attributes, options, definition.call, definition.args || []);
       case "condition":
-        return new Condition(attributes, definition.call, definition.args || []);
+        return new Condition(attributes, options, definition.call, definition.args || []);
       case "wait":
         let duration = null;
         let durationMin = null;
@@ -2231,7 +2239,7 @@ var mistreevous = (() => {
         } else if (isInteger(definition.duration)) {
           duration = definition.duration;
         }
-        return new Wait(attributes, duration, durationMin, durationMax);
+        return new Wait(attributes, options, duration, durationMin, durationMax);
     }
   }
   function nodeAttributesFactory(definition) {
@@ -2309,7 +2317,7 @@ var mistreevous = (() => {
         );
       }
       try {
-        this._rootNode = buildRootNode(json);
+        this._rootNode = buildRootNode(json, options);
       } catch (exception) {
         throw new Error(`error building tree: ${exception.message}`);
       }

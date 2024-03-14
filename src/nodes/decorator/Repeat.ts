@@ -16,6 +16,7 @@ import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 export default class Repeat extends Decorator {
     /**
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param iterations The number of iterations to repeat the child node.
      * @param iterationsMin The minimum possible number of iterations to repeat the child node.
      * @param iterationsMax The maximum possible number of iterations to repeat the child node.
@@ -23,12 +24,13 @@ export default class Repeat extends Decorator {
      */
     constructor(
         attributes: Attribute[],
+        options: BehaviourTreeOptions,
         private iterations: number | null,
         private iterationsMin: number | null,
         private iterationsMax: number | null,
         child: Node
     ) {
-        super("repeat", attributes, child);
+        super("repeat", attributes, options, child);
     }
 
     /**

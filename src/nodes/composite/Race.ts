@@ -12,10 +12,11 @@ import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 export default class Race extends Composite {
     /**
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param children The child nodes.
      */
-    constructor(attributes: Attribute[], children: Node[]) {
-        super("race", attributes, children);
+    constructor(attributes: Attribute[], options: BehaviourTreeOptions, children: Node[]) {
+        super("race", attributes, options, children);
     }
 
     /**

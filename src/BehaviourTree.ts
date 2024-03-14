@@ -78,7 +78,7 @@ export class BehaviourTree {
 
         try {
             // Create the populated tree of behaviour tree nodes and get the root node.
-            this._rootNode = buildRootNode(json);
+            this._rootNode = buildRootNode(json, options);
         } catch (exception) {
             // There was an issue in trying build and populate the behaviour tree.
             throw new Error(`error building tree: ${(exception as Error).message}`);

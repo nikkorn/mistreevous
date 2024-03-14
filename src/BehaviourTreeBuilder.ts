@@ -26,6 +26,7 @@ import Until from "./attributes/guards/Until";
 import Entry from "./attributes/callbacks/Entry";
 import Step from "./attributes/callbacks/Step";
 import Exit from "./attributes/callbacks/Exit";
+import { BehaviourTreeOptions } from "./BehaviourTreeOptions";
 
 /**
  * A type representing any node instance in a behaviour tree.
@@ -59,9 +60,10 @@ const MAIN_ROOT_NODE_KEY = Symbol("__root__");
 /**
  * Build and populate the root nodes based on the provided definition, assuming that the definition has been validated.
  * @param definition The root node definitions.
+ * @param options The behaviour tree options.
  * @returns The built and populated root node definitions.
  */
-export default function buildRootNode(definition: RootNodeDefinition[]): Root {
+export default function buildRootNode(definition: RootNodeDefinition[], options: BehaviourTreeOptions): Root {
     // Create a mapping of root node identifers to root node definitions, including globally registered subtree root node definitions.
     const rootNodeDefinitionMap = createRootNodeDefinitionMap(definition);
 
@@ -74,7 +76,7 @@ export default function buildRootNode(definition: RootNodeDefinition[]): Root {
     );
 
     // Create our populated tree of node instances, starting with our main root node.
-    const rootNode = nodeFactory(rootNodeDefinitionMap[MAIN_ROOT_NODE_KEY], rootNodeDefinitionMap) as Root;
+    const rootNode = nodeFactory(rootNodeDefinitionMap[MAIN_ROOT_NODE_KEY], rootNodeDefinitionMap, options) as Root;
 
     // Set a guard path on every leaf of the tree to evaluate as part of each update.
     applyLeafNodeGuardPaths(rootNode);
@@ -87,16 +89,21 @@ export default function buildRootNode(definition: RootNodeDefinition[]): Root {
  * A factory function which creates a node instance based on the specified definition.
  * @param definition The node definition.
  * @param rootNodeDefinitionMap The mapping of root node identifers to root node definitions, including globally registered subtree root node definitions.
+ * @param options The behaviour tree options.
  * @returns A node instance based on the specified definition.
  */
-function nodeFactory(definition: AnyNodeDefinition, rootNodeDefinitionMap: RootNodeDefinitionMap): AnyNode {
+function nodeFactory(
+    definition: AnyNodeDefinition,
+    rootNodeDefinitionMap: RootNodeDefinitionMap,
+    options: BehaviourTreeOptions
+): AnyNode {
     // Get the attributes for the node.
     const attributes = nodeAttributesFactory(definition);
 
     // Create the node instance based on the definition type.
     switch (definition.type) {
         case "root":
-            return new Root(attributes, nodeFactory(definition.child, rootNodeDefinitionMap));
+            return new Root(attributes, options, nodeFactory(definition.child, rootNodeDefinitionMap, options));
 
         case "repeat":
             let iterations: number | null = null;
@@ -112,10 +119,11 @@ function nodeFactory(definition: AnyNodeDefinition, rootNodeDefinitionMap: RootN
 
             return new Repeat(
                 attributes,
+                options,
                 iterations,
                 iterationsMin,
                 iterationsMax,
-                nodeFactory(definition.child, rootNodeDefinitionMap)
+                nodeFactory(definition.child, rootNodeDefinitionMap, options)
             );
 
         case "retry":
@@ -132,60 +140,66 @@ function nodeFactory(definition: AnyNodeDefinition, rootNodeDefinitionMap: RootN
 
             return new Retry(
                 attributes,
+                options,
                 attempts,
                 attemptsMin,
                 attemptsMax,
-                nodeFactory(definition.child, rootNodeDefinitionMap)
+                nodeFactory(definition.child, rootNodeDefinitionMap, options)
             );
 
         case "flip":
-            return new Flip(attributes, nodeFactory(definition.child, rootNodeDefinitionMap));
+            return new Flip(attributes, options, nodeFactory(definition.child, rootNodeDefinitionMap, options));
 
         case "succeed":
-            return new Succeed(attributes, nodeFactory(definition.child, rootNodeDefinitionMap));
+            return new Succeed(attributes, options, nodeFactory(definition.child, rootNodeDefinitionMap, options));
 
         case "fail":
-            return new Fail(attributes, nodeFactory(definition.child, rootNodeDefinitionMap));
+            return new Fail(attributes, options, nodeFactory(definition.child, rootNodeDefinitionMap, options));
 
         case "sequence":
             return new Sequence(
                 attributes,
-                definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+                options,
+                definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap, options))
             );
 
         case "selector":
             return new Selector(
                 attributes,
-                definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+                options,
+                definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap, options))
             );
 
         case "parallel":
             return new Parallel(
                 attributes,
-                definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+                options,
+                definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap, options))
             );
 
         case "race":
             return new Race(
                 attributes,
-                definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+                options,
+                definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap, options))
             );
 
         case "lotto":
             return new Lotto(
                 attributes,
+                options,
                 definition.weights,
-                definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+                definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap, options))
             );
 
         case "branch":
-            return nodeFactory(rootNodeDefinitionMap[definition.ref].child, rootNodeDefinitionMap);
+            return nodeFactory(rootNodeDefinitionMap[definition.ref].child, rootNodeDefinitionMap, options);
 
         case "action":
-            return new Action(attributes, definition.call, definition.args || []);
+            return new Action(attributes, options, definition.call, definition.args || []);
 
         case "condition":
-            return new Condition(attributes, definition.call, definition.args || []);
+            return new Condition(attributes, options, definition.call, definition.args || []);
 
         case "wait":
             let duration: number | null = null;
@@ -199,7 +213,7 @@ function nodeFactory(definition: AnyNodeDefinition, rootNodeDefinitionMap: RootN
                 duration = definition.duration!;
             }
 
-            return new Wait(attributes, duration, durationMin, durationMax);
+            return new Wait(attributes, options, duration, durationMin, durationMax);
     }
 }
 

@@ -2,6 +2,7 @@ import Node from "../Node";
 import State from "../../State";
 import { Agent } from "../../Agent";
 import Attribute from "../../attributes/Attribute";
+import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 
 /**
  * A decorator node that wraps a single child node.
@@ -10,10 +11,11 @@ export default abstract class Decorator extends Node {
     /**
      * @param type The node type.
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param child The child node.
      */
-    constructor(type: string, attributes: Attribute[], protected child: Node) {
-        super(type, attributes);
+    constructor(type: string, attributes: Attribute[], options: BehaviourTreeOptions, protected child: Node) {
+        super(type, attributes, options);
     }
 
     /**

@@ -11,10 +11,11 @@ export default class Action extends Leaf {
     actionArguments: any[];
     /**
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param actionName The action name.
      * @param actionArguments The array of action argument definitions.
      */
-    constructor(attributes: Attribute[], actionName: string, actionArguments: any[]);
+    constructor(attributes: Attribute[], options: BehaviourTreeOptions, actionName: string, actionArguments: any[]);
     /**
      * Whether there is a pending update promise.
      */

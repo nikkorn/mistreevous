@@ -14,6 +14,7 @@ import GuardPath from "../attributes/guards/GuardPath";
 export default abstract class Node {
     private type;
     private attributes;
+    protected options: BehaviourTreeOptions;
     /**
      * The node unique identifier.
      */
@@ -29,8 +30,9 @@ export default abstract class Node {
     /**
      * @param type The node type.
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      */
-    constructor(type: string, attributes: Attribute[]);
+    constructor(type: string, attributes: Attribute[], options: BehaviourTreeOptions);
     /**
      * Called when the node is being updated.
      * @param agent The agent.

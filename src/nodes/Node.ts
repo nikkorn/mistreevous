@@ -31,8 +31,9 @@ export default abstract class Node {
     /**
      * @param type The node type.
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      */
-    constructor(private type: string, private attributes: Attribute[]) {
+    constructor(private type: string, private attributes: Attribute[], protected options: BehaviourTreeOptions) {
         this._uid = createUid();
     }
 

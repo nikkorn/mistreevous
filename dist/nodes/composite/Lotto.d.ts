@@ -12,10 +12,11 @@ export default class Lotto extends Composite {
     private weights;
     /**
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param weights The child node weights.
      * @param children The child nodes.
      */
-    constructor(attributes: Attribute[], weights: number[] | undefined, children: Node[]);
+    constructor(attributes: Attribute[], options: BehaviourTreeOptions, weights: number[] | undefined, children: Node[]);
     /**
      * The child node selected to be the active one.
      */

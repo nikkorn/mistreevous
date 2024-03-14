@@ -11,17 +11,19 @@ import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 export default class Wait extends Leaf {
     /**
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param duration The duration that this node will wait to succeed in milliseconds.
      * @param durationMin The minimum possible duration in milliseconds that this node will wait to succeed.
      * @param durationMax The maximum possible duration in milliseconds that this node will wait to succeed.
      */
     constructor(
         attributes: Attribute[],
+        options: BehaviourTreeOptions,
         private duration: number | null,
         private durationMin: number | null,
         private durationMax: number | null
     ) {
-        super("wait", attributes);
+        super("wait", attributes, options);
     }
 
     /**

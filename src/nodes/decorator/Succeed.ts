@@ -12,10 +12,11 @@ import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 export default class Succeed extends Decorator {
     /**
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param child The child node.
      */
-    constructor(attributes: Attribute[], child: Node) {
-        super("succeed", attributes, child);
+    constructor(attributes: Attribute[], options: BehaviourTreeOptions, child: Node) {
+        super("succeed", attributes, options, child);
     }
 
     /**
