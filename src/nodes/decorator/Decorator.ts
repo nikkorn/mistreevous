@@ -55,6 +55,6 @@ export default abstract class Decorator extends Node {
         // Reset the state of this node.
         this.reset();
 
-        this.getAttribute("exit")?.callAgentFunction(agent, false, true);
+        this.attributes.exit?.callAgentFunction(agent, false, true);
     };
 }

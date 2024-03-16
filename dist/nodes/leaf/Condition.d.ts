@@ -1,4 +1,5 @@
 import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
+import State from "../../State";
 import { Agent } from "../../Agent";
 import Leaf from "./Leaf";
 import Attribute from "../../attributes/Attribute";
@@ -19,11 +20,15 @@ export default class Condition extends Leaf {
     /**
      * Called when the node is being updated.
      * @param agent The agent.
-     * @param options The behaviour tree options object.
      */
-    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void;
+    protected onUpdate(agent: Agent): void;
     /**
      * Gets the name of the node.
      */
     getName: () => string;
+    /**
+     * Called when the state of this node changes.
+     * @param previousState The previous node state.
+     */
+    protected onStateChanged(previousState: State): void;
 }

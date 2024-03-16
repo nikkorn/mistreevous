@@ -1,5 +1,5 @@
-import { NodeAttributeDefinition } from "./BehaviourTreeDefinition";
 import { State } from "./State";
+import { AttributeDetails } from "./attributes/Attribute";
 /**
  * An object representing a change in state for a node in a behaviour tree instance.
  */
@@ -13,33 +13,29 @@ export type NodeStateChange = {
      */
     type: string;
     /**
-     * The node caption.
-     */
-    caption: string;
-    /**
      * The array of agent or globally registered function arguments if this is an action or condition node.
      */
     args?: any[];
     /**
-     * The 'when' guard attribute configured for this node.
+     * The 'while' guard attribute configured for this node.
      */
-    when?: NodeAttributeDefinition;
+    while?: AttributeDetails;
     /**
      * The 'until' guard attribute configured for this node.
      */
-    until?: NodeAttributeDefinition;
+    until?: AttributeDetails;
     /**
      * The 'entry' callback attribute configured for this node.
      */
-    entry?: NodeAttributeDefinition;
+    entry?: AttributeDetails;
     /**
      * The 'step' callback attribute configured for this node.
      */
-    step?: NodeAttributeDefinition;
+    step?: AttributeDetails;
     /**
      * The 'exit' callback attribute configured for this node.
      */
-    exit?: NodeAttributeDefinition;
+    exit?: AttributeDetails;
     /**
      * The previous state of the node.
      */

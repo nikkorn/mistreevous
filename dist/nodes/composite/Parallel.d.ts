@@ -17,9 +17,8 @@ export default class Parallel extends Composite {
     /**
      * Called when the node is being updated.
      * @param agent The agent.
-     * @param options The behaviour tree options object.
      */
-    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void;
+    protected onUpdate(agent: Agent): void;
     /**
      * Gets the name of the node.
      */

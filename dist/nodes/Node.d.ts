@@ -1,32 +1,61 @@
 import { BehaviourTreeOptions } from "../BehaviourTreeOptions";
-import { AnyState } from "../State";
+import State, { AnyState } from "../State";
 import { Agent } from "../Agent";
 import Leaf from "./leaf/Leaf";
 import Attribute from "../attributes/Attribute";
 import Entry from "../attributes/callbacks/Entry";
 import Exit from "../attributes/callbacks/Exit";
 import Step from "../attributes/callbacks/Step";
-import Guard from "../attributes/guards/Guard";
+import While from "../attributes/guards/While";
+import Until from "../attributes/guards/Until";
 import GuardPath from "../attributes/guards/GuardPath";
+/**
+ * A mapping of attribute names to attributes configured for a node.
+ */
+type Attributes = {
+    /**
+     * The 'entry' callback attribute configured for this node.
+     */
+    entry?: Entry;
+    /**
+     * The 'step' callback attribute configured for this node.
+     */
+    step?: Step;
+    /**
+     * The 'exit' callback attribute configured for this node.
+     */
+    exit?: Exit;
+    /**
+     * The 'while' guard attribute configured for this node.
+     */
+    while?: While;
+    /**
+     * The 'until' guard attribute configured for this node.
+     */
+    until?: Until;
+};
 /**
  * A base node.
  */
 export default abstract class Node {
     private type;
-    private attributes;
     protected options: BehaviourTreeOptions;
     /**
      * The node unique identifier.
      */
-    private readonly _uid;
+    protected readonly uid: string;
+    /**
+     * The node attributes.
+     */
+    protected readonly attributes: Attributes;
     /**
      * The node state.
      */
-    private state;
+    private _state;
     /**
      * The guard path to evaluate as part of a node update.
      */
-    private guardPath;
+    private _guardPath;
     /**
      * @param type The node type.
      * @param attributes The node attributes.
@@ -36,9 +65,8 @@ export default abstract class Node {
     /**
      * Called when the node is being updated.
      * @param agent The agent.
-     * @param options The behaviour tree options object.
      */
-    protected abstract onUpdate(agent: Agent, options: BehaviourTreeOptions): void;
+    protected abstract onUpdate(agent: Agent): void;
     /**
      * Gets the name of the node.
      */
@@ -63,17 +91,7 @@ export default abstract class Node {
     /**
      * Gets the node attributes.
      */
-    getAttributes: () => Attribute<import("../attributes/Attribute").AttributeDetails>[];
-    /**
-     * Gets the node attribute with the specified type, or null if it does not exist.
-     */
-    getAttribute(type: "entry" | "ENTRY"): Entry;
-    getAttribute(type: "exit" | "EXIT"): Exit;
-    getAttribute(type: "step" | "STEP"): Step;
-    /**
-     * Gets the node attributes.
-     */
-    getGuardAttributes: () => Guard[];
+    getAttributes: () => (Entry | Exit | Step | While | Until)[];
     /**
      * Sets the guard path to evaluate as part of a node update.
      */
@@ -99,8 +117,13 @@ export default abstract class Node {
     /**
      * Update the node.
      * @param agent The agent.
-     * @param options The behaviour tree options object.
      * @returns The result of the update.
      */
-    update(agent: Agent, options: BehaviourTreeOptions): void;
+    update(agent: Agent): void;
+    /**
+     * Called when the state of this node changes.
+     * @param previousState The previous node state.
+     */
+    protected onStateChanged(previousState: State): void;
 }
+export {};

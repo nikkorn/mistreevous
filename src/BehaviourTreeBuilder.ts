@@ -21,6 +21,7 @@ import Condition from "./nodes/leaf/Condition";
 import Wait from "./nodes/leaf/Wait";
 import Lookup from "./Lookup";
 import Attribute from "./attributes/Attribute";
+import Guard from "./attributes/guards/Guard";
 import While from "./attributes/guards/While";
 import Until from "./attributes/guards/Until";
 import Entry from "./attributes/callbacks/Entry";
@@ -309,7 +310,10 @@ function applyLeafNodeGuardPaths(root: Root) {
             const guardPath = new GuardPath(
                 path
                     .slice(0, depth + 1)
-                    .map<GuardPathPart>((node) => ({ node, guards: node.getGuardAttributes() }))
+                    .map<GuardPathPart>((node) => ({
+                        node,
+                        guards: node.getAttributes().filter((attribute) => attribute.isGuard()) as Guard[]
+                    }))
                     .filter((details) => details.guards.length > 0)
             );
 

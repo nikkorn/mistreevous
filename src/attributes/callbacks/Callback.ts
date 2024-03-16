@@ -3,7 +3,7 @@ import Attribute, { AttributeDetails } from "../Attribute";
 
 export type CallbackAttributeDetails = {
     /** The name of the agent function that is called. */
-    functionName: string;
+    calls: string;
 } & AttributeDetails;
 
 /**
@@ -36,7 +36,7 @@ export default abstract class Callback extends Attribute<CallbackAttributeDetail
         return {
             type: this.type,
             args: this.args,
-            functionName: this.getFunctionName()
+            calls: this.getFunctionName()
         };
     }
 

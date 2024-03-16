@@ -22,12 +22,11 @@ export default class Fail extends Decorator {
     /**
      * Called when the node is being updated.
      * @param agent The agent.
-     * @param options The behaviour tree options object.
      */
-    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void {
+    protected onUpdate(agent: Agent): void {
         // If the child has never been updated or is running then we will need to update it now.
         if (this.child.getState() === State.READY || this.child.getState() === State.RUNNING) {
-            this.child.update(agent, options);
+            this.child.update(agent);
         }
 
         // The state of this node will depend in the state of its child.

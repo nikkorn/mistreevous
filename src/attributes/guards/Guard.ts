@@ -3,7 +3,7 @@ import Attribute, { AttributeDetails } from "../Attribute";
 
 export type GuardAttributeDetails = {
     /** The name of the condition function that determines whether the guard is satisfied. */
-    condition: string;
+    calls: string;
 } & AttributeDetails;
 
 /**
@@ -36,7 +36,7 @@ export default abstract class Guard extends Attribute<GuardAttributeDetails> {
         return {
             type: this.type,
             args: this.args,
-            condition: this.getCondition()
+            calls: this.getCondition()
         };
     }
 

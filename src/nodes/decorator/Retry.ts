@@ -46,9 +46,8 @@ export default class Retry extends Decorator {
     /**
      * Called when the node is being updated.
      * @param agent The agent.
-     * @param options The behaviour tree options object.
      */
-    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void {
+    protected onUpdate(agent: Agent): void {
         // If this node is in the READY state then we need to reset the child and the target attempt count.
         if (this.is(State.READY)) {
             // Reset the child node.
@@ -58,7 +57,7 @@ export default class Retry extends Decorator {
             this.currentAttemptCount = 0;
 
             // Set the target attempt count.
-            this.setTargetAttemptCount(options);
+            this.setTargetAttemptCount();
         }
 
         // Do a check to see if we can attempt. If we can then this node will move into the 'RUNNING' state.
@@ -74,7 +73,7 @@ export default class Retry extends Decorator {
             }
 
             // Update the child of this node.
-            this.child.update(agent, options);
+            this.child.update(agent);
 
             // If the child moved into the SUCCEEDED state when we updated it then there is nothing left to do and this node has also succeeded.
             // If it has moved into the FAILED state then we have completed the current attempt.
@@ -136,16 +135,15 @@ export default class Retry extends Decorator {
 
     /**
      * Sets the target attempt count.
-     * @param options The behaviour tree options object.
      */
-    setTargetAttemptCount = (options: BehaviourTreeOptions) => {
+    setTargetAttemptCount = () => {
         // Are we dealing with an explicit attempt count or will we be randomly picking an attempt count between the min and max attempt count.
         if (this.attempts !== null) {
             this.targetAttemptCount = this.attempts;
         } else if (this.attemptsMin !== null && this.attemptsMax !== null) {
             // We will be picking a random attempt count between a min and max attempt count, if the optional 'random'
             // behaviour tree function option is defined then we will be using that, otherwise we will fall back to using Math.random.
-            const random = typeof options.random === "function" ? options.random : Math.random;
+            const random = typeof this.options.random === "function" ? this.options.random : Math.random;
 
             // Pick a random attempt count between a min and max attempt count.
             this.targetAttemptCount = Math.floor(

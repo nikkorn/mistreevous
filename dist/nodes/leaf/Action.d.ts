@@ -1,4 +1,5 @@
 import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
+import State from "../../State";
 import { Agent } from "../../Agent";
 import Leaf from "./Leaf";
 import Attribute from "../../attributes/Attribute";
@@ -27,9 +28,8 @@ export default class Action extends Leaf {
     /**
      * Called when the node is being updated.
      * @param agent The agent.
-     * @param options The behaviour tree options object.
      */
-    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void;
+    protected onUpdate(agent: Agent): void;
     /**
      * Gets the name of the node.
      */
@@ -38,6 +38,11 @@ export default class Action extends Leaf {
      * Reset the state of the node.
      */
     reset: () => void;
+    /**
+     * Called when the state of this node changes.
+     * @param previousState The previous node state.
+     */
+    protected onStateChanged(previousState: State): void;
     /**
      * Validate the result of an update function call.
      * @param result The result of an update function call.

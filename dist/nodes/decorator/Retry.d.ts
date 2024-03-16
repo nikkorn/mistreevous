@@ -35,9 +35,8 @@ export default class Retry extends Decorator {
     /**
      * Called when the node is being updated.
      * @param agent The agent.
-     * @param options The behaviour tree options object.
      */
-    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void;
+    protected onUpdate(agent: Agent): void;
     /**
      * Gets the name of the node.
      */
@@ -53,7 +52,6 @@ export default class Retry extends Decorator {
     canAttempt: () => boolean;
     /**
      * Sets the target attempt count.
-     * @param options The behaviour tree options object.
      */
-    setTargetAttemptCount: (options: BehaviourTreeOptions) => void;
+    setTargetAttemptCount: () => void;
 }

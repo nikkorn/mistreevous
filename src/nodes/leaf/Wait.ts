@@ -44,9 +44,8 @@ export default class Wait extends Leaf {
     /**
      * Called when the node is being updated.
      * @param agent The agent.
-     * @param options The behaviour tree options object.
      */
-    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void {
+    protected onUpdate(agent: Agent): void {
         // If this node is in the READY state then we need to set the initial update time.
         if (this.is(State.READY)) {
             // Set the initial update time.
@@ -61,7 +60,7 @@ export default class Wait extends Leaf {
             } else if (this.durationMin !== null && this.durationMax !== null) {
                 // We will be picking a random duration between a min and max duration, if the optional 'random' behaviour tree
                 // function option is defined then we will be using that, otherwise we will fall back to using Math.random.
-                const random = typeof options.random === "function" ? options.random : Math.random;
+                const random = typeof this.options.random === "function" ? this.options.random : Math.random;
 
                 // Pick a random duration between a min and max duration.
                 this.totalDuration = Math.floor(
@@ -81,9 +80,9 @@ export default class Wait extends Leaf {
         }
 
         // If we have a 'getDeltaTime' function defined as part of our options then we will use it to figure out how long we have waited for.
-        if (typeof options.getDeltaTime === "function") {
+        if (typeof this.options.getDeltaTime === "function") {
             // Get the delta time.
-            const deltaTime = options.getDeltaTime();
+            const deltaTime = this.options.getDeltaTime();
 
             // Our delta time must be a valid number and cannot be NaN.
             if (typeof deltaTime !== "number" || isNaN(deltaTime)) {

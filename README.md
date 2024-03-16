@@ -2,7 +2,7 @@
 [![npm version](https://badge.fury.io/js/mistreevous.svg)](https://badge.fury.io/js/mistreevous)
 [![Node.js CI](https://github.com/nikkorn/mistreevous/actions/workflows/node.js.yml/badge.svg?branch=master)](https://github.com/nikkorn/mistreevous/actions/workflows/node.js.yml)
 
-A library to declaratively define, build and execute behaviour trees, written in Typescript for Node and browsers. Behaviour trees are used to create complex AI via the modular hierarchical composition of individual tasks.
+A library to declaratively define, build and execute behaviour trees, written in TypeScript for Node and browsers. Behaviour trees are used to create complex AI via the modular hierarchical composition of individual tasks.
 
 Using this tool, trees can be defined with either JSON or a simple and minimal built-in DSL (MDSL), avoiding the need to write verbose definitions in JSON.
 

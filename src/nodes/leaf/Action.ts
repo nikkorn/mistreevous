@@ -53,9 +53,8 @@ export default class Action extends Leaf {
     /**
      * Called when the node is being updated.
      * @param agent The agent.
-     * @param options The behaviour tree options object.
      */
-    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void {
+    protected onUpdate(agent: Agent): void {
         // If the result of this action depends on an update promise then there is nothing to do until it settles.
         if (this.isUsingUpdatePromise) {
             // Are we still waiting for our update promise to settle?
@@ -169,6 +168,25 @@ export default class Action extends Leaf {
         this.isUsingUpdatePromise = false;
         this.updatePromiseResult = null;
     };
+
+    /**
+     * Called when the state of this node changes.
+     * @param previousState The previous node state.
+     */
+    protected onStateChanged(previousState: State): void {
+        this.options.onNodeStateChange?.({
+            id: this.uid,
+            type: this.getType(),
+            args: this.actionArguments,
+            while: this.attributes.while?.getDetails(),
+            until: this.attributes.until?.getDetails(),
+            entry: this.attributes.entry?.getDetails(),
+            step: this.attributes.step?.getDetails(),
+            exit: this.attributes.exit?.getDetails(),
+            previousState,
+            state: this.getState()
+        });
+    }
 
     /**
      * Validate the result of an update function call.

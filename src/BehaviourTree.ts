@@ -116,7 +116,7 @@ export class BehaviourTree {
         }
 
         try {
-            this._rootNode.update(this.agent, this.options);
+            this._rootNode.update(this.agent);
         } catch (exception) {
             throw new Error(`error stepping tree: ${(exception as Error).message}`);
         }
