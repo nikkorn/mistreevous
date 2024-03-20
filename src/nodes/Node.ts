@@ -10,7 +10,59 @@ import While from "../attributes/guards/While";
 import Until from "../attributes/guards/Until";
 import GuardPath from "../attributes/guards/GuardPath";
 import GuardUnsatisifedException from "../attributes/guards/GuardUnsatisifedException";
+import { GuardAttributeDetails } from "../attributes/guards/Guard";
+import { CallbackAttributeDetails } from "../attributes/callbacks/Callback";
 import { createUid } from "../Utilities";
+
+/**
+ * Details of a tree node instance.
+ */
+export type NodeDetails = {
+    /**
+     * The tree node identifier.
+     */
+    id: string;
+    /**
+     * The tree node type.
+     */
+    type: string;
+    /**
+     * The tree node name.
+     */
+    name: string;
+    /**
+     * The current state of the tree node.
+     */
+    state: AnyState;
+    /**
+     * The array of agent or globally registered function arguments, defined if this is an action or condition node.
+     */
+    args?: any[];
+    /**
+     * The 'while' guard attribute configured for this node.
+     */
+    while?: GuardAttributeDetails;
+    /**
+     * The 'until' guard attribute configured for this node.
+     */
+    until?: GuardAttributeDetails;
+    /**
+     * The 'entry' callback attribute configured for this node.
+     */
+    entry?: CallbackAttributeDetails;
+    /**
+     * The 'step' callback attribute configured for this node.
+     */
+    step?: CallbackAttributeDetails;
+    /**
+     * The 'exit' callback attribute configured for this node.
+     */
+    exit?: CallbackAttributeDetails;
+    /**
+     * The array of the child nodes of this node, defined if this node is a composite or decorator node.
+     */
+    children?: NodeDetails[];
+};
 
 /**
  * A mapping of attribute names to attributes configured for a node.
@@ -208,6 +260,24 @@ export default abstract class Node {
                 throw error;
             }
         }
+    }
+
+    /**
+     * Gets the details of this node instance.
+     * @returns The details of this node instance.
+     */
+    public getDetails(): NodeDetails {
+        return {
+            id: this.uid,
+            name: this.getName(),
+            type: this.type,
+            while: this.attributes.while?.getDetails(),
+            until: this.attributes.until?.getDetails(),
+            entry: this.attributes.entry?.getDetails(),
+            step: this.attributes.step?.getDetails(),
+            exit: this.attributes.exit?.getDetails(),
+            state: this._state
+        };
     }
 
     /**

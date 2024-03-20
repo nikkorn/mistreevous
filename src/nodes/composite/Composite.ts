@@ -1,4 +1,4 @@
-import Node from "../Node";
+import Node, { NodeDetails } from "../Node";
 import State from "../../State";
 import { Agent } from "../../Agent";
 import Attribute from "../../attributes/Attribute";
@@ -36,7 +36,7 @@ export default abstract class Composite extends Node {
         this.setState(State.READY);
 
         // Reset the state of any child nodes.
-        this.getChildren().forEach((child) => child.reset());
+        this.children.forEach((child) => child.reset());
     };
 
     /**
@@ -50,11 +50,22 @@ export default abstract class Composite extends Node {
         }
 
         // Abort any child nodes.
-        this.getChildren().forEach((child) => child.abort(agent));
+        this.children.forEach((child) => child.abort(agent));
 
         // Reset the state of this node.
         this.reset();
 
         this.attributes.exit?.callAgentFunction(agent, false, true);
     };
+
+    /**
+     * Gets the details of this node instance.
+     * @returns The details of this node instance.
+     */
+    public getDetails(): NodeDetails {
+        return {
+            ...super.getDetails(),
+            children: this.children.map((child) => child.getDetails())
+        };
+    }
 }

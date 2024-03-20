@@ -303,264 +303,6 @@ var mistreevous = (() => {
   __publicField(Lookup, "registeredFunctions", {});
   __publicField(Lookup, "registeredSubtrees", {});
 
-  // src/attributes/guards/GuardUnsatisifedException.ts
-  var GuardUnsatisifedException = class extends Error {
-    constructor(source) {
-      super("A guard path condition has failed");
-      this.source = source;
-    }
-    isSourceNode = (node) => node === this.source;
-  };
-
-  // src/Utilities.ts
-  function createUid() {
-    var S4 = function() {
-      return ((1 + Math.random()) * 65536 | 0).toString(16).substring(1);
-    };
-    return S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
-  }
-
-  // src/nodes/Node.ts
-  var Node = class {
-    constructor(type, attributes, options) {
-      this.type = type;
-      this.options = options;
-      this.uid = createUid();
-      this.attributes = {
-        entry: attributes.find(({ type: type2 }) => type2 === "entry"),
-        step: attributes.find(({ type: type2 }) => type2 === "step"),
-        exit: attributes.find(({ type: type2 }) => type2 === "exit"),
-        while: attributes.find(({ type: type2 }) => type2 === "while"),
-        until: attributes.find(({ type: type2 }) => type2 === "until")
-      };
-    }
-    uid;
-    attributes;
-    _state = "mistreevous.ready" /* READY */;
-    _guardPath;
-    getState = () => this._state;
-    setState = (value) => {
-      const previousState = this._state;
-      this._state = value;
-      if (previousState !== value) {
-        this.onStateChanged(previousState);
-      }
-    };
-    getUid = () => this.uid;
-    getType = () => this.type;
-    getAttributes = () => Object.values(this.attributes).filter((attribute) => !!attribute);
-    setGuardPath = (value) => this._guardPath = value;
-    hasGuardPath = () => !!this._guardPath;
-    is(value) {
-      return this._state === value;
-    }
-    reset() {
-      this.setState("mistreevous.ready" /* READY */);
-    }
-    abort(agent) {
-      if (!this.is("mistreevous.running" /* RUNNING */)) {
-        return;
-      }
-      this.reset();
-      this.attributes.exit?.callAgentFunction(agent, false, true);
-    }
-    update(agent) {
-      if (this.is("mistreevous.succeeded" /* SUCCEEDED */) || this.is("mistreevous.failed" /* FAILED */)) {
-        return;
-      }
-      try {
-        this._guardPath.evaluate(agent);
-        if (this.is("mistreevous.ready" /* READY */)) {
-          this.attributes.entry?.callAgentFunction(agent);
-        }
-        this.attributes.step?.callAgentFunction(agent);
-        this.onUpdate(agent);
-        if (this.is("mistreevous.succeeded" /* SUCCEEDED */) || this.is("mistreevous.failed" /* FAILED */)) {
-          this.attributes.exit?.callAgentFunction(agent, this.is("mistreevous.succeeded" /* SUCCEEDED */), false);
-        }
-      } catch (error) {
-        if (error instanceof GuardUnsatisifedException && error.isSourceNode(this)) {
-          this.abort(agent);
-          this.setState("mistreevous.failed" /* FAILED */);
-        } else {
-          throw error;
-        }
-      }
-    }
-    onStateChanged(previousState) {
-      this.options.onNodeStateChange?.({
-        id: this.uid,
-        type: this.type,
-        while: this.attributes.while?.getDetails(),
-        until: this.attributes.until?.getDetails(),
-        entry: this.attributes.entry?.getDetails(),
-        step: this.attributes.step?.getDetails(),
-        exit: this.attributes.exit?.getDetails(),
-        previousState,
-        state: this._state
-      });
-    }
-  };
-
-  // src/nodes/leaf/Leaf.ts
-  var Leaf = class extends Node {
-    isLeafNode = () => true;
-  };
-
-  // src/nodes/leaf/Action.ts
-  var Action = class extends Leaf {
-    constructor(attributes, options, actionName, actionArguments) {
-      super("action", attributes, options);
-      this.actionName = actionName;
-      this.actionArguments = actionArguments;
-    }
-    isUsingUpdatePromise = false;
-    updatePromiseResult = null;
-    onUpdate(agent) {
-      if (this.isUsingUpdatePromise) {
-        if (!this.updatePromiseResult) {
-          return;
-        }
-        const { isResolved, value } = this.updatePromiseResult;
-        if (isResolved) {
-          if (value !== "mistreevous.succeeded" /* SUCCEEDED */ && value !== "mistreevous.failed" /* FAILED */) {
-            throw new Error(
-              "action node promise resolved with an invalid value, expected a State.SUCCEEDED or State.FAILED value to be returned"
-            );
-          }
-          this.setState(value);
-          return;
-        } else {
-          throw new Error(`action function '${this.actionName}' promise rejected with '${value}'`);
-        }
-      }
-      const actionFuncInvoker = Lookup.getFuncInvoker(agent, this.actionName);
-      if (actionFuncInvoker === null) {
-        throw new Error(
-          `cannot update action node as the action '${this.actionName}' function is not defined on the agent and has not been registered`
-        );
-      }
-      let actionFunctionResult;
-      try {
-        actionFunctionResult = actionFuncInvoker(this.actionArguments);
-      } catch (error) {
-        if (error instanceof Error) {
-          throw new Error(`action function '${this.actionName}' threw: ${error.stack}`);
-        } else {
-          throw new Error(`action function '${this.actionName}' threw: ${error}`);
-        }
-      }
-      if (actionFunctionResult instanceof Promise) {
-        actionFunctionResult.then(
-          (result) => {
-            if (!this.isUsingUpdatePromise) {
-              return;
-            }
-            this.updatePromiseResult = {
-              isResolved: true,
-              value: result
-            };
-          },
-          (reason) => {
-            if (!this.isUsingUpdatePromise) {
-              return;
-            }
-            this.updatePromiseResult = {
-              isResolved: false,
-              value: reason
-            };
-          }
-        );
-        this.setState("mistreevous.running" /* RUNNING */);
-        this.isUsingUpdatePromise = true;
-      } else {
-        this.validateUpdateResult(actionFunctionResult);
-        this.setState(actionFunctionResult || "mistreevous.running" /* RUNNING */);
-      }
-    }
-    getName = () => this.actionName;
-    reset = () => {
-      this.setState("mistreevous.ready" /* READY */);
-      this.isUsingUpdatePromise = false;
-      this.updatePromiseResult = null;
-    };
-    onStateChanged(previousState) {
-      this.options.onNodeStateChange?.({
-        id: this.uid,
-        type: this.getType(),
-        args: this.actionArguments,
-        while: this.attributes.while?.getDetails(),
-        until: this.attributes.until?.getDetails(),
-        entry: this.attributes.entry?.getDetails(),
-        step: this.attributes.step?.getDetails(),
-        exit: this.attributes.exit?.getDetails(),
-        previousState,
-        state: this.getState()
-      });
-    }
-    validateUpdateResult = (result) => {
-      switch (result) {
-        case "mistreevous.succeeded" /* SUCCEEDED */:
-        case "mistreevous.failed" /* FAILED */:
-        case "mistreevous.running" /* RUNNING */:
-        case void 0:
-          return;
-        default:
-          throw new Error(
-            `expected action function '${this.actionName}' to return an optional State.SUCCEEDED or State.FAILED value but returned '${result}'`
-          );
-      }
-    };
-  };
-
-  // src/nodes/leaf/Condition.ts
-  var Condition = class extends Leaf {
-    constructor(attributes, options, conditionName, conditionArguments) {
-      super("condition", attributes, options);
-      this.conditionName = conditionName;
-      this.conditionArguments = conditionArguments;
-    }
-    onUpdate(agent) {
-      const conditionFuncInvoker = Lookup.getFuncInvoker(agent, this.conditionName);
-      if (conditionFuncInvoker === null) {
-        throw new Error(
-          `cannot update condition node as the condition '${this.conditionName}' function is not defined on the agent and has not been registered`
-        );
-      }
-      let conditionFunctionResult;
-      try {
-        conditionFunctionResult = conditionFuncInvoker(this.conditionArguments);
-      } catch (error) {
-        if (error instanceof Error) {
-          throw new Error(`condition function '${this.conditionName}' threw: ${error.stack}`);
-        } else {
-          throw new Error(`condition function '${this.conditionName}' threw: ${error}`);
-        }
-      }
-      if (typeof conditionFunctionResult !== "boolean") {
-        throw new Error(
-          `expected condition function '${this.conditionName}' to return a boolean but returned '${conditionFunctionResult}'`
-        );
-      }
-      this.setState(!!conditionFunctionResult ? "mistreevous.succeeded" /* SUCCEEDED */ : "mistreevous.failed" /* FAILED */);
-    }
-    getName = () => this.conditionName;
-    onStateChanged(previousState) {
-      this.options.onNodeStateChange?.({
-        id: this.uid,
-        type: this.getType(),
-        args: this.conditionArguments,
-        while: this.attributes.while?.getDetails(),
-        until: this.attributes.until?.getDetails(),
-        entry: this.attributes.entry?.getDetails(),
-        step: this.attributes.step?.getDetails(),
-        exit: this.attributes.exit?.getDetails(),
-        previousState,
-        state: this.getState()
-      });
-    }
-  };
-
   // src/BehaviourTreeDefinitionUtilities.ts
   function isRootNode(node) {
     return node.type === "root";
@@ -1544,6 +1286,15 @@ var mistreevous = (() => {
     return { succeeded: false, errorMessage };
   }
 
+  // src/attributes/guards/GuardUnsatisifedException.ts
+  var GuardUnsatisifedException = class extends Error {
+    constructor(source) {
+      super("A guard path condition has failed");
+      this.source = source;
+    }
+    isSourceNode = (node) => node === this.source;
+  };
+
   // src/attributes/guards/GuardPath.ts
   var GuardPath = class {
     constructor(nodes) {
@@ -1560,6 +1311,109 @@ var mistreevous = (() => {
     };
   };
 
+  // src/Utilities.ts
+  function createUid() {
+    var S4 = function() {
+      return ((1 + Math.random()) * 65536 | 0).toString(16).substring(1);
+    };
+    return S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
+  }
+
+  // src/nodes/Node.ts
+  var Node = class {
+    constructor(type, attributes, options) {
+      this.type = type;
+      this.options = options;
+      this.uid = createUid();
+      this.attributes = {
+        entry: attributes.find(({ type: type2 }) => type2 === "entry"),
+        step: attributes.find(({ type: type2 }) => type2 === "step"),
+        exit: attributes.find(({ type: type2 }) => type2 === "exit"),
+        while: attributes.find(({ type: type2 }) => type2 === "while"),
+        until: attributes.find(({ type: type2 }) => type2 === "until")
+      };
+    }
+    uid;
+    attributes;
+    _state = "mistreevous.ready" /* READY */;
+    _guardPath;
+    getState = () => this._state;
+    setState = (value) => {
+      const previousState = this._state;
+      this._state = value;
+      if (previousState !== value) {
+        this.onStateChanged(previousState);
+      }
+    };
+    getUid = () => this.uid;
+    getType = () => this.type;
+    getAttributes = () => Object.values(this.attributes).filter((attribute) => !!attribute);
+    setGuardPath = (value) => this._guardPath = value;
+    hasGuardPath = () => !!this._guardPath;
+    is(value) {
+      return this._state === value;
+    }
+    reset() {
+      this.setState("mistreevous.ready" /* READY */);
+    }
+    abort(agent) {
+      if (!this.is("mistreevous.running" /* RUNNING */)) {
+        return;
+      }
+      this.reset();
+      this.attributes.exit?.callAgentFunction(agent, false, true);
+    }
+    update(agent) {
+      if (this.is("mistreevous.succeeded" /* SUCCEEDED */) || this.is("mistreevous.failed" /* FAILED */)) {
+        return;
+      }
+      try {
+        this._guardPath.evaluate(agent);
+        if (this.is("mistreevous.ready" /* READY */)) {
+          this.attributes.entry?.callAgentFunction(agent);
+        }
+        this.attributes.step?.callAgentFunction(agent);
+        this.onUpdate(agent);
+        if (this.is("mistreevous.succeeded" /* SUCCEEDED */) || this.is("mistreevous.failed" /* FAILED */)) {
+          this.attributes.exit?.callAgentFunction(agent, this.is("mistreevous.succeeded" /* SUCCEEDED */), false);
+        }
+      } catch (error) {
+        if (error instanceof GuardUnsatisifedException && error.isSourceNode(this)) {
+          this.abort(agent);
+          this.setState("mistreevous.failed" /* FAILED */);
+        } else {
+          throw error;
+        }
+      }
+    }
+    getDetails() {
+      return {
+        id: this.uid,
+        name: this.getName(),
+        type: this.type,
+        while: this.attributes.while?.getDetails(),
+        until: this.attributes.until?.getDetails(),
+        entry: this.attributes.entry?.getDetails(),
+        step: this.attributes.step?.getDetails(),
+        exit: this.attributes.exit?.getDetails(),
+        state: this._state
+      };
+    }
+    onStateChanged(previousState) {
+      this.options.onNodeStateChange?.({
+        id: this.uid,
+        type: this.type,
+        while: this.attributes.while?.getDetails(),
+        until: this.attributes.until?.getDetails(),
+        entry: this.attributes.entry?.getDetails(),
+        step: this.attributes.step?.getDetails(),
+        exit: this.attributes.exit?.getDetails(),
+        previousState,
+        state: this._state
+      });
+    }
+  };
+
   // src/nodes/composite/Composite.ts
   var Composite = class extends Node {
     constructor(type, attributes, options, children) {
@@ -1570,16 +1424,22 @@ var mistreevous = (() => {
     getChildren = () => this.children;
     reset = () => {
       this.setState("mistreevous.ready" /* READY */);
-      this.getChildren().forEach((child) => child.reset());
+      this.children.forEach((child) => child.reset());
     };
     abort = (agent) => {
       if (!this.is("mistreevous.running" /* RUNNING */)) {
         return;
       }
-      this.getChildren().forEach((child) => child.abort(agent));
+      this.children.forEach((child) => child.abort(agent));
       this.reset();
       this.attributes.exit?.callAgentFunction(agent, false, true);
     };
+    getDetails() {
+      return {
+        ...super.getDetails(),
+        children: this.children.map((child) => child.getDetails())
+      };
+    }
   };
 
   // src/nodes/composite/Parallel.ts
@@ -1753,6 +1613,12 @@ var mistreevous = (() => {
       this.reset();
       this.attributes.exit?.callAgentFunction(agent, false, true);
     };
+    getDetails() {
+      return {
+        ...super.getDetails(),
+        children: [this.child.getDetails()]
+      };
+    }
   };
 
   // src/nodes/decorator/Fail.ts
@@ -1973,6 +1839,177 @@ var mistreevous = (() => {
       }
     }
     getName = () => "SUCCEED";
+  };
+
+  // src/nodes/leaf/Leaf.ts
+  var Leaf = class extends Node {
+    isLeafNode = () => true;
+  };
+
+  // src/nodes/leaf/Action.ts
+  var Action = class extends Leaf {
+    constructor(attributes, options, actionName, actionArguments) {
+      super("action", attributes, options);
+      this.actionName = actionName;
+      this.actionArguments = actionArguments;
+    }
+    isUsingUpdatePromise = false;
+    updatePromiseResult = null;
+    onUpdate(agent) {
+      if (this.isUsingUpdatePromise) {
+        if (!this.updatePromiseResult) {
+          return;
+        }
+        const { isResolved, value } = this.updatePromiseResult;
+        if (isResolved) {
+          if (value !== "mistreevous.succeeded" /* SUCCEEDED */ && value !== "mistreevous.failed" /* FAILED */) {
+            throw new Error(
+              "action node promise resolved with an invalid value, expected a State.SUCCEEDED or State.FAILED value to be returned"
+            );
+          }
+          this.setState(value);
+          return;
+        } else {
+          throw new Error(`action function '${this.actionName}' promise rejected with '${value}'`);
+        }
+      }
+      const actionFuncInvoker = Lookup.getFuncInvoker(agent, this.actionName);
+      if (actionFuncInvoker === null) {
+        throw new Error(
+          `cannot update action node as the action '${this.actionName}' function is not defined on the agent and has not been registered`
+        );
+      }
+      let actionFunctionResult;
+      try {
+        actionFunctionResult = actionFuncInvoker(this.actionArguments);
+      } catch (error) {
+        if (error instanceof Error) {
+          throw new Error(`action function '${this.actionName}' threw: ${error.stack}`);
+        } else {
+          throw new Error(`action function '${this.actionName}' threw: ${error}`);
+        }
+      }
+      if (actionFunctionResult instanceof Promise) {
+        actionFunctionResult.then(
+          (result) => {
+            if (!this.isUsingUpdatePromise) {
+              return;
+            }
+            this.updatePromiseResult = {
+              isResolved: true,
+              value: result
+            };
+          },
+          (reason) => {
+            if (!this.isUsingUpdatePromise) {
+              return;
+            }
+            this.updatePromiseResult = {
+              isResolved: false,
+              value: reason
+            };
+          }
+        );
+        this.setState("mistreevous.running" /* RUNNING */);
+        this.isUsingUpdatePromise = true;
+      } else {
+        this.validateUpdateResult(actionFunctionResult);
+        this.setState(actionFunctionResult || "mistreevous.running" /* RUNNING */);
+      }
+    }
+    getName = () => this.actionName;
+    reset = () => {
+      this.setState("mistreevous.ready" /* READY */);
+      this.isUsingUpdatePromise = false;
+      this.updatePromiseResult = null;
+    };
+    getDetails() {
+      return {
+        ...super.getDetails(),
+        args: this.actionArguments
+      };
+    }
+    onStateChanged(previousState) {
+      this.options.onNodeStateChange?.({
+        id: this.uid,
+        type: this.getType(),
+        args: this.actionArguments,
+        while: this.attributes.while?.getDetails(),
+        until: this.attributes.until?.getDetails(),
+        entry: this.attributes.entry?.getDetails(),
+        step: this.attributes.step?.getDetails(),
+        exit: this.attributes.exit?.getDetails(),
+        previousState,
+        state: this.getState()
+      });
+    }
+    validateUpdateResult = (result) => {
+      switch (result) {
+        case "mistreevous.succeeded" /* SUCCEEDED */:
+        case "mistreevous.failed" /* FAILED */:
+        case "mistreevous.running" /* RUNNING */:
+        case void 0:
+          return;
+        default:
+          throw new Error(
+            `expected action function '${this.actionName}' to return an optional State.SUCCEEDED or State.FAILED value but returned '${result}'`
+          );
+      }
+    };
+  };
+
+  // src/nodes/leaf/Condition.ts
+  var Condition = class extends Leaf {
+    constructor(attributes, options, conditionName, conditionArguments) {
+      super("condition", attributes, options);
+      this.conditionName = conditionName;
+      this.conditionArguments = conditionArguments;
+    }
+    onUpdate(agent) {
+      const conditionFuncInvoker = Lookup.getFuncInvoker(agent, this.conditionName);
+      if (conditionFuncInvoker === null) {
+        throw new Error(
+          `cannot update condition node as the condition '${this.conditionName}' function is not defined on the agent and has not been registered`
+        );
+      }
+      let conditionFunctionResult;
+      try {
+        conditionFunctionResult = conditionFuncInvoker(this.conditionArguments);
+      } catch (error) {
+        if (error instanceof Error) {
+          throw new Error(`condition function '${this.conditionName}' threw: ${error.stack}`);
+        } else {
+          throw new Error(`condition function '${this.conditionName}' threw: ${error}`);
+        }
+      }
+      if (typeof conditionFunctionResult !== "boolean") {
+        throw new Error(
+          `expected condition function '${this.conditionName}' to return a boolean but returned '${conditionFunctionResult}'`
+        );
+      }
+      this.setState(!!conditionFunctionResult ? "mistreevous.succeeded" /* SUCCEEDED */ : "mistreevous.failed" /* FAILED */);
+    }
+    getName = () => this.conditionName;
+    getDetails() {
+      return {
+        ...super.getDetails(),
+        args: this.conditionArguments
+      };
+    }
+    onStateChanged(previousState) {
+      this.options.onNodeStateChange?.({
+        id: this.uid,
+        type: this.getType(),
+        args: this.conditionArguments,
+        while: this.attributes.while?.getDetails(),
+        until: this.attributes.until?.getDetails(),
+        entry: this.attributes.entry?.getDetails(),
+        step: this.attributes.step?.getDetails(),
+        exit: this.attributes.exit?.getDetails(),
+        previousState,
+        state: this.getState()
+      });
+    }
   };
 
   // src/nodes/leaf/Wait.ts
@@ -2393,32 +2430,8 @@ var mistreevous = (() => {
     reset() {
       this._rootNode.reset();
     }
-    getFlattenedNodeDetails() {
-      const flattenedTreeNodes = [];
-      const processNode = (node, parentUid) => {
-        const guards = node.getAttributes().filter((attribute) => attribute.isGuard()).map((attribute) => attribute.getDetails());
-        const callbacks = node.getAttributes().filter((attribute) => !attribute.isGuard()).map((attribute) => attribute.getDetails());
-        const flattenedTreeNode = {
-          id: node.getUid(),
-          type: node.getType(),
-          caption: node.getName(),
-          state: node.getState(),
-          guards,
-          callbacks,
-          parentId: parentUid
-        };
-        if (node instanceof Action) {
-          flattenedTreeNode.args = node.actionArguments;
-        } else if (node instanceof Condition) {
-          flattenedTreeNode.args = node.conditionArguments;
-        }
-        flattenedTreeNodes.push(flattenedTreeNode);
-        if (!node.isLeafNode()) {
-          node.getChildren().forEach((child) => processNode(child, node.getUid()));
-        }
-      };
-      processNode(this._rootNode, null);
-      return flattenedTreeNodes;
+    getTreeNodeDetails() {
+      return this._rootNode.getDetails();
     }
     static register(name, value) {
       if (typeof value === "function") {

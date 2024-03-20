@@ -9,6 +9,57 @@ import Step from "../attributes/callbacks/Step";
 import While from "../attributes/guards/While";
 import Until from "../attributes/guards/Until";
 import GuardPath from "../attributes/guards/GuardPath";
+import { GuardAttributeDetails } from "../attributes/guards/Guard";
+import { CallbackAttributeDetails } from "../attributes/callbacks/Callback";
+/**
+ * Details of a tree node instance.
+ */
+export type NodeDetails = {
+    /**
+     * The tree node identifier.
+     */
+    id: string;
+    /**
+     * The tree node type.
+     */
+    type: string;
+    /**
+     * The tree node name.
+     */
+    name: string;
+    /**
+     * The current state of the tree node.
+     */
+    state: AnyState;
+    /**
+     * The array of agent or globally registered function arguments, defined if this is an action or condition node.
+     */
+    args?: any[];
+    /**
+     * The 'while' guard attribute configured for this node.
+     */
+    while?: GuardAttributeDetails;
+    /**
+     * The 'until' guard attribute configured for this node.
+     */
+    until?: GuardAttributeDetails;
+    /**
+     * The 'entry' callback attribute configured for this node.
+     */
+    entry?: CallbackAttributeDetails;
+    /**
+     * The 'step' callback attribute configured for this node.
+     */
+    step?: CallbackAttributeDetails;
+    /**
+     * The 'exit' callback attribute configured for this node.
+     */
+    exit?: CallbackAttributeDetails;
+    /**
+     * The array of the child nodes of this node, defined if this node is a composite or decorator node.
+     */
+    children?: NodeDetails[];
+};
 /**
  * A mapping of attribute names to attributes configured for a node.
  */
@@ -120,6 +171,11 @@ export default abstract class Node {
      * @returns The result of the update.
      */
     update(agent: Agent): void;
+    /**
+     * Gets the details of this node instance.
+     * @returns The details of this node instance.
+     */
+    getDetails(): NodeDetails;
     /**
      * Called when the state of this node changes.
      * @param previousState The previous node state.

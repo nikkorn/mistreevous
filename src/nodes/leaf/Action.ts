@@ -1,4 +1,5 @@
 import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
+import { NodeDetails } from "../Node";
 import State, { CompleteState } from "../../State";
 import { Agent } from "../../Agent";
 import Leaf from "./Leaf";
@@ -29,7 +30,7 @@ export default class Action extends Leaf {
      * @param attributes The node attributes.
      * @param options The behaviour tree options.
      * @param actionName The action name.
-     * @param actionArguments The array of action argument definitions.
+     * @param actionArguments The array of action arguments.
      */
     constructor(
         attributes: Attribute[],
@@ -168,6 +169,17 @@ export default class Action extends Leaf {
         this.isUsingUpdatePromise = false;
         this.updatePromiseResult = null;
     };
+
+    /**
+     * Gets the details of this node instance.
+     * @returns The details of this node instance.
+     */
+    public getDetails(): NodeDetails {
+        return {
+            ...super.getDetails(),
+            args: this.actionArguments
+        };
+    }
 
     /**
      * Called when the state of this node changes.

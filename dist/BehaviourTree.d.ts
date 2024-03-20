@@ -1,22 +1,8 @@
-import { AnyState } from "./State";
+import State from "./State";
+import { NodeDetails } from "./nodes/Node";
 import { Agent, GlobalFunction } from "./Agent";
-import { CallbackAttributeDetails } from "./attributes/callbacks/Callback";
-import { GuardAttributeDetails } from "./attributes/guards/Guard";
 import { BehaviourTreeOptions } from "./BehaviourTreeOptions";
 import { RootNodeDefinition } from "./BehaviourTreeDefinition";
-export type FlattenedTreeNode = {
-    id: string;
-    type: string;
-    caption: string;
-    state: AnyState;
-    /**
-     * The array of agent or globally registered function arguments if this is an action or condition node.
-     */
-    args?: any[];
-    guards: GuardAttributeDetails[];
-    callbacks: CallbackAttributeDetails[];
-    parentId: string | null;
-};
 /**
  * A representation of a behaviour tree.
  */
@@ -43,7 +29,7 @@ export declare class BehaviourTree {
      * Gets the current tree state of SUCCEEDED, FAILED, READY or RUNNING.
      * @returns The current tree state.
      */
-    getState(): AnyState;
+    getState(): State;
     /**
      * Step the tree.
      * Carries out a node update that traverses the tree from the root node outwards to any child nodes, skipping those that are already in a resolved state of SUCCEEDED or FAILED.
@@ -58,10 +44,10 @@ export declare class BehaviourTree {
      */
     reset(): void;
     /**
-     * Gets the flattened details of every node in the tree.
-     * @returns The flattened details of every node in the tree.
+     * Gets the details of every node in the tree, starting from the root.
+     * @returns The details of every node in the tree, starting from the root.
      */
-    getFlattenedNodeDetails(): FlattenedTreeNode[];
+    getTreeNodeDetails(): NodeDetails;
     /**
      * Registers the action/condition/guard/callback function or subtree with the given name.
      * @param name The name of the function or subtree to register.

@@ -1,4 +1,4 @@
-import Node from "../Node";
+import Node, { NodeDetails } from "../Node";
 import { Agent } from "../../Agent";
 import Attribute from "../../attributes/Attribute";
 import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
@@ -31,4 +31,9 @@ export default abstract class Decorator extends Node {
      * @param agent The agent.
      */
     abort: (agent: Agent) => void;
+    /**
+     * Gets the details of this node instance.
+     * @returns The details of this node instance.
+     */
+    getDetails(): NodeDetails;
 }

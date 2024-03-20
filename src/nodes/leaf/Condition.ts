@@ -1,4 +1,5 @@
 import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
+import { NodeDetails } from "../Node";
 import State from "../../State";
 import { Agent } from "../../Agent";
 import Leaf from "./Leaf";
@@ -14,7 +15,7 @@ export default class Condition extends Leaf {
      * @param attributes The node attributes.
      * @param options The behaviour tree options.
      * @param conditionName The name of the condition function.
-     * @param conditionArguments The array of condition argument definitions.
+     * @param conditionArguments The array of condition arguments.
      */
     constructor(
         attributes: Attribute[],
@@ -69,6 +70,17 @@ export default class Condition extends Leaf {
      * Gets the name of the node.
      */
     getName = () => this.conditionName;
+
+    /**
+     * Gets the details of this node instance.
+     * @returns The details of this node instance.
+     */
+    public getDetails(): NodeDetails {
+        return {
+            ...super.getDetails(),
+            args: this.conditionArguments
+        };
+    }
 
     /**
      * Called when the state of this node changes.

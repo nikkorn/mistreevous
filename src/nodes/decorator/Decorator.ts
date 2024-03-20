@@ -1,4 +1,4 @@
-import Node from "../Node";
+import Node, { NodeDetails } from "../Node";
 import State from "../../State";
 import { Agent } from "../../Agent";
 import Attribute from "../../attributes/Attribute";
@@ -57,4 +57,15 @@ export default abstract class Decorator extends Node {
 
         this.attributes.exit?.callAgentFunction(agent, false, true);
     };
+
+    /**
+     * Gets the details of this node instance.
+     * @returns The details of this node instance.
+     */
+    public getDetails(): NodeDetails {
+        return {
+            ...super.getDetails(),
+            children: [this.child.getDetails()]
+        };
+    }
 }

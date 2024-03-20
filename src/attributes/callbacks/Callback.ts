@@ -1,6 +1,9 @@
 import { Agent } from "../../Agent";
 import Attribute, { AttributeDetails } from "../Attribute";
 
+/**
+ * Details of a node callback attribute.
+ */
 export type CallbackAttributeDetails = {
     /** The name of the agent function that is called. */
     calls: string;
