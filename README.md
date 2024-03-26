@@ -15,7 +15,7 @@ There is an in-browser editor and tree visualiser that you can try [HERE](https:
 ```sh
 $ npm install --save mistreevous
 ```
-This package is built using esbuild to target both Node and browsers. If you would like to use this package in a browser you can just reference `dist/build.js` in a `<script>` tag.
+This package is built using esbuild to target both Node and browsers. If you would like to use this package in a browser you can just reference `dist/bundle.js` in a `<script>` tag.
 
 # Example
 ```js
