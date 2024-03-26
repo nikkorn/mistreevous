@@ -1,25 +1,31 @@
-import { BehaviourTree, FlattenedTreeNode } from "../src/index";
+import { BehaviourTree, NodeDetails } from "../src/index";
 import { AnyNodeDefinition } from "../src/BehaviourTreeDefinition";
 
 /**
- * Get the flattened tree node for the specified node type and caption from the given behaviour tree instance, or error if it doesn't exist.
+ * Get the details for the specified node type and caption from the given behaviour tree instance, or error if it doesn't exist.
  * @param tree The behaviour tree instance.
  * @param type The type of the node to get.
- * @param caption The caption of the node to get.
- * @returns The flattened tree node for the specified node type and caption from the given behaviour tree instance.
+ * @param name The name of the node to get.
+ * @returns The details for the specified node type and caption from the given behaviour tree instance.
  */
-export function findNode(tree: BehaviourTree, type: AnyNodeDefinition["type"], caption?: string): FlattenedTreeNode {
-    const node = tree
-        .getFlattenedNodeDetails()
-        .find((node) => node.type === type && (!caption || node.caption === caption));
+export function findNode(tree: BehaviourTree, type: AnyNodeDefinition["type"], name?: string): NodeDetails {
+    const findNodeFromDetails = (node: NodeDetails): NodeDetails | null => {
+        if (node.type === type && (!name || node.name === name)) {
+            return node;
+        }
 
-    if (!node) {
+        return (node.children ?? []).map(findNodeFromDetails).find((childNode) => !!childNode) ?? null;
+    };
+
+    const targetNode = findNodeFromDetails(tree.getTreeNodeDetails());
+
+    if (!targetNode) {
         throw new Error(
-            caption
-                ? `cannot find flattened tree node with type: '${type}' caption: '${caption}'`
+            name
+                ? `cannot find flattened tree node with type: '${type}' caption: '${name}'`
                 : `cannot find flattened tree node with type: '${type}'`
         );
     }
 
-    return node;
+    return targetNode;
 }

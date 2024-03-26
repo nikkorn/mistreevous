@@ -1,7 +1,10 @@
 import { assert } from "chai";
+import sinon from "sinon";
+import { SinonSandbox } from "sinon";
 
-import { BehaviourTree, State } from "../src/index";
+import { BehaviourTree, NodeDetails, State } from "../src/index";
 import { RootNodeDefinition } from "../src/BehaviourTreeDefinition";
+import * as Utilities from "../src/Utilities";
 
 import { findNode } from "./TestUtilities";
 
@@ -301,6 +304,279 @@ describe("A BehaviourTree instance", () => {
             assert.strictEqual(findNode(tree, "action", "getActionResult1").state, State.SUCCEEDED);
             assert.strictEqual(findNode(tree, "action", "getActionResult2").state, State.RUNNING);
             assert.strictEqual(findNode(tree, "action", "getActionResult3").state, State.READY);
+        });
+    });
+
+    describe("has a 'getTreeNodeDetails' function that gets the node details for the tree", () => {
+        var sandbox: SinonSandbox;
+
+        beforeEach(() => {
+            sandbox = sinon.createSandbox();
+            sandbox.replace(Utilities, "createUid", () => "fake-node-uid");
+        });
+
+        afterEach(() => sandbox.restore());
+
+        it("(MDSL)", () => {
+            const definition =
+                "root { selector { flip { action [Succeed, 100] } action [Fail, 200] action [Fail, 200] action [Succeed, 100] action [Succeed, 100] } }";
+            const agent = {
+                Fail: () => State.FAILED,
+                Succeed: () => State.SUCCEEDED
+            };
+            const tree = new BehaviourTree(definition, agent);
+
+            tree.step();
+
+            const expectedTreeNodeDetails: NodeDetails = {
+                id: "fake-node-uid",
+                type: "root",
+                name: "ROOT",
+                state: State.SUCCEEDED,
+                entry: undefined,
+                exit: undefined,
+                step: undefined,
+                until: undefined,
+                while: undefined,
+                children: [
+                    {
+                        id: "fake-node-uid",
+                        type: "selector",
+                        name: "SELECTOR",
+                        state: State.SUCCEEDED,
+                        entry: undefined,
+                        exit: undefined,
+                        step: undefined,
+                        until: undefined,
+                        while: undefined,
+                        children: [
+                            {
+                                id: "fake-node-uid",
+                                type: "flip",
+                                name: "FLIP",
+                                state: State.FAILED,
+                                entry: undefined,
+                                exit: undefined,
+                                step: undefined,
+                                until: undefined,
+                                while: undefined,
+                                children: [
+                                    {
+                                        id: "fake-node-uid",
+                                        type: "action",
+                                        name: "Succeed",
+                                        state: State.SUCCEEDED,
+                                        args: [100],
+                                        entry: undefined,
+                                        exit: undefined,
+                                        step: undefined,
+                                        until: undefined,
+                                        while: undefined
+                                    }
+                                ]
+                            },
+                            {
+                                id: "fake-node-uid",
+                                type: "action",
+                                name: "Fail",
+                                state: State.FAILED,
+                                args: [200],
+                                entry: undefined,
+                                exit: undefined,
+                                step: undefined,
+                                until: undefined,
+                                while: undefined
+                            },
+                            {
+                                id: "fake-node-uid",
+                                type: "action",
+                                name: "Fail",
+                                state: State.FAILED,
+                                args: [200],
+                                entry: undefined,
+                                exit: undefined,
+                                step: undefined,
+                                until: undefined,
+                                while: undefined
+                            },
+                            {
+                                id: "fake-node-uid",
+                                type: "action",
+                                name: "Succeed",
+                                state: State.SUCCEEDED,
+                                args: [100],
+                                entry: undefined,
+                                exit: undefined,
+                                step: undefined,
+                                until: undefined,
+                                while: undefined
+                            },
+                            {
+                                id: "fake-node-uid",
+                                type: "action",
+                                name: "Succeed",
+                                state: State.READY,
+                                args: [100],
+                                entry: undefined,
+                                exit: undefined,
+                                step: undefined,
+                                until: undefined,
+                                while: undefined
+                            }
+                        ]
+                    }
+                ]
+            };
+
+            assert.deepEqual(tree.getTreeNodeDetails(), expectedTreeNodeDetails);
+        });
+
+        it("(JSON)", () => {
+            const definition: RootNodeDefinition = {
+                type: "root",
+                child: {
+                    type: "selector",
+                    children: [
+                        {
+                            type: "flip",
+                            child: {
+                                type: "action",
+                                call: "Succeed",
+                                args: [100]
+                            }
+                        },
+                        {
+                            type: "action",
+                            call: "Fail",
+                            args: [200]
+                        },
+                        {
+                            type: "action",
+                            call: "Fail",
+                            args: [200]
+                        },
+                        {
+                            type: "action",
+                            call: "Succeed",
+                            args: [100]
+                        },
+                        {
+                            type: "action",
+                            call: "Succeed",
+                            args: [100]
+                        }
+                    ]
+                }
+            };
+            const agent = {
+                Fail: () => State.FAILED,
+                Succeed: () => State.SUCCEEDED
+            };
+            const tree = new BehaviourTree(definition, agent);
+
+            tree.step();
+
+            const expectedTreeNodeDetails: NodeDetails = {
+                id: "fake-node-uid",
+                type: "root",
+                name: "ROOT",
+                state: State.SUCCEEDED,
+                entry: undefined,
+                exit: undefined,
+                step: undefined,
+                until: undefined,
+                while: undefined,
+                children: [
+                    {
+                        id: "fake-node-uid",
+                        type: "selector",
+                        name: "SELECTOR",
+                        state: State.SUCCEEDED,
+                        entry: undefined,
+                        exit: undefined,
+                        step: undefined,
+                        until: undefined,
+                        while: undefined,
+                        children: [
+                            {
+                                id: "fake-node-uid",
+                                type: "flip",
+                                name: "FLIP",
+                                state: State.FAILED,
+                                entry: undefined,
+                                exit: undefined,
+                                step: undefined,
+                                until: undefined,
+                                while: undefined,
+                                children: [
+                                    {
+                                        id: "fake-node-uid",
+                                        type: "action",
+                                        name: "Succeed",
+                                        state: State.SUCCEEDED,
+                                        args: [100],
+                                        entry: undefined,
+                                        exit: undefined,
+                                        step: undefined,
+                                        until: undefined,
+                                        while: undefined
+                                    }
+                                ]
+                            },
+                            {
+                                id: "fake-node-uid",
+                                type: "action",
+                                name: "Fail",
+                                state: State.FAILED,
+                                args: [200],
+                                entry: undefined,
+                                exit: undefined,
+                                step: undefined,
+                                until: undefined,
+                                while: undefined
+                            },
+                            {
+                                id: "fake-node-uid",
+                                type: "action",
+                                name: "Fail",
+                                state: State.FAILED,
+                                args: [200],
+                                entry: undefined,
+                                exit: undefined,
+                                step: undefined,
+                                until: undefined,
+                                while: undefined
+                            },
+                            {
+                                id: "fake-node-uid",
+                                type: "action",
+                                name: "Succeed",
+                                state: State.SUCCEEDED,
+                                args: [100],
+                                entry: undefined,
+                                exit: undefined,
+                                step: undefined,
+                                until: undefined,
+                                while: undefined
+                            },
+                            {
+                                id: "fake-node-uid",
+                                type: "action",
+                                name: "Succeed",
+                                state: State.READY,
+                                args: [100],
+                                entry: undefined,
+                                exit: undefined,
+                                step: undefined,
+                                until: undefined,
+                                while: undefined
+                            }
+                        ]
+                    }
+                ]
+            } as any;
+
+            assert.deepEqual(tree.getTreeNodeDetails(), expectedTreeNodeDetails);
         });
     });
 });

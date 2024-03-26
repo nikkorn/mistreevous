@@ -1,7 +1,9 @@
 import State, { AnyState } from "./State";
 import Lookup from "./Lookup";
-import Node from "./nodes/Node";
+import Node, { NodeDetails } from "./nodes/Node";
 import Root from "./nodes/decorator/Root";
+import Action from "./nodes/leaf/Action";
+import Condition from "./nodes/leaf/Condition";
 import Composite from "./nodes/composite/Composite";
 import Decorator from "./nodes/decorator/Decorator";
 import { Agent, GlobalFunction } from "./Agent";
@@ -13,18 +15,6 @@ import { RootNodeDefinition } from "./BehaviourTreeDefinition";
 import { validateDefinition, validateJSONDefinition } from "./BehaviourTreeDefinitionValidator";
 import buildRootNode from "./BehaviourTreeBuilder";
 import { isNullOrUndefined } from "./BehaviourTreeDefinitionUtilities";
-
-// Purely for outside inspection of the tree.
-export type FlattenedTreeNode = {
-    id: string;
-    type: string;
-    caption: string;
-    state: AnyState;
-    guards: GuardAttributeDetails[];
-    callbacks: CallbackAttributeDetails[];
-    args: any[];
-    parentId: string | null;
-};
 
 /**
  * A representation of a behaviour tree.
@@ -73,7 +63,7 @@ export class BehaviourTree {
 
         try {
             // Create the populated tree of behaviour tree nodes and get the root node.
-            this._rootNode = buildRootNode(json);
+            this._rootNode = buildRootNode(json, options);
         } catch (exception) {
             // There was an issue in trying build and populate the behaviour tree.
             throw new Error(`error building tree: ${(exception as Error).message}`);
@@ -84,7 +74,7 @@ export class BehaviourTree {
      * Gets whether the tree is in the RUNNING state.
      * @returns true if the tree is in the RUNNING state, otherwise false.
      */
-    isRunning() {
+    public isRunning(): boolean {
         return this._rootNode.getState() === State.RUNNING;
     }
 
@@ -92,7 +82,7 @@ export class BehaviourTree {
      * Gets the current tree state of SUCCEEDED, FAILED, READY or RUNNING.
      * @returns The current tree state.
      */
-    getState() {
+    public getState(): State {
         return this._rootNode.getState();
     }
 
@@ -104,14 +94,14 @@ export class BehaviourTree {
      *
      * Calling this method when the tree is already in a resolved state of SUCCEEDED or FAILED will cause it to be reset before tree traversal begins.
      */
-    step() {
+    public step(): void {
         // If the root node has already been stepped to completion then we need to reset it.
         if (this._rootNode.getState() === State.SUCCEEDED || this._rootNode.getState() === State.FAILED) {
             this._rootNode.reset();
         }
 
         try {
-            this._rootNode.update(this.agent, this.options);
+            this._rootNode.update(this.agent);
         } catch (exception) {
             throw new Error(`error stepping tree: ${(exception as Error).message}`);
         }
@@ -120,58 +110,16 @@ export class BehaviourTree {
     /**
      * Resets the tree from the root node outwards to each nested node, giving each a state of READY.
      */
-    reset() {
+    public reset(): void {
         this._rootNode.reset();
     }
 
     /**
-     * Gets the flattened details of every node in the tree.
-     * @returns The flattened details of every node in the tree.
+     * Gets the details of every node in the tree, starting from the root.
+     * @returns The details of every node in the tree, starting from the root.
      */
-    getFlattenedNodeDetails(): FlattenedTreeNode[] {
-        // Create an empty flattened array of tree nodes.
-        const flattenedTreeNodes: FlattenedTreeNode[] = [];
-
-        /**
-         * Helper function to process a node instance and push details into the flattened tree nodes array.
-         * @param node The current node.
-         * @param parentUid The UID of the node parent, or null if the node is the main root node.
-         */
-        const processNode = (node: Node, parentUid: string | null) => {
-            // Get the guard and callback attribute details for this node.
-            const guards = node
-                .getAttributes()
-                .filter((attribute) => attribute.isGuard())
-                .map((attribute) => attribute.getDetails()) as GuardAttributeDetails[];
-            const callbacks = node
-                .getAttributes()
-                .filter((attribute) => !attribute.isGuard())
-                .map((attribute) => attribute.getDetails()) as CallbackAttributeDetails[];
-
-            // Push the current node into the flattened nodes array.
-            flattenedTreeNodes.push({
-                id: node.getUid(),
-                type: node.getType(),
-                caption: node.getName(),
-                state: node.getState(),
-                guards,
-                callbacks,
-                args: node.getArguments(),
-                parentId: parentUid
-            });
-
-            // Process each of the nodes children if it is not a leaf node.
-            if (!node.isLeafNode()) {
-                (node as Composite | Decorator)
-                    .getChildren()
-                    .forEach((child) => processNode(child, (node as Composite | Decorator).getUid()));
-            }
-        };
-
-        // Convert the nested node structure into a flattened array of node details.
-        processNode(this._rootNode, null);
-
-        return flattenedTreeNodes;
+    public getTreeNodeDetails(): NodeDetails {
+        return this._rootNode.getDetails();
     }
 
     /**

@@ -1,7 +1,8 @@
-import Node from "../Node";
+import Node, { NodeDetails } from "../Node";
 import State from "../../State";
 import { Agent } from "../../Agent";
 import Attribute from "../../attributes/Attribute";
+import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 
 /**
  * A composite node that wraps child nodes.
@@ -10,10 +11,11 @@ export default abstract class Composite extends Node {
     /**
      * @param type The node type.
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param children The child nodes.
      */
-    constructor(type: string, attributes: Attribute[], protected children: Node[]) {
-        super(type, attributes, []);
+    constructor(type: string, attributes: Attribute[], options: BehaviourTreeOptions, protected children: Node[]) {
+        super(type, attributes, options);
     }
 
     /**
@@ -34,7 +36,7 @@ export default abstract class Composite extends Node {
         this.setState(State.READY);
 
         // Reset the state of any child nodes.
-        this.getChildren().forEach((child) => child.reset());
+        this.children.forEach((child) => child.reset());
     };
 
     /**
@@ -48,11 +50,22 @@ export default abstract class Composite extends Node {
         }
 
         // Abort any child nodes.
-        this.getChildren().forEach((child) => child.abort(agent));
+        this.children.forEach((child) => child.abort(agent));
 
         // Reset the state of this node.
         this.reset();
 
-        this.getAttribute("exit")?.callAgentFunction(agent, false, true);
+        this.attributes.exit?.callAgentFunction(agent, false, true);
     };
+
+    /**
+     * Gets the details of this node instance.
+     * @returns The details of this node instance.
+     */
+    public getDetails(): NodeDetails {
+        return {
+            ...super.getDetails(),
+            children: this.children.map((child) => child.getDetails())
+        };
+    }
 }

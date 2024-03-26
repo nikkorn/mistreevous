@@ -1311,32 +1311,47 @@ var GuardPath = class {
   };
 };
 
+// src/Utilities.ts
+function createUid() {
+  var S4 = function() {
+    return ((1 + Math.random()) * 65536 | 0).toString(16).substring(1);
+  };
+  return S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
+}
+
 // src/nodes/Node.ts
 var Node = class {
-  constructor(type, attributes, args) {
+  constructor(type, attributes, options) {
     this.type = type;
-    this.attributes = attributes;
-    this.args = args;
+    this.options = options;
+    this.uid = createUid();
+    this.attributes = {
+      entry: attributes.find(({ type: type2 }) => type2 === "entry"),
+      step: attributes.find(({ type: type2 }) => type2 === "step"),
+      exit: attributes.find(({ type: type2 }) => type2 === "exit"),
+      while: attributes.find(({ type: type2 }) => type2 === "while"),
+      until: attributes.find(({ type: type2 }) => type2 === "until")
+    };
   }
-  uid = createNodeUid();
-  state = "mistreevous.ready" /* READY */;
-  guardPath;
-  getState = () => this.state;
+  uid;
+  attributes;
+  _state = "mistreevous.ready" /* READY */;
+  _guardPath;
+  getState = () => this._state;
   setState = (value) => {
-    this.state = value;
+    const previousState = this._state;
+    this._state = value;
+    if (previousState !== value) {
+      this.onStateChanged(previousState);
+    }
   };
   getUid = () => this.uid;
   getType = () => this.type;
-  getAttributes = () => this.attributes;
-  getArguments = () => this.args;
-  getAttribute(type) {
-    return this.getAttributes().filter((decorator) => decorator.type.toUpperCase() === type.toUpperCase())[0] || null;
-  }
-  getGuardAttributes = () => this.getAttributes().filter((decorator) => decorator.isGuard());
-  setGuardPath = (value) => this.guardPath = value;
-  hasGuardPath = () => !!this.guardPath;
+  getAttributes = () => Object.values(this.attributes).filter((attribute) => !!attribute);
+  setGuardPath = (value) => this._guardPath = value;
+  hasGuardPath = () => !!this._guardPath;
   is(value) {
-    return this.state === value;
+    return this._state === value;
   }
   reset() {
     this.setState("mistreevous.ready" /* READY */);
@@ -1346,21 +1361,21 @@ var Node = class {
       return;
     }
     this.reset();
-    this.getAttribute("exit")?.callAgentFunction(agent, false, true);
+    this.attributes.exit?.callAgentFunction(agent, false, true);
   }
-  update(agent, options) {
+  update(agent) {
     if (this.is("mistreevous.succeeded" /* SUCCEEDED */) || this.is("mistreevous.failed" /* FAILED */)) {
       return;
     }
     try {
-      this.guardPath.evaluate(agent);
+      this._guardPath.evaluate(agent);
       if (this.is("mistreevous.ready" /* READY */)) {
-        this.getAttribute("entry")?.callAgentFunction(agent);
+        this.attributes.entry?.callAgentFunction(agent);
       }
-      this.getAttribute("step")?.callAgentFunction(agent);
-      this.onUpdate(agent, options);
+      this.attributes.step?.callAgentFunction(agent);
+      this.onUpdate(agent);
       if (this.is("mistreevous.succeeded" /* SUCCEEDED */) || this.is("mistreevous.failed" /* FAILED */)) {
-        this.getAttribute("exit")?.callAgentFunction(agent, this.is("mistreevous.succeeded" /* SUCCEEDED */), false);
+        this.attributes.exit?.callAgentFunction(agent, this.is("mistreevous.succeeded" /* SUCCEEDED */), false);
       }
     } catch (error) {
       if (error instanceof GuardUnsatisifedException && error.isSourceNode(this)) {
@@ -1371,45 +1386,71 @@ var Node = class {
       }
     }
   }
+  getDetails() {
+    return {
+      id: this.uid,
+      name: this.getName(),
+      type: this.type,
+      while: this.attributes.while?.getDetails(),
+      until: this.attributes.until?.getDetails(),
+      entry: this.attributes.entry?.getDetails(),
+      step: this.attributes.step?.getDetails(),
+      exit: this.attributes.exit?.getDetails(),
+      state: this._state
+    };
+  }
+  onStateChanged(previousState) {
+    this.options.onNodeStateChange?.({
+      id: this.uid,
+      type: this.type,
+      while: this.attributes.while?.getDetails(),
+      until: this.attributes.until?.getDetails(),
+      entry: this.attributes.entry?.getDetails(),
+      step: this.attributes.step?.getDetails(),
+      exit: this.attributes.exit?.getDetails(),
+      previousState,
+      state: this._state
+    });
+  }
 };
-function createNodeUid() {
-  var S4 = function() {
-    return ((1 + Math.random()) * 65536 | 0).toString(16).substring(1);
-  };
-  return S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
-}
 
 // src/nodes/composite/Composite.ts
 var Composite = class extends Node {
-  constructor(type, attributes, children) {
-    super(type, attributes, []);
+  constructor(type, attributes, options, children) {
+    super(type, attributes, options);
     this.children = children;
   }
   isLeafNode = () => false;
   getChildren = () => this.children;
   reset = () => {
     this.setState("mistreevous.ready" /* READY */);
-    this.getChildren().forEach((child) => child.reset());
+    this.children.forEach((child) => child.reset());
   };
   abort = (agent) => {
     if (!this.is("mistreevous.running" /* RUNNING */)) {
       return;
     }
-    this.getChildren().forEach((child) => child.abort(agent));
+    this.children.forEach((child) => child.abort(agent));
     this.reset();
-    this.getAttribute("exit")?.callAgentFunction(agent, false, true);
+    this.attributes.exit?.callAgentFunction(agent, false, true);
   };
+  getDetails() {
+    return {
+      ...super.getDetails(),
+      children: this.children.map((child) => child.getDetails())
+    };
+  }
 };
 
 // src/nodes/composite/Parallel.ts
 var Parallel = class extends Composite {
-  constructor(attributes, children) {
-    super("parallel", attributes, children);
+  constructor(attributes, options, children) {
+    super("parallel", attributes, options, children);
   }
-  onUpdate(agent, options) {
+  onUpdate(agent) {
     for (const child of this.children) {
       if (child.getState() === "mistreevous.ready" /* READY */ || child.getState() === "mistreevous.running" /* RUNNING */) {
-        child.update(agent, options);
+        child.update(agent);
       }
     }
     if (this.children.find((child) => child.is("mistreevous.failed" /* FAILED */))) {
@@ -1432,13 +1473,13 @@ var Parallel = class extends Composite {
 
 // src/nodes/composite/Race.ts
 var Race = class extends Composite {
-  constructor(attributes, children) {
-    super("race", attributes, children);
+  constructor(attributes, options, children) {
+    super("race", attributes, options, children);
   }
-  onUpdate(agent, options) {
+  onUpdate(agent) {
     for (const child of this.children) {
       if (child.getState() === "mistreevous.ready" /* READY */ || child.getState() === "mistreevous.running" /* RUNNING */) {
-        child.update(agent, options);
+        child.update(agent);
       }
     }
     if (this.children.find((child) => child.is("mistreevous.succeeded" /* SUCCEEDED */))) {
@@ -1461,14 +1502,14 @@ var Race = class extends Composite {
 
 // src/nodes/composite/Selector.ts
 var Selector = class extends Composite {
-  constructor(attributes, children) {
-    super("selector", attributes, children);
+  constructor(attributes, options, children) {
+    super("selector", attributes, options, children);
     this.children = children;
   }
-  onUpdate(agent, options) {
+  onUpdate(agent) {
     for (const child of this.children) {
       if (child.getState() === "mistreevous.ready" /* READY */ || child.getState() === "mistreevous.running" /* RUNNING */) {
-        child.update(agent, options);
+        child.update(agent);
       }
       if (child.getState() === "mistreevous.succeeded" /* SUCCEEDED */) {
         this.setState("mistreevous.succeeded" /* SUCCEEDED */);
@@ -1494,14 +1535,14 @@ var Selector = class extends Composite {
 
 // src/nodes/composite/Sequence.ts
 var Sequence = class extends Composite {
-  constructor(attributes, children) {
-    super("sequence", attributes, children);
+  constructor(attributes, options, children) {
+    super("sequence", attributes, options, children);
     this.children = children;
   }
-  onUpdate(agent, options) {
+  onUpdate(agent) {
     for (const child of this.children) {
       if (child.getState() === "mistreevous.ready" /* READY */ || child.getState() === "mistreevous.running" /* RUNNING */) {
-        child.update(agent, options);
+        child.update(agent);
       }
       if (child.getState() === "mistreevous.succeeded" /* SUCCEEDED */) {
         if (this.children.indexOf(child) === this.children.length - 1) {
@@ -1528,15 +1569,15 @@ var Sequence = class extends Composite {
 // src/nodes/composite/Lotto.ts
 var import_lotto_draw = __toESM(require_dist());
 var Lotto = class extends Composite {
-  constructor(attributes, weights, children) {
-    super("lotto", attributes, children);
+  constructor(attributes, options, weights, children) {
+    super("lotto", attributes, options, children);
     this.weights = weights;
   }
   selectedChild;
-  onUpdate(agent, options) {
+  onUpdate(agent) {
     if (this.is("mistreevous.ready" /* READY */)) {
       const lottoDraw = (0, import_lotto_draw.default)({
-        random: options.random,
+        random: this.options.random,
         participants: this.children.map((child, index) => [child, this.weights?.[index] || 1])
       });
       this.selectedChild = lottoDraw.draw() || void 0;
@@ -1545,7 +1586,7 @@ var Lotto = class extends Composite {
       throw new Error("failed to update lotto node as it has no active child");
     }
     if (this.selectedChild.getState() === "mistreevous.ready" /* READY */ || this.selectedChild.getState() === "mistreevous.running" /* RUNNING */) {
-      this.selectedChild.update(agent, options);
+      this.selectedChild.update(agent);
     }
     this.setState(this.selectedChild.getState());
   }
@@ -1554,8 +1595,8 @@ var Lotto = class extends Composite {
 
 // src/nodes/decorator/Decorator.ts
 var Decorator = class extends Node {
-  constructor(type, attributes, child) {
-    super(type, attributes, []);
+  constructor(type, attributes, options, child) {
+    super(type, attributes, options);
     this.child = child;
   }
   isLeafNode = () => false;
@@ -1570,18 +1611,24 @@ var Decorator = class extends Node {
     }
     this.child.abort(agent);
     this.reset();
-    this.getAttribute("exit")?.callAgentFunction(agent, false, true);
+    this.attributes.exit?.callAgentFunction(agent, false, true);
   };
+  getDetails() {
+    return {
+      ...super.getDetails(),
+      children: [this.child.getDetails()]
+    };
+  }
 };
 
 // src/nodes/decorator/Fail.ts
 var Fail = class extends Decorator {
-  constructor(attributes, child) {
-    super("fail", attributes, child);
+  constructor(attributes, options, child) {
+    super("fail", attributes, options, child);
   }
-  onUpdate(agent, options) {
+  onUpdate(agent) {
     if (this.child.getState() === "mistreevous.ready" /* READY */ || this.child.getState() === "mistreevous.running" /* RUNNING */) {
-      this.child.update(agent, options);
+      this.child.update(agent);
     }
     switch (this.child.getState()) {
       case "mistreevous.running" /* RUNNING */:
@@ -1600,12 +1647,12 @@ var Fail = class extends Decorator {
 
 // src/nodes/decorator/Flip.ts
 var Flip = class extends Decorator {
-  constructor(attributes, child) {
-    super("flip", attributes, child);
+  constructor(attributes, options, child) {
+    super("flip", attributes, options, child);
   }
-  onUpdate(agent, options) {
+  onUpdate(agent) {
     if (this.child.getState() === "mistreevous.ready" /* READY */ || this.child.getState() === "mistreevous.running" /* RUNNING */) {
-      this.child.update(agent, options);
+      this.child.update(agent);
     }
     switch (this.child.getState()) {
       case "mistreevous.running" /* RUNNING */:
@@ -1626,26 +1673,26 @@ var Flip = class extends Decorator {
 
 // src/nodes/decorator/Repeat.ts
 var Repeat = class extends Decorator {
-  constructor(attributes, iterations, iterationsMin, iterationsMax, child) {
-    super("repeat", attributes, child);
+  constructor(attributes, options, iterations, iterationsMin, iterationsMax, child) {
+    super("repeat", attributes, options, child);
     this.iterations = iterations;
     this.iterationsMin = iterationsMin;
     this.iterationsMax = iterationsMax;
   }
   targetIterationCount = null;
   currentIterationCount = 0;
-  onUpdate(agent, options) {
+  onUpdate(agent) {
     if (this.is("mistreevous.ready" /* READY */)) {
       this.child.reset();
       this.currentIterationCount = 0;
-      this.setTargetIterationCount(options);
+      this.setTargetIterationCount();
     }
     if (this.canIterate()) {
       this.setState("mistreevous.running" /* RUNNING */);
       if (this.child.getState() === "mistreevous.succeeded" /* SUCCEEDED */) {
         this.child.reset();
       }
-      this.child.update(agent, options);
+      this.child.update(agent);
       if (this.child.getState() === "mistreevous.failed" /* FAILED */) {
         this.setState("mistreevous.failed" /* FAILED */);
         return;
@@ -1676,11 +1723,11 @@ var Repeat = class extends Decorator {
     }
     return true;
   };
-  setTargetIterationCount = (options) => {
+  setTargetIterationCount = () => {
     if (this.iterations !== null) {
       this.targetIterationCount = this.iterations;
     } else if (this.iterationsMin !== null && this.iterationsMax !== null) {
-      const random = typeof options.random === "function" ? options.random : Math.random;
+      const random = typeof this.options.random === "function" ? this.options.random : Math.random;
       this.targetIterationCount = Math.floor(
         random() * (this.iterationsMax - this.iterationsMin + 1) + this.iterationsMin
       );
@@ -1692,26 +1739,26 @@ var Repeat = class extends Decorator {
 
 // src/nodes/decorator/Retry.ts
 var Retry = class extends Decorator {
-  constructor(attributes, attempts, attemptsMin, attemptsMax, child) {
-    super("retry", attributes, child);
+  constructor(attributes, options, attempts, attemptsMin, attemptsMax, child) {
+    super("retry", attributes, options, child);
     this.attempts = attempts;
     this.attemptsMin = attemptsMin;
     this.attemptsMax = attemptsMax;
   }
   targetAttemptCount = null;
   currentAttemptCount = 0;
-  onUpdate(agent, options) {
+  onUpdate(agent) {
     if (this.is("mistreevous.ready" /* READY */)) {
       this.child.reset();
       this.currentAttemptCount = 0;
-      this.setTargetAttemptCount(options);
+      this.setTargetAttemptCount();
     }
     if (this.canAttempt()) {
       this.setState("mistreevous.running" /* RUNNING */);
       if (this.child.getState() === "mistreevous.failed" /* FAILED */) {
         this.child.reset();
       }
-      this.child.update(agent, options);
+      this.child.update(agent);
       if (this.child.getState() === "mistreevous.succeeded" /* SUCCEEDED */) {
         this.setState("mistreevous.succeeded" /* SUCCEEDED */);
         return;
@@ -1742,11 +1789,11 @@ var Retry = class extends Decorator {
     }
     return true;
   };
-  setTargetAttemptCount = (options) => {
+  setTargetAttemptCount = () => {
     if (this.attempts !== null) {
       this.targetAttemptCount = this.attempts;
     } else if (this.attemptsMin !== null && this.attemptsMax !== null) {
-      const random = typeof options.random === "function" ? options.random : Math.random;
+      const random = typeof this.options.random === "function" ? this.options.random : Math.random;
       this.targetAttemptCount = Math.floor(
         random() * (this.attemptsMax - this.attemptsMin + 1) + this.attemptsMin
       );
@@ -1758,12 +1805,12 @@ var Retry = class extends Decorator {
 
 // src/nodes/decorator/Root.ts
 var Root = class extends Decorator {
-  constructor(attributes, child) {
-    super("root", attributes, child);
+  constructor(attributes, options, child) {
+    super("root", attributes, options, child);
   }
-  onUpdate(agent, options) {
+  onUpdate(agent) {
     if (this.child.getState() === "mistreevous.ready" /* READY */ || this.child.getState() === "mistreevous.running" /* RUNNING */) {
-      this.child.update(agent, options);
+      this.child.update(agent);
     }
     this.setState(this.child.getState());
   }
@@ -1772,12 +1819,12 @@ var Root = class extends Decorator {
 
 // src/nodes/decorator/Succeed.ts
 var Succeed = class extends Decorator {
-  constructor(attributes, child) {
-    super("succeed", attributes, child);
+  constructor(attributes, options, child) {
+    super("succeed", attributes, options, child);
   }
-  onUpdate(agent, options) {
+  onUpdate(agent) {
     if (this.child.getState() === "mistreevous.ready" /* READY */ || this.child.getState() === "mistreevous.running" /* RUNNING */) {
-      this.child.update(agent, options);
+      this.child.update(agent);
     }
     switch (this.child.getState()) {
       case "mistreevous.running" /* RUNNING */:
@@ -1801,14 +1848,14 @@ var Leaf = class extends Node {
 
 // src/nodes/leaf/Action.ts
 var Action = class extends Leaf {
-  constructor(attributes, actionName, actionArguments) {
-    super("action", attributes, actionArguments);
+  constructor(attributes, options, actionName, actionArguments) {
+    super("action", attributes, options);
     this.actionName = actionName;
     this.actionArguments = actionArguments;
   }
   isUsingUpdatePromise = false;
   updatePromiseResult = null;
-  onUpdate(agent, options) {
+  onUpdate(agent) {
     if (this.isUsingUpdatePromise) {
       if (!this.updatePromiseResult) {
         return;
@@ -1876,6 +1923,26 @@ var Action = class extends Leaf {
     this.isUsingUpdatePromise = false;
     this.updatePromiseResult = null;
   };
+  getDetails() {
+    return {
+      ...super.getDetails(),
+      args: this.actionArguments
+    };
+  }
+  onStateChanged(previousState) {
+    this.options.onNodeStateChange?.({
+      id: this.uid,
+      type: this.getType(),
+      args: this.actionArguments,
+      while: this.attributes.while?.getDetails(),
+      until: this.attributes.until?.getDetails(),
+      entry: this.attributes.entry?.getDetails(),
+      step: this.attributes.step?.getDetails(),
+      exit: this.attributes.exit?.getDetails(),
+      previousState,
+      state: this.getState()
+    });
+  }
   validateUpdateResult = (result) => {
     switch (result) {
       case "mistreevous.succeeded" /* SUCCEEDED */:
@@ -1893,12 +1960,12 @@ var Action = class extends Leaf {
 
 // src/nodes/leaf/Condition.ts
 var Condition = class extends Leaf {
-  constructor(attributes, conditionName, conditionArguments) {
-    super("condition", attributes, conditionArguments);
+  constructor(attributes, options, conditionName, conditionArguments) {
+    super("condition", attributes, options);
     this.conditionName = conditionName;
     this.conditionArguments = conditionArguments;
   }
-  onUpdate(agent, options) {
+  onUpdate(agent) {
     const conditionFuncInvoker = Lookup.getFuncInvoker(agent, this.conditionName);
     if (conditionFuncInvoker === null) {
       throw new Error(
@@ -1923,12 +1990,32 @@ var Condition = class extends Leaf {
     this.setState(!!conditionFunctionResult ? "mistreevous.succeeded" /* SUCCEEDED */ : "mistreevous.failed" /* FAILED */);
   }
   getName = () => this.conditionName;
+  getDetails() {
+    return {
+      ...super.getDetails(),
+      args: this.conditionArguments
+    };
+  }
+  onStateChanged(previousState) {
+    this.options.onNodeStateChange?.({
+      id: this.uid,
+      type: this.getType(),
+      args: this.conditionArguments,
+      while: this.attributes.while?.getDetails(),
+      until: this.attributes.until?.getDetails(),
+      entry: this.attributes.entry?.getDetails(),
+      step: this.attributes.step?.getDetails(),
+      exit: this.attributes.exit?.getDetails(),
+      previousState,
+      state: this.getState()
+    });
+  }
 };
 
 // src/nodes/leaf/Wait.ts
 var Wait = class extends Leaf {
-  constructor(attributes, duration, durationMin, durationMax) {
-    super("wait", attributes, []);
+  constructor(attributes, options, duration, durationMin, durationMax) {
+    super("wait", attributes, options);
     this.duration = duration;
     this.durationMin = durationMin;
     this.durationMax = durationMax;
@@ -1936,14 +2023,14 @@ var Wait = class extends Leaf {
   initialUpdateTime = 0;
   totalDuration = null;
   waitedDuration = 0;
-  onUpdate(agent, options) {
+  onUpdate(agent) {
     if (this.is("mistreevous.ready" /* READY */)) {
       this.initialUpdateTime = new Date().getTime();
       this.waitedDuration = 0;
       if (this.duration !== null) {
         this.totalDuration = this.duration;
       } else if (this.durationMin !== null && this.durationMax !== null) {
-        const random = typeof options.random === "function" ? options.random : Math.random;
+        const random = typeof this.options.random === "function" ? this.options.random : Math.random;
         this.totalDuration = Math.floor(
           random() * (this.durationMax - this.durationMin + 1) + this.durationMin
         );
@@ -1955,8 +2042,8 @@ var Wait = class extends Leaf {
     if (this.totalDuration === null) {
       return;
     }
-    if (typeof options.getDeltaTime === "function") {
-      const deltaTime = options.getDeltaTime();
+    if (typeof this.options.getDeltaTime === "function") {
+      const deltaTime = this.options.getDeltaTime();
       if (typeof deltaTime !== "number" || isNaN(deltaTime)) {
         throw new Error("The delta time must be a valid number and not NaN.");
       }
@@ -1999,7 +2086,7 @@ var Guard = class extends Attribute {
     return {
       type: this.type,
       args: this.args,
-      condition: this.getCondition()
+      calls: this.getCondition()
     };
   }
 };
@@ -2078,7 +2165,7 @@ var Callback = class extends Attribute {
     return {
       type: this.type,
       args: this.args,
-      functionName: this.getFunctionName()
+      calls: this.getFunctionName()
     };
   }
 };
@@ -2133,21 +2220,21 @@ var Exit = class extends Callback {
 
 // src/BehaviourTreeBuilder.ts
 var MAIN_ROOT_NODE_KEY = Symbol("__root__");
-function buildRootNode(definition) {
+function buildRootNode(definition, options) {
   const rootNodeDefinitionMap = createRootNodeDefinitionMap(definition);
   validateBranchSubtreeLinks(
     [rootNodeDefinitionMap[MAIN_ROOT_NODE_KEY], ...Object.values(rootNodeDefinitionMap)],
     true
   );
-  const rootNode = nodeFactory(rootNodeDefinitionMap[MAIN_ROOT_NODE_KEY], rootNodeDefinitionMap);
+  const rootNode = nodeFactory(rootNodeDefinitionMap[MAIN_ROOT_NODE_KEY], rootNodeDefinitionMap, options);
   applyLeafNodeGuardPaths(rootNode);
   return rootNode;
 }
-function nodeFactory(definition, rootNodeDefinitionMap) {
+function nodeFactory(definition, rootNodeDefinitionMap, options) {
   const attributes = nodeAttributesFactory(definition);
   switch (definition.type) {
     case "root":
-      return new Root(attributes, nodeFactory(definition.child, rootNodeDefinitionMap));
+      return new Root(attributes, options, nodeFactory(definition.child, rootNodeDefinitionMap, options));
     case "repeat":
       let iterations = null;
       let iterationsMin = null;
@@ -2160,10 +2247,11 @@ function nodeFactory(definition, rootNodeDefinitionMap) {
       }
       return new Repeat(
         attributes,
+        options,
         iterations,
         iterationsMin,
         iterationsMax,
-        nodeFactory(definition.child, rootNodeDefinitionMap)
+        nodeFactory(definition.child, rootNodeDefinitionMap, options)
       );
     case "retry":
       let attempts = null;
@@ -2177,49 +2265,55 @@ function nodeFactory(definition, rootNodeDefinitionMap) {
       }
       return new Retry(
         attributes,
+        options,
         attempts,
         attemptsMin,
         attemptsMax,
-        nodeFactory(definition.child, rootNodeDefinitionMap)
+        nodeFactory(definition.child, rootNodeDefinitionMap, options)
       );
     case "flip":
-      return new Flip(attributes, nodeFactory(definition.child, rootNodeDefinitionMap));
+      return new Flip(attributes, options, nodeFactory(definition.child, rootNodeDefinitionMap, options));
     case "succeed":
-      return new Succeed(attributes, nodeFactory(definition.child, rootNodeDefinitionMap));
+      return new Succeed(attributes, options, nodeFactory(definition.child, rootNodeDefinitionMap, options));
     case "fail":
-      return new Fail(attributes, nodeFactory(definition.child, rootNodeDefinitionMap));
+      return new Fail(attributes, options, nodeFactory(definition.child, rootNodeDefinitionMap, options));
     case "sequence":
       return new Sequence(
         attributes,
-        definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+        options,
+        definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap, options))
       );
     case "selector":
       return new Selector(
         attributes,
-        definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+        options,
+        definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap, options))
       );
     case "parallel":
       return new Parallel(
         attributes,
-        definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+        options,
+        definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap, options))
       );
     case "race":
       return new Race(
         attributes,
-        definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+        options,
+        definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap, options))
       );
     case "lotto":
       return new Lotto(
         attributes,
+        options,
         definition.weights,
-        definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap))
+        definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap, options))
       );
     case "branch":
-      return nodeFactory(rootNodeDefinitionMap[definition.ref].child, rootNodeDefinitionMap);
+      return nodeFactory(rootNodeDefinitionMap[definition.ref].child, rootNodeDefinitionMap, options);
     case "action":
-      return new Action(attributes, definition.call, definition.args || []);
+      return new Action(attributes, options, definition.call, definition.args || []);
     case "condition":
-      return new Condition(attributes, definition.call, definition.args || []);
+      return new Condition(attributes, options, definition.call, definition.args || []);
     case "wait":
       let duration = null;
       let durationMin = null;
@@ -2230,7 +2324,7 @@ function nodeFactory(definition, rootNodeDefinitionMap) {
       } else if (isInteger(definition.duration)) {
         duration = definition.duration;
       }
-      return new Wait(attributes, duration, durationMin, durationMax);
+      return new Wait(attributes, options, duration, durationMin, durationMax);
   }
 }
 function nodeAttributesFactory(definition) {
@@ -2280,7 +2374,10 @@ function applyLeafNodeGuardPaths(root) {
         continue;
       }
       const guardPath = new GuardPath(
-        path.slice(0, depth + 1).map((node) => ({ node, guards: node.getGuardAttributes() })).filter((details) => details.guards.length > 0)
+        path.slice(0, depth + 1).map((node) => ({
+          node,
+          guards: node.getAttributes().filter((attribute) => attribute.isGuard())
+        })).filter((details) => details.guards.length > 0)
       );
       currentNode.setGuardPath(guardPath);
     }
@@ -2308,7 +2405,7 @@ var BehaviourTree = class {
       );
     }
     try {
-      this._rootNode = buildRootNode(json);
+      this._rootNode = buildRootNode(json, options);
     } catch (exception) {
       throw new Error(`error building tree: ${exception.message}`);
     }
@@ -2325,7 +2422,7 @@ var BehaviourTree = class {
       this._rootNode.reset();
     }
     try {
-      this._rootNode.update(this.agent, this.options);
+      this._rootNode.update(this.agent);
     } catch (exception) {
       throw new Error(`error stepping tree: ${exception.message}`);
     }
@@ -2333,27 +2430,8 @@ var BehaviourTree = class {
   reset() {
     this._rootNode.reset();
   }
-  getFlattenedNodeDetails() {
-    const flattenedTreeNodes = [];
-    const processNode = (node, parentUid) => {
-      const guards = node.getAttributes().filter((attribute) => attribute.isGuard()).map((attribute) => attribute.getDetails());
-      const callbacks = node.getAttributes().filter((attribute) => !attribute.isGuard()).map((attribute) => attribute.getDetails());
-      flattenedTreeNodes.push({
-        id: node.getUid(),
-        type: node.getType(),
-        caption: node.getName(),
-        state: node.getState(),
-        guards,
-        callbacks,
-        args: node.getArguments(),
-        parentId: parentUid
-      });
-      if (!node.isLeafNode()) {
-        node.getChildren().forEach((child) => processNode(child, node.getUid()));
-      }
-    };
-    processNode(this._rootNode, null);
-    return flattenedTreeNodes;
+  getTreeNodeDetails() {
+    return this._rootNode.getDetails();
   }
   static register(name, value) {
     if (typeof value === "function") {

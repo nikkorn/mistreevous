@@ -1,8 +1,11 @@
 import { Agent } from "../../Agent";
 import Attribute, { AttributeDetails } from "../Attribute";
+/**
+ * Details of a node guard attribute.
+ */
 export type GuardAttributeDetails = {
     /** The name of the condition function that determines whether the guard is satisfied. */
-    condition: string;
+    calls: string;
 } & AttributeDetails;
 /**
  * A base node guard attribute.

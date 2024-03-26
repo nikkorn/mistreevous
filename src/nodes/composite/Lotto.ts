@@ -15,11 +15,17 @@ import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 export default class Lotto extends Composite {
     /**
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param weights The child node weights.
      * @param children The child nodes.
      */
-    constructor(attributes: Attribute[], private weights: number[] | undefined, children: Node[]) {
-        super("lotto", attributes, children);
+    constructor(
+        attributes: Attribute[],
+        options: BehaviourTreeOptions,
+        private weights: number[] | undefined,
+        children: Node[]
+    ) {
+        super("lotto", attributes, options, children);
     }
 
     /**
@@ -30,15 +36,14 @@ export default class Lotto extends Composite {
     /**
      * Called when the node is being updated.
      * @param agent The agent.
-     * @param options The behaviour tree options object.
      */
-    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void {
+    protected onUpdate(agent: Agent): void {
         // If this node is in the READY state then we need to pick a winning child node.
         if (this.is(State.READY)) {
             // Create a lotto draw with which to randomly pick a child node to become the active one.
             const lottoDraw = createLotto<Node>({
                 // Hook up the optional 'random' behaviour tree function option to the one used by 'lotto-draw'.
-                random: options.random,
+                random: this.options.random,
                 // Pass in each child node as a participant in the lotto draw with their respective ticket count.
                 participants: this.children.map((child, index) => [child, this.weights?.[index] || 1])
             });
@@ -54,7 +59,7 @@ export default class Lotto extends Composite {
 
         // If the selected child has never been updated or is running then we will need to update it now.
         if (this.selectedChild.getState() === State.READY || this.selectedChild.getState() === State.RUNNING) {
-            this.selectedChild.update(agent, options);
+            this.selectedChild.update(agent);
         }
 
         // The state of the lotto node is the state of its selected child.

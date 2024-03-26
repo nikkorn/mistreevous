@@ -1,7 +1,7 @@
 {
   "name": "mistreevous",
   "version": "4.0.0",
-  "description": "A tool to build behaviour trees in JavaScript",
+  "description": "A library to declaratively define, build and execute behaviour trees, written in TypeScript for Node and browsers",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [

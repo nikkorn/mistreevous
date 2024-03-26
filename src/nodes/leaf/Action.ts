@@ -1,4 +1,5 @@
 import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
+import { NodeDetails } from "../Node";
 import State, { CompleteState } from "../../State";
 import { Agent } from "../../Agent";
 import Leaf from "./Leaf";
@@ -27,11 +28,17 @@ type UpdatePromiseResult = {
 export default class Action extends Leaf {
     /**
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param actionName The action name.
-     * @param actionArguments The array of action argument definitions.
+     * @param actionArguments The array of action arguments.
      */
-    constructor(attributes: Attribute[], private actionName: string, private actionArguments: any[]) {
-        super("action", attributes, actionArguments);
+    constructor(
+        attributes: Attribute[],
+        options: BehaviourTreeOptions,
+        private actionName: string,
+        public actionArguments: any[]
+    ) {
+        super("action", attributes, options);
     }
 
     /**
@@ -47,9 +54,8 @@ export default class Action extends Leaf {
     /**
      * Called when the node is being updated.
      * @param agent The agent.
-     * @param options The behaviour tree options object.
      */
-    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void {
+    protected onUpdate(agent: Agent): void {
         // If the result of this action depends on an update promise then there is nothing to do until it settles.
         if (this.isUsingUpdatePromise) {
             // Are we still waiting for our update promise to settle?
@@ -163,6 +169,36 @@ export default class Action extends Leaf {
         this.isUsingUpdatePromise = false;
         this.updatePromiseResult = null;
     };
+
+    /**
+     * Gets the details of this node instance.
+     * @returns The details of this node instance.
+     */
+    public getDetails(): NodeDetails {
+        return {
+            ...super.getDetails(),
+            args: this.actionArguments
+        };
+    }
+
+    /**
+     * Called when the state of this node changes.
+     * @param previousState The previous node state.
+     */
+    protected onStateChanged(previousState: State): void {
+        this.options.onNodeStateChange?.({
+            id: this.uid,
+            type: this.getType(),
+            args: this.actionArguments,
+            while: this.attributes.while?.getDetails(),
+            until: this.attributes.until?.getDetails(),
+            entry: this.attributes.entry?.getDetails(),
+            step: this.attributes.step?.getDetails(),
+            exit: this.attributes.exit?.getDetails(),
+            previousState,
+            state: this.getState()
+        });
+    }
 
     /**
      * Validate the result of an update function call.

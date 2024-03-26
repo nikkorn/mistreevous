@@ -1,4 +1,5 @@
 import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
+import { NodeDetails } from "../Node";
 import State from "../../State";
 import { Agent } from "../../Agent";
 import Leaf from "./Leaf";
@@ -12,19 +13,24 @@ import Attribute from "../../attributes/Attribute";
 export default class Condition extends Leaf {
     /**
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param conditionName The name of the condition function.
-     * @param conditionArguments The array of condition argument definitions.
+     * @param conditionArguments The array of condition arguments.
      */
-    constructor(attributes: Attribute[], private conditionName: string, private conditionArguments: any[]) {
-        super("condition", attributes, conditionArguments);
+    constructor(
+        attributes: Attribute[],
+        options: BehaviourTreeOptions,
+        private conditionName: string,
+        public conditionArguments: any[]
+    ) {
+        super("condition", attributes, options);
     }
 
     /**
      * Called when the node is being updated.
      * @param agent The agent.
-     * @param options The behaviour tree options object.
      */
-    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void {
+    protected onUpdate(agent: Agent): void {
         // Attempt to get the invoker for the condition function.
         const conditionFuncInvoker = Lookup.getFuncInvoker(agent, this.conditionName);
 
@@ -64,4 +70,34 @@ export default class Condition extends Leaf {
      * Gets the name of the node.
      */
     getName = () => this.conditionName;
+
+    /**
+     * Gets the details of this node instance.
+     * @returns The details of this node instance.
+     */
+    public getDetails(): NodeDetails {
+        return {
+            ...super.getDetails(),
+            args: this.conditionArguments
+        };
+    }
+
+    /**
+     * Called when the state of this node changes.
+     * @param previousState The previous node state.
+     */
+    protected onStateChanged(previousState: State): void {
+        this.options.onNodeStateChange?.({
+            id: this.uid,
+            type: this.getType(),
+            args: this.conditionArguments,
+            while: this.attributes.while?.getDetails(),
+            until: this.attributes.until?.getDetails(),
+            entry: this.attributes.entry?.getDetails(),
+            step: this.attributes.step?.getDetails(),
+            exit: this.attributes.exit?.getDetails(),
+            previousState,
+            state: this.getState()
+        });
+    }
 }

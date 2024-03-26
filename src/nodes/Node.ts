@@ -6,40 +6,135 @@ import Attribute from "../attributes/Attribute";
 import Entry from "../attributes/callbacks/Entry";
 import Exit from "../attributes/callbacks/Exit";
 import Step from "../attributes/callbacks/Step";
-import Guard from "../attributes/guards/Guard";
+import While from "../attributes/guards/While";
+import Until from "../attributes/guards/Until";
 import GuardPath from "../attributes/guards/GuardPath";
 import GuardUnsatisifedException from "../attributes/guards/GuardUnsatisifedException";
+import { GuardAttributeDetails } from "../attributes/guards/Guard";
+import { CallbackAttributeDetails } from "../attributes/callbacks/Callback";
+import { createUid } from "../Utilities";
+
+/**
+ * Details of a tree node instance.
+ */
+export type NodeDetails = {
+    /**
+     * The tree node identifier.
+     */
+    id: string;
+    /**
+     * The tree node type.
+     */
+    type: string;
+    /**
+     * The tree node name.
+     */
+    name: string;
+    /**
+     * The current state of the tree node.
+     */
+    state: AnyState;
+    /**
+     * The array of agent or globally registered function arguments, defined if this is an action or condition node.
+     */
+    args?: any[];
+    /**
+     * The 'while' guard attribute configured for this node.
+     */
+    while?: GuardAttributeDetails;
+    /**
+     * The 'until' guard attribute configured for this node.
+     */
+    until?: GuardAttributeDetails;
+    /**
+     * The 'entry' callback attribute configured for this node.
+     */
+    entry?: CallbackAttributeDetails;
+    /**
+     * The 'step' callback attribute configured for this node.
+     */
+    step?: CallbackAttributeDetails;
+    /**
+     * The 'exit' callback attribute configured for this node.
+     */
+    exit?: CallbackAttributeDetails;
+    /**
+     * The array of the child nodes of this node, defined if this node is a composite or decorator node.
+     */
+    children?: NodeDetails[];
+};
+
+/**
+ * A mapping of attribute names to attributes configured for a node.
+ */
+type Attributes = {
+    /**
+     * The 'entry' callback attribute configured for this node.
+     */
+    entry?: Entry;
+    /**
+     * The 'step' callback attribute configured for this node.
+     */
+    step?: Step;
+    /**
+     * The 'exit' callback attribute configured for this node.
+     */
+    exit?: Exit;
+    /**
+     * The 'while' guard attribute configured for this node.
+     */
+    while?: While;
+    /**
+     * The 'until' guard attribute configured for this node.
+     */
+    until?: Until;
+};
 
 /**
  * A base node.
  */
 export default abstract class Node {
     /**
-     * The node uid.
+     * The node unique identifier.
      */
-    private readonly uid: string = createNodeUid();
+    protected readonly uid: string;
+    /**
+     * The node attributes.
+     */
+    protected readonly attributes: Attributes;
     /**
      * The node state.
      */
-    private state: AnyState = State.READY;
+    private _state: AnyState = State.READY;
     /**
      * The guard path to evaluate as part of a node update.
      */
-    private guardPath: GuardPath | undefined;
+    private _guardPath: GuardPath | undefined;
 
     /**
      * @param type The node type.
      * @param attributes The node attributes.
-     * @param args The node argument definitions.
+     * @param options The behaviour tree options.
      */
-    constructor(private type: string, private attributes: Attribute[], private args: any[]) {}
+    constructor(private type: string, attributes: Attribute[], protected options: BehaviourTreeOptions) {
+        // Create a unique identifier for this node.
+        this.uid = createUid();
+
+        // Create our attribute mapping.
+        this.attributes = {
+            entry: attributes.find(({ type }) => type === "entry") as Entry,
+            step: attributes.find(({ type }) => type === "step") as Step,
+            exit: attributes.find(({ type }) => type === "exit") as Exit,
+            while: attributes.find(({ type }) => type === "while") as While,
+            until: attributes.find(({ type }) => type === "until") as Until
+        };
+    }
 
     /**
      * Called when the node is being updated.
      * @param agent The agent.
-     * @param options The behaviour tree options object.
      */
-    protected abstract onUpdate(agent: Agent, options: BehaviourTreeOptions): void;
+    protected abstract onUpdate(agent: Agent): void;
 
     /**
      * Gets the name of the node.
@@ -54,9 +149,18 @@ export default abstract class Node {
     /**
      * Gets/Sets the state of the node.
      */
-    getState = (): AnyState => this.state;
+    getState = (): AnyState => this._state;
     setState = (value: AnyState): void => {
-        this.state = value;
+        // Grab the original state of this node.
+        const previousState = this._state;
+
+        // Set the new node state.
+        this._state = value;
+
+        // If the state actually changed we should handle it.
+        if (previousState !== value) {
+            this.onStateChanged(previousState);
+        }
     };
 
     /**
@@ -72,46 +176,24 @@ export default abstract class Node {
     /**
      * Gets the node attributes.
      */
-    getAttributes = () => this.attributes;
-
-    /**
-     * Gets the node arguments.
-     */
-    getArguments = () => this.args;
-
-    /**
-     * Gets the node attribute with the specified type, or null if it does not exist.
-     */
-    getAttribute(type: "entry" | "ENTRY"): Entry;
-    getAttribute(type: "exit" | "EXIT"): Exit;
-    getAttribute(type: "step" | "STEP"): Step;
-    getAttribute(type: string): Attribute {
-        return (
-            this.getAttributes().filter((decorator) => decorator.type.toUpperCase() === type.toUpperCase())[0] || null
-        );
-    }
-
-    /**
-     * Gets the node attributes.
-     */
-    getGuardAttributes = (): Guard[] => this.getAttributes().filter((decorator) => decorator.isGuard()) as Guard[];
+    getAttributes = () => Object.values(this.attributes).filter((attribute) => !!attribute);
 
     /**
      * Sets the guard path to evaluate as part of a node update.
      */
-    setGuardPath = (value: GuardPath) => (this.guardPath = value);
+    setGuardPath = (value: GuardPath) => (this._guardPath = value);
 
     /**
      * Gets whether a guard path is assigned to this node.
      */
-    hasGuardPath = () => !!this.guardPath;
+    hasGuardPath = () => !!this._guardPath;
 
     /**
      * Gets whether this node is in the specified state.
      * @param value The value to compare to the node state.
      */
     public is(value: AnyState): boolean {
-        return this.state === value;
+        return this._state === value;
     }
 
     /**
@@ -134,16 +216,15 @@ export default abstract class Node {
         // Reset the state of this node.
         this.reset();
 
-        this.getAttribute("exit")?.callAgentFunction(agent, false, true);
+        this.attributes.exit?.callAgentFunction(agent, false, true);
     }
 
     /**
      * Update the node.
      * @param agent The agent.
-     * @param options The behaviour tree options object.
      * @returns The result of the update.
      */
-    public update(agent: Agent, options: BehaviourTreeOptions): void {
+    public update(agent: Agent): void {
         // If this node is already in a 'SUCCEEDED' or 'FAILED' state then there is nothing to do.
         if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {
             return;
@@ -151,21 +232,21 @@ export default abstract class Node {
 
         try {
             // Evaluate all of the guard path conditions for the current tree path.
-            this.guardPath!.evaluate(agent);
+            this._guardPath!.evaluate(agent);
 
             // If this node is in the READY state then call the ENTRY for this node if it exists.
             if (this.is(State.READY)) {
-                this.getAttribute("entry")?.callAgentFunction(agent);
+                this.attributes.entry?.callAgentFunction(agent);
             }
 
-            this.getAttribute("step")?.callAgentFunction(agent);
+            this.attributes.step?.callAgentFunction(agent);
 
             // Do the actual update.
-            this.onUpdate(agent, options);
+            this.onUpdate(agent);
 
             // If this node is now in a 'SUCCEEDED' or 'FAILED' state then call the EXIT for this node if it exists.
             if (this.is(State.SUCCEEDED) || this.is(State.FAILED)) {
-                this.getAttribute("exit")?.callAgentFunction(agent, this.is(State.SUCCEEDED), false);
+                this.attributes.exit?.callAgentFunction(agent, this.is(State.SUCCEEDED), false);
             }
         } catch (error) {
             // If the error is a GuardUnsatisfiedException then we need to determine if this node is the source.
@@ -180,15 +261,41 @@ export default abstract class Node {
             }
         }
     }
-}
 
-/**
- * Create a randomly generated node uid.
- * @returns A randomly generated node uid.
- */
-function createNodeUid(): string {
-    var S4 = function () {
-        return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
-    };
-    return S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
+    /**
+     * Gets the details of this node instance.
+     * @returns The details of this node instance.
+     */
+    public getDetails(): NodeDetails {
+        return {
+            id: this.uid,
+            name: this.getName(),
+            type: this.type,
+            while: this.attributes.while?.getDetails(),
+            until: this.attributes.until?.getDetails(),
+            entry: this.attributes.entry?.getDetails(),
+            step: this.attributes.step?.getDetails(),
+            exit: this.attributes.exit?.getDetails(),
+            state: this._state
+        };
+    }
+
+    /**
+     * Called when the state of this node changes.
+     * @param previousState The previous node state.
+     */
+    protected onStateChanged(previousState: State): void {
+        // We should call the onNodeStateChange callback if it was defined.
+        this.options.onNodeStateChange?.({
+            id: this.uid,
+            type: this.type,
+            while: this.attributes.while?.getDetails(),
+            until: this.attributes.until?.getDetails(),
+            entry: this.attributes.entry?.getDetails(),
+            step: this.attributes.step?.getDetails(),
+            exit: this.attributes.exit?.getDetails(),
+            previousState,
+            state: this._state
+        });
+    }
 }

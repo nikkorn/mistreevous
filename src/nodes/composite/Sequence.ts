@@ -12,24 +12,24 @@ import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 export default class Sequence extends Composite {
     /**
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param children The child nodes.
      */
-    constructor(attributes: Attribute[], protected children: Node[]) {
-        super("sequence", attributes, children);
+    constructor(attributes: Attribute[], options: BehaviourTreeOptions, protected children: Node[]) {
+        super("sequence", attributes, options, children);
     }
 
     /**
      * Called when the node is being updated.
      * @param agent The agent.
-     * @param options The behaviour tree options object.
      */
-    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void {
+    protected onUpdate(agent: Agent): void {
         // Iterate over all of the children of this node.
         for (const child of this.children) {
             // If the child has never been updated or is running then we will need to update it now.
             if (child.getState() === State.READY || child.getState() === State.RUNNING) {
                 // Update the child of this node.
-                child.update(agent, options);
+                child.update(agent);
             }
 
             // If the current child has a state of 'SUCCEEDED' then we should move on to the next child.

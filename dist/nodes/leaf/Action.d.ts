@@ -1,4 +1,6 @@
 import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
+import { NodeDetails } from "../Node";
+import State from "../../State";
 import { Agent } from "../../Agent";
 import Leaf from "./Leaf";
 import Attribute from "../../attributes/Attribute";
@@ -8,13 +10,14 @@ import Attribute from "../../attributes/Attribute";
  */
 export default class Action extends Leaf {
     private actionName;
-    private actionArguments;
+    actionArguments: any[];
     /**
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param actionName The action name.
-     * @param actionArguments The array of action argument definitions.
+     * @param actionArguments The array of action arguments.
      */
-    constructor(attributes: Attribute[], actionName: string, actionArguments: any[]);
+    constructor(attributes: Attribute[], options: BehaviourTreeOptions, actionName: string, actionArguments: any[]);
     /**
      * Whether there is a pending update promise.
      */
@@ -26,9 +29,8 @@ export default class Action extends Leaf {
     /**
      * Called when the node is being updated.
      * @param agent The agent.
-     * @param options The behaviour tree options object.
      */
-    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void;
+    protected onUpdate(agent: Agent): void;
     /**
      * Gets the name of the node.
      */
@@ -37,6 +39,16 @@ export default class Action extends Leaf {
      * Reset the state of the node.
      */
     reset: () => void;
+    /**
+     * Gets the details of this node instance.
+     * @returns The details of this node instance.
+     */
+    getDetails(): NodeDetails;
+    /**
+     * Called when the state of this node changes.
+     * @param previousState The previous node state.
+     */
+    protected onStateChanged(previousState: State): void;
     /**
      * Validate the result of an update function call.
      * @param result The result of an update function call.

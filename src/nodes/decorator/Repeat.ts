@@ -16,6 +16,7 @@ import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 export default class Repeat extends Decorator {
     /**
      * @param attributes The node attributes.
+     * @param options The behaviour tree options.
      * @param iterations The number of iterations to repeat the child node.
      * @param iterationsMin The minimum possible number of iterations to repeat the child node.
      * @param iterationsMax The maximum possible number of iterations to repeat the child node.
@@ -23,12 +24,13 @@ export default class Repeat extends Decorator {
      */
     constructor(
         attributes: Attribute[],
+        options: BehaviourTreeOptions,
         private iterations: number | null,
         private iterationsMin: number | null,
         private iterationsMax: number | null,
         child: Node
     ) {
-        super("repeat", attributes, child);
+        super("repeat", attributes, options, child);
     }
 
     /**
@@ -44,9 +46,8 @@ export default class Repeat extends Decorator {
     /**
      * Called when the node is being updated.
      * @param agent The agent.
-     * @param options The behaviour tree options object.
      */
-    protected onUpdate(agent: Agent, options: BehaviourTreeOptions): void {
+    protected onUpdate(agent: Agent): void {
         // If this node is in the READY state then we need to reset the child and the target iteration count.
         if (this.is(State.READY)) {
             // Reset the child node.
@@ -56,7 +57,7 @@ export default class Repeat extends Decorator {
             this.currentIterationCount = 0;
 
             // Set the target iteration count.
-            this.setTargetIterationCount(options);
+            this.setTargetIterationCount();
         }
 
         // Do a check to see if we can iterate. If we can then this node will move into the 'RUNNING' state.
@@ -72,7 +73,7 @@ export default class Repeat extends Decorator {
             }
 
             // Update the child of this node.
-            this.child.update(agent, options);
+            this.child.update(agent);
 
             // If the child moved into the FAILED state when we updated it then there is nothing left to do and this node has also failed.
             // If it has moved into the SUCCEEDED state then we have completed the current iteration.
@@ -134,16 +135,15 @@ export default class Repeat extends Decorator {
 
     /**
      * Sets the target iteration count.
-     * @param options The behaviour tree options object.
      */
-    private setTargetIterationCount = (options: BehaviourTreeOptions) => {
+    private setTargetIterationCount = () => {
         // Are we dealing with an explicit iteration count or will we be randomly picking a iteration count between the min and max iteration count.
         if (this.iterations !== null) {
             this.targetIterationCount = this.iterations;
         } else if (this.iterationsMin !== null && this.iterationsMax !== null) {
             // We will be picking a random iteration count between a min and max iteration count, if the optional 'random'
             // behaviour tree function option is defined then we will be using that, otherwise we will fall back to using Math.random.
-            const random = typeof options.random === "function" ? options.random : Math.random;
+            const random = typeof this.options.random === "function" ? this.options.random : Math.random;
 
             // Pick a random iteration count between a min and max iteration count.
             this.targetIterationCount = Math.floor(

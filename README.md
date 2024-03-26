@@ -2,7 +2,7 @@
 [![npm version](https://badge.fury.io/js/mistreevous.svg)](https://badge.fury.io/js/mistreevous)
 [![Node.js CI](https://github.com/nikkorn/mistreevous/actions/workflows/node.js.yml/badge.svg?branch=master)](https://github.com/nikkorn/mistreevous/actions/workflows/node.js.yml)
 
-A library to declaratively define, build and execute behaviour trees, written in Typescript for Node and browsers. Behaviour trees are used to create complex AI via the modular hierarchical composition of individual tasks.
+A library to declaratively define, build and execute behaviour trees, written in TypeScript for Node and browsers. Behaviour trees are used to create complex AI via the modular hierarchical composition of individual tasks.
 
 Using this tool, trees can be defined with either JSON or a simple and minimal built-in DSL (MDSL), avoiding the need to write verbose definitions in JSON.
 
@@ -15,7 +15,7 @@ There is an in-browser editor and tree visualiser that you can try [HERE](https:
 ```sh
 $ npm install --save mistreevous
 ```
-This package is built using esbuild to target both Node and browsers. If you would like to use this package in a browser you can just reference `dist/build.js` in a `<script>` tag.
+This package is built using esbuild to target both Node and browsers. If you would like to use this package in a browser you can just reference `dist/bundle.js` in a `<script>` tag.
 
 # Example
 ```js
@@ -58,19 +58,22 @@ behaviourTree.step();
 ```
 # Behaviour Tree Methods
 
-#### .isRunning()
+#### isRunning()
 Returns `true` if the tree is in the `RUNNING` state, otherwise `false`.
 
-#### .getState()
+#### getState()
 Gets the current tree state of `SUCCEEDED`, `FAILED` or `RUNNING`.
 
-#### .step()
+#### step()
 Carries out a node update that traverses the tree from the root node outwards to any child nodes, skipping those that are already in a resolved state of `SUCCEEDED` or `FAILED`. After being updated, leaf nodes will have a state of `SUCCEEDED`, `FAILED` or `RUNNING`. Leaf nodes that are left in the `RUNNING` state as part of a tree step will be revisited each subsequent step until they move into a resolved state of either `SUCCEEDED` or `FAILED`, after which execution will move through the tree to the next node with a state of `READY`.
 
 Calling this method when the tree is already in a resolved state of `SUCCEEDED` or `FAILED` will cause it to be reset before tree traversal begins.
 
-#### .reset()
+#### reset()
 Resets the tree from the root node outwards to each nested node, giving each a state of `READY`.
+
+#### getTreeNodeDetails()
+Gets the details of every node in the tree, starting from the root. This will include the current state of each node, which is useful for debugging a running tree instance.
 
 # Behaviour Tree Options
 The `BehaviourTree` constructor can take an options object as an argument, the properties of which are shown below.
@@ -79,6 +82,7 @@ The `BehaviourTree` constructor can take an options object as an argument, the p
 | :--------------------|:- |:- |
 | getDeltaTime |() => number| A function returning a delta time in seconds that is used to calculate the elapsed duration of any `wait` nodes. If this function is not defined then `Date.prototype.getTime()` is used instead by default.  |
 | random |() => number| A function returning a floating-point number between 0 (inclusive) and 1 (exclusive). If defined, this function is used to source a pseudo-random number to use in operations such as the selection of active children for any `lotto` nodes as well as the selection of durations for `wait` nodes, iterations for `repeat` nodes and attempts for `retry` nodes when minimum and maximum bounds are defined. If not defined then `Math.random()` will be used instead by default. This function can be useful in seeding all random numbers used in the running of a tree instance to make any behaviour completely deterministic. |
+| onNodeStateChange |(change: NodeStateChange) => void| An event handler that is called whenever the state of a node changes. The change object will contain details of the updated node and will include the previous state and current state. |
 
 # Nodes
 
