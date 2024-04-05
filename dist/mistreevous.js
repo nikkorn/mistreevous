@@ -317,7 +317,7 @@ var mistreevous = (() => {
     return ["root", "repeat", "retry", "flip", "succeed", "fail"].includes(node.type);
   }
   function isCompositeNode(node) {
-    return ["sequence", "selector", "lotto", "parallel", "race"].includes(node.type);
+    return ["sequence", "selector", "lotto", "parallel", "race", "all"].includes(node.type);
   }
   function flattenDefinition(nodeDefinition) {
     const nodes = [];
@@ -563,6 +563,10 @@ var mistreevous = (() => {
           pushNode(createRaceNode(tokens, stringLiteralPlaceholders));
           break;
         }
+        case "ALL": {
+          pushNode(createAllNode(tokens, stringLiteralPlaceholders));
+          break;
+        }
         case "LOTTO": {
           pushNode(createLottoNode(tokens, stringLiteralPlaceholders));
           break;
@@ -724,6 +728,14 @@ var mistreevous = (() => {
   function createRaceNode(tokens, stringLiteralPlaceholders) {
     const node = {
       type: "race",
+      ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+    };
+    popAndCheck(tokens, "{");
+    return node;
+  }
+  function createAllNode(tokens, stringLiteralPlaceholders) {
+    const node = {
+      type: "all",
       ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
     };
     popAndCheck(tokens, "{");
@@ -986,6 +998,9 @@ var mistreevous = (() => {
         break;
       case "race":
         validateRaceNode(definition, depth);
+        break;
+      case "all":
+        validateAllNode(definition, depth);
         break;
       case "lotto":
         validateLottoNode(definition, depth);
@@ -1265,6 +1280,16 @@ var mistreevous = (() => {
     validateNodeAttributes(definition, depth);
     definition.children.forEach((child) => validateNode(child, depth + 1));
   }
+  function validateAllNode(definition, depth) {
+    if (definition.type !== "all") {
+      throw new Error(`expected node type of 'all' for all node at depth '${depth}'`);
+    }
+    if (!Array.isArray(definition.children) || definition.children.length === 0) {
+      throw new Error(`expected non-empty 'children' array to be defined for all node at depth '${depth}'`);
+    }
+    validateNodeAttributes(definition, depth);
+    definition.children.forEach((child) => validateNode(child, depth + 1));
+  }
   function validateLottoNode(definition, depth) {
     if (definition.type !== "lotto") {
       throw new Error(`expected node type of 'lotto' for lotto node at depth '${depth}'`);
@@ -1498,6 +1523,26 @@ var mistreevous = (() => {
       this.setState("mistreevous.running" /* RUNNING */);
     }
     getName = () => "RACE";
+  };
+
+  // src/nodes/composite/All.ts
+  var All = class extends Composite {
+    constructor(attributes, options, children) {
+      super("all", attributes, options, children);
+    }
+    onUpdate(agent) {
+      for (const child of this.children) {
+        if (child.getState() === "mistreevous.ready" /* READY */ || child.getState() === "mistreevous.running" /* RUNNING */) {
+          child.update(agent);
+        }
+      }
+      if (this.children.every((child) => child.is("mistreevous.succeeded" /* SUCCEEDED */) || child.is("mistreevous.failed" /* FAILED */))) {
+        this.setState(this.children.find((child) => child.is("mistreevous.succeeded" /* SUCCEEDED */)) ? "mistreevous.succeeded" /* SUCCEEDED */ : "mistreevous.failed" /* FAILED */);
+        return;
+      }
+      this.setState("mistreevous.running" /* RUNNING */);
+    }
+    getName = () => "ALL";
   };
 
   // src/nodes/composite/Selector.ts
@@ -2297,6 +2342,12 @@ var mistreevous = (() => {
         );
       case "race":
         return new Race(
+          attributes,
+          options,
+          definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap, options))
+        );
+      case "all":
+        return new All(
           attributes,
           options,
           definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap, options))

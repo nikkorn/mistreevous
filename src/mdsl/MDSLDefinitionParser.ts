@@ -9,6 +9,7 @@ import {
     LottoNodeDefinition,
     ParallelNodeDefinition,
     RaceNodeDefinition,
+    AllNodeDefinition,
     RepeatNodeDefinition,
     RetryNodeDefinition,
     RootNodeDefinition,
@@ -207,6 +208,11 @@ function convertTokensToJSONDefinition(
 
             case "RACE": {
                 pushNode(createRaceNode(tokens, stringLiteralPlaceholders));
+                break;
+            }
+
+            case "ALL": {
+                pushNode(createAllNode(tokens, stringLiteralPlaceholders));
                 break;
             }
 
@@ -565,6 +571,25 @@ function createRaceNode(tokens: string[], stringLiteralPlaceholders: StringLiter
     popAndCheck(tokens, "{");
 
     // Return the race node definition.
+    return node;
+}
+
+/**
+ * Creates an all node JSON definition.
+ * @param tokens The tree definition tokens.
+ * @param stringLiteralPlaceholders The substituted string literal placeholders.
+ * @returns The all node JSON definition.
+ */
+function createAllNode(tokens: string[], stringLiteralPlaceholders: StringLiteralPlaceholders): AllNodeDefinition {
+    const node = {
+        type: "all",
+        ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
+    } as AllNodeDefinition;
+
+    // This is a composite node, so we expect an opening '{'.
+    popAndCheck(tokens, "{");
+
+    // Return the all node definition.
     return node;
 }
 
