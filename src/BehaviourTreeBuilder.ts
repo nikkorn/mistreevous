@@ -7,6 +7,7 @@ import Composite from "./nodes/composite/Composite";
 import Decorator from "./nodes/decorator/Decorator";
 import Parallel from "./nodes/composite/Parallel";
 import Race from "./nodes/composite/Race";
+import All from "./nodes/composite/All";
 import Selector from "./nodes/composite/Selector";
 import Sequence from "./nodes/composite/Sequence";
 import Lotto from "./nodes/composite/Lotto";
@@ -42,6 +43,7 @@ type AnyNode =
     | Lotto
     | Parallel
     | Race
+    | All
     | Repeat
     | Retry
     | Flip
@@ -180,6 +182,13 @@ function nodeFactory(
 
         case "race":
             return new Race(
+                attributes,
+                options,
+                definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap, options))
+            );
+
+        case "all":
+            return new All(
                 attributes,
                 options,
                 definition.children.map((child) => nodeFactory(child, rootNodeDefinitionMap, options))

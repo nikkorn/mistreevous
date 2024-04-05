@@ -168,6 +168,15 @@ export interface RaceNodeDefinition extends CompositeNodeDefinition {
     type: "race";
 }
 /**
+ * An all node.
+ */
+export interface AllNodeDefinition extends CompositeNodeDefinition {
+    /**
+     * The node type.
+     */
+    type: "all";
+}
+/**
  * A root node.
  */
 export interface RootNodeDefinition extends DecoratorNodeDefinition {
@@ -236,7 +245,7 @@ export interface FailNodeDefinition extends DecoratorNodeDefinition {
 /**
  * A type defining any node definition.
  */
-export type AnyNodeDefinition = BranchNodeDefinition | ActionNodeDefinition | ConditionNodeDefinition | WaitNodeDefinition | SequenceNodeDefinition | SelectorNodeDefinition | LottoNodeDefinition | ParallelNodeDefinition | RaceNodeDefinition | RootNodeDefinition | RepeatNodeDefinition | RetryNodeDefinition | FlipNodeDefinition | SucceedNodeDefinition | FailNodeDefinition;
+export type AnyNodeDefinition = BranchNodeDefinition | ActionNodeDefinition | ConditionNodeDefinition | WaitNodeDefinition | SequenceNodeDefinition | SelectorNodeDefinition | LottoNodeDefinition | ParallelNodeDefinition | RaceNodeDefinition | AllNodeDefinition | RootNodeDefinition | RepeatNodeDefinition | RetryNodeDefinition | FlipNodeDefinition | SucceedNodeDefinition | FailNodeDefinition;
 /**
  * A type defining any node type that can be a child of composite parent node.
  */

@@ -243,6 +243,40 @@ root {
 }
 ```
 
+### All
+This composite node will update each child node concurrently. It will stay in the `RUNNING` state until all of its children have moved to either the `SUCCEEDED` or `FAILED` state, after which this node will move to the `SUCCEEDED` state if any of its children have moved to the `SUCCEEDED` state, otherwise it will move to the `FAILED` state.
+[Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=all)
+
+*MDSL*
+```
+root {
+    all {
+        action [Reload]
+        action [MoveToCover]
+    }
+}
+```
+
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "all",
+        "children": [
+            {
+                "type": "action",
+                "call": "Reload"
+            },
+            {
+                "type": "action",
+                "call": "MoveToCover"
+            }
+        ]
+    }
+}
+```
+
 ### Lotto
 This composite node will select a single child at random to run as the active running node. The state of this node will reflect the state of the active child.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=lotto)

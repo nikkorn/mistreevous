@@ -49,7 +49,7 @@ export function isDecoratorNode(node: NodeDefinition): node is DecoratorNodeDefi
  * @returns A value of true if the specified node satisfies the CompositeNodeDefinition type.
  */
 export function isCompositeNode(node: NodeDefinition): node is CompositeNodeDefinition {
-    return ["sequence", "selector", "lotto", "parallel", "race"].includes(node.type);
+    return ["sequence", "selector", "lotto", "parallel", "race", "all"].includes(node.type);
 }
 
 /**

@@ -6,17 +6,17 @@ import Attribute from "../../attributes/Attribute";
 import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 
 /**
- * A RACE node.
- * The child nodes are executed concurrently until one succeeds or all fail.
+ * An ALL node.
+ * The child nodes are executed concurrently until all child nodes move to a completed state.
  */
-export default class Race extends Composite {
+export default class All extends Composite {
     /**
      * @param attributes The node attributes.
      * @param options The behaviour tree options.
      * @param children The child nodes.
      */
     constructor(attributes: Attribute[], options: BehaviourTreeOptions, children: Node[]) {
-        super("race", attributes, options, children);
+        super("all", attributes, options, children);
     }
 
     /**
@@ -33,25 +33,10 @@ export default class Race extends Composite {
             }
         }
 
-        // If any of our child nodes have succeeded then this node has also succeeded.
-        if (this.children.find((child) => child.is(State.SUCCEEDED))) {
-            // This node is a 'SUCCEEDED' node.
-            this.setState(State.SUCCEEDED);
-
-            // Abort every running child.
-            for (const child of this.children) {
-                if (child.getState() === State.RUNNING) {
-                    child.abort(agent);
-                }
-            }
-
-            return;
-        }
-
-        // A race node will move into the failed state if all child nodes move into the failed state as none can succeed.
-        if (this.children.every((child) => child.is(State.FAILED))) {
-            // This node is a 'FAILED' node.
-            this.setState(State.FAILED);
+        // An all node will move into a completed state if all child nodes move into a completed state.
+        if (this.children.every((child) => child.is(State.SUCCEEDED) || child.is(State.FAILED))) {
+            // If any of our child nodes have succeeded then this node has also succeeded, otherwise it has failed.
+            this.setState(this.children.find((child) => child.is(State.SUCCEEDED)) ? State.SUCCEEDED : State.FAILED);
 
             return;
         }
@@ -63,5 +48,5 @@ export default class Race extends Composite {
     /**
      * Gets the name of the node.
      */
-    getName = () => "RACE";
+    getName = () => "ALL";
 }
