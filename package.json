@@ -1,6 +1,6 @@
 {
   "name": "mistreevous",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "A library to declaratively define, build and execute behaviour trees, written in TypeScript for Node and browsers",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -54,7 +54,7 @@
   "bugs": {
     "url": "https://github.com/nikkorn/mistreevous/issues"
   },
-  "homepage": "https://nikkorn.github.io/mistreevous",
+  "homepage": "https://github.com/nikkorn/mistreevous",
   "dependencies": {
     "lotto-draw": "^1.0.2"
   }
