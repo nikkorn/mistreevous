@@ -1431,8 +1431,11 @@ A practical look at behaviour trees and a good example of modelling behaviour fo
 ## Version History
 | Version        | Notes |
 | -------------- |:----------------------------------------------------------------------------------------|
-| 4.0.0          | Added support for JSON tree defintions |
-|                | Added validateDefintion function to use in validating JSON/MDSL definitons | 
+| 4.1.0          | Added Race and All node types |
+|                | Added onNodeStateChange callback to behaviour tree options | 
+|                | Added getTreeNodeDetails method to BehaviourTree | 
+| 4.0.0          | Added support for JSON tree definitions |
+|                | Added validateDefinition function to use in validating JSON/MDSL definitions | 
 |                | Added convertMDSLToJSON function to convert existing MDSL definitions to JSON | 
 |                | Tidied up error handling for agent and registered function invocation | 
 |                | Action functions can now explictly return a value of State.RUNNING instead of having to return undefined  | 
