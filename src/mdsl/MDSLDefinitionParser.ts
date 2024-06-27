@@ -708,7 +708,7 @@ function createConditionNode(
  * @returns The wait node JSON definition.
  */
 function createWaitNode(tokens: string[], stringLiteralPlaceholders: StringLiteralPlaceholders): WaitNodeDefinition {
-    let node = { type: "wait" } as WaitNodeDefinition;
+    const node = { type: "wait" } as WaitNodeDefinition;
 
     // Get the node arguments.
     const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);

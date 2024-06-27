@@ -24,7 +24,7 @@ export function popAndCheck(tokens: string[], expected?: string | string[]): str
         const expectedValues = typeof expected === "string" ? [expected] : expected;
 
         // Check whether the popped token matches at least one of our expected items.
-        var tokenMatchesExpectation = expectedValues.some((item) => popped.toUpperCase() === item.toUpperCase());
+        const tokenMatchesExpectation = expectedValues.some((item) => popped.toUpperCase() === item.toUpperCase());
 
         // Throw an error if the popped token didn't match any of our expected items.
         if (!tokenMatchesExpectation) {
@@ -50,9 +50,9 @@ export function substituteStringLiterals(definition: string): {
     const placeholders: StringLiteralPlaceholders = {};
 
     // Replace any string literals wrapped with double quotes in our definition with placeholders to be processed later.
-    const processedDefinition = definition.replace(/\"(\\.|[^"\\])*\"/g, (match) => {
-        var strippedMatch = match.substring(1, match.length - 1);
-        var placeholder = Object.keys(placeholders).find((key) => placeholders[key] === strippedMatch);
+    const processedDefinition = definition.replace(/"(\\.|[^"\\])*"/g, (match) => {
+        const strippedMatch = match.substring(1, match.length - 1);
+        let placeholder = Object.keys(placeholders).find((key) => placeholders[key] === strippedMatch);
 
         // If we have no existing string literal match then create a new placeholder.
         if (!placeholder) {
@@ -79,7 +79,7 @@ export function parseTokensFromDefinition(definition: string): string[] {
     definition = definition.replace(/\}/g, " } ");
     definition = definition.replace(/\]/g, " ] ");
     definition = definition.replace(/\[/g, " [ ");
-    definition = definition.replace(/\,/g, " , ");
+    definition = definition.replace(/,/g, " , ");
 
     // Split the definition into raw token form and return it.
     return definition.replace(/\s+/g, " ").trim().split(" ");

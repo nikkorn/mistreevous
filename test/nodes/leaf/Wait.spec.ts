@@ -117,8 +117,8 @@ describe("A Wait node", () => {
     });
 
     describe("when updated as part of a tree step", () => {
-        var clock: SinonFakeTimers;
-        var sandbox: SinonSandbox;
+        let clock: SinonFakeTimers;
+        let sandbox: SinonSandbox;
 
         beforeEach(() => {
             clock = sinon.useFakeTimers();

@@ -158,7 +158,7 @@ describe("A Retry node", () => {
     });
 
     describe("when updated as part of a tree step", () => {
-        var sandbox: SinonSandbox;
+        let sandbox: SinonSandbox;
 
         beforeEach(() => {
             sandbox = sinon.createSandbox();

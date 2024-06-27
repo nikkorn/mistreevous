@@ -308,7 +308,7 @@ describe("A BehaviourTree instance", () => {
     });
 
     describe("has a 'getTreeNodeDetails' function that gets the node details for the tree", () => {
-        var sandbox: SinonSandbox;
+        let sandbox: SinonSandbox;
 
         beforeEach(() => {
             sandbox = sinon.createSandbox();

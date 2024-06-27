@@ -347,7 +347,7 @@ function popAndCheck(tokens, expected) {
   }
   if (expected != void 0) {
     const expectedValues = typeof expected === "string" ? [expected] : expected;
-    var tokenMatchesExpectation = expectedValues.some((item) => popped.toUpperCase() === item.toUpperCase());
+    const tokenMatchesExpectation = expectedValues.some((item) => popped.toUpperCase() === item.toUpperCase());
     if (!tokenMatchesExpectation) {
       const expectationString = expectedValues.map((item) => "'" + item + "'").join(" or ");
       throw new Error("unexpected token found. Expected " + expectationString + " but got '" + popped + "'");
@@ -357,9 +357,9 @@ function popAndCheck(tokens, expected) {
 }
 function substituteStringLiterals(definition) {
   const placeholders = {};
-  const processedDefinition = definition.replace(/\"(\\.|[^"\\])*\"/g, (match) => {
-    var strippedMatch = match.substring(1, match.length - 1);
-    var placeholder = Object.keys(placeholders).find((key) => placeholders[key] === strippedMatch);
+  const processedDefinition = definition.replace(/"(\\.|[^"\\])*"/g, (match) => {
+    const strippedMatch = match.substring(1, match.length - 1);
+    let placeholder = Object.keys(placeholders).find((key) => placeholders[key] === strippedMatch);
     if (!placeholder) {
       placeholder = `@@${Object.keys(placeholders).length}@@`;
       placeholders[placeholder] = strippedMatch;
@@ -375,7 +375,7 @@ function parseTokensFromDefinition(definition) {
   definition = definition.replace(/\}/g, " } ");
   definition = definition.replace(/\]/g, " ] ");
   definition = definition.replace(/\[/g, " [ ");
-  definition = definition.replace(/\,/g, " , ");
+  definition = definition.replace(/,/g, " , ");
   return definition.replace(/\s+/g, " ").trim().split(" ");
 }
 
@@ -791,7 +791,7 @@ function createConditionNode(tokens, stringLiteralPlaceholders) {
   };
 }
 function createWaitNode(tokens, stringLiteralPlaceholders) {
-  let node = { type: "wait" };
+  const node = { type: "wait" };
   const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
   if (nodeArguments.length) {
     nodeArguments.filter((arg) => arg.type !== "number" || !arg.isInteger).forEach(() => {
@@ -1338,7 +1338,7 @@ var GuardPath = class {
 
 // src/Utilities.ts
 function createUid() {
-  var S4 = function() {
+  const S4 = function() {
     return ((1 + Math.random()) * 65536 | 0).toString(16).substring(1);
   };
   return S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
@@ -2032,7 +2032,7 @@ var Condition = class extends Leaf {
         `expected condition function '${this.conditionName}' to return a boolean but returned '${conditionFunctionResult}'`
       );
     }
-    this.setState(!!conditionFunctionResult ? "mistreevous.succeeded" /* SUCCEEDED */ : "mistreevous.failed" /* FAILED */);
+    this.setState(conditionFunctionResult ? "mistreevous.succeeded" /* SUCCEEDED */ : "mistreevous.failed" /* FAILED */);
   }
   getName = () => this.conditionName;
   getDetails() {
@@ -2280,7 +2280,7 @@ function nodeFactory(definition, rootNodeDefinitionMap, options) {
   switch (definition.type) {
     case "root":
       return new Root(attributes, options, nodeFactory(definition.child, rootNodeDefinitionMap, options));
-    case "repeat":
+    case "repeat": {
       let iterations = null;
       let iterationsMin = null;
       let iterationsMax = null;
@@ -2298,7 +2298,8 @@ function nodeFactory(definition, rootNodeDefinitionMap, options) {
         iterationsMax,
         nodeFactory(definition.child, rootNodeDefinitionMap, options)
       );
-    case "retry":
+    }
+    case "retry": {
       let attempts = null;
       let attemptsMin = null;
       let attemptsMax = null;
@@ -2316,6 +2317,7 @@ function nodeFactory(definition, rootNodeDefinitionMap, options) {
         attemptsMax,
         nodeFactory(definition.child, rootNodeDefinitionMap, options)
       );
+    }
     case "flip":
       return new Flip(attributes, options, nodeFactory(definition.child, rootNodeDefinitionMap, options));
     case "succeed":
@@ -2365,7 +2367,7 @@ function nodeFactory(definition, rootNodeDefinitionMap, options) {
       return new Action(attributes, options, definition.call, definition.args || []);
     case "condition":
       return new Condition(attributes, options, definition.call, definition.args || []);
-    case "wait":
+    case "wait": {
       let duration = null;
       let durationMin = null;
       let durationMax = null;
@@ -2376,6 +2378,7 @@ function nodeFactory(definition, rootNodeDefinitionMap, options) {
         duration = definition.duration;
       }
       return new Wait(attributes, options, duration, durationMin, durationMax);
+    }
   }
 }
 function nodeAttributesFactory(definition) {
