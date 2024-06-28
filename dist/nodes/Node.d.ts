@@ -1,7 +1,6 @@
 import { BehaviourTreeOptions } from "../BehaviourTreeOptions";
 import State, { AnyState } from "../State";
 import { Agent } from "../Agent";
-import Leaf from "./leaf/Leaf";
 import Attribute from "../attributes/Attribute";
 import Entry from "../attributes/callbacks/Entry";
 import Exit from "../attributes/callbacks/Exit";
@@ -122,10 +121,6 @@ export default abstract class Node {
      * Gets the name of the node.
      */
     abstract getName(): string;
-    /**
-     * Gets whether this node is a leaf node.
-     */
-    abstract isLeafNode: () => this is Leaf;
     /**
      * Gets/Sets the state of the node.
      */

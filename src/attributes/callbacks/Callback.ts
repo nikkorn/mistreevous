@@ -28,11 +28,6 @@ export default abstract class Callback extends Attribute<CallbackAttributeDetail
     getFunctionName = () => this.functionName;
 
     /**
-     * Gets whether this attribute is a guard.
-     */
-    isGuard = () => false;
-
-    /**
      * Gets the attribute details.
      */
     getDetails(): CallbackAttributeDetails {

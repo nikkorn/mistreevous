@@ -304,28 +304,28 @@ var mistreevous = (() => {
   __publicField(Lookup, "registeredSubtrees", {});
 
   // src/BehaviourTreeDefinitionUtilities.ts
-  function isRootNode(node) {
+  function isRootNodeDefinition(node) {
     return node.type === "root";
   }
-  function isBranchNode(node) {
+  function isBranchNodeDefinition(node) {
     return node.type === "branch";
   }
-  function isLeafNode(node) {
+  function isLeafNodeDefinition(node) {
     return ["branch", "action", "condition", "wait"].includes(node.type);
   }
-  function isDecoratorNode(node) {
+  function isDecoratorNodeDefinition(node) {
     return ["root", "repeat", "retry", "flip", "succeed", "fail"].includes(node.type);
   }
-  function isCompositeNode(node) {
+  function isCompositeNodeDefinition(node) {
     return ["sequence", "selector", "lotto", "parallel", "race", "all"].includes(node.type);
   }
   function flattenDefinition(nodeDefinition) {
     const nodes = [];
     const processNode = (currentNodeDefinition) => {
       nodes.push(currentNodeDefinition);
-      if (isCompositeNode(currentNodeDefinition)) {
+      if (isCompositeNodeDefinition(currentNodeDefinition)) {
         currentNodeDefinition.children.forEach(processNode);
-      } else if (isDecoratorNode(currentNodeDefinition)) {
+      } else if (isDecoratorNodeDefinition(currentNodeDefinition)) {
         processNode(currentNodeDefinition.child);
       }
     };
@@ -483,7 +483,7 @@ var mistreevous = (() => {
     const treeStacks = [];
     const rootNodes = [];
     const pushNode = (node) => {
-      if (isRootNode(node)) {
+      if (isRootNodeDefinition(node)) {
         if (treeStacks[treeStacks.length - 1]?.length) {
           throw new Error("a root node cannot be the child of another node");
         }
@@ -496,16 +496,16 @@ var mistreevous = (() => {
       }
       const topTreeStack = treeStacks[treeStacks.length - 1];
       const topTreeStackTopNode = topTreeStack[topTreeStack.length - 1];
-      if (isCompositeNode(topTreeStackTopNode)) {
+      if (isCompositeNodeDefinition(topTreeStackTopNode)) {
         topTreeStackTopNode.children = topTreeStackTopNode.children || [];
         topTreeStackTopNode.children.push(node);
-      } else if (isDecoratorNode(topTreeStackTopNode)) {
+      } else if (isDecoratorNodeDefinition(topTreeStackTopNode)) {
         if (topTreeStackTopNode.child) {
           throw new Error("a decorator node must only have a single child node");
         }
         topTreeStackTopNode.child = node;
       }
-      if (!isLeafNode(node)) {
+      if (!isLeafNodeDefinition(node)) {
         topTreeStack.push(node);
       }
     };
@@ -824,10 +824,10 @@ var mistreevous = (() => {
     return { type: "branch", ref: nodeArguments[0].value };
   }
   function validatePoppedNode(definition) {
-    if (isDecoratorNode(definition) && isNullOrUndefined(definition.child)) {
+    if (isDecoratorNodeDefinition(definition) && isNullOrUndefined(definition.child)) {
       throw new Error(`a ${definition.type} node must have a single child node defined`);
     }
-    if (isCompositeNode(definition) && !definition.children?.length) {
+    if (isCompositeNodeDefinition(definition) && !definition.children?.length) {
       throw new Error(`a ${definition.type} node must have at least a single child node defined`);
     }
     if (definition.type === "lotto") {
@@ -925,7 +925,7 @@ var mistreevous = (() => {
     const rootNodeMappings = rootNodeDefinitions.map(
       (rootNodeDefinition) => ({
         id: rootNodeDefinition.id,
-        refs: flattenDefinition(rootNodeDefinition).filter(isBranchNode).map(({ ref }) => ref)
+        refs: flattenDefinition(rootNodeDefinition).filter(isBranchNodeDefinition).map(({ ref }) => ref)
       })
     );
     const followRefs = (mapping, path = []) => {
@@ -1439,13 +1439,16 @@ var mistreevous = (() => {
     }
   };
 
+  // src/nodes/leaf/Leaf.ts
+  var Leaf = class extends Node {
+  };
+
   // src/nodes/composite/Composite.ts
   var Composite = class extends Node {
     constructor(type, attributes, options, children) {
       super(type, attributes, options);
       this.children = children;
     }
-    isLeafNode = () => false;
     getChildren = () => this.children;
     reset = () => {
       this.setState("mistreevous.ready" /* READY */);
@@ -1644,7 +1647,6 @@ var mistreevous = (() => {
       super(type, attributes, options);
       this.child = child;
     }
-    isLeafNode = () => false;
     getChildren = () => [this.child];
     reset = () => {
       this.setState("mistreevous.ready" /* READY */);
@@ -1886,11 +1888,6 @@ var mistreevous = (() => {
     getName = () => "SUCCEED";
   };
 
-  // src/nodes/leaf/Leaf.ts
-  var Leaf = class extends Node {
-    isLeafNode = () => true;
-  };
-
   // src/nodes/leaf/Action.ts
   var Action = class extends Leaf {
     constructor(attributes, options, actionName, actionArguments) {
@@ -2126,7 +2123,6 @@ var mistreevous = (() => {
       this.condition = condition;
     }
     getCondition = () => this.condition;
-    isGuard = () => true;
     getDetails() {
       return {
         type: this.type,
@@ -2205,7 +2201,6 @@ var mistreevous = (() => {
       this.functionName = functionName;
     }
     getFunctionName = () => this.functionName;
-    isGuard = () => false;
     getDetails() {
       return {
         type: this.type,
@@ -2414,7 +2409,7 @@ var mistreevous = (() => {
     const nodePaths = [];
     const findLeafNodes = (path, node) => {
       path = path.concat(node);
-      if (node.isLeafNode()) {
+      if (node instanceof Leaf) {
         nodePaths.push(path);
       } else {
         node.getChildren().forEach((child) => findLeafNodes(path, child));
@@ -2430,7 +2425,7 @@ var mistreevous = (() => {
         const guardPath = new GuardPath(
           path.slice(0, depth + 1).map((node) => ({
             node,
-            guards: node.getAttributes().filter((attribute) => attribute.isGuard())
+            guards: node.getAttributes().filter((attribute) => attribute instanceof Guard)
           })).filter((details) => details.guards.length > 0)
         );
         currentNode.setGuardPath(guardPath);

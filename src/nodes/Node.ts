@@ -142,11 +142,6 @@ export default abstract class Node {
     public abstract getName(): string;
 
     /**
-     * Gets whether this node is a leaf node.
-     */
-    public abstract isLeafNode: () => this is Leaf;
-
-    /**
      * Gets/Sets the state of the node.
      */
     getState = (): AnyState => this._state;

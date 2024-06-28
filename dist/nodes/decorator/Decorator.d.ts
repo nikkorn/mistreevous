@@ -15,10 +15,6 @@ export default abstract class Decorator extends Node {
      */
     constructor(type: string, attributes: Attribute[], options: BehaviourTreeOptions, child: Node);
     /**
-     * Gets whether this node is a leaf node.
-     */
-    isLeafNode: () => boolean;
-    /**
      * Gets the children of this node.
      */
     getChildren: () => Node[];

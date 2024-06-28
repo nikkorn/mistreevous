@@ -19,11 +19,6 @@ export default abstract class Decorator extends Node {
     }
 
     /**
-     * Gets whether this node is a leaf node.
-     */
-    isLeafNode = () => false;
-
-    /**
      * Gets the children of this node.
      */
     getChildren = () => [this.child];

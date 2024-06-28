@@ -3,6 +3,7 @@ import GuardPath, { GuardPathPart } from "./attributes/guards/GuardPath";
 import { validateBranchSubtreeLinks } from "./BehaviourTreeDefinitionValidator";
 import { isInteger } from "./BehaviourTreeDefinitionUtilities";
 import Node from "./nodes/Node";
+import Leaf from "./nodes/leaf/Leaf";
 import Composite from "./nodes/composite/Composite";
 import Decorator from "./nodes/decorator/Decorator";
 import Parallel from "./nodes/composite/Parallel";
@@ -297,7 +298,7 @@ function applyLeafNodeGuardPaths(root: Root) {
         path = path.concat(node);
 
         // Check whether the current node is a leaf node.
-        if (node.isLeafNode()) {
+        if (node instanceof Leaf) {
             nodePaths.push(path);
         } else {
             (node as Composite | Decorator).getChildren().forEach((child) => findLeafNodes(path, child));
@@ -324,7 +325,7 @@ function applyLeafNodeGuardPaths(root: Root) {
                     .slice(0, depth + 1)
                     .map<GuardPathPart>((node) => ({
                         node,
-                        guards: node.getAttributes().filter((attribute) => attribute.isGuard()) as Guard[]
+                        guards: node.getAttributes().filter((attribute) => attribute instanceof Guard)
                     }))
                     .filter((details) => details.guards.length > 0)
             );
