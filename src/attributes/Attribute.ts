@@ -22,9 +22,4 @@ export default abstract class Attribute<TAttributeDetails extends AttributeDetai
      * Gets the attribute details.
      */
     abstract getDetails(): TAttributeDetails;
-
-    /**
-     * Gets whether this attribute is a guard.
-     */
-    abstract isGuard: () => this is Guard;
 }

@@ -3,6 +3,7 @@ import GuardPath, { GuardPathPart } from "./attributes/guards/GuardPath";
 import { validateBranchSubtreeLinks } from "./BehaviourTreeDefinitionValidator";
 import { isInteger } from "./BehaviourTreeDefinitionUtilities";
 import Node from "./nodes/Node";
+import Leaf from "./nodes/leaf/Leaf";
 import Composite from "./nodes/composite/Composite";
 import Decorator from "./nodes/decorator/Decorator";
 import Parallel from "./nodes/composite/Parallel";
@@ -108,7 +109,7 @@ function nodeFactory(
         case "root":
             return new Root(attributes, options, nodeFactory(definition.child, rootNodeDefinitionMap, options));
 
-        case "repeat":
+        case "repeat": {
             let iterations: number | null = null;
             let iterationsMin: number | null = null;
             let iterationsMax: number | null = null;
@@ -128,8 +129,9 @@ function nodeFactory(
                 iterationsMax,
                 nodeFactory(definition.child, rootNodeDefinitionMap, options)
             );
+        }
 
-        case "retry":
+        case "retry": {
             let attempts: number | null = null;
             let attemptsMin: number | null = null;
             let attemptsMax: number | null = null;
@@ -149,6 +151,7 @@ function nodeFactory(
                 attemptsMax,
                 nodeFactory(definition.child, rootNodeDefinitionMap, options)
             );
+        }
 
         case "flip":
             return new Flip(attributes, options, nodeFactory(definition.child, rootNodeDefinitionMap, options));
@@ -211,7 +214,7 @@ function nodeFactory(
         case "condition":
             return new Condition(attributes, options, definition.call, definition.args || []);
 
-        case "wait":
+        case "wait": {
             let duration: number | null = null;
             let durationMin: number | null = null;
             let durationMax: number | null = null;
@@ -224,6 +227,7 @@ function nodeFactory(
             }
 
             return new Wait(attributes, options, duration, durationMin, durationMax);
+        }
     }
 }
 
@@ -294,7 +298,7 @@ function applyLeafNodeGuardPaths(root: Root) {
         path = path.concat(node);
 
         // Check whether the current node is a leaf node.
-        if (node.isLeafNode()) {
+        if (node instanceof Leaf) {
             nodePaths.push(path);
         } else {
             (node as Composite | Decorator).getChildren().forEach((child) => findLeafNodes(path, child));
@@ -321,7 +325,7 @@ function applyLeafNodeGuardPaths(root: Root) {
                     .slice(0, depth + 1)
                     .map<GuardPathPart>((node) => ({
                         node,
-                        guards: node.getAttributes().filter((attribute) => attribute.isGuard()) as Guard[]
+                        guards: node.getAttributes().filter((attribute) => attribute instanceof Guard)
                     }))
                     .filter((details) => details.guards.length > 0)
             );

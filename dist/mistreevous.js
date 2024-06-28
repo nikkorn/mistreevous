@@ -304,28 +304,28 @@ var mistreevous = (() => {
   __publicField(Lookup, "registeredSubtrees", {});
 
   // src/BehaviourTreeDefinitionUtilities.ts
-  function isRootNode(node) {
+  function isRootNodeDefinition(node) {
     return node.type === "root";
   }
-  function isBranchNode(node) {
+  function isBranchNodeDefinition(node) {
     return node.type === "branch";
   }
-  function isLeafNode(node) {
+  function isLeafNodeDefinition(node) {
     return ["branch", "action", "condition", "wait"].includes(node.type);
   }
-  function isDecoratorNode(node) {
+  function isDecoratorNodeDefinition(node) {
     return ["root", "repeat", "retry", "flip", "succeed", "fail"].includes(node.type);
   }
-  function isCompositeNode(node) {
+  function isCompositeNodeDefinition(node) {
     return ["sequence", "selector", "lotto", "parallel", "race", "all"].includes(node.type);
   }
   function flattenDefinition(nodeDefinition) {
     const nodes = [];
     const processNode = (currentNodeDefinition) => {
       nodes.push(currentNodeDefinition);
-      if (isCompositeNode(currentNodeDefinition)) {
+      if (isCompositeNodeDefinition(currentNodeDefinition)) {
         currentNodeDefinition.children.forEach(processNode);
-      } else if (isDecoratorNode(currentNodeDefinition)) {
+      } else if (isDecoratorNodeDefinition(currentNodeDefinition)) {
         processNode(currentNodeDefinition.child);
       }
     };
@@ -347,7 +347,7 @@ var mistreevous = (() => {
     }
     if (expected != void 0) {
       const expectedValues = typeof expected === "string" ? [expected] : expected;
-      var tokenMatchesExpectation = expectedValues.some((item) => popped.toUpperCase() === item.toUpperCase());
+      const tokenMatchesExpectation = expectedValues.some((item) => popped.toUpperCase() === item.toUpperCase());
       if (!tokenMatchesExpectation) {
         const expectationString = expectedValues.map((item) => "'" + item + "'").join(" or ");
         throw new Error("unexpected token found. Expected " + expectationString + " but got '" + popped + "'");
@@ -357,9 +357,9 @@ var mistreevous = (() => {
   }
   function substituteStringLiterals(definition) {
     const placeholders = {};
-    const processedDefinition = definition.replace(/\"(\\.|[^"\\])*\"/g, (match) => {
-      var strippedMatch = match.substring(1, match.length - 1);
-      var placeholder = Object.keys(placeholders).find((key) => placeholders[key] === strippedMatch);
+    const processedDefinition = definition.replace(/"(\\.|[^"\\])*"/g, (match) => {
+      const strippedMatch = match.substring(1, match.length - 1);
+      let placeholder = Object.keys(placeholders).find((key) => placeholders[key] === strippedMatch);
       if (!placeholder) {
         placeholder = `@@${Object.keys(placeholders).length}@@`;
         placeholders[placeholder] = strippedMatch;
@@ -375,7 +375,7 @@ var mistreevous = (() => {
     definition = definition.replace(/\}/g, " } ");
     definition = definition.replace(/\]/g, " ] ");
     definition = definition.replace(/\[/g, " [ ");
-    definition = definition.replace(/\,/g, " , ");
+    definition = definition.replace(/,/g, " , ");
     return definition.replace(/\s+/g, " ").trim().split(" ");
   }
 
@@ -483,7 +483,7 @@ var mistreevous = (() => {
     const treeStacks = [];
     const rootNodes = [];
     const pushNode = (node) => {
-      if (isRootNode(node)) {
+      if (isRootNodeDefinition(node)) {
         if (treeStacks[treeStacks.length - 1]?.length) {
           throw new Error("a root node cannot be the child of another node");
         }
@@ -496,16 +496,16 @@ var mistreevous = (() => {
       }
       const topTreeStack = treeStacks[treeStacks.length - 1];
       const topTreeStackTopNode = topTreeStack[topTreeStack.length - 1];
-      if (isCompositeNode(topTreeStackTopNode)) {
+      if (isCompositeNodeDefinition(topTreeStackTopNode)) {
         topTreeStackTopNode.children = topTreeStackTopNode.children || [];
         topTreeStackTopNode.children.push(node);
-      } else if (isDecoratorNode(topTreeStackTopNode)) {
+      } else if (isDecoratorNodeDefinition(topTreeStackTopNode)) {
         if (topTreeStackTopNode.child) {
           throw new Error("a decorator node must only have a single child node");
         }
         topTreeStackTopNode.child = node;
       }
-      if (!isLeafNode(node)) {
+      if (!isLeafNodeDefinition(node)) {
         topTreeStack.push(node);
       }
     };
@@ -791,7 +791,7 @@ var mistreevous = (() => {
     };
   }
   function createWaitNode(tokens, stringLiteralPlaceholders) {
-    let node = { type: "wait" };
+    const node = { type: "wait" };
     const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
     if (nodeArguments.length) {
       nodeArguments.filter((arg) => arg.type !== "number" || !arg.isInteger).forEach(() => {
@@ -824,10 +824,10 @@ var mistreevous = (() => {
     return { type: "branch", ref: nodeArguments[0].value };
   }
   function validatePoppedNode(definition) {
-    if (isDecoratorNode(definition) && isNullOrUndefined(definition.child)) {
+    if (isDecoratorNodeDefinition(definition) && isNullOrUndefined(definition.child)) {
       throw new Error(`a ${definition.type} node must have a single child node defined`);
     }
-    if (isCompositeNode(definition) && !definition.children?.length) {
+    if (isCompositeNodeDefinition(definition) && !definition.children?.length) {
       throw new Error(`a ${definition.type} node must have at least a single child node defined`);
     }
     if (definition.type === "lotto") {
@@ -925,7 +925,7 @@ var mistreevous = (() => {
     const rootNodeMappings = rootNodeDefinitions.map(
       (rootNodeDefinition) => ({
         id: rootNodeDefinition.id,
-        refs: flattenDefinition(rootNodeDefinition).filter(isBranchNode).map(({ ref }) => ref)
+        refs: flattenDefinition(rootNodeDefinition).filter(isBranchNodeDefinition).map(({ ref }) => ref)
       })
     );
     const followRefs = (mapping, path = []) => {
@@ -1338,7 +1338,7 @@ var mistreevous = (() => {
 
   // src/Utilities.ts
   function createUid() {
-    var S4 = function() {
+    const S4 = function() {
       return ((1 + Math.random()) * 65536 | 0).toString(16).substring(1);
     };
     return S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
@@ -1439,13 +1439,16 @@ var mistreevous = (() => {
     }
   };
 
+  // src/nodes/leaf/Leaf.ts
+  var Leaf = class extends Node {
+  };
+
   // src/nodes/composite/Composite.ts
   var Composite = class extends Node {
     constructor(type, attributes, options, children) {
       super(type, attributes, options);
       this.children = children;
     }
-    isLeafNode = () => false;
     getChildren = () => this.children;
     reset = () => {
       this.setState("mistreevous.ready" /* READY */);
@@ -1644,7 +1647,6 @@ var mistreevous = (() => {
       super(type, attributes, options);
       this.child = child;
     }
-    isLeafNode = () => false;
     getChildren = () => [this.child];
     reset = () => {
       this.setState("mistreevous.ready" /* READY */);
@@ -1886,11 +1888,6 @@ var mistreevous = (() => {
     getName = () => "SUCCEED";
   };
 
-  // src/nodes/leaf/Leaf.ts
-  var Leaf = class extends Node {
-    isLeafNode = () => true;
-  };
-
   // src/nodes/leaf/Action.ts
   var Action = class extends Leaf {
     constructor(attributes, options, actionName, actionArguments) {
@@ -2032,7 +2029,7 @@ var mistreevous = (() => {
           `expected condition function '${this.conditionName}' to return a boolean but returned '${conditionFunctionResult}'`
         );
       }
-      this.setState(!!conditionFunctionResult ? "mistreevous.succeeded" /* SUCCEEDED */ : "mistreevous.failed" /* FAILED */);
+      this.setState(conditionFunctionResult ? "mistreevous.succeeded" /* SUCCEEDED */ : "mistreevous.failed" /* FAILED */);
     }
     getName = () => this.conditionName;
     getDetails() {
@@ -2126,7 +2123,6 @@ var mistreevous = (() => {
       this.condition = condition;
     }
     getCondition = () => this.condition;
-    isGuard = () => true;
     getDetails() {
       return {
         type: this.type,
@@ -2205,7 +2201,6 @@ var mistreevous = (() => {
       this.functionName = functionName;
     }
     getFunctionName = () => this.functionName;
-    isGuard = () => false;
     getDetails() {
       return {
         type: this.type,
@@ -2280,7 +2275,7 @@ var mistreevous = (() => {
     switch (definition.type) {
       case "root":
         return new Root(attributes, options, nodeFactory(definition.child, rootNodeDefinitionMap, options));
-      case "repeat":
+      case "repeat": {
         let iterations = null;
         let iterationsMin = null;
         let iterationsMax = null;
@@ -2298,7 +2293,8 @@ var mistreevous = (() => {
           iterationsMax,
           nodeFactory(definition.child, rootNodeDefinitionMap, options)
         );
-      case "retry":
+      }
+      case "retry": {
         let attempts = null;
         let attemptsMin = null;
         let attemptsMax = null;
@@ -2316,6 +2312,7 @@ var mistreevous = (() => {
           attemptsMax,
           nodeFactory(definition.child, rootNodeDefinitionMap, options)
         );
+      }
       case "flip":
         return new Flip(attributes, options, nodeFactory(definition.child, rootNodeDefinitionMap, options));
       case "succeed":
@@ -2365,7 +2362,7 @@ var mistreevous = (() => {
         return new Action(attributes, options, definition.call, definition.args || []);
       case "condition":
         return new Condition(attributes, options, definition.call, definition.args || []);
-      case "wait":
+      case "wait": {
         let duration = null;
         let durationMin = null;
         let durationMax = null;
@@ -2376,6 +2373,7 @@ var mistreevous = (() => {
           duration = definition.duration;
         }
         return new Wait(attributes, options, duration, durationMin, durationMax);
+      }
     }
   }
   function nodeAttributesFactory(definition) {
@@ -2411,7 +2409,7 @@ var mistreevous = (() => {
     const nodePaths = [];
     const findLeafNodes = (path, node) => {
       path = path.concat(node);
-      if (node.isLeafNode()) {
+      if (node instanceof Leaf) {
         nodePaths.push(path);
       } else {
         node.getChildren().forEach((child) => findLeafNodes(path, child));
@@ -2427,7 +2425,7 @@ var mistreevous = (() => {
         const guardPath = new GuardPath(
           path.slice(0, depth + 1).map((node) => ({
             node,
-            guards: node.getAttributes().filter((attribute) => attribute.isGuard())
+            guards: node.getAttributes().filter((attribute) => attribute instanceof Guard)
           })).filter((details) => details.guards.length > 0)
         );
         currentNode.setGuardPath(guardPath);

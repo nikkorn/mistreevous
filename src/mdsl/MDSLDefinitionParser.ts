@@ -19,11 +19,11 @@ import {
     WaitNodeDefinition
 } from "../BehaviourTreeDefinition";
 import {
-    isCompositeNode,
-    isDecoratorNode,
-    isLeafNode,
+    isCompositeNodeDefinition,
+    isDecoratorNodeDefinition,
+    isLeafNodeDefinition,
     isNullOrUndefined,
-    isRootNode
+    isRootNodeDefinition
 } from "../BehaviourTreeDefinitionUtilities";
 import { parseArgumentTokens } from "./MDSLNodeArgumentParser";
 import { parseAttributeTokens } from "./MDSLNodeAttributeParser";
@@ -84,7 +84,7 @@ function convertTokensToJSONDefinition(
     // A helper function used to push node definitions onto the tree stack.
     const pushNode = (node: AnyNodeDefinition) => {
         // If the node is a root node then we need to create a new tree stack array with the root node at the root.
-        if (isRootNode(node)) {
+        if (isRootNodeDefinition(node)) {
             // We need to double-check that this root node is not the child of another node.
             // We can do this by checking whether the top tree stack is not empty (contains an existing node)
             if (treeStacks[treeStacks.length - 1]?.length) {
@@ -115,10 +115,10 @@ function convertTokensToJSONDefinition(
 
         // If the top-most node in the current root stack is a composite or decorator
         // node then the current node should be added as a child of the top-most node.
-        if (isCompositeNode(topTreeStackTopNode)) {
+        if (isCompositeNodeDefinition(topTreeStackTopNode)) {
             topTreeStackTopNode.children = topTreeStackTopNode.children || [];
             topTreeStackTopNode.children.push(node);
-        } else if (isDecoratorNode(topTreeStackTopNode)) {
+        } else if (isDecoratorNodeDefinition(topTreeStackTopNode)) {
             // If the top node already has a child node set then throw an error as a decorator should only have a single child.
             if (topTreeStackTopNode.child) {
                 throw new Error("a decorator node must only have a single child node");
@@ -129,7 +129,7 @@ function convertTokensToJSONDefinition(
 
         // If the node we are adding is also a composite or decorator node, then we should push it
         // onto the current tree stack, as subsequent nodes will be added as its child/children.
-        if (!isLeafNode(node)) {
+        if (!isLeafNodeDefinition(node)) {
             topTreeStack.push(node);
         }
     };
@@ -708,7 +708,7 @@ function createConditionNode(
  * @returns The wait node JSON definition.
  */
 function createWaitNode(tokens: string[], stringLiteralPlaceholders: StringLiteralPlaceholders): WaitNodeDefinition {
-    let node = { type: "wait" } as WaitNodeDefinition;
+    const node = { type: "wait" } as WaitNodeDefinition;
 
     // Get the node arguments.
     const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
@@ -788,12 +788,12 @@ function createBranchNode(
  */
 function validatePoppedNode(definition: AnyNodeDefinition): void {
     // Decorators MUST have a child defined.
-    if (isDecoratorNode(definition) && isNullOrUndefined(definition.child)) {
+    if (isDecoratorNodeDefinition(definition) && isNullOrUndefined(definition.child)) {
         throw new Error(`a ${definition.type} node must have a single child node defined`);
     }
 
     // Composites MUST have at least one child defined.
-    if (isCompositeNode(definition) && !definition.children?.length) {
+    if (isCompositeNodeDefinition(definition) && !definition.children?.length) {
         throw new Error(`a ${definition.type} node must have at least a single child node defined`);
     }
 

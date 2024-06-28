@@ -28,11 +28,6 @@ export default abstract class Guard extends Attribute<GuardAttributeDetails> {
     getCondition = () => this.condition;
 
     /**
-     * Gets whether this attribute is a guard.
-     */
-    isGuard = () => true;
-
-    /**
      * Gets the attribute details.
      */
     getDetails(): GuardAttributeDetails {

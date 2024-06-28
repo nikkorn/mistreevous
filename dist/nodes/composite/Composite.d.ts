@@ -15,10 +15,6 @@ export default abstract class Composite extends Node {
      */
     constructor(type: string, attributes: Attribute[], options: BehaviourTreeOptions, children: Node[]);
     /**
-     * Gets whether this node is a leaf node.
-     */
-    isLeafNode: () => boolean;
-    /**
      * Gets the children of this node.
      */
     getChildren: () => Node[];

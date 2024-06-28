@@ -63,7 +63,7 @@ export default class Condition extends Leaf {
         }
 
         // Set the state of this node based on the result of calling the condition function.
-        this.setState(!!conditionFunctionResult ? State.SUCCEEDED : State.FAILED);
+        this.setState(conditionFunctionResult ? State.SUCCEEDED : State.FAILED);
     }
 
     /**

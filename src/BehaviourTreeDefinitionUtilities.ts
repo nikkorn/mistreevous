@@ -12,7 +12,7 @@ import {
  * @param node The node.
  * @returns A value of true if the specified node satisfies the RootNodeDefinition type.
  */
-export function isRootNode(node: NodeDefinition): node is RootNodeDefinition {
+export function isRootNodeDefinition(node: NodeDefinition): node is RootNodeDefinition {
     return node.type === "root";
 }
 
@@ -21,7 +21,7 @@ export function isRootNode(node: NodeDefinition): node is RootNodeDefinition {
  * @param node The node.
  * @returns A value of true if the specified node satisfies the BranchNodeDefinition type.
  */
-export function isBranchNode(node: NodeDefinition): node is BranchNodeDefinition {
+export function isBranchNodeDefinition(node: NodeDefinition): node is BranchNodeDefinition {
     return node.type === "branch";
 }
 
@@ -30,7 +30,7 @@ export function isBranchNode(node: NodeDefinition): node is BranchNodeDefinition
  * @param node The node.
  * @returns A value of true if the specified node satisfies the NodeDefinition type.
  */
-export function isLeafNode(node: NodeDefinition): node is NodeDefinition {
+export function isLeafNodeDefinition(node: NodeDefinition): node is NodeDefinition {
     return ["branch", "action", "condition", "wait"].includes(node.type);
 }
 
@@ -39,7 +39,7 @@ export function isLeafNode(node: NodeDefinition): node is NodeDefinition {
  * @param node The node.
  * @returns A value of true if the specified node satisfies the DecoratorNodeDefinition type.
  */
-export function isDecoratorNode(node: NodeDefinition): node is DecoratorNodeDefinition {
+export function isDecoratorNodeDefinition(node: NodeDefinition): node is DecoratorNodeDefinition {
     return ["root", "repeat", "retry", "flip", "succeed", "fail"].includes(node.type);
 }
 
@@ -48,7 +48,7 @@ export function isDecoratorNode(node: NodeDefinition): node is DecoratorNodeDefi
  * @param node The node.
  * @returns A value of true if the specified node satisfies the CompositeNodeDefinition type.
  */
-export function isCompositeNode(node: NodeDefinition): node is CompositeNodeDefinition {
+export function isCompositeNodeDefinition(node: NodeDefinition): node is CompositeNodeDefinition {
     return ["sequence", "selector", "lotto", "parallel", "race", "all"].includes(node.type);
 }
 
@@ -63,9 +63,9 @@ export function flattenDefinition(nodeDefinition: AnyNodeDefinition): AnyNodeDef
     const processNode = (currentNodeDefinition: AnyNodeDefinition) => {
         nodes.push(currentNodeDefinition);
 
-        if (isCompositeNode(currentNodeDefinition)) {
+        if (isCompositeNodeDefinition(currentNodeDefinition)) {
             currentNodeDefinition.children.forEach(processNode);
-        } else if (isDecoratorNode(currentNodeDefinition)) {
+        } else if (isDecoratorNodeDefinition(currentNodeDefinition)) {
             processNode(currentNodeDefinition.child);
         }
     };

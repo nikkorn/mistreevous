@@ -1,5 +1,5 @@
 import { RootNodeDefinition } from "./BehaviourTreeDefinition";
-import { flattenDefinition, isBranchNode, isInteger } from "./BehaviourTreeDefinitionUtilities";
+import { flattenDefinition, isBranchNodeDefinition, isInteger } from "./BehaviourTreeDefinitionUtilities";
 import { convertMDSLToJSON } from "./mdsl/MDSLDefinitionParser";
 
 /**
@@ -176,7 +176,7 @@ export function validateBranchSubtreeLinks(rootNodeDefinitions: RootNodeDefiniti
         (rootNodeDefinition) => ({
             id: rootNodeDefinition.id,
             refs: flattenDefinition(rootNodeDefinition)
-                .filter(isBranchNode)
+                .filter(isBranchNodeDefinition)
                 .map(({ ref }) => ref)
         })
     );

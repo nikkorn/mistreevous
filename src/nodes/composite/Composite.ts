@@ -19,11 +19,6 @@ export default abstract class Composite extends Node {
     }
 
     /**
-     * Gets whether this node is a leaf node.
-     */
-    isLeafNode = () => false;
-
-    /**
      * Gets the children of this node.
      */
     getChildren = () => this.children;

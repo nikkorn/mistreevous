@@ -4,31 +4,31 @@ import { NodeDefinition, RootNodeDefinition, DecoratorNodeDefinition, CompositeN
  * @param node The node.
  * @returns A value of true if the specified node satisfies the RootNodeDefinition type.
  */
-export declare function isRootNode(node: NodeDefinition): node is RootNodeDefinition;
+export declare function isRootNodeDefinition(node: NodeDefinition): node is RootNodeDefinition;
 /**
  * A type guard function that returns true if the specified node satisfies the BranchNodeDefinition type.
  * @param node The node.
  * @returns A value of true if the specified node satisfies the BranchNodeDefinition type.
  */
-export declare function isBranchNode(node: NodeDefinition): node is BranchNodeDefinition;
+export declare function isBranchNodeDefinition(node: NodeDefinition): node is BranchNodeDefinition;
 /**
  * A type guard function that returns true if the specified node satisfies the NodeDefinition type.
  * @param node The node.
  * @returns A value of true if the specified node satisfies the NodeDefinition type.
  */
-export declare function isLeafNode(node: NodeDefinition): node is NodeDefinition;
+export declare function isLeafNodeDefinition(node: NodeDefinition): node is NodeDefinition;
 /**
  * A type guard function that returns true if the specified node satisfies the DecoratorNodeDefinition type.
  * @param node The node.
  * @returns A value of true if the specified node satisfies the DecoratorNodeDefinition type.
  */
-export declare function isDecoratorNode(node: NodeDefinition): node is DecoratorNodeDefinition;
+export declare function isDecoratorNodeDefinition(node: NodeDefinition): node is DecoratorNodeDefinition;
 /**
  * A type guard function that returns true if the specified node satisfies the CompositeNodeDefinition type.
  * @param node The node.
  * @returns A value of true if the specified node satisfies the CompositeNodeDefinition type.
  */
-export declare function isCompositeNode(node: NodeDefinition): node is CompositeNodeDefinition;
+export declare function isCompositeNodeDefinition(node: NodeDefinition): node is CompositeNodeDefinition;
 /**
  * Flatten a node definition into an array of all of its nested node definitions.
  * @param nodeDefinition The node definition to flatten.
