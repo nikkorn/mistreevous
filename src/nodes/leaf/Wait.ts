@@ -6,7 +6,7 @@ import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 
 /**
  * A WAIT node.
- * The state of this node will change to SUCCEEDED after a duration of time
+ * The state of this node will change to SUCCEEDED after a duration of time.
  */
 export default class Wait extends Leaf {
     /**

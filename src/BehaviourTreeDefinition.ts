@@ -263,6 +263,16 @@ export interface FailNodeDefinition extends DecoratorNodeDefinition {
 }
 
 /**
+ * A timeout node.
+ */
+export interface TimeoutNodeDefinition extends DecoratorNodeDefinition {
+    /**
+     * The node type.
+     */
+    type: "timeout";
+}
+
+/**
  * A type defining any node definition.
  */
 export type AnyNodeDefinition =
@@ -281,7 +291,8 @@ export type AnyNodeDefinition =
     | RetryNodeDefinition
     | FlipNodeDefinition
     | SucceedNodeDefinition
-    | FailNodeDefinition;
+    | FailNodeDefinition
+    | TimeoutNodeDefinition;
 
 /**
  * A type defining any node type that can be a child of composite parent node.

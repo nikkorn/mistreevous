@@ -16,6 +16,7 @@ import {
     SelectorNodeDefinition,
     SequenceNodeDefinition,
     SucceedNodeDefinition,
+    TimeoutNodeDefinition,
     WaitNodeDefinition
 } from "../BehaviourTreeDefinition";
 import {
@@ -188,6 +189,11 @@ function convertTokensToJSONDefinition(
 
             case "RETRY": {
                 pushNode(createRetryNode(tokens, stringLiteralPlaceholders));
+                break;
+            }
+
+            case "TIMEOUT": {
+                pushNode(createTimeoutNode(tokens, stringLiteralPlaceholders));
                 break;
             }
 
@@ -479,6 +485,32 @@ function createRetryNode(tokens: string[], stringLiteralPlaceholders: StringLite
         }
     }
 
+    // Grab any node attribute definitions and spread them into the node definition.
+    node = { ...node, ...parseAttributeTokens(tokens, stringLiteralPlaceholders) };
+
+    // This is a decorator node, so we expect an opening '{'.
+    popAndCheck(tokens, "{");
+
+    // Return the retry node definition.
+    return node;
+}
+
+/**
+ * Creates a timeout node JSON definition.
+ * @param tokens The tree definition tokens.
+ * @param stringLiteralPlaceholders The substituted string literal placeholders.
+ * @returns The timeout node JSON definition.
+ */
+function createTimeoutNode(tokens: string[], stringLiteralPlaceholders: StringLiteralPlaceholders): TimeoutNodeDefinition {
+    let node = { type: "timeout" } as TimeoutNodeDefinition;
+
+    // Get the node arguments.
+    const nodeArguments = parseArgumentTokens(tokens, stringLiteralPlaceholders);
+
+
+    
+
+   
     // Grab any node attribute definitions and spread them into the node definition.
     node = { ...node, ...parseAttributeTokens(tokens, stringLiteralPlaceholders) };
 
