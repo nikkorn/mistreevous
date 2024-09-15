@@ -1,16 +1,15 @@
 import { BehaviourTreeOptions } from "../BehaviourTreeOptions";
 import State, { AnyState } from "../State";
 import { Agent } from "../Agent";
-import Leaf from "./leaf/Leaf";
-import Attribute from "../attributes/Attribute";
+import Attribute, { AttributeDetails } from "../attributes/Attribute";
 import Entry from "../attributes/callbacks/Entry";
 import Exit from "../attributes/callbacks/Exit";
 import Step from "../attributes/callbacks/Step";
 import While from "../attributes/guards/While";
 import Until from "../attributes/guards/Until";
+import Timeout from "../attributes/guards/Timeout";
 import GuardPath from "../attributes/guards/GuardPath";
 import GuardUnsatisifedException from "../attributes/guards/GuardUnsatisifedException";
-import { GuardAttributeDetails } from "../attributes/guards/Guard";
 import { CallbackAttributeDetails } from "../attributes/callbacks/Callback";
 import { createUid } from "../Utilities";
 
@@ -41,11 +40,11 @@ export type NodeDetails = {
     /**
      * The 'while' guard attribute configured for this node.
      */
-    while?: GuardAttributeDetails;
+    while?: AttributeDetails;
     /**
      * The 'until' guard attribute configured for this node.
      */
-    until?: GuardAttributeDetails;
+    until?: AttributeDetails;
     /**
      * The 'entry' callback attribute configured for this node.
      */
@@ -88,6 +87,10 @@ type Attributes = {
      * The 'until' guard attribute configured for this node.
      */
     until?: Until;
+    /**
+     * The 'timeout' guard attribute configured for this node.
+     */
+    timeout?: Timeout;
 };
 
 /**
@@ -280,6 +283,9 @@ export default abstract class Node {
      * @param previousState The previous node state.
      */
     protected onStateChanged(previousState: State): void {
+        this.attributes.while?.onNodeStateChange(this._state);
+        this.attributes.until?.onNodeStateChange(this._state);
+
         // We should call the onNodeStateChange callback if it was defined.
         this.options.onNodeStateChange?.({
             id: this.uid,

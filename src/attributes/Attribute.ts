@@ -1,11 +1,9 @@
-import Guard from "./guards/Guard";
-
+/**
+ * The details of a base node attribute.
+ */
 export type AttributeDetails = {
     /** The attribute type. */
     type: string;
-
-    /** The attribute arguments. */
-    args: any[];
 };
 
 /**
@@ -14,9 +12,8 @@ export type AttributeDetails = {
 export default abstract class Attribute<TAttributeDetails extends AttributeDetails = AttributeDetails> {
     /**
      * @param type The node attribute type.
-     * @param args The array of attribute arguments.
      */
-    constructor(public type: string, public args: any[]) {}
+    constructor(public type: string) {}
 
     /**
      * Gets the attribute details.

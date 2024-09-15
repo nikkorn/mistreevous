@@ -1,7 +1,7 @@
 import Node from "../../nodes/Node";
 
 /**
- * An exception thrown when evaluating node guard path conditions and a conditions fails.
+ * An exception thrown when evaluating node guard path conditions and a condition fails.
  */
 export default class GuardUnsatisifedException extends Error {
     /**
@@ -16,5 +16,7 @@ export default class GuardUnsatisifedException extends Error {
      * @param node The node to check against the source node.
      * @returns Whether the specified node is the node at which a guard condition failed.
      */
-    isSourceNode = (node: Node) => node === this.source;
+    isSourceNode(node: Node): boolean { 
+        return node === this.source;
+    }
 }

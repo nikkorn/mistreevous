@@ -1,42 +1,28 @@
 import { Agent } from "../../Agent";
+import State from "../../State";
 import Attribute, { AttributeDetails } from "../Attribute";
-
-/**
- * Details of a node guard attribute.
- */
-export type GuardAttributeDetails = {
-    /** The name of the condition function that determines whether the guard is satisfied. */
-    calls: string;
-} & AttributeDetails;
 
 /**
  * A base node guard attribute.
  */
-export default abstract class Guard extends Attribute<GuardAttributeDetails> {
+export default abstract class Guard<TAttributeDetails extends AttributeDetails = AttributeDetails> extends Attribute<TAttributeDetails> {
     /**
-     * @param type The node attribute type.
-     * @param args The array of decorator argument definitions.
-     * @param condition The name of the condition function that determines whether the guard is satisfied.
+     * @param type The guard node attribute type.
      */
-    constructor(type: string, args: any[], private condition: string) {
-        super(type, args);
+    constructor(type: string) {
+        super(type);
     }
 
     /**
-     * Gets the name of the condition function that determines whether the guard is satisfied.
+     * Called when the state of the guarded node changes.
+     * @param state The new node state.
      */
-    getCondition = () => this.condition;
+    onNodeStateChange(state: State): void { }
 
     /**
      * Gets the attribute details.
      */
-    getDetails(): GuardAttributeDetails {
-        return {
-            type: this.type,
-            args: this.args,
-            calls: this.getCondition()
-        };
-    }
+    abstract getDetails(): TAttributeDetails;
 
     /**
      * Gets whether the guard is satisfied.

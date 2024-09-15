@@ -7,6 +7,9 @@ import Attribute, { AttributeDetails } from "../Attribute";
 export type CallbackAttributeDetails = {
     /** The name of the agent function that is called. */
     calls: string;
+
+    /** The callback function arguments. */
+    args: any[];
 } & AttributeDetails;
 
 /**
@@ -15,11 +18,11 @@ export type CallbackAttributeDetails = {
 export default abstract class Callback extends Attribute<CallbackAttributeDetails> {
     /**
      * @param type The node attribute type.
-     * @param args The array of decorator argument definitions.
      * @param functionName The name of the agent function to call.
+     * @param args The array of callback function arguments.
      */
-    constructor(type: string, args: any[], private functionName: string) {
-        super(type, args);
+    constructor(type: string, private functionName: string, private args: any[]) {
+        super(type);
     }
 
     /**
@@ -42,5 +45,5 @@ export default abstract class Callback extends Attribute<CallbackAttributeDetail
      * Attempt to call the agent function that this callback refers to.
      * @param agent The agent.
      */
-    abstract callAgentFunction: (agent: Agent, isSuccess: boolean, isAborted: boolean) => void;
+    abstract callAgentFunction(agent: Agent, isSuccess: boolean, isAborted: boolean): void;
 }
