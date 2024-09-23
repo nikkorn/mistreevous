@@ -1,7 +1,21 @@
 /**
- * A type defining an object that holds a reference to substitued string literals parsed from the definition.
+ * A type defining an object that holds a reference to substituted string literals parsed from the definition.
  */
 export type StringLiteralPlaceholders = { [key: string]: string };
+
+/**
+ * An object representing the result of tokenising an MDSL definition.
+ */
+export type TokeniseResult = {
+    /**
+     * The array of tokens parsed from the definition.
+     */
+    tokens: string[];
+    /*
+     * An object that holds a reference to substituted string literals parsed from the definition.
+     */
+    placeholders: StringLiteralPlaceholders;
+};
 
 /**
  * Pop the next raw token from the specified array of tokens and throw an error if it wasn't the expected one.
@@ -38,11 +52,40 @@ export function popAndCheck(tokens: string[], expected?: string | string[]): str
 }
 
 /**
+ * Parse the MDSL definition into an array of raw tokens.
+ * @param definition The MDSL definition.
+ * @returns An object representing the result of tokenising the MDSL definition.
+ */
+export function tokenise(definition: string): TokeniseResult {
+    // Clean the definition by removing any comments.
+    definition = definition.replace(/\/\*(.|\n)+?\*\//g, "");
+
+    // Swap out any node/attribute argument string literals with a placeholder and get a mapping of placeholders to original values as well as the processed definition.
+    const { placeholders, processedDefinition } = substituteStringLiterals(definition);
+
+    // Add some space around various important characters so that they can be plucked out easier as individual tokens.
+    definition = processedDefinition.replace(/\(/g, " ( ");
+    definition = definition.replace(/\)/g, " ) ");
+    definition = definition.replace(/\{/g, " { ");
+    definition = definition.replace(/\}/g, " } ");
+    definition = definition.replace(/\]/g, " ] ");
+    definition = definition.replace(/\[/g, " [ ");
+    definition = definition.replace(/,/g, " , ");
+
+    return {
+        // Split the definition into raw token form.
+        tokens: definition.replace(/\s+/g, " ").trim().split(" "),
+        // The placeholders for string literals that were found in the definition.
+        placeholders
+    };
+}
+
+/**
  * Swaps out any node/attribute argument string literals with placeholders.
  * @param definition The definition.
  * @returns An object containing a mapping of placeholders to original string values as well as the processed definition string.
  */
-export function substituteStringLiterals(definition: string): {
+function substituteStringLiterals(definition: string): {
     placeholders: StringLiteralPlaceholders;
     processedDefinition: string;
 } {
@@ -64,23 +107,4 @@ export function substituteStringLiterals(definition: string): {
     });
 
     return { placeholders, processedDefinition };
-}
-
-/**
- * Parse the tree definition into an array of raw tokens.
- * @param definition The definition.
- * @returns An array of tokens parsed from the definition.
- */
-export function parseTokensFromDefinition(definition: string): string[] {
-    // Add some space around various important characters so that they can be plucked out easier as individual tokens.
-    definition = definition.replace(/\(/g, " ( ");
-    definition = definition.replace(/\)/g, " ) ");
-    definition = definition.replace(/\{/g, " { ");
-    definition = definition.replace(/\}/g, " } ");
-    definition = definition.replace(/\]/g, " ] ");
-    definition = definition.replace(/\[/g, " [ ");
-    definition = definition.replace(/,/g, " , ");
-
-    // Split the definition into raw token form and return it.
-    return definition.replace(/\s+/g, " ").trim().split(" ");
 }

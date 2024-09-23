@@ -1,8 +1,18 @@
 /**
- * A type defining an object that holds a reference to substitued string literals parsed from the definition.
+ * A type defining an object that holds a reference to substituted string literals parsed from the definition.
  */
 export type StringLiteralPlaceholders = {
     [key: string]: string;
+};
+/**
+ * An object representing the result of tokenising an MDSL definition.
+ */
+export type TokeniseResult = {
+    /**
+     * The array of tokens parsed from the definition.
+     */
+    tokens: string[];
+    placeholders: StringLiteralPlaceholders;
 };
 /**
  * Pop the next raw token from the specified array of tokens and throw an error if it wasn't the expected one.
@@ -12,17 +22,8 @@ export type StringLiteralPlaceholders = {
  */
 export declare function popAndCheck(tokens: string[], expected?: string | string[]): string;
 /**
- * Swaps out any node/attribute argument string literals with placeholders.
- * @param definition The definition.
- * @returns An object containing a mapping of placeholders to original string values as well as the processed definition string.
+ * Parse the MDSL definition into an array of raw tokens.
+ * @param definition The MDSL definition.
+ * @returns An object representing the result of tokenising the MDSL definition.
  */
-export declare function substituteStringLiterals(definition: string): {
-    placeholders: StringLiteralPlaceholders;
-    processedDefinition: string;
-};
-/**
- * Parse the tree definition into an array of raw tokens.
- * @param definition The definition.
- * @returns An array of tokens parsed from the definition.
- */
-export declare function parseTokensFromDefinition(definition: string): string[];
+export declare function tokenise(definition: string): TokeniseResult;

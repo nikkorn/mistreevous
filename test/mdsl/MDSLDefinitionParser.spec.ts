@@ -201,4 +201,140 @@ describe("The MDSLDefinitionParser class has a convertMDSLToJSON function which 
 
         assert.deepEqual(convertMDSLToJSON(mdslDefinition), expectedOutputDefintion);
     });
+
+    it("handles single and multi line comments", () => {
+        const mdslDefinition = `
+            /* This is the root */
+            root {
+                /* Run this selector while we are hungry */
+                selector while(IsHungry) {
+                    /* Order pizza if we can afford it */
+                    sequence {
+                        /* $15 sounds reasonable for a pizza */
+                        condition [HasDollars, 15]
+                        action [OrderFood, "Pizza"] entry(PlayMusic, "pizza-song")
+                    }
+                    /* We can't afford pizza, but can we make "Surf 'n' Turf"? */
+                    sequence {
+                        condition [HasIngredient, "Steak"]
+                        condition [HasIngredient, "Lobster"]
+                        action [CookFood, "Surf 'n' Turf" /* I'm pretty sure this is how it is spelled */]
+                    }
+                    /* We couldn't make "Surf 'n' Turf" :( Can we make some eggs? */
+                    sequence {
+                        condition [HasIngredient, "Egg"]
+                        branch [CookEggs]
+                    }
+                    /* 
+                        We are running out of options. 
+                        We would settle for some gruel at this point! 
+                    */
+                    sequence {
+                        condition [HasIngredient, "Oats"]
+                        action [CookFood, "Gruel"]
+                    }
+                    /*Oh no we starved!*/
+                    action [Starve] entry(OnStarveEntry) /* Do a thing before we start starving */ exit(OnStarveExit) /* Do a thing after we finish starving */
+                }
+            }
+        `;
+
+        const expectedOutputDefintion: RootNodeDefinition[] = [
+            {
+                type: "root",
+                child: {
+                    type: "selector",
+                    while: {
+                        call: "IsHungry",
+                        args: []
+                    },
+                    children: [
+                        {
+                            type: "sequence",
+                            children: [
+                                {
+                                    type: "condition",
+                                    call: "HasDollars",
+                                    args: [15]
+                                },
+                                {
+                                    type: "action",
+                                    call: "OrderFood",
+                                    args: ["Pizza"],
+                                    entry: {
+                                        call: "PlayMusic",
+                                        args: ["pizza-song"]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            type: "sequence",
+                            children: [
+                                {
+                                    type: "condition",
+                                    call: "HasIngredient",
+                                    args: ["Steak"]
+                                },
+                                {
+                                    type: "condition",
+                                    call: "HasIngredient",
+                                    args: ["Lobster"]
+                                },
+                                {
+                                    type: "action",
+                                    call: "CookFood",
+                                    args: ["Surf 'n' Turf"]
+                                }
+                            ]
+                        },
+                        {
+                            type: "sequence",
+                            children: [
+                                {
+                                    type: "condition",
+                                    call: "HasIngredient",
+                                    args: ["Egg"]
+                                },
+                                {
+                                    type: "branch",
+                                    ref: "CookEggs"
+                                }
+                            ]
+                        },
+                        {
+                            type: "sequence",
+                            children: [
+                                {
+                                    type: "condition",
+                                    call: "HasIngredient",
+                                    args: ["Oats"]
+                                },
+                                {
+                                    type: "action",
+                                    call: "CookFood",
+                                    args: ["Gruel"]
+                                }
+                            ]
+                        },
+                        {
+                            type: "action",
+                            call: "Starve",
+                            args: [],
+                            entry: {
+                                call: "OnStarveEntry",
+                                args: []
+                            },
+                            exit: {
+                                call: "OnStarveExit",
+                                args: []
+                            }
+                        }
+                    ]
+                }
+            }
+        ];
+
+        assert.deepEqual(convertMDSLToJSON(mdslDefinition), expectedOutputDefintion);
+    });
 });
