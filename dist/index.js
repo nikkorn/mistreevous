@@ -1902,8 +1902,8 @@ var Action = class extends Leaf {
       if (!this.updatePromiseResult) {
         return;
       }
-      const { isResolved, value } = this.updatePromiseResult;
-      if (isResolved) {
+      if (this.updatePromiseResult.isResolved) {
+        const { value } = this.updatePromiseResult;
         if (value !== "mistreevous.succeeded" /* SUCCEEDED */ && value !== "mistreevous.failed" /* FAILED */) {
           throw new Error(
             "action node promise resolved with an invalid value, expected a State.SUCCEEDED or State.FAILED value to be returned"
@@ -1912,7 +1912,10 @@ var Action = class extends Leaf {
         this.setState(value);
         return;
       } else {
-        throw new Error(`action function '${this.actionName}' promise rejected with '${value}'`);
+        const { reason } = this.updatePromiseResult;
+        throw new Error(`action function '${this.actionName}' promise rejected with '${reason}'`, {
+          cause: reason
+        });
       }
     }
     const actionFuncInvoker = Lookup.getFuncInvoker(agent, this.actionName);
@@ -1925,21 +1928,17 @@ var Action = class extends Leaf {
     try {
       actionFunctionResult = actionFuncInvoker(this.actionArguments);
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`action function '${this.actionName}' threw: ${error.stack}`);
-      } else {
-        throw new Error(`action function '${this.actionName}' threw: ${error}`);
-      }
+      throw new Error(`action function '${this.actionName}' threw '${error}'`, { cause: error });
     }
     if (actionFunctionResult instanceof Promise) {
       actionFunctionResult.then(
-        (result) => {
+        (value) => {
           if (!this.isUsingUpdatePromise) {
             return;
           }
           this.updatePromiseResult = {
             isResolved: true,
-            value: result
+            value
           };
         },
         (reason) => {
@@ -1948,7 +1947,7 @@ var Action = class extends Leaf {
           }
           this.updatePromiseResult = {
             isResolved: false,
-            value: reason
+            reason
           };
         }
       );

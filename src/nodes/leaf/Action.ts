@@ -2,24 +2,9 @@ import { BehaviourTreeOptions } from "../../BehaviourTreeOptions";
 import { NodeDetails } from "../Node";
 import State, { CompleteState } from "../../State";
 import { Agent } from "../../Agent";
-import Leaf from "./Leaf";
+import Leaf, { AsyncUpdatePromiseResult } from "./Leaf";
 import Lookup from "../../Lookup";
 import Attribute from "../../attributes/Attribute";
-
-/**
- * The type representing a resolved/rejected update promise.
- */
-type UpdatePromiseResult = {
-    /**
-     * Whether the promise was resolved rather than rejected.
-     */
-    isResolved: boolean;
-
-    /**
-     * The promise resolved value or rejection reason.
-     */
-    value: any;
-};
 
 /**
  * An Action leaf node.
@@ -49,7 +34,7 @@ export default class Action extends Leaf {
     /**
      * The finished state result of an update promise.
      */
-    private updatePromiseResult: UpdatePromiseResult | null = null;
+    private updatePromiseResult: AsyncUpdatePromiseResult | null = null;
 
     /**
      * Called when the node is being updated.
@@ -63,10 +48,10 @@ export default class Action extends Leaf {
                 return;
             }
 
-            const { isResolved, value } = this.updatePromiseResult;
-
             // Our update promise settled, was it resolved or rejected?
-            if (isResolved) {
+            if (this.updatePromiseResult.isResolved) {
+                const { value } = this.updatePromiseResult;
+
                 // Our promise resolved so check to make sure the result is a valid finished state.
                 if (value !== State.SUCCEEDED && value !== State.FAILED) {
                     throw new Error(
@@ -79,8 +64,12 @@ export default class Action extends Leaf {
 
                 return;
             } else {
+                const { reason } = this.updatePromiseResult;
+
                 // The promise was rejected, which isn't great.
-                throw new Error(`action function '${this.actionName}' promise rejected with '${value}'`);
+                throw new Error(`action function '${this.actionName}' promise rejected with '${reason}'`, {
+                    cause: reason
+                });
             }
         }
 
@@ -104,16 +93,12 @@ export default class Action extends Leaf {
             actionFunctionResult = actionFuncInvoker(this.actionArguments) as CompleteState | Promise<CompleteState>;
         } catch (error) {
             // An uncaught error was thrown.
-            if (error instanceof Error) {
-                throw new Error(`action function '${this.actionName}' threw: ${error.stack}`);
-            } else {
-                throw new Error(`action function '${this.actionName}' threw: ${error}`);
-            }
+            throw new Error(`action function '${this.actionName}' threw '${error}'`, { cause: error });
         }
 
         if (actionFunctionResult instanceof Promise) {
             actionFunctionResult.then(
-                (result) => {
+                (value) => {
                     // If 'isUpdatePromisePending' is not set then the promise was cleared as it was resolving, probably via an abort of reset.
                     if (!this.isUsingUpdatePromise) {
                         return;
@@ -122,7 +107,7 @@ export default class Action extends Leaf {
                     // Set the resolved update promise result so that it can be handled on the next update of this node.
                     this.updatePromiseResult = {
                         isResolved: true,
-                        value: result
+                        value
                     };
                 },
                 (reason) => {
@@ -134,7 +119,7 @@ export default class Action extends Leaf {
                     // Set the rejected update promise result so that it can be handled on the next update of this node.
                     this.updatePromiseResult = {
                         isResolved: false,
-                        value: reason
+                        reason
                     };
                 }
             );

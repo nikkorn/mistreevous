@@ -141,7 +141,7 @@ describe("An Action node", () => {
                 });
 
                 describe("the action function", () => {
-                    describe("throws an error object", () => {
+                    describe("throws an error", () => {
                         it("(MDSL)", () => {
                             const definition = "root { action [doAction] }";
                             const agent = {
@@ -154,7 +154,7 @@ describe("An Action node", () => {
                             assert.throws(
                                 () => tree.step(),
                                 Error,
-                                "error stepping tree: action function 'doAction' threw: Error: some-error"
+                                "error stepping tree: action function 'doAction' threw 'Error: some-error'"
                             );
                         });
 
@@ -176,12 +176,12 @@ describe("An Action node", () => {
                             assert.throws(
                                 () => tree.step(),
                                 Error,
-                                "error stepping tree: action function 'doAction' threw: Error: some-error"
+                                "error stepping tree: action function 'doAction' threw 'Error: some-error'"
                             );
                         });
                     });
 
-                    describe("throws something that isn't an error object", () => {
+                    describe("throws something that isn't an error", () => {
                         it("(MDSL)", () => {
                             const definition = "root { action [doAction] }";
                             const agent = {
@@ -194,7 +194,7 @@ describe("An Action node", () => {
                             assert.throws(
                                 () => tree.step(),
                                 Error,
-                                "error stepping tree: action function 'doAction' threw: some-error"
+                                "error stepping tree: action function 'doAction' threw 'some-error'"
                             );
                         });
 
@@ -216,7 +216,7 @@ describe("An Action node", () => {
                             assert.throws(
                                 () => tree.step(),
                                 Error,
-                                "error stepping tree: action function 'doAction' threw: some-error"
+                                "error stepping tree: action function 'doAction' threw 'some-error'"
                             );
                         });
                     });
@@ -257,61 +257,119 @@ describe("An Action node", () => {
                         });
                     });
 
-                    describe("returns a rejected promise", () => {
-                        it("(MDSL)", (done) => {
-                            const definition = "root { action [doAction] }";
-                            const result: Promise<State.SUCCEEDED> = new Promise(() => {
-                                throw new Error("some-error");
+                    describe("returns a rejected promise with a reason that is", () => {
+                        describe("an error", () => {
+                            it("(MDSL)", (done) => {
+                                const definition = "root { action [doAction] }";
+                                const result: Promise<State.SUCCEEDED> = new Promise(() => {
+                                    throw new Error("some-error");
+                                });
+                                const agent = { doAction: () => result };
+                                const tree = new BehaviourTree(definition, agent);
+
+                                assert.strictEqual(findNode(tree, "action", "doAction").state, State.READY);
+
+                                tree.step();
+
+                                assert.strictEqual(findNode(tree, "action", "doAction").state, State.RUNNING);
+
+                                setTimeout(() => {
+                                    assert.throws(
+                                        () => tree.step(),
+                                        Error,
+                                        "error stepping tree: action function 'doAction' promise rejected with 'Error: some-error'"
+                                    );
+
+                                    done();
+                                }, 0);
                             });
-                            const agent = { doAction: () => result };
-                            const tree = new BehaviourTree(definition, agent);
 
-                            assert.strictEqual(findNode(tree, "action", "doAction").state, State.READY);
+                            it("(JSON)", (done) => {
+                                const definition: RootNodeDefinition = {
+                                    type: "root",
+                                    child: {
+                                        type: "action",
+                                        call: "doAction"
+                                    }
+                                };
+                                const result: Promise<State.SUCCEEDED> = new Promise(() => {
+                                    throw new Error("some-error");
+                                });
+                                const agent = { doAction: () => result };
+                                const tree = new BehaviourTree(definition, agent);
 
-                            tree.step();
+                                assert.strictEqual(findNode(tree, "action", "doAction").state, State.READY);
 
-                            assert.strictEqual(findNode(tree, "action", "doAction").state, State.RUNNING);
+                                tree.step();
 
-                            setTimeout(() => {
-                                assert.throws(
-                                    () => tree.step(),
-                                    Error,
-                                    "error stepping tree: action function 'doAction' promise rejected with 'Error: some-error'"
-                                );
+                                assert.strictEqual(findNode(tree, "action", "doAction").state, State.RUNNING);
 
-                                done();
-                            }, 0);
+                                setTimeout(() => {
+                                    assert.throws(
+                                        () => tree.step(),
+                                        Error,
+                                        "error stepping tree: action function 'doAction' promise rejected with 'Error: some-error'"
+                                    );
+
+                                    done();
+                                }, 0);
+                            });
                         });
 
-                        it("(JSON)", (done) => {
-                            const definition: RootNodeDefinition = {
-                                type: "root",
-                                child: {
-                                    type: "action",
-                                    call: "doAction"
-                                }
-                            };
-                            const result: Promise<State.SUCCEEDED> = new Promise(() => {
-                                throw new Error("some-error");
+                        describe("not an error", () => {
+                            it("(MDSL)", (done) => {
+                                const definition = "root { action [doAction] }";
+                                const result: Promise<State.SUCCEEDED> = new Promise(() => {
+                                    throw "some-reason";
+                                });
+                                const agent = { doAction: () => result };
+                                const tree = new BehaviourTree(definition, agent);
+
+                                assert.strictEqual(findNode(tree, "action", "doAction").state, State.READY);
+
+                                tree.step();
+
+                                assert.strictEqual(findNode(tree, "action", "doAction").state, State.RUNNING);
+
+                                setTimeout(() => {
+                                    assert.throws(
+                                        () => tree.step(),
+                                        "error stepping tree: action function 'doAction' promise rejected with 'some-reason'"
+                                    );
+
+                                    done();
+                                }, 0);
                             });
-                            const agent = { doAction: () => result };
-                            const tree = new BehaviourTree(definition, agent);
 
-                            assert.strictEqual(findNode(tree, "action", "doAction").state, State.READY);
+                            it("(JSON)", (done) => {
+                                const definition: RootNodeDefinition = {
+                                    type: "root",
+                                    child: {
+                                        type: "action",
+                                        call: "doAction"
+                                    }
+                                };
+                                const result: Promise<State.SUCCEEDED> = new Promise(() => {
+                                    throw "some-reason";
+                                });
+                                const agent = { doAction: () => result };
+                                const tree = new BehaviourTree(definition, agent);
 
-                            tree.step();
+                                assert.strictEqual(findNode(tree, "action", "doAction").state, State.READY);
 
-                            assert.strictEqual(findNode(tree, "action", "doAction").state, State.RUNNING);
+                                tree.step();
 
-                            setTimeout(() => {
-                                assert.throws(
-                                    () => tree.step(),
-                                    Error,
-                                    "error stepping tree: action function 'doAction' promise rejected with 'Error: some-error'"
-                                );
+                                assert.strictEqual(findNode(tree, "action", "doAction").state, State.RUNNING);
 
-                                done();
-                            }, 0);
+                                setTimeout(() => {
+                                    assert.throws(
+                                        () => tree.step(),
+                                        "error stepping tree: action function 'doAction' promise rejected with 'some-reason'"
+                                    );
+
+                                    done();
+                                }, 0);
+                            });
                         });
                     });
                 });
