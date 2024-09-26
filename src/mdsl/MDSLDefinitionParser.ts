@@ -27,12 +27,7 @@ import {
 } from "../BehaviourTreeDefinitionUtilities";
 import { parseArgumentTokens } from "./MDSLNodeArgumentParser";
 import { parseAttributeTokens } from "./MDSLNodeAttributeParser";
-import {
-    StringLiteralPlaceholders,
-    parseTokensFromDefinition,
-    popAndCheck,
-    substituteStringLiterals
-} from "./MDSLUtilities";
+import { StringLiteralPlaceholders, tokenise, popAndCheck } from "./MDSLUtilities";
 
 /**
  * Convert the MDSL tree definition string into an equivalent JSON definition.
@@ -40,12 +35,10 @@ import {
  * @returns The root node JSON definitions.
  */
 export function convertMDSLToJSON(definition: string): RootNodeDefinition[] {
-    // Swap out any node/attribute argument string literals with a placeholder and get a mapping of placeholders to original values as well as the processed definition.
-    const { placeholders, processedDefinition } = substituteStringLiterals(definition);
+    // Parse our definition string into a bunch of tokens.
+    const { tokens, placeholders } = tokenise(definition);
 
-    // Parse our definition definition string into an array of raw tokens.
-    const tokens = parseTokensFromDefinition(processedDefinition);
-
+    // Convert the tokens that we parsed from the MDSL definition into JSON and return it.
     return convertTokensToJSONDefinition(tokens, placeholders);
 }
 

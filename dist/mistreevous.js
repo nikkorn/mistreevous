@@ -355,6 +355,21 @@ var mistreevous = (() => {
     }
     return popped;
   }
+  function tokenise(definition) {
+    definition = definition.replace(/\/\*(.|\n)+?\*\//g, "");
+    const { placeholders, processedDefinition } = substituteStringLiterals(definition);
+    definition = processedDefinition.replace(/\(/g, " ( ");
+    definition = definition.replace(/\)/g, " ) ");
+    definition = definition.replace(/\{/g, " { ");
+    definition = definition.replace(/\}/g, " } ");
+    definition = definition.replace(/\]/g, " ] ");
+    definition = definition.replace(/\[/g, " [ ");
+    definition = definition.replace(/,/g, " , ");
+    return {
+      tokens: definition.replace(/\s+/g, " ").trim().split(" "),
+      placeholders
+    };
+  }
   function substituteStringLiterals(definition) {
     const placeholders = {};
     const processedDefinition = definition.replace(/"(\\.|[^"\\])*"/g, (match) => {
@@ -367,16 +382,6 @@ var mistreevous = (() => {
       return placeholder;
     });
     return { placeholders, processedDefinition };
-  }
-  function parseTokensFromDefinition(definition) {
-    definition = definition.replace(/\(/g, " ( ");
-    definition = definition.replace(/\)/g, " ) ");
-    definition = definition.replace(/\{/g, " { ");
-    definition = definition.replace(/\}/g, " } ");
-    definition = definition.replace(/\]/g, " ] ");
-    definition = definition.replace(/\[/g, " [ ");
-    definition = definition.replace(/,/g, " , ");
-    return definition.replace(/\s+/g, " ").trim().split(" ");
   }
 
   // src/mdsl/MDSLNodeArgumentParser.ts
@@ -469,8 +474,7 @@ var mistreevous = (() => {
 
   // src/mdsl/MDSLDefinitionParser.ts
   function convertMDSLToJSON(definition) {
-    const { placeholders, processedDefinition } = substituteStringLiterals(definition);
-    const tokens = parseTokensFromDefinition(processedDefinition);
+    const { tokens, placeholders } = tokenise(definition);
     return convertTokensToJSONDefinition(tokens, placeholders);
   }
   function convertTokensToJSONDefinition(tokens, stringLiteralPlaceholders) {
