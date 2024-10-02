@@ -1431,6 +1431,7 @@ A practical look at behaviour trees and a good example of modelling behaviour fo
 ## Version History
 | Version        | Notes |
 | -------------- |:----------------------------------------------------------------------------------------|
+| 4.2.0          | Added support for single and multi line comments in MDSL using /* ... */ syntax |
 | 4.1.1          | Added linter and updated dependencies |
 | 4.1.0          | Added Race and All node types |
 |                | Added onNodeStateChange callback to behaviour tree options | 
