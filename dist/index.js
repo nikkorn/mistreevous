@@ -356,7 +356,7 @@ function popAndCheck(tokens, expected) {
   return popped;
 }
 function tokenise(definition) {
-  definition = definition.replace(/\/\*(.|\n)+?\*\//g, "");
+  definition = definition.replace(/\/\*(.|\n)*?\*\//g, "");
   const { placeholders, processedDefinition } = substituteStringLiterals(definition);
   definition = processedDefinition.replace(/\(/g, " ( ");
   definition = definition.replace(/\)/g, " ) ");
