@@ -58,7 +58,7 @@ export function popAndCheck(tokens: string[], expected?: string | string[]): str
  */
 export function tokenise(definition: string): TokeniseResult {
     // Clean the definition by removing any comments.
-    definition = definition.replace(/\/\*(.|\n)+?\*\//g, "");
+    definition = definition.replace(/\/\*(.|\n)*?\*\//g, "");
 
     // Swap out any node/attribute argument string literals with a placeholder and get a mapping of placeholders to original values as well as the processed definition.
     const { placeholders, processedDefinition } = substituteStringLiterals(definition);
