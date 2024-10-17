@@ -458,14 +458,9 @@ function parseAttributeTokens(tokens, stringArgumentPlaceholders) {
     if (attributeCallIdentifier?.type !== "identifier") {
       throw new Error("expected agent function or registered function name identifier argument for attribute");
     }
-    attributeArguments.filter((arg) => arg.type === "identifier").forEach((arg) => {
-      throw new Error(
-        `invalid attribute argument value '${arg.value}', must be string, number, boolean or null`
-      );
-    });
     attributes[nextAttributeName] = {
       call: attributeCallIdentifier.value,
-      args: attributeArguments.map(({ value }) => value)
+      args: attributeArguments
     };
     nextAttributeName = tokens[0]?.toLowerCase();
   }
@@ -765,15 +760,10 @@ function createActionNode(tokens, stringLiteralPlaceholders) {
   if (actionNameIdentifier?.type !== "identifier") {
     throw new Error("expected action name identifier argument");
   }
-  agentFunctionArgs.filter((arg) => arg.type === "identifier").forEach((arg) => {
-    throw new Error(
-      `invalid action node argument value '${arg.value}', must be string, number, boolean or null`
-    );
-  });
   return {
     type: "action",
     call: actionNameIdentifier.value,
-    args: agentFunctionArgs.map(({ value }) => value),
+    args: agentFunctionArgs,
     ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
   };
 }
@@ -782,15 +772,10 @@ function createConditionNode(tokens, stringLiteralPlaceholders) {
   if (conditionNameIdentifier?.type !== "identifier") {
     throw new Error("expected condition name identifier argument");
   }
-  agentFunctionArgs.filter((arg) => arg.type === "identifier").forEach((arg) => {
-    throw new Error(
-      `invalid condition node argument value '${arg.value}', must be string, number, boolean or null`
-    );
-  });
   return {
     type: "condition",
     call: conditionNameIdentifier.value,
-    args: agentFunctionArgs.map(({ value }) => value),
+    args: agentFunctionArgs,
     ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
   };
 }

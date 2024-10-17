@@ -1,16 +1,30 @@
-import { NodeAttributeDefinition } from "../BehaviourTreeDefinition";
-import { parseArgumentTokens } from "./MDSLNodeArgumentParser";
 import { StringLiteralPlaceholders } from "./MDSLUtilities";
+import { AnyArgument } from "./MDSLArguments";
+import { parseArgumentTokens } from "./MDSLNodeArgumentParser";
+
+/**
+ * A type defining any attribute definition of a node.
+ */
+export interface NodeAttribute {
+    /**
+     * The name of the agent function or globally registered function to invoke.
+     */
+    call: string;
+    /**
+     * An array of arguments to pass when invoking the agent function.
+     */
+    args?: AnyArgument[];
+}
 
 /**
  * A type defining the attribute definitions of a node.
  */
 type NodeAttributes = {
-    while?: NodeAttributeDefinition;
-    until?: NodeAttributeDefinition;
-    entry?: NodeAttributeDefinition;
-    exit?: NodeAttributeDefinition;
-    step?: NodeAttributeDefinition;
+    while?: NodeAttribute;
+    until?: NodeAttribute;
+    entry?: NodeAttribute;
+    exit?: NodeAttribute;
+    step?: NodeAttribute;
 };
 
 /**
@@ -52,19 +66,10 @@ export function parseAttributeTokens(
             throw new Error("expected agent function or registered function name identifier argument for attribute");
         }
 
-        // Any attribute arguments (other than the expected call identifier) must have a type of string, number, boolean or null.
-        attributeArguments
-            .filter((arg) => arg.type === "identifier")
-            .forEach((arg) => {
-                throw new Error(
-                    `invalid attribute argument value '${arg.value}', must be string, number, boolean or null`
-                );
-            });
-
         // Create the attribute definition and add it to the object of attribute definitions found.
         attributes[nextAttributeName] = {
             call: attributeCallIdentifier.value,
-            args: attributeArguments.map(({ value }) => value)
+            args: attributeArguments
         };
 
         // Try to get the next attribute name token, as there could be multiple.
