@@ -25,6 +25,7 @@ import {
     isNullOrUndefined,
     isRootNodeDefinition
 } from "../BehaviourTreeDefinitionUtilities";
+import { getArgumentJsonValue } from "./MDSLArguments";
 import { parseArgumentTokens } from "./MDSLNodeArgumentParser";
 import { parseAttributeTokens } from "./MDSLNodeAttributeParser";
 import { StringLiteralPlaceholders, tokenise, popAndCheck } from "./MDSLUtilities";
@@ -643,7 +644,7 @@ function createActionNode(
     return {
         type: "action",
         call: actionNameIdentifier.value,
-        args: agentFunctionArgs,
+        args: agentFunctionArgs.map(getArgumentJsonValue),
         ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
     };
 }
@@ -671,7 +672,7 @@ function createConditionNode(
     return {
         type: "condition",
         call: conditionNameIdentifier.value,
-        args: agentFunctionArgs,
+        args: agentFunctionArgs.map(getArgumentJsonValue),
         ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
     };
 }

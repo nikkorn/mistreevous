@@ -1,30 +1,17 @@
-import { StringLiteralPlaceholders } from "./MDSLUtilities";
-import { AnyArgument } from "./MDSLArguments";
+import { NodeAttributeDefinition } from "../BehaviourTreeDefinition";
+import { getArgumentJsonValue } from "./MDSLArguments";
 import { parseArgumentTokens } from "./MDSLNodeArgumentParser";
-
-/**
- * A type defining any attribute definition of a node.
- */
-export interface NodeAttribute {
-    /**
-     * The name of the agent function or globally registered function to invoke.
-     */
-    call: string;
-    /**
-     * An array of arguments to pass when invoking the agent function.
-     */
-    args?: AnyArgument[];
-}
+import { StringLiteralPlaceholders } from "./MDSLUtilities";
 
 /**
  * A type defining the attribute definitions of a node.
  */
 type NodeAttributes = {
-    while?: NodeAttribute;
-    until?: NodeAttribute;
-    entry?: NodeAttribute;
-    exit?: NodeAttribute;
-    step?: NodeAttribute;
+    while?: NodeAttributeDefinition;
+    until?: NodeAttributeDefinition;
+    entry?: NodeAttributeDefinition;
+    exit?: NodeAttributeDefinition;
+    step?: NodeAttributeDefinition;
 };
 
 /**
@@ -69,7 +56,7 @@ export function parseAttributeTokens(
         // Create the attribute definition and add it to the object of attribute definitions found.
         attributes[nextAttributeName] = {
             call: attributeCallIdentifier.value,
-            args: attributeArguments
+            args: attributeArguments.map(getArgumentJsonValue)
         };
 
         // Try to get the next attribute name token, as there could be multiple.
