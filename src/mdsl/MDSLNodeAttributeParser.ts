@@ -61,6 +61,8 @@ export function parseAttributeTokens(
                 );
             });
 
+        // TODO Check for the token 'then' followed by 'succeed' or 'fail'.
+
         // Create the attribute definition and add it to the object of attribute definitions found.
         attributes[nextAttributeName] = {
             call: attributeCallIdentifier.value,
