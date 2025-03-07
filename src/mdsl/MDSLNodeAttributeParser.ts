@@ -1,4 +1,5 @@
 import { NodeAttributeDefinition } from "../BehaviourTreeDefinition";
+import { getArgumentJsonValue } from "./MDSLArguments";
 import { parseArgumentTokens } from "./MDSLNodeArgumentParser";
 import { StringLiteralPlaceholders } from "./MDSLUtilities";
 
@@ -52,19 +53,10 @@ export function parseAttributeTokens(
             throw new Error("expected agent function or registered function name identifier argument for attribute");
         }
 
-        // Any attribute arguments (other than the expected call identifier) must have a type of string, number, boolean or null.
-        attributeArguments
-            .filter((arg) => arg.type === "identifier")
-            .forEach((arg) => {
-                throw new Error(
-                    `invalid attribute argument value '${arg.value}', must be string, number, boolean or null`
-                );
-            });
-
         // Create the attribute definition and add it to the object of attribute definitions found.
         attributes[nextAttributeName] = {
             call: attributeCallIdentifier.value,
-            args: attributeArguments.map(({ value }) => value)
+            args: attributeArguments.map(getArgumentJsonValue)
         };
 
         // Try to get the next attribute name token, as there could be multiple.

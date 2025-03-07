@@ -25,6 +25,7 @@ import {
     isNullOrUndefined,
     isRootNodeDefinition
 } from "../BehaviourTreeDefinitionUtilities";
+import { getArgumentJsonValue } from "./MDSLArguments";
 import { parseArgumentTokens } from "./MDSLNodeArgumentParser";
 import { parseAttributeTokens } from "./MDSLNodeAttributeParser";
 import { StringLiteralPlaceholders, tokenise, popAndCheck } from "./MDSLUtilities";
@@ -639,20 +640,11 @@ function createActionNode(
         throw new Error("expected action name identifier argument");
     }
 
-    // Only the first argument should have been an identifier, all agent function arguments must be string, number, boolean or null.
-    agentFunctionArgs
-        .filter((arg) => arg.type === "identifier")
-        .forEach((arg) => {
-            throw new Error(
-                `invalid action node argument value '${arg.value}', must be string, number, boolean or null`
-            );
-        });
-
     // Return the action node definition.
     return {
         type: "action",
         call: actionNameIdentifier.value,
-        args: agentFunctionArgs.map(({ value }) => value),
+        args: agentFunctionArgs.map(getArgumentJsonValue),
         ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
     };
 }
@@ -676,20 +668,11 @@ function createConditionNode(
         throw new Error("expected condition name identifier argument");
     }
 
-    // Only the first argument should have been an identifier, all agent function arguments must be string, number, boolean or null.
-    agentFunctionArgs
-        .filter((arg) => arg.type === "identifier")
-        .forEach((arg) => {
-            throw new Error(
-                `invalid condition node argument value '${arg.value}', must be string, number, boolean or null`
-            );
-        });
-
     // Return the condition node definition.
     return {
         type: "condition",
         call: conditionNameIdentifier.value,
-        args: agentFunctionArgs.map(({ value }) => value),
+        args: agentFunctionArgs.map(getArgumentJsonValue),
         ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
     };
 }
