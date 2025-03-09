@@ -1,11 +1,11 @@
-import { NodeAttributeDefinition } from "../BehaviourTreeDefinition";
+import { NodeAttributeDefinition, NodeGuardDefinition } from "../BehaviourTreeDefinition";
 import { StringLiteralPlaceholders } from "./MDSLUtilities";
 /**
  * A type defining the attribute definitions of a node.
  */
 type NodeAttributes = {
-    while?: NodeAttributeDefinition;
-    until?: NodeAttributeDefinition;
+    while?: NodeGuardDefinition;
+    until?: NodeGuardDefinition;
     entry?: NodeAttributeDefinition;
     exit?: NodeAttributeDefinition;
     step?: NodeAttributeDefinition;
