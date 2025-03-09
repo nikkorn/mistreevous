@@ -1,13 +1,13 @@
-import { NodeAttributeDefinition } from "../BehaviourTreeDefinition";
+import { NodeAttributeDefinition, NodeGuardDefinition } from "../BehaviourTreeDefinition";
 import { parseArgumentTokens } from "./MDSLNodeArgumentParser";
-import { StringLiteralPlaceholders } from "./MDSLUtilities";
+import { popAndCheck, StringLiteralPlaceholders } from "./MDSLUtilities";
 
 /**
  * A type defining the attribute definitions of a node.
  */
 type NodeAttributes = {
-    while?: NodeAttributeDefinition;
-    until?: NodeAttributeDefinition;
+    while?: NodeGuardDefinition;
+    until?: NodeGuardDefinition;
     entry?: NodeAttributeDefinition;
     exit?: NodeAttributeDefinition;
     step?: NodeAttributeDefinition;
@@ -61,11 +61,35 @@ export function parseAttributeTokens(
                 );
             });
 
-        // Create the attribute definition and add it to the object of attribute definitions found.
-        attributes[nextAttributeName] = {
-            call: attributeCallIdentifier.value,
-            args: attributeArguments.map(({ value }) => value)
-        };
+        // Are we dealing with a guard attribute or a normal attribute?
+        if (nextAttributeName === "while" || nextAttributeName === "until") {
+            // By default, an aborted running node will move to the FAILED state.
+            let succeedOnAbort = false;
+
+            // The resolved abort state could also be defined. Check for the token 'then' followed by 'succeed' or 'fail'.
+            if (tokens[0]?.toLowerCase() === "then") {
+                // Remove the "then" token from the array of tokens.
+                tokens.shift();
+
+                // The next token should be either the 'succeed' or 'fail' resolved status.
+                const resolvedStatusToken = popAndCheck(tokens, ["succeed", "fail"]);
+
+                succeedOnAbort = resolvedStatusToken.toLowerCase() === "succeed";
+            }
+
+            // Create the guard definition and add it to the object of attribute definitions found.
+            attributes[nextAttributeName] = {
+                call: attributeCallIdentifier.value,
+                args: attributeArguments.map(({ value }) => value),
+                succeedOnAbort
+            };
+        } else {
+            // Create the attribute definition and add it to the object of attribute definitions found.
+            attributes[nextAttributeName] = {
+                call: attributeCallIdentifier.value,
+                args: attributeArguments.map(({ value }) => value)
+            };
+        }
 
         // Try to get the next attribute name token, as there could be multiple.
         nextAttributeName = tokens[0]?.toLowerCase() as keyof NodeAttributes;

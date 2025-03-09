@@ -101,8 +101,8 @@ function nodeFactory(
     rootNodeDefinitionMap: RootNodeDefinitionMap,
     options: BehaviourTreeOptions
 ): AnyNode {
-    // Get the attributes for the node.
-    const attributes = nodeAttributesFactory(definition);
+    // Create the attributes for the node.
+    const attributes = createNodeAttributes(definition);
 
     // Create the node instance based on the definition type.
     switch (definition.type) {
@@ -236,15 +236,15 @@ function nodeFactory(
  * @param definition The node definition.
  * @returns An array of node attribute instances based on the specified node definition.
  */
-function nodeAttributesFactory(definition: AnyNodeDefinition): Attribute[] {
+function createNodeAttributes(definition: AnyNodeDefinition): Attribute[] {
     const attributes: Attribute[] = [];
 
     if (definition.while) {
-        attributes.push(new While(definition.while.call, definition.while.args ?? []));
+        attributes.push(new While(definition.while));
     }
 
     if (definition.until) {
-        attributes.push(new Until(definition.until.call, definition.until.args ?? []));
+        attributes.push(new Until(definition.until));
     }
 
     if (definition.entry) {

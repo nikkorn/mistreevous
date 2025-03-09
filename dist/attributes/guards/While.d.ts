@@ -1,14 +1,15 @@
 import Guard from "./Guard";
 import { Agent } from "../../Agent";
+import { NodeGuardDefinition } from "../../BehaviourTreeDefinition";
 /**
  * A WHILE guard which is satisfied as long as the given condition remains true.
  */
 export default class While extends Guard {
     /**
-     * @param condition The name of the condition function that determines whether the guard is satisfied.
-     * @param args The array of decorator argument definitions.
+     * Creates a new instance of the While class.
+     * @param definition The while node guard definition.
      */
-    constructor(condition: string, args: any[]);
+    constructor(definition: NodeGuardDefinition);
     /**
      * Gets whether the guard is satisfied.
      * @param agent The agent.

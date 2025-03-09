@@ -13,6 +13,16 @@ export interface NodeAttributeDefinition {
 }
 
 /**
+ * An guard attribute for a node.
+ */
+export interface NodeGuardDefinition extends NodeAttributeDefinition {
+    /**
+     * The flag defining whether the attributed node would move to the SUCCEEDED state when aborted by this guard, otherwise FAILED.
+     */
+    succeedOnAbort?: boolean;
+}
+
+/**
  * A type defining a general node definition.
  */
 export interface NodeDefinition {
@@ -23,11 +33,11 @@ export interface NodeDefinition {
     /**
      * The 'while' node attribute definition.
      */
-    while?: NodeAttributeDefinition;
+    while?: NodeGuardDefinition;
     /**
      * The 'until' node attribute definition.
      */
-    until?: NodeAttributeDefinition;
+    until?: NodeGuardDefinition;
     /**
      * The 'entry' node attribute definition.
      */

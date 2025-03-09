@@ -249,8 +249,8 @@ export default abstract class Node {
                 // Abort the current node.
                 this.abort(agent);
 
-                // Any node that is the source of an abort will be a failed node.
-                this.setState(State.FAILED);
+                // Any node that is the source of an abort will move to a resolved state.
+                this.setState(error.guard.succeedOnAbort ? State.SUCCEEDED : State.FAILED);
             } else {
                 throw error;
             }

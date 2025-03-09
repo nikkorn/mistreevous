@@ -1,4 +1,5 @@
 import { Agent } from "../../Agent";
+import { NodeGuardDefinition } from "../../BehaviourTreeDefinition";
 import Attribute, { AttributeDetails } from "../Attribute";
 /**
  * Details of a node guard attribute.
@@ -11,17 +12,21 @@ export type GuardAttributeDetails = {
  * A base node guard attribute.
  */
 export default abstract class Guard extends Attribute<GuardAttributeDetails> {
-    private condition;
+    private definition;
     /**
+     * Creates a new instance of the Guard class.
      * @param type The node attribute type.
-     * @param args The array of decorator argument definitions.
-     * @param condition The name of the condition function that determines whether the guard is satisfied.
+     * @param definition The node guard definition.
      */
-    constructor(type: string, args: any[], condition: string);
+    constructor(type: string, definition: NodeGuardDefinition);
     /**
      * Gets the name of the condition function that determines whether the guard is satisfied.
      */
-    getCondition: () => string;
+    get condition(): string;
+    /**
+     * Gets a flag defining whether the running node should move to the succeeded state when aborted, otherwise failed.
+     */
+    get succeedOnAbort(): boolean;
     /**
      * Gets the attribute details.
      */
