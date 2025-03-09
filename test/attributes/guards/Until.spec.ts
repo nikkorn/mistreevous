@@ -37,109 +37,218 @@ describe("An Until guard node attribute", () => {
 
     describe("when the node is updated as part of a tree step will call the guard function and", () => {
         describe("abort the running node and any child nodes and if the function returns a value of true will move them to the", () => {
-            describe("FAILED state if the guard is not configured to move the aborted node to the SUCCEEDED state", () => {
-                it("(MDSL)", () => {
-                    const definition = `root { sequence until(someCondition, "condition-argument") { action [someAction] exit(onActionExit) } }`;
-                    const agent = {
-                        someAction: () => State.RUNNING,
-                        someCondition: sinon.stub().returns(false),
-                        onActionExit: sinon.stub()
-                    };
-                    const tree = new BehaviourTree(definition, agent);
+            describe("FAILED state if", () => {
+                describe("the resolved state to move to is not defined", () => {
+                    it("(MDSL)", () => {
+                        const definition = `root { sequence until(someCondition, "condition-argument") { action [someAction] exit(onActionExit) } }`;
+                        const agent = {
+                            someAction: () => State.RUNNING,
+                            someCondition: sinon.stub().returns(false),
+                            onActionExit: sinon.stub()
+                        };
+                        const tree = new BehaviourTree(definition, agent);
 
-                    tree.step();
+                        tree.step();
 
-                    assert.isTrue(tree.isRunning());
-                    assert.isTrue(agent.someCondition.calledWith("condition-argument"));
-                    assert.strictEqual(findNode(tree, "root").state, State.RUNNING);
-                    assert.strictEqual(findNode(tree, "sequence").state, State.RUNNING);
-                    assert.strictEqual(findNode(tree, "action").state, State.RUNNING);
+                        assert.isTrue(tree.isRunning());
+                        assert.isTrue(agent.someCondition.calledWith("condition-argument"));
+                        assert.strictEqual(findNode(tree, "root").state, State.RUNNING);
+                        assert.strictEqual(findNode(tree, "sequence").state, State.RUNNING);
+                        assert.strictEqual(findNode(tree, "action").state, State.RUNNING);
 
-                    agent.someCondition.returns(true);
+                        agent.someCondition.returns(true);
 
-                    tree.step();
+                        tree.step();
 
-                    assert.isFalse(tree.isRunning());
-                    assert.isTrue(agent.someCondition.calledWith("condition-argument"));
-                    assert.isTrue(agent.onActionExit.calledWith(sinon.match({ succeeded: false, aborted: true })));
-                    assert.strictEqual(findNode(tree, "root").state, State.FAILED);
-                    assert.strictEqual(findNode(tree, "sequence").state, State.FAILED);
-                    assert.strictEqual(findNode(tree, "action").state, State.READY);
+                        assert.isFalse(tree.isRunning());
+                        assert.isTrue(agent.someCondition.calledWith("condition-argument"));
+                        assert.isTrue(agent.onActionExit.calledWith(sinon.match({ succeeded: false, aborted: true })));
+                        assert.strictEqual(findNode(tree, "root").state, State.FAILED);
+                        assert.strictEqual(findNode(tree, "sequence").state, State.FAILED);
+                        assert.strictEqual(findNode(tree, "action").state, State.READY);
 
-                    tree.reset();
+                        tree.reset();
 
-                    assert.isFalse(tree.isRunning());
-                    assert.strictEqual(findNode(tree, "root").state, State.READY);
-                    assert.strictEqual(findNode(tree, "sequence").state, State.READY);
-                    assert.strictEqual(findNode(tree, "action").state, State.READY);
+                        assert.isFalse(tree.isRunning());
+                        assert.strictEqual(findNode(tree, "root").state, State.READY);
+                        assert.strictEqual(findNode(tree, "sequence").state, State.READY);
+                        assert.strictEqual(findNode(tree, "action").state, State.READY);
 
-                    tree.step();
+                        tree.step();
 
-                    assert.isFalse(tree.isRunning());
-                    assert.strictEqual(findNode(tree, "root").state, State.FAILED);
-                    assert.strictEqual(findNode(tree, "sequence").state, State.FAILED);
-                    assert.strictEqual(findNode(tree, "action").state, State.READY);
+                        assert.isFalse(tree.isRunning());
+                        assert.strictEqual(findNode(tree, "root").state, State.FAILED);
+                        assert.strictEqual(findNode(tree, "sequence").state, State.FAILED);
+                        assert.strictEqual(findNode(tree, "action").state, State.READY);
+                    });
+
+                    it("(JSON)", () => {
+                        const definition: RootNodeDefinition = {
+                            type: "root",
+                            child: {
+                                type: "sequence",
+                                until: {
+                                    call: "someCondition",
+                                    args: ["condition-argument"]
+                                },
+                                children: [
+                                    {
+                                        type: "action",
+                                        exit: {
+                                            call: "onActionExit"
+                                        },
+                                        call: "someAction"
+                                    }
+                                ]
+                            }
+                        };
+                        const agent = {
+                            someAction: () => State.RUNNING,
+                            someCondition: sinon.stub().returns(false),
+                            onActionExit: sinon.stub()
+                        };
+                        const tree = new BehaviourTree(definition, agent);
+
+                        tree.step();
+
+                        assert.isTrue(tree.isRunning());
+                        assert.isTrue(agent.someCondition.calledWith("condition-argument"));
+                        assert.strictEqual(findNode(tree, "root").state, State.RUNNING);
+                        assert.strictEqual(findNode(tree, "sequence").state, State.RUNNING);
+                        assert.strictEqual(findNode(tree, "action").state, State.RUNNING);
+
+                        agent.someCondition.returns(true);
+
+                        tree.step();
+
+                        assert.isFalse(tree.isRunning());
+                        assert.isTrue(agent.someCondition.calledWith("condition-argument"));
+                        assert.isTrue(agent.onActionExit.calledWith(sinon.match({ succeeded: false, aborted: true })));
+                        assert.strictEqual(findNode(tree, "root").state, State.FAILED);
+                        assert.strictEqual(findNode(tree, "sequence").state, State.FAILED);
+                        assert.strictEqual(findNode(tree, "action").state, State.READY);
+
+                        tree.reset();
+
+                        assert.isFalse(tree.isRunning());
+                        assert.strictEqual(findNode(tree, "root").state, State.READY);
+                        assert.strictEqual(findNode(tree, "sequence").state, State.READY);
+                        assert.strictEqual(findNode(tree, "action").state, State.READY);
+
+                        tree.step();
+
+                        assert.isFalse(tree.isRunning());
+                        assert.strictEqual(findNode(tree, "root").state, State.FAILED);
+                        assert.strictEqual(findNode(tree, "sequence").state, State.FAILED);
+                        assert.strictEqual(findNode(tree, "action").state, State.READY);
+                    });
                 });
 
-                it("(JSON)", () => {
-                    const definition: RootNodeDefinition = {
-                        type: "root",
-                        child: {
-                            type: "sequence",
-                            until: {
-                                call: "someCondition",
-                                args: ["condition-argument"]
-                            },
-                            children: [
-                                {
-                                    type: "action",
-                                    exit: {
-                                        call: "onActionExit"
-                                    },
-                                    call: "someAction"
-                                }
-                            ]
-                        }
-                    };
-                    const agent = {
-                        someAction: () => State.RUNNING,
-                        someCondition: sinon.stub().returns(false),
-                        onActionExit: sinon.stub()
-                    };
-                    const tree = new BehaviourTree(definition, agent);
+                describe("the guard is configured to move the aborted node to the FAILED state", () => {
+                    it("(MDSL)", () => {
+                        const definition = `root { sequence until(someCondition, "condition-argument") then fail { action [someAction] exit(onActionExit) } }`;
+                        const agent = {
+                            someAction: () => State.RUNNING,
+                            someCondition: sinon.stub().returns(false),
+                            onActionExit: sinon.stub()
+                        };
+                        const tree = new BehaviourTree(definition, agent);
 
-                    tree.step();
+                        tree.step();
 
-                    assert.isTrue(tree.isRunning());
-                    assert.isTrue(agent.someCondition.calledWith("condition-argument"));
-                    assert.strictEqual(findNode(tree, "root").state, State.RUNNING);
-                    assert.strictEqual(findNode(tree, "sequence").state, State.RUNNING);
-                    assert.strictEqual(findNode(tree, "action").state, State.RUNNING);
+                        assert.isTrue(tree.isRunning());
+                        assert.isTrue(agent.someCondition.calledWith("condition-argument"));
+                        assert.strictEqual(findNode(tree, "root").state, State.RUNNING);
+                        assert.strictEqual(findNode(tree, "sequence").state, State.RUNNING);
+                        assert.strictEqual(findNode(tree, "action").state, State.RUNNING);
 
-                    agent.someCondition.returns(true);
+                        agent.someCondition.returns(true);
 
-                    tree.step();
+                        tree.step();
 
-                    assert.isFalse(tree.isRunning());
-                    assert.isTrue(agent.someCondition.calledWith("condition-argument"));
-                    assert.isTrue(agent.onActionExit.calledWith(sinon.match({ succeeded: false, aborted: true })));
-                    assert.strictEqual(findNode(tree, "root").state, State.FAILED);
-                    assert.strictEqual(findNode(tree, "sequence").state, State.FAILED);
-                    assert.strictEqual(findNode(tree, "action").state, State.READY);
+                        assert.isFalse(tree.isRunning());
+                        assert.isTrue(agent.someCondition.calledWith("condition-argument"));
+                        assert.isTrue(agent.onActionExit.calledWith(sinon.match({ succeeded: false, aborted: true })));
+                        assert.strictEqual(findNode(tree, "root").state, State.FAILED);
+                        assert.strictEqual(findNode(tree, "sequence").state, State.FAILED);
+                        assert.strictEqual(findNode(tree, "action").state, State.READY);
 
-                    tree.reset();
+                        tree.reset();
 
-                    assert.isFalse(tree.isRunning());
-                    assert.strictEqual(findNode(tree, "root").state, State.READY);
-                    assert.strictEqual(findNode(tree, "sequence").state, State.READY);
-                    assert.strictEqual(findNode(tree, "action").state, State.READY);
+                        assert.isFalse(tree.isRunning());
+                        assert.strictEqual(findNode(tree, "root").state, State.READY);
+                        assert.strictEqual(findNode(tree, "sequence").state, State.READY);
+                        assert.strictEqual(findNode(tree, "action").state, State.READY);
 
-                    tree.step();
+                        tree.step();
 
-                    assert.isFalse(tree.isRunning());
-                    assert.strictEqual(findNode(tree, "root").state, State.FAILED);
-                    assert.strictEqual(findNode(tree, "sequence").state, State.FAILED);
-                    assert.strictEqual(findNode(tree, "action").state, State.READY);
+                        assert.isFalse(tree.isRunning());
+                        assert.strictEqual(findNode(tree, "root").state, State.FAILED);
+                        assert.strictEqual(findNode(tree, "sequence").state, State.FAILED);
+                        assert.strictEqual(findNode(tree, "action").state, State.READY);
+                    });
+
+                    it("(JSON)", () => {
+                        const definition: RootNodeDefinition = {
+                            type: "root",
+                            child: {
+                                type: "sequence",
+                                until: {
+                                    call: "someCondition",
+                                    args: ["condition-argument"],
+                                    succeedOnAbort: false
+                                },
+                                children: [
+                                    {
+                                        type: "action",
+                                        exit: {
+                                            call: "onActionExit"
+                                        },
+                                        call: "someAction"
+                                    }
+                                ]
+                            }
+                        };
+                        const agent = {
+                            someAction: () => State.RUNNING,
+                            someCondition: sinon.stub().returns(false),
+                            onActionExit: sinon.stub()
+                        };
+                        const tree = new BehaviourTree(definition, agent);
+
+                        tree.step();
+
+                        assert.isTrue(tree.isRunning());
+                        assert.isTrue(agent.someCondition.calledWith("condition-argument"));
+                        assert.strictEqual(findNode(tree, "root").state, State.RUNNING);
+                        assert.strictEqual(findNode(tree, "sequence").state, State.RUNNING);
+                        assert.strictEqual(findNode(tree, "action").state, State.RUNNING);
+
+                        agent.someCondition.returns(true);
+
+                        tree.step();
+
+                        assert.isFalse(tree.isRunning());
+                        assert.isTrue(agent.someCondition.calledWith("condition-argument"));
+                        assert.isTrue(agent.onActionExit.calledWith(sinon.match({ succeeded: false, aborted: true })));
+                        assert.strictEqual(findNode(tree, "root").state, State.FAILED);
+                        assert.strictEqual(findNode(tree, "sequence").state, State.FAILED);
+                        assert.strictEqual(findNode(tree, "action").state, State.READY);
+
+                        tree.reset();
+
+                        assert.isFalse(tree.isRunning());
+                        assert.strictEqual(findNode(tree, "root").state, State.READY);
+                        assert.strictEqual(findNode(tree, "sequence").state, State.READY);
+                        assert.strictEqual(findNode(tree, "action").state, State.READY);
+
+                        tree.step();
+
+                        assert.isFalse(tree.isRunning());
+                        assert.strictEqual(findNode(tree, "root").state, State.FAILED);
+                        assert.strictEqual(findNode(tree, "sequence").state, State.FAILED);
+                        assert.strictEqual(findNode(tree, "action").state, State.READY);
+                    });
                 });
             });
 
