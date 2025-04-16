@@ -19,5 +19,5 @@ export default class GuardPath {
      * @param agent The agent, required for guard evaluation.
      * @returns An evaluation results object.
      */
-    evaluate: (agent: Agent) => void;
+    evaluate(agent: Agent): void;
 }
