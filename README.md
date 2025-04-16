@@ -1193,7 +1193,7 @@ root {
 ```
 
 ## Guards
-A guard defines a condition that must be met in order for the associated node to remain active. Any nodes in the `RUNNING` state will have their guard condition evaluated for each leaf node update and will move to the `FAILED` state if the guard condition is not met.
+A guard defines a condition that must be met in order for the associated node to remain active. Any nodes in the `RUNNING` state will have their guard condition evaluated for each leaf node update and will move to the `FAILED` state by default if the guard condition is not met.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=guards)
 
 This functionality is useful as a means of aborting long-running actions or branches that span across multiple steps of the tree.
@@ -1359,6 +1359,42 @@ root {
 }
 ```
 
+### Defining Aborted Node State
+When aborted via a guard, a node will mode to the `FAILED` state by default. Optionally, the state that the node should move to when aborted can be specified with `then succeed` or `then fail` following the guard definition when using MDSL, or by setting the `succeedOnAbort` boolean property when using a JSON definition.
+
+*MDSL*
+```
+root {
+    sequence {
+        wait until(CanAttack) then succeed
+        action [Attack]
+    }
+}
+```
+
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "sequence",
+        "children": [
+            {
+                "type": "wait",
+                "until": {
+                    "call": "CanAttack",
+                    "succeedOnAbort": true
+                }
+            },
+            {
+                "type": "action",
+                "call": "Attack"
+            }
+        ]
+    }
+}
+```
+ 
 ## Globals
 
 When dealing with multiple agents, each with its own behaviour tree instance, it can often be useful to have functions and subtrees that can be registered globally once and referenced by any instance.
