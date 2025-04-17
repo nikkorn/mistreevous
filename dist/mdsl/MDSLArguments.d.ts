@@ -20,7 +20,7 @@ export type BooleanArgument = Argument<boolean> & {
 export type NumberArgument = Argument<number> & {
     type: "number";
     /**
-     * A flag defining whether the number argument value is a valid integer. (used for validation)
+     * A flag defining whether the number argument value is a valid integer.
      */
     isInteger: boolean;
 };
@@ -34,3 +34,9 @@ export type IdentifierArgument = Argument<string> & {
  * A type representing a reference to any node function argument.
  */
 export type AnyArgument = NullArgument | BooleanArgument | NumberArgument | StringPlaceholderArgument | IdentifierArgument;
+/**
+ * Gets the JSON value of the specified argument object.
+ * @param arg The argument object.
+ * @returns The JSON value of the specified argument object.
+ */
+export declare function getArgumentJsonValue(arg: AnyArgument): any;

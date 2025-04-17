@@ -339,6 +339,11 @@ function isNullOrUndefined(value) {
   return typeof value === "undefined" || value === null;
 }
 
+// src/mdsl/MDSLArguments.ts
+function getArgumentJsonValue(arg) {
+  return arg.type === "identifier" ? `{{${arg.value}}}` : arg.value;
+}
+
 // src/mdsl/MDSLUtilities.ts
 function popAndCheck(tokens, expected) {
   const popped = tokens.shift();
@@ -458,10 +463,29 @@ function parseAttributeTokens(tokens, stringArgumentPlaceholders) {
     if (attributeCallIdentifier?.type !== "identifier") {
       throw new Error("expected agent function or registered function name identifier argument for attribute");
     }
-    attributes[nextAttributeName] = {
-      call: attributeCallIdentifier.value,
-      args: attributeArguments
-    };
+    attributeArguments.filter((arg) => arg.type === "identifier").forEach((arg) => {
+      throw new Error(
+        `invalid attribute argument value '${arg.value}', must be string, number, boolean or null`
+      );
+    });
+    if (nextAttributeName === "while" || nextAttributeName === "until") {
+      let succeedOnAbort = false;
+      if (tokens[0]?.toLowerCase() === "then") {
+        tokens.shift();
+        const resolvedStatusToken = popAndCheck(tokens, ["succeed", "fail"]);
+        succeedOnAbort = resolvedStatusToken.toLowerCase() === "succeed";
+      }
+      attributes[nextAttributeName] = {
+        call: attributeCallIdentifier.value,
+        args: attributeArguments.map(getArgumentJsonValue),
+        succeedOnAbort
+      };
+    } else {
+      attributes[nextAttributeName] = {
+        call: attributeCallIdentifier.value,
+        args: attributeArguments.map(getArgumentJsonValue)
+      };
+    }
     nextAttributeName = tokens[0]?.toLowerCase();
   }
   return attributes;
@@ -763,7 +787,7 @@ function createActionNode(tokens, stringLiteralPlaceholders) {
   return {
     type: "action",
     call: actionNameIdentifier.value,
-    args: agentFunctionArgs,
+    args: agentFunctionArgs.map(getArgumentJsonValue),
     ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
   };
 }
@@ -775,7 +799,7 @@ function createConditionNode(tokens, stringLiteralPlaceholders) {
   return {
     type: "condition",
     call: conditionNameIdentifier.value,
-    args: agentFunctionArgs,
+    args: agentFunctionArgs.map(getArgumentJsonValue),
     ...parseAttributeTokens(tokens, stringLiteralPlaceholders)
   };
 }
@@ -1302,11 +1326,14 @@ function createValidationFailureResult(errorMessage) {
 
 // src/attributes/guards/GuardUnsatisifedException.ts
 var GuardUnsatisifedException = class extends Error {
-  constructor(source) {
+  constructor(source, guard) {
     super("A guard path condition has failed");
     this.source = source;
+    this.guard = guard;
   }
-  isSourceNode = (node) => node === this.source;
+  isSourceNode(node) {
+    return node === this.source;
+  }
 };
 
 // src/attributes/guards/GuardPath.ts
@@ -1314,15 +1341,15 @@ var GuardPath = class {
   constructor(nodes) {
     this.nodes = nodes;
   }
-  evaluate = (agent) => {
+  evaluate(agent) {
     for (const details of this.nodes) {
       for (const guard of details.guards) {
         if (!guard.isSatisfied(agent)) {
-          throw new GuardUnsatisifedException(details.node);
+          throw new GuardUnsatisifedException(details.node, guard);
         }
       }
     }
-  };
+  }
 };
 
 // src/Utilities.ts
@@ -1394,7 +1421,7 @@ var Node = class {
     } catch (error) {
       if (error instanceof GuardUnsatisifedException && error.isSourceNode(this)) {
         this.abort(agent);
-        this.setState("mistreevous.failed" /* FAILED */);
+        this.setState(error.guard.succeedOnAbort ? "mistreevous.succeeded" /* SUCCEEDED */ : "mistreevous.failed" /* FAILED */);
       } else {
         throw error;
       }
@@ -2107,30 +2134,35 @@ var Attribute = class {
 
 // src/attributes/guards/Guard.ts
 var Guard = class extends Attribute {
-  constructor(type, args, condition) {
-    super(type, args);
-    this.condition = condition;
+  constructor(type, definition) {
+    super(type, definition.args ?? []);
+    this.definition = definition;
   }
-  getCondition = () => this.condition;
+  get condition() {
+    return this.definition.call;
+  }
+  get succeedOnAbort() {
+    return !!this.definition.succeedOnAbort;
+  }
   getDetails() {
     return {
       type: this.type,
       args: this.args,
-      calls: this.getCondition()
+      calls: this.condition
     };
   }
 };
 
 // src/attributes/guards/While.ts
 var While = class extends Guard {
-  constructor(condition, args) {
-    super("while", args, condition);
+  constructor(definition) {
+    super("while", definition);
   }
   isSatisfied = (agent) => {
-    const conditionFuncInvoker = Lookup.getFuncInvoker(agent, this.getCondition());
+    const conditionFuncInvoker = Lookup.getFuncInvoker(agent, this.condition);
     if (conditionFuncInvoker === null) {
       throw new Error(
-        `cannot evaluate node guard as the condition '${this.getCondition()}' function is not defined on the agent and has not been registered`
+        `cannot evaluate node guard as the condition '${this.condition}' function is not defined on the agent and has not been registered`
       );
     }
     let conditionFunctionResult;
@@ -2138,14 +2170,14 @@ var While = class extends Guard {
       conditionFunctionResult = conditionFuncInvoker(this.args);
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error(`guard condition function '${this.getCondition()}' threw: ${error.stack}`);
+        throw new Error(`guard condition function '${this.condition}' threw: ${error.stack}`);
       } else {
-        throw new Error(`guard condition function '${this.getCondition()}' threw: ${error}`);
+        throw new Error(`guard condition function '${this.condition}' threw: ${error}`);
       }
     }
     if (typeof conditionFunctionResult !== "boolean") {
       throw new Error(
-        `expected guard condition function '${this.getCondition()}' to return a boolean but returned '${conditionFunctionResult}'`
+        `expected guard condition function '${this.condition}' to return a boolean but returned '${conditionFunctionResult}'`
       );
     }
     return conditionFunctionResult;
@@ -2154,14 +2186,14 @@ var While = class extends Guard {
 
 // src/attributes/guards/Until.ts
 var Until = class extends Guard {
-  constructor(condition, args) {
-    super("until", args, condition);
+  constructor(definition) {
+    super("until", definition);
   }
   isSatisfied = (agent) => {
-    const conditionFuncInvoker = Lookup.getFuncInvoker(agent, this.getCondition());
+    const conditionFuncInvoker = Lookup.getFuncInvoker(agent, this.condition);
     if (conditionFuncInvoker === null) {
       throw new Error(
-        `cannot evaluate node guard as the condition '${this.getCondition()}' function is not defined on the agent and has not been registered`
+        `cannot evaluate node guard as the condition '${this.condition}' function is not defined on the agent and has not been registered`
       );
     }
     let conditionFunctionResult;
@@ -2169,14 +2201,14 @@ var Until = class extends Guard {
       conditionFunctionResult = conditionFuncInvoker(this.args);
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error(`guard condition function '${this.getCondition()}' threw: ${error.stack}`);
+        throw new Error(`guard condition function '${this.condition}' threw: ${error.stack}`);
       } else {
-        throw new Error(`guard condition function '${this.getCondition()}' threw: ${error}`);
+        throw new Error(`guard condition function '${this.condition}' threw: ${error}`);
       }
     }
     if (typeof conditionFunctionResult !== "boolean") {
       throw new Error(
-        `expected guard condition function '${this.getCondition()}' to return a boolean but returned '${conditionFunctionResult}'`
+        `expected guard condition function '${this.condition}' to return a boolean but returned '${conditionFunctionResult}'`
       );
     }
     return !conditionFunctionResult;
@@ -2260,7 +2292,7 @@ function buildRootNode(definition, options) {
   return rootNode;
 }
 function nodeFactory(definition, rootNodeDefinitionMap, options) {
-  const attributes = nodeAttributesFactory(definition);
+  const attributes = createNodeAttributes(definition);
   switch (definition.type) {
     case "root":
       return new Root(attributes, options, nodeFactory(definition.child, rootNodeDefinitionMap, options));
@@ -2365,13 +2397,13 @@ function nodeFactory(definition, rootNodeDefinitionMap, options) {
     }
   }
 }
-function nodeAttributesFactory(definition) {
+function createNodeAttributes(definition) {
   const attributes = [];
   if (definition.while) {
-    attributes.push(new While(definition.while.call, definition.while.args ?? []));
+    attributes.push(new While(definition.while));
   }
   if (definition.until) {
-    attributes.push(new Until(definition.until.call, definition.until.args ?? []));
+    attributes.push(new Until(definition.until));
   }
   if (definition.entry) {
     attributes.push(new Entry(definition.entry.call, definition.entry.args ?? []));

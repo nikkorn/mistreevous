@@ -78,14 +78,15 @@ describe("The MDSLDefinitionParser class has a convertMDSLToJSON function which 
             }
         `;
 
-        const expectedOutputDefintion: RootNodeDefinition[] = [
+        const expectedOutputDefinition: RootNodeDefinition[] = [
             {
                 type: "root",
                 child: {
                     type: "selector",
                     while: {
                         call: "IsHungry",
-                        args: []
+                        args: [],
+                        succeedOnAbort: false
                     },
                     children: [
                         {
@@ -199,7 +200,7 @@ describe("The MDSLDefinitionParser class has a convertMDSLToJSON function which 
             }
         ];
 
-        assert.deepEqual(convertMDSLToJSON(mdslDefinition), expectedOutputDefintion);
+        assert.deepEqual(convertMDSLToJSON(mdslDefinition), expectedOutputDefinition);
     });
 
     it("handles single and multi line comments", () => {
@@ -239,14 +240,15 @@ describe("The MDSLDefinitionParser class has a convertMDSLToJSON function which 
             }
         `;
 
-        const expectedOutputDefintion: RootNodeDefinition[] = [
+        const expectedOutputDefinition: RootNodeDefinition[] = [
             {
                 type: "root",
                 child: {
                     type: "selector",
                     while: {
                         call: "IsHungry",
-                        args: []
+                        args: [],
+                        succeedOnAbort: false
                     },
                     children: [
                         {
@@ -335,6 +337,6 @@ describe("The MDSLDefinitionParser class has a convertMDSLToJSON function which 
             }
         ];
 
-        assert.deepEqual(convertMDSLToJSON(mdslDefinition), expectedOutputDefintion);
+        assert.deepEqual(convertMDSLToJSON(mdslDefinition), expectedOutputDefinition);
     });
 });
