@@ -1,39 +1,78 @@
 /**
- * A type representing a node function argument.
+ * This file contains definitions for types representing node arguments parsed from MDSL.
+ * These definition do not, and are not supposed to, match any argument typings for user-defined JSON tree definitions.
+ */
+/**
+ * A type representing a node function argument parsed from MDSL.
  */
 export type Argument<T> = {
     /**
      * The argument value.
      */
     value: T;
-    /**
-     * The argument type, used for validation.
-     */
-    type: string;
 };
+/**
+ * A type representing a node function argument with a value of null parsed from MDSL.
+ */
 export type NullArgument = Argument<null> & {
+    /**
+     * The argument type.
+     */
     type: "null";
 };
+/**
+ * A type representing a node function argument with a value of boolean parsed from MDSL.
+ */
 export type BooleanArgument = Argument<boolean> & {
+    /**
+     * The argument type.
+     */
     type: "boolean";
 };
+/**
+ * A type representing a node function argument with a value of number parsed from MDSL.
+ */
 export type NumberArgument = Argument<number> & {
+    /**
+     * The argument type.
+     */
     type: "number";
     /**
      * A flag defining whether the number argument value is a valid integer.
      */
     isInteger: boolean;
 };
+/**
+ * A type representing a node function argument with a value of string which is a placeholder reference for a string literal argument parsed from MDSL.
+ */
 export type StringPlaceholderArgument = Argument<string> & {
+    /**
+     * The argument type.
+     */
     type: "string";
 };
+/**
+ * A type representing a node function argument with a value of an identifier parsed from MDSL.
+ */
 export type IdentifierArgument = Argument<string> & {
+    /**
+     * The argument type.
+     */
     type: "identifier";
 };
 /**
- * A type representing a reference to any node function argument.
+ * A type representing a node function argument with a value of an agent property reference parsed from MDSL.
  */
-export type AnyArgument = NullArgument | BooleanArgument | NumberArgument | StringPlaceholderArgument | IdentifierArgument;
+export type AgentPropertyReferenceArgument = Argument<string> & {
+    /**
+     * The argument type.
+     */
+    type: "property_reference";
+};
+/**
+ * A type representing a reference to any node function argument parsed from MDSL.
+ */
+export type AnyArgument = NullArgument | BooleanArgument | NumberArgument | StringPlaceholderArgument | IdentifierArgument | AgentPropertyReferenceArgument;
 /**
  * Gets the JSON value of the specified argument object.
  * @param arg The argument object.

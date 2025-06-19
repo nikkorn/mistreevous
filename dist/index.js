@@ -5,7 +5,6 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
@@ -22,192 +21,200 @@ var __copyProps = (to, from, except, desc) => {
   return to;
 };
 var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var __publicField = (obj, key, value) => {
-  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
 
 // node_modules/lotto-draw/dist/Participant.js
 var require_Participant = __commonJS({
-  "node_modules/lotto-draw/dist/Participant.js"(exports) {
+  "node_modules/lotto-draw/dist/Participant.js"(exports2) {
     "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Participant = void 0;
-    var Participant = function() {
-      function Participant2(participant, tickets) {
-        if (tickets === void 0) {
-          tickets = 1;
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.Participant = void 0;
+    var Participant = (
+      /** @class */
+      function() {
+        function Participant2(participant, tickets) {
+          if (tickets === void 0) {
+            tickets = 1;
+          }
+          this._participant = participant;
+          this._tickets = tickets;
         }
-        this._participant = participant;
-        this._tickets = tickets;
-      }
-      Object.defineProperty(Participant2.prototype, "participant", {
-        get: function() {
-          return this._participant;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      Object.defineProperty(Participant2.prototype, "tickets", {
-        get: function() {
-          return this._tickets;
-        },
-        set: function(value) {
-          this._tickets = value;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      return Participant2;
-    }();
-    exports.Participant = Participant;
+        Object.defineProperty(Participant2.prototype, "participant", {
+          /** Gets the actual participant. */
+          get: function() {
+            return this._participant;
+          },
+          enumerable: false,
+          configurable: true
+        });
+        Object.defineProperty(Participant2.prototype, "tickets", {
+          /** Gets or sets the number of tickets held by the participant. */
+          get: function() {
+            return this._tickets;
+          },
+          set: function(value) {
+            this._tickets = value;
+          },
+          enumerable: false,
+          configurable: true
+        });
+        return Participant2;
+      }()
+    );
+    exports2.Participant = Participant;
   }
 });
 
 // node_modules/lotto-draw/dist/Utilities.js
 var require_Utilities = __commonJS({
-  "node_modules/lotto-draw/dist/Utilities.js"(exports) {
+  "node_modules/lotto-draw/dist/Utilities.js"(exports2) {
     "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.isNaturalNumber = exports.isNullOrUndefined = void 0;
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.isNaturalNumber = exports2.isNullOrUndefined = void 0;
     function isNullOrUndefined2(value) {
       return value === null || value === void 0;
     }
-    exports.isNullOrUndefined = isNullOrUndefined2;
+    exports2.isNullOrUndefined = isNullOrUndefined2;
     function isNaturalNumber(value) {
       return typeof value === "number" && value >= 1 && Math.floor(value) === value;
     }
-    exports.isNaturalNumber = isNaturalNumber;
+    exports2.isNaturalNumber = isNaturalNumber;
   }
 });
 
 // node_modules/lotto-draw/dist/Lotto.js
 var require_Lotto = __commonJS({
-  "node_modules/lotto-draw/dist/Lotto.js"(exports) {
+  "node_modules/lotto-draw/dist/Lotto.js"(exports2) {
     "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Lotto = void 0;
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.Lotto = void 0;
     var Participant_1 = require_Participant();
     var Utilities_1 = require_Utilities();
-    var Lotto2 = function() {
-      function Lotto3(customRandom) {
-        this._participants = [];
-        this._customRandom = customRandom;
-      }
-      Lotto3.prototype.add = function(participant, tickets) {
-        if (tickets === void 0) {
-          tickets = 1;
+    var Lotto2 = (
+      /** @class */
+      function() {
+        function Lotto3(customRandom) {
+          this._participants = [];
+          this._customRandom = customRandom;
         }
-        if (!(0, Utilities_1.isNaturalNumber)(tickets)) {
-          throw new Error("tickets value must be a natural number");
-        }
-        var existingParticipant = this._participants.find(function(part) {
-          return part.participant === participant;
-        });
-        if (existingParticipant) {
-          existingParticipant.tickets += tickets;
-        } else {
-          this._participants.push(new Participant_1.Participant(participant, tickets));
-        }
-        return this;
-      };
-      Lotto3.prototype.remove = function(participant, tickets) {
-        var existingParticipant = this._participants.find(function(part) {
-          return part.participant === participant;
-        });
-        if (!existingParticipant) {
-          return this;
-        }
-        if (tickets !== void 0) {
+        Lotto3.prototype.add = function(participant, tickets) {
+          if (tickets === void 0) {
+            tickets = 1;
+          }
           if (!(0, Utilities_1.isNaturalNumber)(tickets)) {
             throw new Error("tickets value must be a natural number");
           }
-          existingParticipant.tickets -= tickets;
-          if (existingParticipant.tickets < 1) {
+          var existingParticipant = this._participants.find(function(part) {
+            return part.participant === participant;
+          });
+          if (existingParticipant) {
+            existingParticipant.tickets += tickets;
+          } else {
+            this._participants.push(new Participant_1.Participant(participant, tickets));
+          }
+          return this;
+        };
+        Lotto3.prototype.remove = function(participant, tickets) {
+          var existingParticipant = this._participants.find(function(part) {
+            return part.participant === participant;
+          });
+          if (!existingParticipant) {
+            return this;
+          }
+          if (tickets !== void 0) {
+            if (!(0, Utilities_1.isNaturalNumber)(tickets)) {
+              throw new Error("tickets value must be a natural number");
+            }
+            existingParticipant.tickets -= tickets;
+            if (existingParticipant.tickets < 1) {
+              this._participants = this._participants.filter(function(part) {
+                return part !== existingParticipant;
+              });
+            }
+          } else {
             this._participants = this._participants.filter(function(part) {
               return part !== existingParticipant;
             });
           }
-        } else {
-          this._participants = this._participants.filter(function(part) {
-            return part !== existingParticipant;
-          });
-        }
-        return this;
-      };
-      Lotto3.prototype.draw = function(options) {
-        if (options === void 0) {
-          options = {};
-        }
-        if (this._participants.length === 0) {
-          return null;
-        }
-        var redrawable = (0, Utilities_1.isNullOrUndefined)(options.redrawable) ? true : options.redrawable;
-        var pickable = [];
-        this._participants.forEach(function(_a) {
-          var participant = _a.participant, tickets = _a.tickets;
-          for (var ticketCount = 0; ticketCount < tickets; ticketCount++) {
-            pickable.push(participant);
+          return this;
+        };
+        Lotto3.prototype.draw = function(options) {
+          if (options === void 0) {
+            options = {};
           }
-        });
-        var random;
-        if (this._customRandom) {
-          random = this._customRandom();
-          if (typeof random !== "number" || random < 0 || random >= 1) {
-            throw new Error("the 'random' function provided did not return a number between 0 (inclusive) and 1");
+          if (this._participants.length === 0) {
+            return null;
           }
-        } else {
-          random = Math.random();
-        }
-        var winner = pickable[Math.floor(random * pickable.length)];
-        if (!redrawable) {
-          this.remove(winner, 1);
-        }
-        return winner;
-      };
-      Lotto3.prototype.drawMultiple = function(tickets, options) {
-        if (options === void 0) {
-          options = {};
-        }
-        var uniqueResults = (0, Utilities_1.isNullOrUndefined)(options.unique) ? false : options.unique;
-        if (tickets === 0) {
-          return [];
-        }
-        if (!(0, Utilities_1.isNaturalNumber)(tickets)) {
-          throw new Error("tickets value must be a natural number");
-        }
-        var result = [];
-        while (result.length < tickets && this._participants.length > 0) {
-          result.push(this.draw(options));
-        }
-        if (uniqueResults) {
-          var unique = [];
-          for (var _i = 0, result_1 = result; _i < result_1.length; _i++) {
-            var participant = result_1[_i];
-            if (unique.indexOf(participant) === -1) {
-              unique.push(participant);
+          var redrawable = (0, Utilities_1.isNullOrUndefined)(options.redrawable) ? true : options.redrawable;
+          var pickable = [];
+          this._participants.forEach(function(_a) {
+            var participant = _a.participant, tickets = _a.tickets;
+            for (var ticketCount = 0; ticketCount < tickets; ticketCount++) {
+              pickable.push(participant);
             }
+          });
+          var random;
+          if (this._customRandom) {
+            random = this._customRandom();
+            if (typeof random !== "number" || random < 0 || random >= 1) {
+              throw new Error("the 'random' function provided did not return a number between 0 (inclusive) and 1");
+            }
+          } else {
+            random = Math.random();
           }
-          result = unique;
-        }
-        return result;
-      };
-      return Lotto3;
-    }();
-    exports.Lotto = Lotto2;
+          var winner = pickable[Math.floor(random * pickable.length)];
+          if (!redrawable) {
+            this.remove(winner, 1);
+          }
+          return winner;
+        };
+        Lotto3.prototype.drawMultiple = function(tickets, options) {
+          if (options === void 0) {
+            options = {};
+          }
+          var uniqueResults = (0, Utilities_1.isNullOrUndefined)(options.unique) ? false : options.unique;
+          if (tickets === 0) {
+            return [];
+          }
+          if (!(0, Utilities_1.isNaturalNumber)(tickets)) {
+            throw new Error("tickets value must be a natural number");
+          }
+          var result = [];
+          while (result.length < tickets && this._participants.length > 0) {
+            result.push(this.draw(options));
+          }
+          if (uniqueResults) {
+            var unique = [];
+            for (var _i = 0, result_1 = result; _i < result_1.length; _i++) {
+              var participant = result_1[_i];
+              if (unique.indexOf(participant) === -1) {
+                unique.push(participant);
+              }
+            }
+            result = unique;
+          }
+          return result;
+        };
+        return Lotto3;
+      }()
+    );
+    exports2.Lotto = Lotto2;
   }
 });
 
 // node_modules/lotto-draw/dist/createLotto.js
 var require_createLotto = __commonJS({
-  "node_modules/lotto-draw/dist/createLotto.js"(exports) {
+  "node_modules/lotto-draw/dist/createLotto.js"(exports2) {
     "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.createLotto = void 0;
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.createLotto = void 0;
     var Lotto_1 = require_Lotto();
     function createLotto2(participantsOrOptions) {
       if (!participantsOrOptions) {
@@ -233,29 +240,29 @@ var require_createLotto = __commonJS({
         return lotto_2;
       }
     }
-    exports.createLotto = createLotto2;
+    exports2.createLotto = createLotto2;
   }
 });
 
 // node_modules/lotto-draw/dist/index.js
 var require_dist = __commonJS({
-  "node_modules/lotto-draw/dist/index.js"(exports) {
+  "node_modules/lotto-draw/dist/index.js"(exports2) {
     "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
+    Object.defineProperty(exports2, "__esModule", { value: true });
     var createLotto_1 = require_createLotto();
-    exports.default = createLotto_1.createLotto;
+    exports2.default = createLotto_1.createLotto;
   }
 });
 
 // src/index.ts
-var src_exports = {};
-__export(src_exports, {
+var index_exports = {};
+__export(index_exports, {
   BehaviourTree: () => BehaviourTree,
   State: () => State,
   convertMDSLToJSON: () => convertMDSLToJSON,
   validateDefinition: () => validateDefinition
 });
-module.exports = __toCommonJS(src_exports);
+module.exports = __toCommonJS(index_exports);
 
 // src/State.ts
 var State = /* @__PURE__ */ ((State2) => {
@@ -268,12 +275,38 @@ var State = /* @__PURE__ */ ((State2) => {
 
 // src/Lookup.ts
 var Lookup = class {
+  /**
+   * The object holding any registered functions keyed on function name.
+   */
+  static registeredFunctions = {};
+  /**
+   * The object holding any registered subtree root node definitions keyed on tree name.
+   */
+  static registeredSubtrees = {};
+  /**
+   * Gets the function with the specified name.
+   * @param name The name of the function.
+   * @returns The function with the specified name.
+   */
   static getFunc(name) {
     return this.registeredFunctions[name];
   }
+  /**
+   * Sets the function with the specified name for later lookup.
+   * @param name The name of the function.
+   * @param func The function.
+   */
   static setFunc(name, func) {
     this.registeredFunctions[name] = func;
   }
+  /**
+   * Gets the function invoker for the specified agent and function name.
+   * If a function with the specified name exists on the agent object then it will
+   * be returned, otherwise we will then check the registered functions for a match.
+   * @param agent The agent instance that this behaviour tree is modelling behaviour for.
+   * @param name The function name.
+   * @returns The function invoker for the specified agent and function name.
+   */
   static getFuncInvoker(agent, name) {
     const agentFunction = agent[name];
     if (agentFunction && typeof agentFunction === "function") {
@@ -285,23 +318,36 @@ var Lookup = class {
     }
     return null;
   }
+  /**
+   * Gets all registered subtree root node definitions.
+   */
   static getSubtrees() {
     return this.registeredSubtrees;
   }
+  /**
+   * Sets the subtree with the specified name for later lookup.
+   * @param name The name of the subtree.
+   * @param subtree The subtree.
+   */
   static setSubtree(name, subtree) {
     this.registeredSubtrees[name] = subtree;
   }
+  /**
+   * Removes the registered function or subtree with the specified name.
+   * @param name The name of the registered function or subtree.
+   */
   static remove(name) {
     delete this.registeredFunctions[name];
     delete this.registeredSubtrees[name];
   }
+  /**
+   * Remove all registered functions and subtrees.
+   */
   static empty() {
     this.registeredFunctions = {};
     this.registeredSubtrees = {};
   }
 };
-__publicField(Lookup, "registeredFunctions", {});
-__publicField(Lookup, "registeredSubtrees", {});
 
 // src/BehaviourTreeDefinitionUtilities.ts
 function isRootNodeDefinition(node) {
@@ -341,7 +387,10 @@ function isNullOrUndefined(value) {
 
 // src/mdsl/MDSLArguments.ts
 function getArgumentJsonValue(arg) {
-  return arg.type === "identifier" ? `{{${arg.value}}}` : arg.value;
+  if (arg.type === "property_reference") {
+    return { $: arg.value };
+  }
+  return arg.value;
 }
 
 // src/mdsl/MDSLUtilities.ts
@@ -371,7 +420,9 @@ function tokenise(definition) {
   definition = definition.replace(/\[/g, " [ ");
   definition = definition.replace(/,/g, " , ");
   return {
+    // Split the definition into raw token form.
     tokens: definition.replace(/\s+/g, " ").trim().split(" "),
+    // The placeholders for string literals that were found in the definition.
     placeholders
   };
 }
@@ -440,6 +491,13 @@ function getArgumentDefinition(token, stringArgumentPlaceholders) {
       type: "string"
     };
   }
+  if (token.match(/^\$[_a-zA-Z][_a-zA-Z0-9]*/g)) {
+    return {
+      // The value is the identifier name with the '$' prefix removed.
+      value: token.slice(1),
+      type: "property_reference"
+    };
+  }
   return {
     value: token,
     type: "identifier"
@@ -465,7 +523,7 @@ function parseAttributeTokens(tokens, stringArgumentPlaceholders) {
     }
     attributeArguments.filter((arg) => arg.type === "identifier").forEach((arg) => {
       throw new Error(
-        `invalid attribute argument value '${arg.value}', must be string, number, boolean or null`
+        `invalid attribute argument value '${arg.value}', must be string, number, boolean, null or agent property reference`
       );
     });
     if (nextAttributeName === "while" || nextAttributeName === "until") {
@@ -1326,11 +1384,20 @@ function createValidationFailureResult(errorMessage) {
 
 // src/attributes/guards/GuardUnsatisifedException.ts
 var GuardUnsatisifedException = class extends Error {
+  /**
+   * @param source The node at which a guard condition failed.
+   * @param guard The guard.
+   */
   constructor(source, guard) {
     super("A guard path condition has failed");
     this.source = source;
     this.guard = guard;
   }
+  /**
+   * Gets whether the specified node is the node at which a guard condition failed.
+   * @param node The node to check against the source node.
+   * @returns Whether the specified node is the node at which a guard condition failed.
+   */
   isSourceNode(node) {
     return node === this.source;
   }
@@ -1338,9 +1405,17 @@ var GuardUnsatisifedException = class extends Error {
 
 // src/attributes/guards/GuardPath.ts
 var GuardPath = class {
+  /**
+   * @param nodes An array of objects defining a node instance -> guard link, ordered by node depth.
+   */
   constructor(nodes) {
     this.nodes = nodes;
   }
+  /**
+   * Evaluate guard conditions for all guards in the tree path, moving outwards from the root.
+   * @param agent The agent, required for guard evaluation.
+   * @returns An evaluation results object.
+   */
   evaluate(agent) {
     for (const details of this.nodes) {
       for (const guard of details.guards) {
@@ -1362,6 +1437,11 @@ function createUid() {
 
 // src/nodes/Node.ts
 var Node = class {
+  /**
+   * @param type The node type.
+   * @param attributes The node attributes.
+   * @param options The behaviour tree options.
+   */
   constructor(type, attributes, options) {
     this.type = type;
     this.options = options;
@@ -1374,10 +1454,25 @@ var Node = class {
       until: attributes.find(({ type: type2 }) => type2 === "until")
     };
   }
+  /**
+   * The node unique identifier.
+   */
   uid;
+  /**
+   * The node attributes.
+   */
   attributes;
+  /**
+   * The node state.
+   */
   _state = "mistreevous.ready" /* READY */;
+  /**
+   * The guard path to evaluate as part of a node update.
+   */
   _guardPath;
+  /**
+   * Gets/Sets the state of the node.
+   */
   getState = () => this._state;
   setState = (value) => {
     const previousState = this._state;
@@ -1386,17 +1481,43 @@ var Node = class {
       this.onStateChanged(previousState);
     }
   };
+  /**
+   * Gets the unique id of the node.
+   */
   getUid = () => this.uid;
+  /**
+   * Gets the type of the node.
+   */
   getType = () => this.type;
+  /**
+   * Gets the node attributes.
+   */
   getAttributes = () => Object.values(this.attributes).filter((attribute) => !!attribute);
+  /**
+   * Sets the guard path to evaluate as part of a node update.
+   */
   setGuardPath = (value) => this._guardPath = value;
+  /**
+   * Gets whether a guard path is assigned to this node.
+   */
   hasGuardPath = () => !!this._guardPath;
+  /**
+   * Gets whether this node is in the specified state.
+   * @param value The value to compare to the node state.
+   */
   is(value) {
     return this._state === value;
   }
+  /**
+   * Reset the state of the node.
+   */
   reset() {
     this.setState("mistreevous.ready" /* READY */);
   }
+  /**
+   * Abort the running of this node.
+   * @param agent The agent.
+   */
   abort(agent) {
     if (!this.is("mistreevous.running" /* RUNNING */)) {
       return;
@@ -1404,6 +1525,11 @@ var Node = class {
     this.reset();
     this.attributes.exit?.callAgentFunction(agent, false, true);
   }
+  /**
+   * Update the node.
+   * @param agent The agent.
+   * @returns The result of the update.
+   */
   update(agent) {
     if (this.is("mistreevous.succeeded" /* SUCCEEDED */) || this.is("mistreevous.failed" /* FAILED */)) {
       return;
@@ -1427,6 +1553,10 @@ var Node = class {
       }
     }
   }
+  /**
+   * Gets the details of this node instance.
+   * @returns The details of this node instance.
+   */
   getDetails() {
     return {
       id: this.uid,
@@ -1440,6 +1570,10 @@ var Node = class {
       state: this._state
     };
   }
+  /**
+   * Called when the state of this node changes.
+   * @param previousState The previous node state.
+   */
   onStateChanged(previousState) {
     this.options.onNodeStateChange?.({
       id: this.uid,
@@ -1461,15 +1595,31 @@ var Leaf = class extends Node {
 
 // src/nodes/composite/Composite.ts
 var Composite = class extends Node {
+  /**
+   * @param type The node type.
+   * @param attributes The node attributes.
+   * @param options The behaviour tree options.
+   * @param children The child nodes.
+   */
   constructor(type, attributes, options, children) {
     super(type, attributes, options);
     this.children = children;
   }
+  /**
+   * Gets the children of this node.
+   */
   getChildren = () => this.children;
+  /**
+   * Reset the state of the node.
+   */
   reset = () => {
     this.setState("mistreevous.ready" /* READY */);
     this.children.forEach((child) => child.reset());
   };
+  /**
+   * Abort the running of this node.
+   * @param agent The agent.
+   */
   abort = (agent) => {
     if (!this.is("mistreevous.running" /* RUNNING */)) {
       return;
@@ -1478,6 +1628,10 @@ var Composite = class extends Node {
     this.reset();
     this.attributes.exit?.callAgentFunction(agent, false, true);
   };
+  /**
+   * Gets the details of this node instance.
+   * @returns The details of this node instance.
+   */
   getDetails() {
     return {
       ...super.getDetails(),
@@ -1488,9 +1642,18 @@ var Composite = class extends Node {
 
 // src/nodes/composite/Parallel.ts
 var Parallel = class extends Composite {
+  /**
+   * @param attributes The node attributes.
+   * @param options The behaviour tree options.
+   * @param children The child nodes.
+   */
   constructor(attributes, options, children) {
     super("parallel", attributes, options, children);
   }
+  /**
+   * Called when the node is being updated.
+   * @param agent The agent.
+   */
   onUpdate(agent) {
     for (const child of this.children) {
       if (child.getState() === "mistreevous.ready" /* READY */ || child.getState() === "mistreevous.running" /* RUNNING */) {
@@ -1512,14 +1675,26 @@ var Parallel = class extends Composite {
     }
     this.setState("mistreevous.running" /* RUNNING */);
   }
+  /**
+   * Gets the name of the node.
+   */
   getName = () => "PARALLEL";
 };
 
 // src/nodes/composite/Race.ts
 var Race = class extends Composite {
+  /**
+   * @param attributes The node attributes.
+   * @param options The behaviour tree options.
+   * @param children The child nodes.
+   */
   constructor(attributes, options, children) {
     super("race", attributes, options, children);
   }
+  /**
+   * Called when the node is being updated.
+   * @param agent The agent.
+   */
   onUpdate(agent) {
     for (const child of this.children) {
       if (child.getState() === "mistreevous.ready" /* READY */ || child.getState() === "mistreevous.running" /* RUNNING */) {
@@ -1541,14 +1716,26 @@ var Race = class extends Composite {
     }
     this.setState("mistreevous.running" /* RUNNING */);
   }
+  /**
+   * Gets the name of the node.
+   */
   getName = () => "RACE";
 };
 
 // src/nodes/composite/All.ts
 var All = class extends Composite {
+  /**
+   * @param attributes The node attributes.
+   * @param options The behaviour tree options.
+   * @param children The child nodes.
+   */
   constructor(attributes, options, children) {
     super("all", attributes, options, children);
   }
+  /**
+   * Called when the node is being updated.
+   * @param agent The agent.
+   */
   onUpdate(agent) {
     for (const child of this.children) {
       if (child.getState() === "mistreevous.ready" /* READY */ || child.getState() === "mistreevous.running" /* RUNNING */) {
@@ -1561,15 +1748,27 @@ var All = class extends Composite {
     }
     this.setState("mistreevous.running" /* RUNNING */);
   }
+  /**
+   * Gets the name of the node.
+   */
   getName = () => "ALL";
 };
 
 // src/nodes/composite/Selector.ts
 var Selector = class extends Composite {
+  /**
+   * @param attributes The node attributes.
+   * @param options The behaviour tree options.
+   * @param children The child nodes.
+   */
   constructor(attributes, options, children) {
     super("selector", attributes, options, children);
     this.children = children;
   }
+  /**
+   * Called when the node is being updated.
+   * @param agent The agent.
+   */
   onUpdate(agent) {
     for (const child of this.children) {
       if (child.getState() === "mistreevous.ready" /* READY */ || child.getState() === "mistreevous.running" /* RUNNING */) {
@@ -1594,15 +1793,27 @@ var Selector = class extends Composite {
       throw new Error("child node was not in an expected state.");
     }
   }
+  /**
+   * Gets the name of the node.
+   */
   getName = () => "SELECTOR";
 };
 
 // src/nodes/composite/Sequence.ts
 var Sequence = class extends Composite {
+  /**
+   * @param attributes The node attributes.
+   * @param options The behaviour tree options.
+   * @param children The child nodes.
+   */
   constructor(attributes, options, children) {
     super("sequence", attributes, options, children);
     this.children = children;
   }
+  /**
+   * Called when the node is being updated.
+   * @param agent The agent.
+   */
   onUpdate(agent) {
     for (const child of this.children) {
       if (child.getState() === "mistreevous.ready" /* READY */ || child.getState() === "mistreevous.running" /* RUNNING */) {
@@ -1627,21 +1838,39 @@ var Sequence = class extends Composite {
       throw new Error("child node was not in an expected state.");
     }
   }
+  /**
+   * Gets the name of the node.
+   */
   getName = () => "SEQUENCE";
 };
 
 // src/nodes/composite/Lotto.ts
 var import_lotto_draw = __toESM(require_dist());
 var Lotto = class extends Composite {
+  /**
+   * @param attributes The node attributes.
+   * @param options The behaviour tree options.
+   * @param weights The child node weights.
+   * @param children The child nodes.
+   */
   constructor(attributes, options, weights, children) {
     super("lotto", attributes, options, children);
     this.weights = weights;
   }
+  /**
+   * The child node selected to be the active one.
+   */
   selectedChild;
+  /**
+   * Called when the node is being updated.
+   * @param agent The agent.
+   */
   onUpdate(agent) {
     if (this.is("mistreevous.ready" /* READY */)) {
       const lottoDraw = (0, import_lotto_draw.default)({
+        // Hook up the optional 'random' behaviour tree function option to the one used by 'lotto-draw'.
         random: this.options.random,
+        // Pass in each child node as a participant in the lotto draw with their respective ticket count.
         participants: this.children.map((child, index) => [child, this.weights?.[index] || 1])
       });
       this.selectedChild = lottoDraw.draw() || void 0;
@@ -1654,20 +1883,39 @@ var Lotto = class extends Composite {
     }
     this.setState(this.selectedChild.getState());
   }
+  /**
+   * Gets the name of the node.
+   */
   getName = () => this.weights ? `LOTTO [${this.weights.join(",")}]` : "LOTTO";
 };
 
 // src/nodes/decorator/Decorator.ts
 var Decorator = class extends Node {
+  /**
+   * @param type The node type.
+   * @param attributes The node attributes.
+   * @param options The behaviour tree options.
+   * @param child The child node.
+   */
   constructor(type, attributes, options, child) {
     super(type, attributes, options);
     this.child = child;
   }
+  /**
+   * Gets the children of this node.
+   */
   getChildren = () => [this.child];
+  /**
+   * Reset the state of the node.
+   */
   reset = () => {
     this.setState("mistreevous.ready" /* READY */);
     this.child.reset();
   };
+  /**
+   * Abort the running of this node.
+   * @param agent The agent.
+   */
   abort = (agent) => {
     if (!this.is("mistreevous.running" /* RUNNING */)) {
       return;
@@ -1676,6 +1924,10 @@ var Decorator = class extends Node {
     this.reset();
     this.attributes.exit?.callAgentFunction(agent, false, true);
   };
+  /**
+   * Gets the details of this node instance.
+   * @returns The details of this node instance.
+   */
   getDetails() {
     return {
       ...super.getDetails(),
@@ -1686,9 +1938,18 @@ var Decorator = class extends Node {
 
 // src/nodes/decorator/Fail.ts
 var Fail = class extends Decorator {
+  /**
+   * @param attributes The node attributes.
+   * @param options The behaviour tree options.
+   * @param child The child node.
+   */
   constructor(attributes, options, child) {
     super("fail", attributes, options, child);
   }
+  /**
+   * Called when the node is being updated.
+   * @param agent The agent.
+   */
   onUpdate(agent) {
     if (this.child.getState() === "mistreevous.ready" /* READY */ || this.child.getState() === "mistreevous.running" /* RUNNING */) {
       this.child.update(agent);
@@ -1705,14 +1966,26 @@ var Fail = class extends Decorator {
         this.setState("mistreevous.ready" /* READY */);
     }
   }
+  /**
+   * Gets the name of the node.
+   */
   getName = () => "FAIL";
 };
 
 // src/nodes/decorator/Flip.ts
 var Flip = class extends Decorator {
+  /**
+   * @param attributes The node attributes.
+   * @param options The behaviour tree options.
+   * @param child The child node.
+   */
   constructor(attributes, options, child) {
     super("flip", attributes, options, child);
   }
+  /**
+   * Called when the node is being updated.
+   * @param agent The agent.
+   */
   onUpdate(agent) {
     if (this.child.getState() === "mistreevous.ready" /* READY */ || this.child.getState() === "mistreevous.running" /* RUNNING */) {
       this.child.update(agent);
@@ -1731,19 +2004,40 @@ var Flip = class extends Decorator {
         this.setState("mistreevous.ready" /* READY */);
     }
   }
+  /**
+   * Gets the name of the node.
+   */
   getName = () => "FLIP";
 };
 
 // src/nodes/decorator/Repeat.ts
 var Repeat = class extends Decorator {
+  /**
+   * @param attributes The node attributes.
+   * @param options The behaviour tree options.
+   * @param iterations The number of iterations to repeat the child node.
+   * @param iterationsMin The minimum possible number of iterations to repeat the child node.
+   * @param iterationsMax The maximum possible number of iterations to repeat the child node.
+   * @param child The child node.
+   */
   constructor(attributes, options, iterations, iterationsMin, iterationsMax, child) {
     super("repeat", attributes, options, child);
     this.iterations = iterations;
     this.iterationsMin = iterationsMin;
     this.iterationsMax = iterationsMax;
   }
+  /**
+   * The number of target iterations to make.
+   */
   targetIterationCount = null;
+  /**
+   * The current iteration count.
+   */
   currentIterationCount = 0;
+  /**
+   * Called when the node is being updated.
+   * @param agent The agent.
+   */
   onUpdate(agent) {
     if (this.is("mistreevous.ready" /* READY */)) {
       this.child.reset();
@@ -1766,6 +2060,9 @@ var Repeat = class extends Decorator {
       this.setState("mistreevous.succeeded" /* SUCCEEDED */);
     }
   }
+  /**
+   * Gets the name of the node.
+   */
   getName = () => {
     if (this.iterations !== null) {
       return `REPEAT ${this.iterations}x`;
@@ -1775,17 +2072,27 @@ var Repeat = class extends Decorator {
       return "REPEAT";
     }
   };
+  /**
+   * Reset the state of the node.
+   */
   reset = () => {
     this.setState("mistreevous.ready" /* READY */);
     this.currentIterationCount = 0;
     this.child.reset();
   };
+  /**
+   * Gets whether an iteration can be made.
+   * @returns Whether an iteration can be made.
+   */
   canIterate = () => {
     if (this.targetIterationCount !== null) {
       return this.currentIterationCount < this.targetIterationCount;
     }
     return true;
   };
+  /**
+   * Sets the target iteration count.
+   */
   setTargetIterationCount = () => {
     if (this.iterations !== null) {
       this.targetIterationCount = this.iterations;
@@ -1802,14 +2109,32 @@ var Repeat = class extends Decorator {
 
 // src/nodes/decorator/Retry.ts
 var Retry = class extends Decorator {
+  /**
+   * @param attributes The node attributes.
+   * @param options The behaviour tree options.
+   * @param attempts The number of attempts to retry the child node.
+   * @param attemptsMin The minimum possible number of attempts to retry the child node.
+   * @param attemptsMax The maximum possible number of attempts to retry the child node.
+   * @param child The child node.
+   */
   constructor(attributes, options, attempts, attemptsMin, attemptsMax, child) {
     super("retry", attributes, options, child);
     this.attempts = attempts;
     this.attemptsMin = attemptsMin;
     this.attemptsMax = attemptsMax;
   }
+  /**
+   * The number of target attempts to make.
+   */
   targetAttemptCount = null;
+  /**
+   * The current attempt count.
+   */
   currentAttemptCount = 0;
+  /**
+   * Called when the node is being updated.
+   * @param agent The agent.
+   */
   onUpdate(agent) {
     if (this.is("mistreevous.ready" /* READY */)) {
       this.child.reset();
@@ -1832,6 +2157,9 @@ var Retry = class extends Decorator {
       this.setState("mistreevous.failed" /* FAILED */);
     }
   }
+  /**
+   * Gets the name of the node.
+   */
   getName = () => {
     if (this.attempts !== null) {
       return `RETRY ${this.attempts}x`;
@@ -1841,17 +2169,27 @@ var Retry = class extends Decorator {
       return "RETRY";
     }
   };
+  /**
+   * Reset the state of the node.
+   */
   reset = () => {
     this.setState("mistreevous.ready" /* READY */);
     this.currentAttemptCount = 0;
     this.child.reset();
   };
+  /**
+   * Gets whether an attempt can be made.
+   * @returns Whether an attempt can be made.
+   */
   canAttempt = () => {
     if (this.targetAttemptCount !== null) {
       return this.currentAttemptCount < this.targetAttemptCount;
     }
     return true;
   };
+  /**
+   * Sets the target attempt count.
+   */
   setTargetAttemptCount = () => {
     if (this.attempts !== null) {
       this.targetAttemptCount = this.attempts;
@@ -1868,23 +2206,44 @@ var Retry = class extends Decorator {
 
 // src/nodes/decorator/Root.ts
 var Root = class extends Decorator {
+  /**
+   * @param attributes The node attributes.
+   * @param options The behaviour tree options.
+   * @param child The child node.
+   */
   constructor(attributes, options, child) {
     super("root", attributes, options, child);
   }
+  /**
+   * Called when the node is being updated.
+   * @param agent The agent.
+   */
   onUpdate(agent) {
     if (this.child.getState() === "mistreevous.ready" /* READY */ || this.child.getState() === "mistreevous.running" /* RUNNING */) {
       this.child.update(agent);
     }
     this.setState(this.child.getState());
   }
+  /**
+   * Gets the name of the node.
+   */
   getName = () => "ROOT";
 };
 
 // src/nodes/decorator/Succeed.ts
 var Succeed = class extends Decorator {
+  /**
+   * @param attributes The node attributes.
+   * @param options The behaviour tree options.
+   * @param child The child node.
+   */
   constructor(attributes, options, child) {
     super("succeed", attributes, options, child);
   }
+  /**
+   * Called when the node is being updated.
+   * @param agent The agent.
+   */
   onUpdate(agent) {
     if (this.child.getState() === "mistreevous.ready" /* READY */ || this.child.getState() === "mistreevous.running" /* RUNNING */) {
       this.child.update(agent);
@@ -1901,18 +2260,37 @@ var Succeed = class extends Decorator {
         this.setState("mistreevous.ready" /* READY */);
     }
   }
+  /**
+   * Gets the name of the node.
+   */
   getName = () => "SUCCEED";
 };
 
 // src/nodes/leaf/Action.ts
 var Action = class extends Leaf {
+  /**
+   * @param attributes The node attributes.
+   * @param options The behaviour tree options.
+   * @param actionName The action name.
+   * @param actionArguments The array of action arguments.
+   */
   constructor(attributes, options, actionName, actionArguments) {
     super("action", attributes, options);
     this.actionName = actionName;
     this.actionArguments = actionArguments;
   }
+  /**
+   * Whether there is a pending update promise.
+   */
   isUsingUpdatePromise = false;
+  /**
+   * The finished state result of an update promise.
+   */
   updatePromiseResult = null;
+  /**
+   * Called when the node is being updated.
+   * @param agent The agent.
+   */
   onUpdate(agent) {
     if (this.isUsingUpdatePromise) {
       if (!this.updatePromiseResult) {
@@ -1975,18 +2353,32 @@ var Action = class extends Leaf {
       this.setState(actionFunctionResult || "mistreevous.running" /* RUNNING */);
     }
   }
+  /**
+   * Gets the name of the node.
+   */
   getName = () => this.actionName;
+  /**
+   * Reset the state of the node.
+   */
   reset = () => {
     this.setState("mistreevous.ready" /* READY */);
     this.isUsingUpdatePromise = false;
     this.updatePromiseResult = null;
   };
+  /**
+   * Gets the details of this node instance.
+   * @returns The details of this node instance.
+   */
   getDetails() {
     return {
       ...super.getDetails(),
       args: this.actionArguments
     };
   }
+  /**
+   * Called when the state of this node changes.
+   * @param previousState The previous node state.
+   */
   onStateChanged(previousState) {
     this.options.onNodeStateChange?.({
       id: this.uid,
@@ -2001,6 +2393,10 @@ var Action = class extends Leaf {
       state: this.getState()
     });
   }
+  /**
+   * Validate the result of an update function call.
+   * @param result The result of an update function call.
+   */
   validateUpdateResult = (result) => {
     switch (result) {
       case "mistreevous.succeeded" /* SUCCEEDED */:
@@ -2018,11 +2414,21 @@ var Action = class extends Leaf {
 
 // src/nodes/leaf/Condition.ts
 var Condition = class extends Leaf {
+  /**
+   * @param attributes The node attributes.
+   * @param options The behaviour tree options.
+   * @param conditionName The name of the condition function.
+   * @param conditionArguments The array of condition arguments.
+   */
   constructor(attributes, options, conditionName, conditionArguments) {
     super("condition", attributes, options);
     this.conditionName = conditionName;
     this.conditionArguments = conditionArguments;
   }
+  /**
+   * Called when the node is being updated.
+   * @param agent The agent.
+   */
   onUpdate(agent) {
     const conditionFuncInvoker = Lookup.getFuncInvoker(agent, this.conditionName);
     if (conditionFuncInvoker === null) {
@@ -2047,13 +2453,24 @@ var Condition = class extends Leaf {
     }
     this.setState(conditionFunctionResult ? "mistreevous.succeeded" /* SUCCEEDED */ : "mistreevous.failed" /* FAILED */);
   }
+  /**
+   * Gets the name of the node.
+   */
   getName = () => this.conditionName;
+  /**
+   * Gets the details of this node instance.
+   * @returns The details of this node instance.
+   */
   getDetails() {
     return {
       ...super.getDetails(),
       args: this.conditionArguments
     };
   }
+  /**
+   * Called when the state of this node changes.
+   * @param previousState The previous node state.
+   */
   onStateChanged(previousState) {
     this.options.onNodeStateChange?.({
       id: this.uid,
@@ -2072,18 +2489,38 @@ var Condition = class extends Leaf {
 
 // src/nodes/leaf/Wait.ts
 var Wait = class extends Leaf {
+  /**
+   * @param attributes The node attributes.
+   * @param options The behaviour tree options.
+   * @param duration The duration that this node will wait to succeed in milliseconds.
+   * @param durationMin The minimum possible duration in milliseconds that this node will wait to succeed.
+   * @param durationMax The maximum possible duration in milliseconds that this node will wait to succeed.
+   */
   constructor(attributes, options, duration, durationMin, durationMax) {
     super("wait", attributes, options);
     this.duration = duration;
     this.durationMin = durationMin;
     this.durationMax = durationMax;
   }
+  /**
+   * The time in milliseconds at which this node was first updated.
+   */
   initialUpdateTime = 0;
+  /**
+   * The total duration in milliseconds that this node will be waiting for.
+   */
   totalDuration = null;
+  /**
+   * The duration in milliseconds that this node has been waiting for.
+   */
   waitedDuration = 0;
+  /**
+   * Called when the node is being updated.
+   * @param agent The agent.
+   */
   onUpdate(agent) {
     if (this.is("mistreevous.ready" /* READY */)) {
-      this.initialUpdateTime = new Date().getTime();
+      this.initialUpdateTime = (/* @__PURE__ */ new Date()).getTime();
       this.waitedDuration = 0;
       if (this.duration !== null) {
         this.totalDuration = this.duration;
@@ -2107,12 +2544,15 @@ var Wait = class extends Leaf {
       }
       this.waitedDuration += deltaTime * 1e3;
     } else {
-      this.waitedDuration = new Date().getTime() - this.initialUpdateTime;
+      this.waitedDuration = (/* @__PURE__ */ new Date()).getTime() - this.initialUpdateTime;
     }
     if (this.waitedDuration >= this.totalDuration) {
       this.setState("mistreevous.succeeded" /* SUCCEEDED */);
     }
   }
+  /**
+   * Gets the name of the node.
+   */
   getName = () => {
     if (this.duration !== null) {
       return `WAIT ${this.duration}ms`;
@@ -2126,6 +2566,10 @@ var Wait = class extends Leaf {
 
 // src/attributes/Attribute.ts
 var Attribute = class {
+  /**
+   * @param type The node attribute type.
+   * @param args The array of attribute arguments.
+   */
   constructor(type, args) {
     this.type = type;
     this.args = args;
@@ -2134,16 +2578,30 @@ var Attribute = class {
 
 // src/attributes/guards/Guard.ts
 var Guard = class extends Attribute {
+  /**
+   * Creates a new instance of the Guard class.
+   * @param type The node attribute type.
+   * @param definition The node guard definition.
+   */
   constructor(type, definition) {
     super(type, definition.args ?? []);
     this.definition = definition;
   }
+  /**
+   * Gets the name of the condition function that determines whether the guard is satisfied.
+   */
   get condition() {
     return this.definition.call;
   }
+  /**
+   * Gets a flag defining whether the running node should move to the succeeded state when aborted, otherwise failed.
+   */
   get succeedOnAbort() {
     return !!this.definition.succeedOnAbort;
   }
+  /**
+   * Gets the attribute details.
+   */
   getDetails() {
     return {
       type: this.type,
@@ -2155,9 +2613,18 @@ var Guard = class extends Attribute {
 
 // src/attributes/guards/While.ts
 var While = class extends Guard {
+  /**
+   * Creates a new instance of the While class.
+   * @param definition The while node guard definition.
+   */
   constructor(definition) {
     super("while", definition);
   }
+  /**
+   * Gets whether the guard is satisfied.
+   * @param agent The agent.
+   * @returns Whether the guard is satisfied.
+   */
   isSatisfied = (agent) => {
     const conditionFuncInvoker = Lookup.getFuncInvoker(agent, this.condition);
     if (conditionFuncInvoker === null) {
@@ -2186,9 +2653,18 @@ var While = class extends Guard {
 
 // src/attributes/guards/Until.ts
 var Until = class extends Guard {
+  /**
+   * Creates a new instance of the Until class.
+   * @param definition The while node guard definition.
+   */
   constructor(definition) {
     super("until", definition);
   }
+  /**
+   * Gets whether the guard is satisfied.
+   * @param agent The agent.
+   * @returns Whether the guard is satisfied.
+   */
   isSatisfied = (agent) => {
     const conditionFuncInvoker = Lookup.getFuncInvoker(agent, this.condition);
     if (conditionFuncInvoker === null) {
@@ -2217,11 +2693,22 @@ var Until = class extends Guard {
 
 // src/attributes/callbacks/Callback.ts
 var Callback = class extends Attribute {
+  /**
+   * @param type The node attribute type.
+   * @param args The array of decorator argument definitions.
+   * @param functionName The name of the agent function to call.
+   */
   constructor(type, args, functionName) {
     super(type, args);
     this.functionName = functionName;
   }
+  /**
+   * Gets the name of the agent function to call.
+   */
   getFunctionName = () => this.functionName;
+  /**
+   * Gets the attribute details.
+   */
   getDetails() {
     return {
       type: this.type,
@@ -2233,9 +2720,17 @@ var Callback = class extends Attribute {
 
 // src/attributes/callbacks/Entry.ts
 var Entry = class extends Callback {
+  /**
+   * @param functionName The name of the agent function to call.
+   * @param args The array of callback argument definitions.
+   */
   constructor(functionName, args) {
     super("entry", args, functionName);
   }
+  /**
+   * Attempt to call the agent function that this callback refers to.
+   * @param agent The agent.
+   */
   callAgentFunction = (agent) => {
     const callbackFuncInvoker = Lookup.getFuncInvoker(agent, this.getFunctionName());
     if (callbackFuncInvoker === null) {
@@ -2249,9 +2744,17 @@ var Entry = class extends Callback {
 
 // src/attributes/callbacks/Step.ts
 var Step = class extends Callback {
+  /**
+   * @param functionName The name of the agent function to call.
+   * @param args The array of callback argument definitions.
+   */
   constructor(functionName, args) {
     super("step", args, functionName);
   }
+  /**
+   * Attempt to call the agent function that this callback refers to.
+   * @param agent The agent.
+   */
   callAgentFunction = (agent) => {
     const callbackFuncInvoker = Lookup.getFuncInvoker(agent, this.getFunctionName());
     if (callbackFuncInvoker === null) {
@@ -2265,9 +2768,19 @@ var Step = class extends Callback {
 
 // src/attributes/callbacks/Exit.ts
 var Exit = class extends Callback {
+  /**
+   * @param functionName The name of the agent function to call.
+   * @param args The array of callback argument definitions.
+   */
   constructor(functionName, args) {
     super("exit", args, functionName);
   }
+  /**
+   * Attempt to call the agent function that this callback refers to.
+   * @param agent The agent.
+   * @param isSuccess Whether the decorated node was left with a success state.
+   * @param isAborted Whether the decorated node was aborted.
+   */
   callAgentFunction = (agent, isSuccess, isAborted) => {
     const callbackFuncInvoker = Lookup.getFuncInvoker(agent, this.getFunctionName());
     if (callbackFuncInvoker === null) {
@@ -2456,6 +2969,12 @@ function applyLeafNodeGuardPaths(root) {
 
 // src/BehaviourTree.ts
 var BehaviourTree = class {
+  /**
+   * Creates a new instance of the BehaviourTree class.
+   * @param definition The behaviour tree definition as either an MDSL string, root node definition object or array of root node definition objects.
+   * @param agent The agent instance that this behaviour tree is modelling behaviour for.
+   * @param options The behaviour tree options object.
+   */
   constructor(definition, agent, options = {}) {
     this.agent = agent;
     this.options = options;
@@ -2480,13 +2999,32 @@ var BehaviourTree = class {
       throw new Error(`error building tree: ${exception.message}`);
     }
   }
+  /**
+   * The main root tree node.
+   */
   _rootNode;
+  /**
+   * Gets whether the tree is in the RUNNING state.
+   * @returns true if the tree is in the RUNNING state, otherwise false.
+   */
   isRunning() {
     return this._rootNode.getState() === "mistreevous.running" /* RUNNING */;
   }
+  /**
+   * Gets the current tree state of SUCCEEDED, FAILED, READY or RUNNING.
+   * @returns The current tree state.
+   */
   getState() {
     return this._rootNode.getState();
   }
+  /**
+   * Step the tree.
+   * Carries out a node update that traverses the tree from the root node outwards to any child nodes, skipping those that are already in a resolved state of SUCCEEDED or FAILED.
+   * After being updated, leaf nodes will have a state of SUCCEEDED, FAILED or RUNNING. Leaf nodes that are left in the RUNNING state as part of a tree step will be revisited each
+   * subsequent step until they move into a resolved state of either SUCCEEDED or FAILED, after which execution will move through the tree to the next node with a state of READY.
+   *
+   * Calling this method when the tree is already in a resolved state of SUCCEEDED or FAILED will cause it to be reset before tree traversal begins.
+   */
   step() {
     if (this._rootNode.getState() === "mistreevous.succeeded" /* SUCCEEDED */ || this._rootNode.getState() === "mistreevous.failed" /* FAILED */) {
       this._rootNode.reset();
@@ -2497,12 +3035,24 @@ var BehaviourTree = class {
       throw new Error(`error stepping tree: ${exception.message}`);
     }
   }
+  /**
+   * Resets the tree from the root node outwards to each nested node, giving each a state of READY.
+   */
   reset() {
     this._rootNode.reset();
   }
+  /**
+   * Gets the details of every node in the tree, starting from the root.
+   * @returns The details of every node in the tree, starting from the root.
+   */
   getTreeNodeDetails() {
     return this._rootNode.getDetails();
   }
+  /**
+   * Registers the action/condition/guard/callback function or subtree with the given name.
+   * @param name The name of the function or subtree to register.
+   * @param value The function or subtree definition to register.
+   */
   static register(name, value) {
     if (typeof value === "function") {
       Lookup.setFunc(name, value);
@@ -2541,9 +3091,16 @@ var BehaviourTree = class {
       throw new Error("unexpected value, expected string mdsl definition, root node json definition or function");
     }
   }
+  /**
+   * Unregisters the registered action/condition/guard/callback function or subtree with the given name.
+   * @param name The name of the registered action/condition/guard/callback function or subtree to unregister.
+   */
   static unregister(name) {
     Lookup.remove(name);
   }
+  /**
+   * Unregister all registered action/condition/guard/callback functions and subtrees.
+   */
   static unregisterAll() {
     Lookup.empty();
   }

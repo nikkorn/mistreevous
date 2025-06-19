@@ -23,7 +23,7 @@ export type Agent = {
     function).
 
     Rather than try to enforce some constraints to restrict these
-    inconsistencies, we are instead reflecting some of those ambigiouties.
+    inconsistencies, we are instead reflecting some of those ambiguities.
     This hopefully:
     - Keeps these types simple.
     - Reduces the complexity burden on code calling this API.

@@ -1,3 +1,5 @@
+export type NodeArgument = string | number | boolean | null | { $: string };
+
 /**
  * An attribute for a node.
  */
@@ -9,7 +11,7 @@ export interface NodeAttributeDefinition {
     /**
      * An array of arguments to pass when invoking the agent function.
      */
-    args?: any[];
+    args?: NodeArgument[];
 }
 
 /**
@@ -101,7 +103,7 @@ export interface ActionNodeDefinition extends NodeDefinition {
     /**
      * An array of arguments to pass when invoking the action function.
      */
-    args?: any[];
+    args?: NodeArgument[];
 }
 
 /**
@@ -119,7 +121,7 @@ export interface ConditionNodeDefinition extends NodeDefinition {
     /**
      * An array of arguments to pass when invoking the condition function.
      */
-    args?: any[];
+    args?: NodeArgument[];
 }
 
 /**
