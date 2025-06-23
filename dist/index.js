@@ -308,13 +308,23 @@ var Lookup = class {
    * @returns The function invoker for the specified agent and function name.
    */
   static getFuncInvoker(agent, name) {
+    const processFunctionArguments = (args) => args.map((arg) => {
+      if (typeof arg === "object" && arg !== null && Object.keys(arg).length === 1 && Object.prototype.hasOwnProperty.call(arg, "$")) {
+        const agentPropertyName = arg["$"];
+        if (typeof agentPropertyName !== "string" || agentPropertyName.length === 0) {
+          throw new Error("Agent property reference must be a string?");
+        }
+        return agent[agentPropertyName];
+      }
+      return arg;
+    });
     const agentFunction = agent[name];
     if (agentFunction && typeof agentFunction === "function") {
-      return (args) => agentFunction.apply(agent, args);
+      return (args) => agentFunction.apply(agent, processFunctionArguments(args));
     }
     if (this.registeredFunctions[name] && typeof this.registeredFunctions[name] === "function") {
       const registeredFunction = this.registeredFunctions[name];
-      return (args) => registeredFunction(agent, ...args);
+      return (args) => registeredFunction(agent, ...processFunctionArguments(args));
     }
     return null;
   }

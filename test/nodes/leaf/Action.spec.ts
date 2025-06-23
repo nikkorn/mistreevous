@@ -692,6 +692,39 @@ describe("An Action node", () => {
                             tree.step();
                         });
                     });
+
+                    describe("agent property reference", () => {
+                        it("(MDSL)", () => {
+                            const definition = "root { action [doAction, $someProperty] }";
+                            const agent = {
+                                doAction: (arg: any) => {
+                                    assert.strictEqual(arg, "some-property-value");
+                                },
+                                someProperty: "some-property-value"
+                            };
+                            const tree = new BehaviourTree(definition, agent);
+
+                            tree.step();
+                        });
+
+                        it("(JSON)", () => {
+                            const definition: RootNodeDefinition = {
+                                type: "root",
+                                child: {
+                                    type: "action",
+                                    call: "doAction",
+                                    args: [{ $: "someProperty" }]
+                                }
+                            };
+                            const agent = {
+                                doAction: (arg: any) => assert.strictEqual(arg, "some-property-value"),
+                                someProperty: "some-property-value"
+                            };
+                            const tree = new BehaviourTree(definition, agent);
+
+                            tree.step();
+                        });
+                    });
                 });
 
                 describe("there are multiple arguments", () => {
