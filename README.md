@@ -9,13 +9,13 @@
 ### ✅ Key Features
 
 - 🔹 **Minimal DSL or JSON-based definitions** – define behaviours clearly and concisely  
-- 🔹 **Many built-in composite, decorator & leaf nodes** – model complex logic using existing tools  
-- 🔹 **Async & promise-based actions** – handle long-running behaviours with ease  
-- 🔹 **Guards (`while` / `until`)** – dynamically interrupt or cancel running behaviours  
-- 🔹 **Lifecycle callbacks** – run custom logic when processing of tree nodes starts, continues, or ends  
+- 🔹 **Library of built-in composite, decorator & leaf nodes** – model complex logic using an extensive suite of predefined node types  
+- 🔹 **Async & promise-based actions** – handle long-running behaviours and actions asynchronously
+- 🔹 **Lifecycle callbacks** – define callbacks to invoke when tree nodes start, resume, or finish processing
 - 🔹 **Global functions & subtrees** – reuse logic and subtree definitions across multiple agents
-- 🔹 **Randomised behaviour support** – weighted choices, random delays, and more  
-- 🔹 **Debug tools** – inspect the state of running tree instances and track node state changes
+- 🔹 **Guards** – dynamically interrupt or cancel long-running behaviours 
+- 🔹 **Randomised behaviour support** – weighted choices, random delays, seedable RNG for deterministic tree processing  
+- 🔹 **Debugging tools** – inspect the state of running tree instances and track node state changes
 - 🔹 **Works in Node & browsers** – lightweight, fast, and easy to integrate anywhere
 
 🧩 **What are Behaviour Trees?**  
