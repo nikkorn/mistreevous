@@ -540,19 +540,59 @@ describe("A Condition node", () => {
                             tree.step();
                         });
                     });
+
+                    describe("agent property reference", () => {
+                        it("(MDSL)", () => {
+                            const definition = "root { condition [someCondition, $someProperty] }";
+                            const agent = {
+                                someCondition: (arg: any) => {
+                                    assert.strictEqual(arg, "some-property-value");
+                                    return true;
+                                },
+                                someProperty: "some-property-value"
+                            };
+                            const tree = new BehaviourTree(definition, agent);
+
+                            tree.step();
+                        });
+
+                        it("(JSON)", () => {
+                            const definition: RootNodeDefinition = {
+                                type: "root",
+                                child: {
+                                    type: "condition",
+                                    call: "someCondition",
+                                    args: [{ $: "someProperty" }]
+                                }
+                            };
+                            const agent = {
+                                someCondition: (arg: any) => {
+                                    assert.strictEqual(arg, "some-property-value");
+                                    return true;
+                                },
+                                someProperty: "some-property-value"
+                            };
+                            const tree = new BehaviourTree(definition, agent);
+
+                            tree.step();
+                        });
+                    });
                 });
 
                 describe("there are multiple arguments", () => {
                     it("(MDSL)", () => {
-                        const definition = 'root { condition [someCondition, 1.23, "hello world!", false, null] }';
+                        const definition =
+                            'root { condition [someCondition, 1.23, "hello world!", false, null, $someProperty] }';
                         const agent = {
-                            someCondition: (arg0: any, arg1: any, arg2: any, arg3: any) => {
+                            someCondition: (arg0: any, arg1: any, arg2: any, arg3: any, arg4: any) => {
                                 assert.strictEqual(arg0, 1.23);
                                 assert.strictEqual(arg1, "hello world!");
                                 assert.strictEqual(arg2, false);
                                 assert.strictEqual(arg3, null);
+                                assert.strictEqual(arg4, "some-property-value");
                                 return true;
-                            }
+                            },
+                            someProperty: "some-property-value"
                         };
                         const tree = new BehaviourTree(definition, agent);
 
@@ -565,17 +605,19 @@ describe("A Condition node", () => {
                             child: {
                                 type: "condition",
                                 call: "someCondition",
-                                args: [1.23, "hello world!", false, null]
+                                args: [1.23, "hello world!", false, null, { $: "someProperty" }]
                             }
                         };
                         const agent = {
-                            someCondition: (arg0: any, arg1: any, arg2: any, arg3: any) => {
+                            someCondition: (arg0: any, arg1: any, arg2: any, arg3: any, arg4: any) => {
                                 assert.strictEqual(arg0, 1.23);
                                 assert.strictEqual(arg1, "hello world!");
                                 assert.strictEqual(arg2, false);
                                 assert.strictEqual(arg3, null);
+                                assert.strictEqual(arg4, "some-property-value");
                                 return true;
-                            }
+                            },
+                            someProperty: "some-property-value"
                         };
                         const tree = new BehaviourTree(definition, agent);
 

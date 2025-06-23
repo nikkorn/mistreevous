@@ -729,14 +729,17 @@ describe("An Action node", () => {
 
                 describe("there are multiple arguments", () => {
                     it("(MDSL)", () => {
-                        const definition = 'root { action [doAction, 1.23, "hello world!", false, null] }';
+                        const definition =
+                            'root { action [doAction, 1.23, "hello world!", false, null, $someProperty] }';
                         const agent = {
-                            doAction: (arg0: any, arg1: any, arg2: any, arg3: any) => {
+                            doAction: (arg0: any, arg1: any, arg2: any, arg3: any, arg4: any) => {
                                 assert.strictEqual(arg0, 1.23);
                                 assert.strictEqual(arg1, "hello world!");
                                 assert.strictEqual(arg2, false);
                                 assert.strictEqual(arg3, null);
-                            }
+                                assert.strictEqual(arg4, "some-property-value");
+                            },
+                            someProperty: "some-property-value"
                         };
                         const tree = new BehaviourTree(definition, agent);
 
@@ -749,16 +752,18 @@ describe("An Action node", () => {
                             child: {
                                 type: "action",
                                 call: "doAction",
-                                args: [1.23, "hello world!", false, null]
+                                args: [1.23, "hello world!", false, null, { $: "someProperty" }]
                             }
                         };
                         const agent = {
-                            doAction: (arg0: any, arg1: any, arg2: any, arg3: any) => {
+                            doAction: (arg0: any, arg1: any, arg2: any, arg3: any, arg4: any) => {
                                 assert.strictEqual(arg0, 1.23);
                                 assert.strictEqual(arg1, "hello world!");
                                 assert.strictEqual(arg2, false);
                                 assert.strictEqual(arg3, null);
-                            }
+                                assert.strictEqual(arg4, "some-property-value");
+                            },
+                            someProperty: "some-property-value"
                         };
                         const tree = new BehaviourTree(definition, agent);
 

@@ -2,9 +2,24 @@
 [![npm version](https://badge.fury.io/js/mistreevous.svg)](https://badge.fury.io/js/mistreevous)
 [![Node.js CI](https://github.com/nikkorn/mistreevous/actions/workflows/node.js.yml/badge.svg?branch=master)](https://github.com/nikkorn/mistreevous/actions/workflows/node.js.yml)
 
-A library to declaratively define, build and execute behaviour trees, written in TypeScript for Node and browsers. Behaviour trees are used to create complex AI via the modular hierarchical composition of individual tasks.
+**Mistreevous** is a lightweight, TypeScript-based behaviour tree library for Node and the browser. Define complex AI behaviours using either JSON or a clean, minimal DSL (MDSL). Built for modularity, clarity, and fast iteration — perfect for games, simulations, and interactive agents.
 
-Using this tool, trees can be defined with either JSON or a simple and minimal built-in DSL (MDSL), avoiding the need to write verbose definitions in JSON.
+### ✅ Key Features
+
+- 🔹 **Minimal DSL or JSON-based definitions** – define behaviours clearly and concisely  
+- 🔹 **Many built-in composite, decorator & leaf nodes** – model complex logic using existing tools  
+- 🔹 **Async & promise-based actions** – handle long-running behaviours with ease  
+- 🔹 **Guards (`while` / `until`)** – dynamically interrupt or cancel running behaviours  
+- 🔹 **Lifecycle callbacks** – run custom logic when processing of tree nodes starts, continues, or ends  
+- 🔹 **Global functions & subtrees** – reuse logic and subtree definitions across multiple agents
+- 🔹 **Randomised behaviour support** – weighted choices, random delays, and more  
+- 🔹 **Debug tools** – inspect the state of running tree instances and track node state changes
+- 🔹 **Works in Node & browsers** – lightweight, fast, and easy to integrate anywhere
+
+🧩 **What are Behaviour Trees?**  
+Behaviour trees are used to create complex AI via the modular hierarchical composition of individual tasks making it easy to sequence actions, handle conditions, and control flow in a readable and maintainable way.
+
+🛠️ There is an in-browser editor and tree visualiser that you can try [HERE](https://nikkorn.github.io/mistreevous-visualiser/)  
 
 ![Sorting Lunch](resources/images/sorting-lunch-example.png?raw=true "Sorting Lunch")
 
@@ -1022,6 +1037,8 @@ root {
 Callbacks can be defined for tree nodes and will be invoked as the node is processed during a tree step. Any number of callbacks can be attached to a node as long as there are not multiple callbacks of the same type.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=callbacks)
 
+Callbacks are perfect for triggering animations, effects, sounds, logging, or side effects without bloating your action functions.
+
 Optional arguments can be defined for callback functions in the same way as action and condition functions.
 
 ### Entry
@@ -1461,13 +1478,15 @@ const agentBehaviourTree = new BehaviourTree(definition, agent);
 A great overview of behaviour trees, tackling the basic concepts.
 
 [Designing AI Agents’ Behaviors with Behavior Trees](https://towardsdatascience.com/designing-ai-agents-behaviors-with-behavior-trees-b28aa1c3cf8a)
-A practical look at behaviour trees and a good example of modelling behaviour for agents in a game of Pacman.
+A practical look at behaviour trees and a good example of modelling behaviour for agents in a game of PacMan.
 
 
 ## Version History
 | Version        | Notes |
 | -------------- |:----------------------------------------------------------------------------------------|
-| 4.2.0          | Added support for single and multi line comments in MDSL using /* ... */ syntax |
+| 4.3.0          | Resolved state can now be defined for nodes aborted using guards rather than always moving to the `FAILED` state |
+|                | Agent properties can now be referenced in tree definitions and passed as agent function arguments |
+| 4.2.0          | Added support for single and multi line comments in MDSL using `/* ... */` syntax |
 | 4.1.1          | Added linter and updated dependencies |
 | 4.1.0          | Added Race and All node types |
 |                | Added onNodeStateChange callback to behaviour tree options | 
@@ -1476,7 +1495,7 @@ A practical look at behaviour trees and a good example of modelling behaviour fo
 |                | Added validateDefinition function to use in validating JSON/MDSL definitions | 
 |                | Added convertMDSLToJSON function to convert existing MDSL definitions to JSON | 
 |                | Tidied up error handling for agent and registered function invocation | 
-|                | Action functions can now explictly return a value of State.RUNNING instead of having to return undefined  | 
+|                | Action functions can now explicitly return a value of State.RUNNING instead of having to return undefined  | 
 |                | Fixed issue where rejected action function promises were not handled correctly |
 |                | Fixed issue where registered functions were called with incorrect arguments |
 |                | Fixed some typings | 
@@ -1487,8 +1506,8 @@ A practical look at behaviour trees and a good example of modelling behaviour fo
 | 2.3.0          | Added Global Functions and Subtrees | 
 | 2.2.0          | Added Succeed, Fail and Retry decorators | 
 | 2.1.0          | Added optional arguments for actions, conditions and decorators  | 
-| 2.0.1          | Fixed isses with inconsistent guard condition evaluation for composite nodes | 
+| 2.0.1          | Fixed issues with inconsistent guard condition evaluation for composite nodes | 
 | 2.0.0          | Fixed broken typings | 
 | 1.1.0          | Added parallel composite node |
 | 1.0.0          | Calls to action, condition and guard agent functions are now bound to the agent instance |
-| 0.0.6          | Added promisey actions |
+| 0.0.6          | Added promise-y actions |
