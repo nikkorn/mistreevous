@@ -4,6 +4,8 @@
 
 **Mistreevous** is a lightweight, TypeScript-based behaviour tree library for Node and the browser. Define complex AI behaviours using either JSON or a clean, minimal DSL (MDSL). Built for modularity, clarity, and fast iteration — perfect for games, simulations, and interactive agents.
 
+![Sorting Lunch](resources/images/sorting-lunch-example.png?raw=true "Sorting Lunch")
+
 ### ✅ Key Features
 
 - 🔹 **Minimal DSL or JSON-based definitions** – define behaviours clearly and concisely  
@@ -20,10 +22,6 @@
 Behaviour trees are used to create complex AI via the modular hierarchical composition of individual tasks making it easy to sequence actions, handle conditions, and control flow in a readable and maintainable way.
 
 🛠️ There is an in-browser editor and tree visualiser that you can try [HERE](https://nikkorn.github.io/mistreevous-visualiser/)  
-
-![Sorting Lunch](resources/images/sorting-lunch-example.png?raw=true "Sorting Lunch")
-
-There is an in-browser editor and tree visualiser that you can try [HERE](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=sorting-lunch)
 
 ## Install
 
