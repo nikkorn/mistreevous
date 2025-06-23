@@ -21,7 +21,7 @@
 🧩 **What are Behaviour Trees?**  
 Behaviour trees are used to create complex AI via the modular hierarchical composition of individual tasks making it easy to sequence actions, handle conditions, and control flow in a readable and maintainable way.
 
-🛠️ There is an in-browser editor and tree visualiser that you can try [HERE](https://nikkorn.github.io/mistreevous-visualiser/)  
+🛠️ There is an in-browser editor and tree visualiser that you can try [HERE](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=sorting-lunch)  
 
 ## Install
 
