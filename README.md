@@ -9,7 +9,7 @@
 ### ✨ Key Features
 
 🔹 **Minimal DSL or JSON-based definitions** – define behaviours clearly and concisely  
-🔹 **Library of built-in composite, decorator & leaf nodes** – model complex logic using an extensive suite of predefined node types  
+🔹 **Library of built-in composite, decorator & leaf nodes** – model complex logic using a toolbox of predefined node types  
 🔹 **Async & promise-based actions** – handle long-running behaviours and actions asynchronously  
 🔹 **Lifecycle callbacks** – define callbacks to invoke when tree nodes start, resume, or finish processing  
 🔹 **Global functions & subtrees** – reuse logic and subtree definitions across multiple agents  
