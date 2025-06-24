@@ -760,7 +760,7 @@ const agent = {
 ```
 
 #### Optional Arguments
-Arguments can optionally be passed to agent action functions. In MDSL these optional arguments must be defined after the action name identifier argument and can be a `number`, `string`, `boolean` or `null`. If using JSON then these arguments are defined in an `args` array and these arguments can be any valid JSON.
+Arguments can optionally be passed to agent action functions. In MDSL these optional arguments must be defined after the action name identifier argument and can be a `number`, `string`, `boolean`, `null` or agent property reference. If using JSON then these arguments are defined in an `args` array and these arguments can be any valid JSON.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=action-with-args)
 
 *MDSL*
@@ -842,7 +842,7 @@ const agent = {
 ```
 
 #### Optional Arguments
-Arguments can optionally be passed to agent condition functions in the same way as action nodes. In MDSL these optional arguments must be defined after the condition name identifier argument, and can be a `number`, `string`, `boolean` or `null`, or can be any valid JSON when using a JSON definition.
+Arguments can optionally be passed to agent condition functions in the same way as action nodes. In MDSL these optional arguments must be defined after the condition name identifier argument, and can be a `number`, `string`, `boolean`, `null` or agent property reference.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=condition-with-args)
 
 *MDSL*
@@ -1181,7 +1181,7 @@ root {
 ```
 
 #### Optional Arguments
-Arguments can optionally be passed to agent callback functions and can be a `number`, `string`, `boolean` or `null` if using MDSL, or any valid JSON when using a JSON definition.
+Arguments can optionally be passed to agent callback functions and can be a `number`, `string`, `boolean`, `null` or agent property reference.
 
 *MDSL*
 ```
@@ -1236,7 +1236,7 @@ root {
 In the above example, we have a **wait** node that waits indefinitely. We are using a **while** guard to give up on waiting if the guard function **CanWait** returns false during a tree step.
 
 #### Optional Arguments
-Arguments can optionally be passed to agent guard functions and can be a `number`, `string`, `boolean` or `null` if using MDSL, or any valid JSON when using a JSON definition.
+Arguments can optionally be passed to agent guard functions and can be a `number`, `string`, `boolean`, `null` or agent property reference.
 
 *MDSL*
 ```
@@ -1369,6 +1369,39 @@ root {
                 "type": "wait",
                 "duration": 5000
             }
+        ]
+    }
+}
+```
+
+### Referencing Agent Properties as Arguments
+
+In addition to passing literal values (`number`, `string`, `boolean`, or `null`) as arguments to agent functions, agent properties can also be referenced dynamically in both MDSL and JSON definitions.
+
+This allows argument values to be resolved from the agent instance at runtime, enabling more flexible and data-driven behaviour definitions. Any referenced property must exist on the agent instance, either as a field or a getter method.
+
+In MDSL, agent properties are referenced by adding a `$` prefix to the argument. The portion following the `$` is interpreted as the name of a property on the agent, and its current value will be passed to the agent function when invoked.
+
+In JSON definitions, agent property references are represented as object literals with a single property where the key is `$` and where the value is the name of the agent property to resolve.
+
+In these examples, the value of `agent.someAgentProperty` is passed as the argument to `SomeFunction`.
+
+*MDSL*
+```
+root {
+    action [SomeFunction, $someAgentProperty]
+}
+```
+
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "action",
+        "call": "SomeFunction",
+        "args": [
+            { "$": "someAgentProperty" }
         ]
     }
 }
