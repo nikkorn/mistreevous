@@ -1,4 +1,5 @@
 import { NodeAttributeDefinition, NodeGuardDefinition } from "../BehaviourTreeDefinition";
+import { getArgumentJsonValue } from "./MDSLArguments";
 import { parseArgumentTokens } from "./MDSLNodeArgumentParser";
 import { popAndCheck, StringLiteralPlaceholders } from "./MDSLUtilities";
 
@@ -47,17 +48,17 @@ export function parseAttributeTokens(
             stringArgumentPlaceholders
         );
 
-        // The first attribute argument has to be an identifer, this will reference an agent function.
+        // The first attribute argument has to be an agent function reference.
         if (attributeCallIdentifier?.type !== "identifier") {
             throw new Error("expected agent function or registered function name identifier argument for attribute");
         }
 
-        // Any attribute arguments (other than the expected call identifier) must have a type of string, number, boolean or null.
+        // Any attribute arguments (other than the expected function reference token) must have a type of string, number, boolean, null or agent property reference.
         attributeArguments
             .filter((arg) => arg.type === "identifier")
             .forEach((arg) => {
                 throw new Error(
-                    `invalid attribute argument value '${arg.value}', must be string, number, boolean or null`
+                    `invalid attribute argument value '${arg.value}', must be string, number, boolean, null or agent property reference`
                 );
             });
 
@@ -80,14 +81,14 @@ export function parseAttributeTokens(
             // Create the guard definition and add it to the object of attribute definitions found.
             attributes[nextAttributeName] = {
                 call: attributeCallIdentifier.value,
-                args: attributeArguments.map(({ value }) => value),
+                args: attributeArguments.map(getArgumentJsonValue),
                 succeedOnAbort
             };
         } else {
             // Create the attribute definition and add it to the object of attribute definitions found.
             attributes[nextAttributeName] = {
                 call: attributeCallIdentifier.value,
-                args: attributeArguments.map(({ value }) => value)
+                args: attributeArguments.map(getArgumentJsonValue)
             };
         }
 

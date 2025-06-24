@@ -1,47 +1,5 @@
+import { AnyArgument } from "./MDSLArguments";
 import { StringLiteralPlaceholders, popAndCheck } from "./MDSLUtilities";
-
-/**
- * A type representing any node function argument.
- */
-type Argument<T> = {
-    /**
-     * The argument value.
-     */
-    value: T;
-    /**
-     * The argument type, used for validation.
-     */
-    type: string;
-};
-
-type NullArgument = Argument<null> & {
-    type: "null";
-};
-
-type BooleanArgument = Argument<boolean> & {
-    type: "boolean";
-};
-
-type NumberArgument = Argument<number> & {
-    type: "number";
-    /**
-     * A flag defining whether the number argument value is a valid integer. (used for validation)
-     */
-    isInteger: boolean;
-};
-
-type StringPlaceholderArgument = Argument<string> & {
-    type: "string";
-};
-
-type IdentifierArgument = Argument<string> & {
-    type: "identifier";
-};
-
-/**
- * A type representing a reference to any node function argument.
- */
-type AnyArgument = NullArgument | BooleanArgument | NumberArgument | StringPlaceholderArgument | IdentifierArgument;
 
 /**
  * Parse an array of argument definitions from the specified tokens array.
@@ -113,7 +71,7 @@ function getArgumentDefinition(token: string, stringArgumentPlaceholders: String
         return {
             value: null,
             type: "null"
-        } as NullArgument;
+        };
     }
 
     // Check whether the token represents a boolean value.
@@ -121,7 +79,7 @@ function getArgumentDefinition(token: string, stringArgumentPlaceholders: String
         return {
             value: token === "true",
             type: "boolean"
-        } as BooleanArgument;
+        };
     }
 
     // Check whether the token represents a number value.
@@ -132,7 +90,7 @@ function getArgumentDefinition(token: string, stringArgumentPlaceholders: String
             value: parseFloat(token),
             isInteger: parseFloat(token) === parseInt(token, 10),
             type: "number"
-        } as NumberArgument;
+        };
     }
 
     // Check whether the token is a placeholder (e.g. @@0@@) representing a string literal.
@@ -140,12 +98,21 @@ function getArgumentDefinition(token: string, stringArgumentPlaceholders: String
         return {
             value: stringArgumentPlaceholders[token].replace('\\"', '"'),
             type: "string"
-        } as StringPlaceholderArgument;
+        };
+    }
+
+    // Check whether the token is a valid javascript identifier with the '$' prefix (e.g. $someProperty, $another_Property_123) which references an agent property.
+    if (token.match(/^\$[_a-zA-Z][_a-zA-Z0-9]*/g)) {
+        return {
+            // The value is the identifier name with the '$' prefix removed.
+            value: token.slice(1),
+            type: "property_reference"
+        };
     }
 
     // The only remaining option is that the argument value is an identifier.
     return {
         value: token,
         type: "identifier"
-    } as IdentifierArgument;
+    };
 }

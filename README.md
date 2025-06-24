@@ -1,14 +1,27 @@
-# ![logo](resources/icons/icon-small.png) Mistreevous
+# ![logo](resources/icons/mistreevous-logo-small.png) Mistreevous
 [![npm version](https://badge.fury.io/js/mistreevous.svg)](https://badge.fury.io/js/mistreevous)
 [![Node.js CI](https://github.com/nikkorn/mistreevous/actions/workflows/node.js.yml/badge.svg?branch=master)](https://github.com/nikkorn/mistreevous/actions/workflows/node.js.yml)
 
-A library to declaratively define, build and execute behaviour trees, written in TypeScript for Node and browsers. Behaviour trees are used to create complex AI via the modular hierarchical composition of individual tasks.
-
-Using this tool, trees can be defined with either JSON or a simple and minimal built-in DSL (MDSL), avoiding the need to write verbose definitions in JSON.
+**Mistreevous** is a lightweight, TypeScript-based behaviour tree library for Node and the browser. Define complex AI behaviours using either JSON or a clean, minimal DSL (MDSL). Built for modularity, clarity, and fast iteration — perfect for games, simulations, and interactive agents.
 
 ![Sorting Lunch](resources/images/sorting-lunch-example.png?raw=true "Sorting Lunch")
 
-There is an in-browser editor and tree visualiser that you can try [HERE](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=sorting-lunch)
+### ✨ Key Features
+
+🔹 **Minimal DSL or JSON-based definitions** – define behaviours clearly and concisely  
+🔹 **Library of built-in composite, decorator & leaf nodes** – model complex logic using a toolbox of predefined node types  
+🔹 **Async & promise-based actions** – handle long-running behaviours and actions asynchronously  
+🔹 **Lifecycle callbacks** – define callbacks to invoke when tree nodes start, resume, or finish processing  
+🔹 **Global functions & subtrees** – reuse logic and subtree definitions across multiple agents  
+🔹 **Guards** – dynamically interrupt or cancel long-running behaviours  
+🔹 **Randomised behaviour support** – weighted choices, random delays, seedable RNG for deterministic tree processing  
+🔹 **Debugging tools** – inspect the state of running tree instances and track node state changes  
+🔹 **Works in Node & browsers** – lightweight, fast, and easy to integrate anywhere  
+
+🌳 **What are Behaviour Trees?**  
+Behaviour trees are used to create complex AI via the modular hierarchical composition of individual tasks making it easy to sequence actions, handle conditions, and control flow in a readable and maintainable way.
+
+🛠️ There is an in-browser editor and tree visualiser that you can try [HERE](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=sorting-lunch)  
 
 ## Install
 
@@ -747,7 +760,7 @@ const agent = {
 ```
 
 #### Optional Arguments
-Arguments can optionally be passed to agent action functions. In MDSL these optional arguments must be defined after the action name identifier argument and can be a `number`, `string`, `boolean` or `null`. If using JSON then these arguments are defined in an `args` array and these arguments can be any valid JSON.
+Arguments can optionally be passed to agent action functions. In MDSL these optional arguments must be defined after the action name identifier argument and can be a `number`, `string`, `boolean`, `null` or agent property reference. If using JSON then these arguments are defined in an `args` array and these arguments can be any valid JSON.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=action-with-args)
 
 *MDSL*
@@ -829,7 +842,7 @@ const agent = {
 ```
 
 #### Optional Arguments
-Arguments can optionally be passed to agent condition functions in the same way as action nodes. In MDSL these optional arguments must be defined after the condition name identifier argument, and can be a `number`, `string`, `boolean` or `null`, or can be any valid JSON when using a JSON definition.
+Arguments can optionally be passed to agent condition functions in the same way as action nodes. In MDSL these optional arguments must be defined after the condition name identifier argument, and can be a `number`, `string`, `boolean`, `null` or agent property reference.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=condition-with-args)
 
 *MDSL*
@@ -1022,6 +1035,8 @@ root {
 Callbacks can be defined for tree nodes and will be invoked as the node is processed during a tree step. Any number of callbacks can be attached to a node as long as there are not multiple callbacks of the same type.
 [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=callbacks)
 
+Callbacks are perfect for triggering animations, effects, sounds, logging, or side effects without bloating your action functions.
+
 Optional arguments can be defined for callback functions in the same way as action and condition functions.
 
 ### Entry
@@ -1166,7 +1181,7 @@ root {
 ```
 
 #### Optional Arguments
-Arguments can optionally be passed to agent callback functions and can be a `number`, `string`, `boolean` or `null` if using MDSL, or any valid JSON when using a JSON definition.
+Arguments can optionally be passed to agent callback functions and can be a `number`, `string`, `boolean`, `null` or agent property reference.
 
 *MDSL*
 ```
@@ -1221,7 +1236,7 @@ root {
 In the above example, we have a **wait** node that waits indefinitely. We are using a **while** guard to give up on waiting if the guard function **CanWait** returns false during a tree step.
 
 #### Optional Arguments
-Arguments can optionally be passed to agent guard functions and can be a `number`, `string`, `boolean` or `null` if using MDSL, or any valid JSON when using a JSON definition.
+Arguments can optionally be passed to agent guard functions and can be a `number`, `string`, `boolean`, `null` or agent property reference.
 
 *MDSL*
 ```
@@ -1359,6 +1374,39 @@ root {
 }
 ```
 
+### Referencing Agent Properties as Arguments
+
+In addition to passing literal values (`number`, `string`, `boolean`, or `null`) as arguments to agent functions, agent properties can also be referenced dynamically in both MDSL and JSON definitions.
+
+This allows argument values to be resolved from the agent instance at runtime, enabling more flexible and data-driven behaviour definitions. Any referenced property must exist on the agent instance, either as a field or a getter method.
+
+In MDSL, agent properties are referenced by adding a `$` prefix to the argument. The portion following the `$` is interpreted as the name of a property on the agent, and its current value will be passed to the agent function when invoked.
+
+In JSON definitions, agent property references are represented as object literals with a single property where the key is `$` and where the value is the name of the agent property to resolve.
+
+In these examples, the value of `agent.someAgentProperty` is passed as the argument to `SomeFunction`.
+
+*MDSL*
+```
+root {
+    action [SomeFunction, $someAgentProperty]
+}
+```
+
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "action",
+        "call": "SomeFunction",
+        "args": [
+            { "$": "someAgentProperty" }
+        ]
+    }
+}
+```
+
 ### Defining Aborted Node State
 When aborted via a guard, a node will mode to the `FAILED` state by default. Optionally, the state that the node should move to when aborted can be specified with `then succeed` or `then fail` following the guard definition when using MDSL, or by setting the `succeedOnAbort` boolean property when using a JSON definition.
 
@@ -1461,13 +1509,15 @@ const agentBehaviourTree = new BehaviourTree(definition, agent);
 A great overview of behaviour trees, tackling the basic concepts.
 
 [Designing AI Agents’ Behaviors with Behavior Trees](https://towardsdatascience.com/designing-ai-agents-behaviors-with-behavior-trees-b28aa1c3cf8a)
-A practical look at behaviour trees and a good example of modelling behaviour for agents in a game of Pacman.
+A practical look at behaviour trees and a good example of modelling behaviour for agents in a game of PacMan.
 
 
 ## Version History
 | Version        | Notes |
 | -------------- |:----------------------------------------------------------------------------------------|
-| 4.2.0          | Added support for single and multi line comments in MDSL using /* ... */ syntax |
+| 4.3.0          | Resolved state can now be defined for nodes aborted using guards rather than always moving to the `FAILED` state |
+|                | Agent properties can now be referenced in tree definitions and passed as agent function arguments |
+| 4.2.0          | Added support for single and multi line comments in MDSL using `/* ... */` syntax |
 | 4.1.1          | Added linter and updated dependencies |
 | 4.1.0          | Added Race and All node types |
 |                | Added onNodeStateChange callback to behaviour tree options | 
@@ -1476,7 +1526,7 @@ A practical look at behaviour trees and a good example of modelling behaviour fo
 |                | Added validateDefinition function to use in validating JSON/MDSL definitions | 
 |                | Added convertMDSLToJSON function to convert existing MDSL definitions to JSON | 
 |                | Tidied up error handling for agent and registered function invocation | 
-|                | Action functions can now explictly return a value of State.RUNNING instead of having to return undefined  | 
+|                | Action functions can now explicitly return a value of State.RUNNING instead of having to return undefined  | 
 |                | Fixed issue where rejected action function promises were not handled correctly |
 |                | Fixed issue where registered functions were called with incorrect arguments |
 |                | Fixed some typings | 
@@ -1487,8 +1537,8 @@ A practical look at behaviour trees and a good example of modelling behaviour fo
 | 2.3.0          | Added Global Functions and Subtrees | 
 | 2.2.0          | Added Succeed, Fail and Retry decorators | 
 | 2.1.0          | Added optional arguments for actions, conditions and decorators  | 
-| 2.0.1          | Fixed isses with inconsistent guard condition evaluation for composite nodes | 
+| 2.0.1          | Fixed issues with inconsistent guard condition evaluation for composite nodes | 
 | 2.0.0          | Fixed broken typings | 
 | 1.1.0          | Added parallel composite node |
 | 1.0.0          | Calls to action, condition and guard agent functions are now bound to the agent instance |
-| 0.0.6          | Added promisey actions |
+| 0.0.6          | Added promise-y actions |

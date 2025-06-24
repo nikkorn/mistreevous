@@ -43,16 +43,42 @@ export default class Lookup {
      * @returns The function invoker for the specified agent and function name.
      */
     static getFuncInvoker(agent: Agent, name: string): InvokerFunction | null {
+        // A function to process any arguments that will be passed to an agent or registered function.
+        const processFunctionArguments = (args: any[]) =>
+            args.map((arg) => {
+                // This argument may be an agent property reference. If it is we should substitute it for the value of the agent property it references.
+                // An agent property reference will be an object with a single "$" property with a string value representing the agent property name.
+                if (
+                    typeof arg === "object" &&
+                    arg !== null &&
+                    Object.keys(arg).length === 1 &&
+                    Object.prototype.hasOwnProperty.call(arg, "$")
+                ) {
+                    // Get the agent property name from the object representing the agent property reference.
+                    const agentPropertyName = arg["$"];
+
+                    // The agent property name must be a valid string.
+                    if (typeof agentPropertyName !== "string" || agentPropertyName.length === 0) {
+                        throw new Error("Agent property reference must be a string?");
+                    }
+
+                    return agent[agentPropertyName];
+                }
+
+                // The argument can be passed to the function as-is.
+                return arg;
+            });
+
         // Check whether the agent contains the specified function.
         const agentFunction = agent[name];
         if (agentFunction && typeof agentFunction === "function") {
-            return (args: any[]) => agentFunction.apply(agent, args);
+            return (args: any[]) => agentFunction.apply(agent, processFunctionArguments(args));
         }
 
         // The agent does not contain the specified function but it may have been registered at some point.
         if (this.registeredFunctions[name] && typeof this.registeredFunctions[name] === "function") {
             const registeredFunction = this.registeredFunctions[name];
-            return (args: any[]) => registeredFunction(agent, ...args);
+            return (args: any[]) => registeredFunction(agent, ...processFunctionArguments(args));
         }
 
         // We have no function to invoke.
