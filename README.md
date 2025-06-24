@@ -6,19 +6,19 @@
 
 ![Sorting Lunch](resources/images/sorting-lunch-example.png?raw=true "Sorting Lunch")
 
-### ✅ Key Features
+### ✨ Key Features
 
-- 🔹 **Minimal DSL or JSON-based definitions** – define behaviours clearly and concisely  
-- 🔹 **Library of built-in composite, decorator & leaf nodes** – model complex logic using an extensive suite of predefined node types  
-- 🔹 **Async & promise-based actions** – handle long-running behaviours and actions asynchronously
-- 🔹 **Lifecycle callbacks** – define callbacks to invoke when tree nodes start, resume, or finish processing
-- 🔹 **Global functions & subtrees** – reuse logic and subtree definitions across multiple agents
-- 🔹 **Guards** – dynamically interrupt or cancel long-running behaviours 
-- 🔹 **Randomised behaviour support** – weighted choices, random delays, seedable RNG for deterministic tree processing  
-- 🔹 **Debugging tools** – inspect the state of running tree instances and track node state changes
-- 🔹 **Works in Node & browsers** – lightweight, fast, and easy to integrate anywhere
+🔹 **Minimal DSL or JSON-based definitions** – define behaviours clearly and concisely  
+🔹 **Library of built-in composite, decorator & leaf nodes** – model complex logic using an extensive suite of predefined node types  
+🔹 **Async & promise-based actions** – handle long-running behaviours and actions asynchronously  
+🔹 **Lifecycle callbacks** – define callbacks to invoke when tree nodes start, resume, or finish processing  
+🔹 **Global functions & subtrees** – reuse logic and subtree definitions across multiple agents  
+🔹 **Guards** – dynamically interrupt or cancel long-running behaviours  
+🔹 **Randomised behaviour support** – weighted choices, random delays, seedable RNG for deterministic tree processing  
+🔹 **Debugging tools** – inspect the state of running tree instances and track node state changes  
+🔹 **Works in Node & browsers** – lightweight, fast, and easy to integrate anywhere  
 
-🧩 **What are Behaviour Trees?**  
+🌳 **What are Behaviour Trees?**  
 Behaviour trees are used to create complex AI via the modular hierarchical composition of individual tasks making it easy to sequence actions, handle conditions, and control flow in a readable and maintainable way.
 
 🛠️ There is an in-browser editor and tree visualiser that you can try [HERE](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=sorting-lunch)  
