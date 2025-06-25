@@ -7,6 +7,8 @@ import Attribute, { AttributeDetails } from "../Attribute";
 export type GuardAttributeDetails = {
     /** The name of the condition function that determines whether the guard is satisfied. */
     calls: string;
+    /** A flag defining whether the running node will move to the succeeded state when aborted, otherwise failed.  */
+    succeedOnAbort: boolean;
 } & AttributeDetails;
 /**
  * A base node guard attribute.

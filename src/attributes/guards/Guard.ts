@@ -8,6 +8,9 @@ import Attribute, { AttributeDetails } from "../Attribute";
 export type GuardAttributeDetails = {
     /** The name of the condition function that determines whether the guard is satisfied. */
     calls: string;
+
+    /** A flag defining whether the running node will move to the succeeded state when aborted, otherwise failed.  */
+    succeedOnAbort: boolean;
 } & AttributeDetails;
 
 /**
@@ -44,7 +47,8 @@ export default abstract class Guard extends Attribute<GuardAttributeDetails> {
         return {
             type: this.type,
             args: this.args,
-            calls: this.condition
+            calls: this.condition,
+            succeedOnAbort: this.succeedOnAbort
         };
     }
 

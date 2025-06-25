@@ -2616,7 +2616,8 @@ var Guard = class extends Attribute {
     return {
       type: this.type,
       args: this.args,
-      calls: this.condition
+      calls: this.condition,
+      succeedOnAbort: this.succeedOnAbort
     };
   }
 };
