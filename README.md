@@ -1378,7 +1378,7 @@ root {
 
 In addition to passing literal values (`number`, `string`, `boolean`, or `null`) as arguments to agent functions, agent properties can also be referenced dynamically in both MDSL and JSON definitions.
 
-This allows argument values to be resolved from the agent instance at runtime, enabling more flexible and data-driven behaviour definitions. Any referenced property must exist on the agent instance, either as a field or a getter method.
+This allows argument values to be resolved from the agent instance at runtime, enabling more flexible and data-driven behaviour definitions. Any referenced property must exist on the agent instance, either as a field or a getter method. [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=agent-property-references)
 
 In MDSL, agent properties are referenced by adding a `$` prefix to the argument. The portion following the `$` is interpreted as the name of a property on the agent, and its current value will be passed to the agent function when invoked.
 
