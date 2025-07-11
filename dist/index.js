@@ -533,7 +533,7 @@ function parseAttributeTokens(tokens, stringArgumentPlaceholders) {
     }
     attributeArguments.filter((arg) => arg.type === "identifier").forEach((arg) => {
       throw new Error(
-        `invalid attribute argument value '${arg.value}', must be string, number, boolean, null or agent property reference`
+        `invalid attribute argument value '${arg.value}', must be string, number, boolean, agent property reference or null`
       );
     });
     if (nextAttributeName === "while" || nextAttributeName === "until") {
@@ -852,6 +852,11 @@ function createActionNode(tokens, stringLiteralPlaceholders) {
   if (actionNameIdentifier?.type !== "identifier") {
     throw new Error("expected action name identifier argument");
   }
+  agentFunctionArgs.filter((arg) => arg.type === "identifier").forEach((arg) => {
+    throw new Error(
+      `invalid action node argument value '${arg.value}', must be string, number, boolean, agent property reference or null`
+    );
+  });
   return {
     type: "action",
     call: actionNameIdentifier.value,
@@ -864,6 +869,11 @@ function createConditionNode(tokens, stringLiteralPlaceholders) {
   if (conditionNameIdentifier?.type !== "identifier") {
     throw new Error("expected condition name identifier argument");
   }
+  agentFunctionArgs.filter((arg) => arg.type === "identifier").forEach((arg) => {
+    throw new Error(
+      `invalid condition node argument value '${arg.value}', must be string, number, boolean, agent property reference or null`
+    );
+  });
   return {
     type: "condition",
     call: conditionNameIdentifier.value,

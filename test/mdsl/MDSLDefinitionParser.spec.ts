@@ -42,6 +42,28 @@ describe("The MDSLDefinitionParser class has a convertMDSLToJSON function which 
                 "a decorator node must only have a single child node"
             );
         });
+
+        describe("an invalid node argument is defined for", () => {
+            it("an action node", () => {
+                const mdslDefinition = "root { action [noop, invalid-argument] }";
+
+                assert.throws(
+                    () => convertMDSLToJSON(mdslDefinition),
+                    Error,
+                    "invalid action node argument value 'invalid-argument', must be string, number, boolean, agent property reference or null"
+                );
+            });
+
+            it("a condition node", () => {
+                const mdslDefinition = "root { condition [noop, invalid-argument] }";
+
+                assert.throws(
+                    () => convertMDSLToJSON(mdslDefinition),
+                    Error,
+                    "invalid condition node argument value 'invalid-argument', must be string, number, boolean, agent property reference or null"
+                );
+            });
+        });
     });
 
     it("returns the corresponding JSON definition", () => {

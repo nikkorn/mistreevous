@@ -53,12 +53,12 @@ export function parseAttributeTokens(
             throw new Error("expected agent function or registered function name identifier argument for attribute");
         }
 
-        // Any attribute arguments (other than the expected function reference token) must have a type of string, number, boolean, null or agent property reference.
+        // Any attribute arguments (other than the expected function reference token) must have a type of string, number, boolean, agent property reference or null.
         attributeArguments
             .filter((arg) => arg.type === "identifier")
             .forEach((arg) => {
                 throw new Error(
-                    `invalid attribute argument value '${arg.value}', must be string, number, boolean, null or agent property reference`
+                    `invalid attribute argument value '${arg.value}', must be string, number, boolean, agent property reference or null`
                 );
             });
 

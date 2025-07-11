@@ -640,6 +640,15 @@ function createActionNode(
         throw new Error("expected action name identifier argument");
     }
 
+    // Only the first argument should have been an identifier, all following agent function arguments must be string, number, boolean, agent property reference or null.
+    agentFunctionArgs
+        .filter((arg) => arg.type === "identifier")
+        .forEach((arg) => {
+            throw new Error(
+                `invalid action node argument value '${arg.value}', must be string, number, boolean, agent property reference or null`
+            );
+        });
+
     // Return the action node definition.
     return {
         type: "action",
@@ -667,6 +676,15 @@ function createConditionNode(
     if (conditionNameIdentifier?.type !== "identifier") {
         throw new Error("expected condition name identifier argument");
     }
+
+    // Only the first argument should have been an identifier, all following agent function arguments must be string, number, boolean, agent property reference or null.
+    agentFunctionArgs
+        .filter((arg) => arg.type === "identifier")
+        .forEach((arg) => {
+            throw new Error(
+                `invalid condition node argument value '${arg.value}', must be string, number, boolean, agent property reference or null`
+            );
+        });
 
     // Return the condition node definition.
     return {
