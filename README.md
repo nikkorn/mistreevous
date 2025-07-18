@@ -23,6 +23,8 @@ Behaviour trees are hierarchical structures designed to model decision-making pr
 
 🛠️ There is an in-browser editor and tree visualiser that you can try [HERE](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=sorting-lunch)  
 
+☕ If you find this library useful then please consider [buying me a coffee](https://buymeacoffee.com/nikkorn)
+
 ## Install
 
 ```sh
