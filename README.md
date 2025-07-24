@@ -1376,40 +1376,7 @@ root {
 }
 ```
 
-### Referencing Agent Properties as Arguments
-
-In addition to passing literal values (`number`, `string`, `boolean`, or `null`) as arguments to agent functions, agent properties can also be referenced dynamically in both MDSL and JSON definitions.
-
-This allows argument values to be resolved from the agent instance at runtime, enabling more flexible and data-driven behaviour definitions. Any referenced property must exist on the agent instance, either as a field or a getter method. [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=agent-property-references)
-
-In MDSL, agent properties are referenced by adding a `$` prefix to the argument. The portion following the `$` is interpreted as the name of a property on the agent, and its current value will be passed to the agent function when invoked.
-
-In JSON definitions, agent property references are represented as object literals with a single property where the key is `$` and where the value is the name of the agent property to resolve.
-
-In these examples, the value of `agent.someAgentProperty` is passed as the argument to `SomeFunction`.
-
-*MDSL*
-```
-root {
-    action [SomeFunction, $someAgentProperty]
-}
-```
-
-*JSON*
-```json
-{
-    "type": "root",
-    "child": {
-        "type": "action",
-        "call": "SomeFunction",
-        "args": [
-            { "$": "someAgentProperty" }
-        ]
-    }
-}
-```
-
-### Defining Aborted Node State
+#### Defining Aborted Node State
 When aborted via a guard, a node will mode to the `FAILED` state by default. Optionally, the state that the node should move to when aborted can be specified with `then succeed` or `then fail` following the guard definition when using MDSL, or by setting the `succeedOnAbort` boolean property when using a JSON definition.
 
 *MDSL*
@@ -1440,6 +1407,39 @@ root {
                 "type": "action",
                 "call": "Attack"
             }
+        ]
+    }
+}
+```
+
+### Referencing Agent Properties as Arguments
+
+In addition to passing literal values (`number`, `string`, `boolean`, or `null`) as arguments to agent functions, agent properties can also be referenced dynamically in both MDSL and JSON definitions.
+
+This allows argument values to be resolved from the agent instance at runtime, enabling more flexible and data-driven behaviour definitions. Any referenced property must exist on the agent instance, either as a field or a getter method. [Example](https://nikkorn.github.io/mistreevous-visualiser/index.html?example=agent-property-references)
+
+In MDSL, agent properties are referenced by adding a `$` prefix to the argument. The portion following the `$` is interpreted as the name of a property on the agent, and its current value will be passed to the agent function when invoked.
+
+In JSON definitions, agent property references are represented as object literals with a single property where the key is `$` and where the value is the name of the agent property to resolve.
+
+In these examples, the value of `agent.someAgentProperty` is passed as the argument to `SomeFunction`.
+
+*MDSL*
+```
+root {
+    action [SomeFunction, $someAgentProperty]
+}
+```
+
+*JSON*
+```json
+{
+    "type": "root",
+    "child": {
+        "type": "action",
+        "call": "SomeFunction",
+        "args": [
+            { "$": "someAgentProperty" }
         ]
     }
 }
@@ -1517,6 +1517,7 @@ A practical look at behaviour trees and a good example of modelling behaviour fo
 ## Version History
 | Version        | Notes |
 | -------------- |:----------------------------------------------------------------------------------------|
+| 4.3.1          | Exclude browser dist files from package to reduce size |
 | 4.3.0          | Resolved state can now be defined for nodes aborted using guards rather than always moving to the `FAILED` state |
 |                | Agent properties can now be referenced in tree definitions and passed as agent function arguments |
 | 4.2.0          | Added support for single and multi line comments in MDSL using `/* ... */` syntax |

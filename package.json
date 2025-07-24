@@ -1,11 +1,13 @@
 {
   "name": "mistreevous",
-  "version": "4.3.0",
+  "version": "4.3.1",
   "description": "A library to declaratively define, build and execute behaviour trees, written in TypeScript for Node and browsers",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist/*"
+    "dist/index.js",
+    "dist/index.js.map",
+    "dist/**/*.d.ts"
   ],
   "devDependencies": {
     "@types/chai": "^4.3.16",
